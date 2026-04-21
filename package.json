@@ -1,0 +1,26 @@
+{
+  "name": "eduson-kids-platform",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Eduson Kids Platform — образовательная игровая платформа для детей 8-14 лет (Python/Scratch)",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev:web": "npm -w @eduson-kids/web run dev",
+    "build:web": "npm -w @eduson-kids/web run build",
+    "dev:desktop": "npm -w @eduson-kids/desktop run tauri dev",
+    "build:desktop": "npm -w @eduson-kids/desktop run tauri build",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

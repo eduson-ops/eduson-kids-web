@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Tauri
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+
+# Godot
+apps/game/.godot/
+apps/game/.import/
+apps/game/export_presets.cfg
+apps/game/*.import
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+
+# Python (if backend uses)
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Rust/Cargo
+target/
+Cargo.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local overrides
+.claude/settings.local.json
