@@ -34,7 +34,7 @@ const WALLS: BlockDef[] = [
 function Block({ pos, size, color }: BlockDef) {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={pos}>
-      <mesh>
+      <mesh castShadow receiveShadow>
         <boxGeometry args={size ?? [2.4, 1, 2.4]} />
         <meshStandardMaterial color={color} />
       </mesh>
@@ -45,9 +45,9 @@ function Block({ pos, size, color }: BlockDef) {
 function Ground() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -10]}>
-      <mesh>
+      <mesh receiveShadow>
         <boxGeometry args={[80, 0.5, 80]} />
-        <meshStandardMaterial color="#5ba55b" />
+        <meshStandardMaterial color="#48c774" />
       </mesh>
     </RigidBody>
   )
@@ -56,9 +56,13 @@ function Ground() {
 function Finish() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, 3.1, -26]}>
-      <mesh>
+      <mesh castShadow receiveShadow>
         <boxGeometry args={[6, 0.2, 2]} />
-        <meshStandardMaterial color="#ffd644" />
+        <meshStandardMaterial
+          color="#ffd644"
+          emissive="#ffaa00"
+          emissiveIntensity={0.25}
+        />
       </mesh>
     </RigidBody>
   )

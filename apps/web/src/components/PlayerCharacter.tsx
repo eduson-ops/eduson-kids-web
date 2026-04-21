@@ -1,7 +1,7 @@
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 import { SkeletonUtils } from 'three/examples/jsm/Addons.js'
-import { Box3, Group, Vector3 } from 'three'
+import { Box3, Group, Mesh, Vector3 } from 'three'
 import { MONSTER_URLS, type MonsterId } from './GltfMonster'
 
 export interface PlayerVisualHandle {
@@ -28,7 +28,17 @@ const PlayerCharacter = forwardRef<PlayerVisualHandle, Props>(function PlayerCha
   ref
 ) {
   const gltf = useGLTF(MONSTER_URLS[which])
-  const cloned = useMemo(() => SkeletonUtils.clone(gltf.scene), [gltf.scene])
+  const cloned = useMemo(() => {
+    const c = SkeletonUtils.clone(gltf.scene)
+    // Включаем тени у всех мешей внутри
+    c.traverse((obj) => {
+      if (obj instanceof Mesh) {
+        obj.castShadow = true
+        obj.receiveShadow = true
+      }
+    })
+    return c
+  }, [gltf.scene])
   const group = useRef<Group>(null!)
   const { actions } = useAnimations(gltf.animations, group)
   const current = useRef<string | null>(null)

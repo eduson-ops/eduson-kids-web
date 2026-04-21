@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { useEffect, useMemo, useRef } from 'react'
 import { SkeletonUtils } from 'three/examples/jsm/Addons.js'
-import { Box3, Group, Vector3 } from 'three'
+import { Box3, Group, Mesh, Vector3 } from 'three'
 
 // Quaternius Ultimate Monsters (CC0). Все модели содержат одинаковый
 // набор анимаций: Idle, Walk, Run, Jump, Wave, Punch, Death, HitReact,
@@ -57,7 +57,16 @@ export default function GltfMonster({
   rotY = 0,
 }: Props) {
   const gltf = useGLTF(MONSTER_URLS[which])
-  const cloned = useMemo(() => SkeletonUtils.clone(gltf.scene), [gltf.scene])
+  const cloned = useMemo(() => {
+    const c = SkeletonUtils.clone(gltf.scene)
+    c.traverse((obj) => {
+      if (obj instanceof Mesh) {
+        obj.castShadow = true
+        obj.receiveShadow = true
+      }
+    })
+    return c
+  }, [gltf.scene])
 
   const rb = useRef<RapierRigidBody>(null!)
   const groupRef = useRef<Group>(null!)

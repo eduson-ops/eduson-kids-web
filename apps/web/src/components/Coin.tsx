@@ -40,17 +40,16 @@ export default function Coin({ pos, value = 1 }: Props) {
       }}
     >
       <group ref={visual}>
-        <mesh castShadow>
+        <mesh castShadow receiveShadow>
           <cylinderGeometry args={[0.35, 0.35, 0.08, 16]} />
           <meshStandardMaterial
             color="#ffd644"
             emissive="#ffaa00"
-            emissiveIntensity={0.45}
-            metalness={0.8}
-            roughness={0.25}
+            emissiveIntensity={0.2}
+            metalness={0.7}
+            roughness={0.3}
           />
         </mesh>
-        {/* звёздочка поверх для контраста */}
         <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]}>
           <circleGeometry args={[0.18, 5]} />
           <meshStandardMaterial color="#fff5a0" />

@@ -8,9 +8,9 @@ import GltfMonster from '../GltfMonster'
 function Ground() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, 0]}>
-      <mesh>
+      <mesh receiveShadow>
         <boxGeometry args={[80, 0.5, 80]} />
-        <meshStandardMaterial color="#6cb76c" />
+        <meshStandardMaterial color="#48c774" />
       </mesh>
     </RigidBody>
   )
@@ -20,12 +20,12 @@ function House({ pos, color }: { pos: [number, number, number]; color: string })
   return (
     <group position={pos}>
       <RigidBody type="fixed" colliders="cuboid" position={[0, 1, 0]}>
-        <mesh>
+        <mesh castShadow receiveShadow>
           <boxGeometry args={[3, 2, 3]} />
           <meshStandardMaterial color={color} />
         </mesh>
       </RigidBody>
-      <mesh position={[0, 2.5, 0]} rotation={[0, Math.PI / 4, 0]}>
+      <mesh position={[0, 2.5, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
         <coneGeometry args={[2.4, 1.2, 4]} />
         <meshStandardMaterial color="#8b4513" />
       </mesh>
@@ -37,14 +37,14 @@ function Tree({ pos }: { pos: [number, number, number] }) {
   return (
     <group position={pos}>
       <RigidBody type="fixed" colliders="cuboid" position={[0, 0.75, 0]}>
-        <mesh>
+        <mesh castShadow>
           <cylinderGeometry args={[0.2, 0.25, 1.5, 6]} />
-          <meshStandardMaterial color="#8b4513" />
+          <meshStandardMaterial color="#6b3a0f" />
         </mesh>
       </RigidBody>
-      <mesh position={[0, 2, 0]}>
+      <mesh position={[0, 2, 0]} castShadow>
         <sphereGeometry args={[0.9, 10, 10]} />
-        <meshStandardMaterial color="#2f7a2f" />
+        <meshStandardMaterial color="#36a336" />
       </mesh>
     </group>
   )

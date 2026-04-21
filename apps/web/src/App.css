@@ -185,6 +185,26 @@ body:has(.lobby-v2) {
   justify-content: center;
   border: 2px solid #fafaff;
 }
+.avatar-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 24px;
+  background: linear-gradient(135deg, #ff5ab1, #c879ff);
+  box-shadow: 0 6px 18px rgba(200, 121, 255, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 3px solid #fff;
+  cursor: pointer;
+}
+.avatar-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(200, 121, 255, 0.5);
+}
+
 .login-cat {
   display: inline-flex;
   align-items: center;

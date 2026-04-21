@@ -68,11 +68,24 @@ export default function Home() {
           />
         </div>
         <div className="lobby-auth">
+          {/* Аватар-котик виден всегда — ведёт в /profile с 3D-превью */}
+          <Link
+            to="/profile"
+            className="avatar-btn"
+            aria-label="Мой аватар"
+            title="Мой аватар"
+          >
+            <span aria-hidden>🐱</span>
+          </Link>
           {childName ? (
             <>
               <span className="hello">Привет, {childName}</span>
-              <button className="login-cat" onClick={logout} aria-label="Выйти">
-                <span className="login-cat-icon" aria-hidden>🐱</span>
+              <button
+                className="btn ghost tiny"
+                onClick={logout}
+                aria-label="Выйти"
+              >
+                выйти
               </button>
             </>
           ) : (
