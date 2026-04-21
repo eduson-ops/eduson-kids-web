@@ -12,6 +12,9 @@ import {
 } from '../lib/gameState'
 import { SFX, getMuted, setMuted } from '../lib/audio'
 import { apiPutProgress } from '../lib/api'
+import EscapeMenu from '../components/EscapeMenu'
+import Leaderboard from '../components/Leaderboard'
+import OnboardingOverlay from '../components/OnboardingOverlay'
 
 export default function Play() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -107,6 +110,10 @@ export default function Play() {
         <strong>WASD</strong> — ходить · <strong>Space</strong> — прыжок ·
         <strong> клик</strong> — захват мыши (ESC — отменить)
       </div>
+
+      <EscapeMenu gameTitle={game.title} />
+      <Leaderboard gameTitle={game.title} />
+      <OnboardingOverlay />
 
       {state.goal && (
         <div className="goal-overlay">

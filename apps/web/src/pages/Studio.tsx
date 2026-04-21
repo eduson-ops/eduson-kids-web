@@ -1,140 +1,89 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import BlocklyWorkspace from '../components/BlocklyWorkspace'
-import PythonPanel from '../components/PythonPanel'
-import GameCanvas from '../components/GameCanvas'
-import type { GameCanvasHandle } from '../components/GameCanvas'
-import { runPython, resetRuntime } from '../lib/pyodide-executor'
-import type { Command } from '../lib/blocks'
+import BuildTab from '../studio/BuildTab'
+import ScriptTab from '../studio/ScriptTab'
+import TestTab from '../studio/TestTab'
+import { getState, resetScene, subscribe, type EditorState } from '../studio/editorState'
+import { SFX } from '../lib/audio'
 
-const STORAGE_KEY = 'ek_project_v1'
-const STARTER_XML = `<xml xmlns="https://developers.google.com/blockly/xml">
-  <block type="ek_on_start" x="40" y="40">
-    <statement name="DO">
-      <block type="ek_say">
-        <field name="TEXT">Привет!</field>
-        <next>
-          <block type="ek_repeat">
-            <field name="TIMES">4</field>
-            <statement name="DO">
-              <block type="ek_move_forward">
-                <field name="STEPS">2</field>
-                <next>
-                  <block type="ek_turn_right"></block>
-                </next>
-              </block>
-            </statement>
-          </block>
-        </next>
-      </block>
-    </statement>
-  </block>
-</xml>`
+type Tab = 'build' | 'script' | 'test'
 
-type Status = 'idle' | 'loading' | 'running' | 'error'
-
-export default function Editor() {
+export default function Studio() {
   const navigate = useNavigate()
-  const [childName, setChildName] = useState('Игрок')
-  const [pythonCode, setPythonCode] = useState<string>('# нажми «Запустить»')
-  const [status, setStatus] = useState<Status>('loading')
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [xml, setXml] = useState<string | null>(null)
-  const canvasRef = useRef<GameCanvasHandle>(null)
+  const [tab, setTab] = useState<Tab>('build')
+  const [state, setState] = useState<EditorState>(getState())
+  const [saved, setSaved] = useState<string>('сохранено')
+
+  useEffect(() => subscribe(setState), [])
 
   useEffect(() => {
-    const name = localStorage.getItem('ek_child_name')
-    if (!name) {
-      navigate('/', { replace: true })
-      return
-    }
-    setChildName(name)
-    const saved = localStorage.getItem(STORAGE_KEY)
-    setXml(saved || STARTER_XML)
-  }, [navigate])
+    // Индикатор автосохранения: "..." → "сохранено"
+    setSaved('сохраняем…')
+    const t = setTimeout(() => setSaved('сохранено ✓'), 400)
+    return () => clearTimeout(t)
+  }, [state])
 
-  const handleWorkspaceChange = useCallback(
-    (generatedPython: string, workspaceXml: string) => {
-      setPythonCode(generatedPython)
-      localStorage.setItem(STORAGE_KEY, workspaceXml)
-    },
-    []
-  )
-
-  const onRun = async () => {
-    if (status === 'running' || status === 'loading') return
-    setStatus('running')
-    setErrorMsg(null)
-    try {
-      canvasRef.current?.reset()
-      const commands: Command[] = await runPython(pythonCode)
-      await canvasRef.current?.play(commands)
-    } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : String(err))
-      setStatus('error')
-      return
-    }
-    setStatus('idle')
-  }
-
-  const onReset = () => {
-    canvasRef.current?.reset()
-    resetRuntime()
-    setErrorMsg(null)
-    setStatus('idle')
-  }
-
-  const onLogout = () => {
-    localStorage.removeItem('ek_child_code')
-    localStorage.removeItem('ek_child_name')
+  const onHome = () => {
+    SFX.click()
     navigate('/')
   }
 
+  const onReset = () => {
+    if (confirm('Сбросить сцену до начальной? Твои изменения пропадут.')) {
+      resetScene()
+    }
+  }
+
+  const count = state.parts.length
+
   return (
-    <div className="editor-root">
-      <header className="editor-header">
-        <div className="editor-brand" onClick={() => navigate('/')}>
-          🎮 <strong>Eduson Kids</strong>
+    <div className="studio-root">
+      <header className="studio-header">
+        <button className="home-btn" onClick={onHome} aria-label="В лобби">
+          ←
+        </button>
+        <div className="studio-brand">
+          🎨 <strong>Студия</strong>
         </div>
-        <div className="editor-who">Привет, {childName}</div>
-        <div className="editor-actions">
+        <nav className="studio-tabs">
           <button
-            className="run"
-            onClick={onRun}
-            disabled={status === 'running' || status === 'loading'}
+            className={`studio-tab ${tab === 'build' ? 'active' : ''}`}
+            onClick={() => setTab('build')}
           >
-            {status === 'loading' && '⏳ Загружаю Python…'}
-            {status === 'running' && '▶ Играю…'}
-            {status === 'idle' && '▶ Запустить'}
-            {status === 'error' && '▶ Попробовать снова'}
+            🧱 Строить
           </button>
-          <button className="ghost" onClick={onReset}>Сброс</button>
-          <button className="ghost" onClick={onLogout}>Выйти</button>
+          <button
+            className={`studio-tab ${tab === 'script' ? 'active' : ''}`}
+            onClick={() => setTab('script')}
+          >
+            🧩 Скрипт
+          </button>
+          <button
+            className={`studio-tab ${tab === 'test' ? 'active' : ''}`}
+            onClick={() => setTab('test')}
+          >
+            ▶ Тест
+          </button>
+        </nav>
+        <div className="studio-stats">
+          <span title="Объектов в сцене">📦 {count}</span>
+          <span className={`save-indicator ${saved.includes('✓') ? 'ok' : ''}`}>{saved}</span>
+        </div>
+        <div className="studio-actions">
+          <button className="ghost" onClick={onReset}>
+            Сброс
+          </button>
+          <button className="publish" disabled title="Публикация в v1.0">
+            📤 Опубликовать
+          </button>
         </div>
       </header>
-      {errorMsg && (
-        <div className="editor-error">
-          <strong>Ошибка Python:</strong>{' '}
-          <code>{errorMsg}</code>
-        </div>
-      )}
-      <div className="editor-grid">
-        <section className="editor-pane blockly" aria-label="Блоки">
-          {xml !== null && (
-            <BlocklyWorkspace
-              initialXml={xml}
-              onChange={handleWorkspaceChange}
-              onReady={() => setStatus('idle')}
-            />
-          )}
-        </section>
-        <section className="editor-pane python" aria-label="Python-код">
-          <PythonPanel code={pythonCode} />
-        </section>
-        <section className="editor-pane canvas" aria-label="Игровое поле">
-          <GameCanvas ref={canvasRef} />
-        </section>
-      </div>
+
+      <main className="studio-main">
+        {tab === 'build' && <BuildTab />}
+        {tab === 'script' && <ScriptTab />}
+        {tab === 'test' && <TestTab state={state} />}
+      </main>
     </div>
   )
 }
