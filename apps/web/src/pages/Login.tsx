@@ -17,13 +17,13 @@ export default function Login() {
     // Stage 1 US-01: real auth через /api/v1/auth/child-code
     localStorage.setItem('ek_child_code', childCode)
     localStorage.setItem('ek_child_name', `Игрок-${childCode.slice(-3)}`)
-    setTimeout(() => navigate('/editor'), 300)
+    setTimeout(() => navigate('/'), 300)
   }
 
   const quickStart = () => {
     localStorage.setItem('ek_child_code', '000000')
     localStorage.setItem('ek_child_name', 'Гость')
-    navigate('/editor')
+    navigate('/')
   }
 
   return (

@@ -1,0 +1,163 @@
+export interface GameMeta {
+  id: string
+  title: string
+  author: string
+  category: 'obby' | 'sandbox' | 'rp' | 'race' | 'sim'
+  emoji: string
+  color: string
+  playersOnline: number
+  featured: boolean
+  rank: number
+  scene: 'playground' // MVP: все игры используют одну сцену-заглушку
+}
+
+export const GAMES: GameMeta[] = [
+  {
+    id: 'obby-rainbow',
+    title: 'Прыжки по цветам',
+    author: 'EdusonStudio',
+    category: 'obby',
+    emoji: '🟥',
+    color: '#ff5ab1',
+    playersOnline: 8,
+    featured: true,
+    rank: 1,
+    scene: 'playground',
+  },
+  {
+    id: 'farm-garden',
+    title: 'Вырасти сад',
+    author: 'GreenDev',
+    category: 'sim',
+    emoji: '🌱',
+    color: '#5ba55b',
+    playersOnline: 12,
+    featured: true,
+    rank: 2,
+    scene: 'playground',
+  },
+  {
+    id: 'city-rp',
+    title: 'Город RP',
+    author: 'Мариам',
+    category: 'rp',
+    emoji: '🏙️',
+    color: '#4c97ff',
+    playersOnline: 24,
+    featured: true,
+    rank: 3,
+    scene: 'playground',
+  },
+  {
+    id: 'race-ice',
+    title: 'ЛЁД — гонки 1961',
+    author: 'RetroRace',
+    category: 'race',
+    emoji: '🏎️',
+    color: '#2e3340',
+    playersOnline: 5,
+    featured: true,
+    rank: 4,
+    scene: 'playground',
+  },
+  {
+    id: 'sandbox-world',
+    title: 'Песочница — строй свой мир',
+    author: 'BuildMaster',
+    category: 'sandbox',
+    emoji: '🧱',
+    color: '#ffd644',
+    playersOnline: 3,
+    featured: true,
+    rank: 5,
+    scene: 'playground',
+  },
+  {
+    id: 'mystery-long',
+    title: 'Тайна Длинного существа',
+    author: 'DarkDev',
+    category: 'rp',
+    emoji: '👁️',
+    color: '#c879ff',
+    playersOnline: 1,
+    featured: false,
+    rank: 6,
+    scene: 'playground',
+  },
+  {
+    id: 'forest-99',
+    title: '99 ночей в лесу',
+    author: 'NightTeam',
+    category: 'sandbox',
+    emoji: '🌲',
+    color: '#1f5f2f',
+    playersOnline: 2,
+    featured: false,
+    rank: 7,
+    scene: 'playground',
+  },
+  {
+    id: 'burger-sim',
+    title: 'Бургер Симулятор',
+    author: 'FoodieDev',
+    category: 'sim',
+    emoji: '🍔',
+    color: '#ff8c1a',
+    playersOnline: 14,
+    featured: false,
+    rank: 8,
+    scene: 'playground',
+  },
+  {
+    id: 'cat-city',
+    title: 'Город кошек',
+    author: 'MeowDev',
+    category: 'rp',
+    emoji: '🐱',
+    color: '#ffd1e8',
+    playersOnline: 22,
+    featured: false,
+    rank: 9,
+    scene: 'playground',
+  },
+  {
+    id: 'tree-chop',
+    title: 'Наруби деревья',
+    author: 'LumberKid',
+    category: 'sim',
+    emoji: '🪓',
+    color: '#8b4513',
+    playersOnline: 7,
+    featured: false,
+    rank: 10,
+    scene: 'playground',
+  },
+  {
+    id: 'obby-tower',
+    title: 'Башня прыжков',
+    author: 'HighJumper',
+    category: 'obby',
+    emoji: '🗼',
+    color: '#4c97ff',
+    playersOnline: 0,
+    featured: false,
+    rank: 11,
+    scene: 'playground',
+  },
+  {
+    id: 'craft-13',
+    title: 'Крафтер (1.13)',
+    author: 'CraftKing',
+    category: 'sandbox',
+    emoji: '⛏️',
+    color: '#c0c0c0',
+    playersOnline: 0,
+    featured: false,
+    rank: 12,
+    scene: 'playground',
+  },
+]
+
+export function findGame(id: string): GameMeta | undefined {
+  return GAMES.find((g) => g.id === id)
+}
