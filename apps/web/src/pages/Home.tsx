@@ -45,6 +45,7 @@ export default function Home() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <Link to="/profile" className="btn ghost">🐱 Мой аватар</Link>
           <Link to="/studio" className="btn ghost">+ Создать свою игру</Link>
           {childName ? (
             <div className="lobby-who">

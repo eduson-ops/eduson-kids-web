@@ -1,7 +1,8 @@
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import GameScene from '../components/GameScene'
 import { findGame } from '../lib/games'
+import { loadAvatar } from '../lib/avatars'
 
 type HudState = {
   money: number
@@ -14,27 +15,32 @@ export default function Play() {
   const game = gameId ? findGame(gameId) : undefined
   const [hud, setHud] = useState<HudState>({ money: 0, wave: null })
   const [ready, setReady] = useState(false)
+  const avatar = useMemo(() => loadAvatar(), [])
 
   useEffect(() => {
-    // Дефолтный гость, если не залогинен (из лобби можно войти)
     if (!localStorage.getItem('ek_child_name')) {
       localStorage.setItem('ek_child_name', 'Гость')
     }
-    // Короткая иллюзия загрузки, чтобы Canvas успел смонтироваться
-    const t = setTimeout(() => setReady(true), 400)
+    const t = setTimeout(() => setReady(true), 300)
     return () => clearTimeout(t)
   }, [])
 
   useEffect(() => {
-    // Фейковый HUD-сценарий: периодические «волны» и капающие деньги, как в Bloxels.
-    if (!ready) return
-    const waveCycle = ['МЕДЛЕННАЯ ВОЛНА', 'БЫСТРАЯ ВОЛНА', 'БОСС!']
+    if (!ready || !game) return
+    const waveByCat = {
+      obby: ['ПРЫГАЙ ВЫШЕ!', 'СКОРОСТНОЙ РЕЖИМ', 'ОСТАЛОСЬ 3!'],
+      race: ['НА СТАРТ', 'КРУГ 2', 'ФИНИШ БЛИЗКО'],
+      sandbox: ['ИССЛЕДУЙ!', 'НАЙДИ ДРУЗЕЙ', 'СЛУЧАЙ!'],
+      rp: ['НОВАЯ МИССИЯ', 'ВСТРЕЧА У ПОРТА', 'БОСС ПРИЛЕТЕЛ'],
+      sim: ['МЕДЛЕННАЯ ВОЛНА', 'БЫСТРАЯ ВОЛНА', 'БОСС!'],
+    } as const
+    const waves = waveByCat[game.category]
     let i = 0
     const waveTimer = setInterval(() => {
-      setHud((h) => ({ ...h, wave: waveCycle[i % waveCycle.length] }))
+      setHud((h) => ({ ...h, wave: waves[i % waves.length] }))
       setTimeout(() => setHud((h) => ({ ...h, wave: null })), 2200)
       i++
-    }, 8000)
+    }, 9000)
     const moneyTimer = setInterval(() => {
       setHud((h) => ({ ...h, money: h.money + 1 }))
     }, 3000)
@@ -42,7 +48,7 @@ export default function Play() {
       clearInterval(waveTimer)
       clearInterval(moneyTimer)
     }
-  }, [ready])
+  }, [ready, game])
 
   if (!game) {
     return (
@@ -58,14 +64,13 @@ export default function Play() {
       <div className="play-canvas">
         {ready ? (
           <Suspense fallback={<LoaderHud />}>
-            <GameScene playerColor={game.color} />
+            <GameScene game={game} avatar={avatar} />
           </Suspense>
         ) : (
           <LoaderHud />
         )}
       </div>
 
-      {/* HUD поверх 3D-сцены */}
       <div className="hud-top">
         <button className="hud-btn" onClick={() => navigate('/')} aria-label="Назад в лобби">
           ←
@@ -84,7 +89,7 @@ export default function Play() {
 
       <div className="hud-help">
         <strong>WASD</strong> — ходить · <strong>Space</strong> — прыжок ·
-        крути мышью, меняй камеру
+        аватар из <Link to="/profile" style={{ color: 'inherit' }}>профиля</Link>
       </div>
     </div>
   )

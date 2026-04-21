@@ -4,9 +4,10 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import './App.css'
 
-// Lazy-load heavy routes so lobby doesn't pull Three.js / Blockly on first paint.
+// Lazy-load heavy routes so the lobby doesn't pull Three.js / Blockly on first paint.
 const Play = lazy(() => import('./pages/Play'))
 const Studio = lazy(() => import('./pages/Studio'))
+const Profile = lazy(() => import('./pages/Profile'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -23,6 +24,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route
+          path="/profile"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю профиль…" />}>
+              <Profile />
+            </Suspense>
+          }
+        />
         <Route
           path="/play/:gameId"
           element={

@@ -1,7 +1,12 @@
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls, Sky } from '@react-three/drei'
-import World from './World'
+import { Physics } from '@react-three/rapier'
 import Player from './Player'
+import ObbyWorld, { OBBY_SPAWN } from './worlds/ObbyWorld'
+import RaceWorld, { RACE_SPAWN } from './worlds/RaceWorld'
+import SandboxWorld, { SANDBOX_SPAWN } from './worlds/SandboxWorld'
+import type { GameMeta } from '../lib/games'
+import type { Avatar } from '../lib/avatars'
 
 const KEYS = [
   { name: 'forward', keys: ['KeyW', 'ArrowUp'] },
@@ -12,20 +17,22 @@ const KEYS = [
 ]
 
 interface Props {
-  playerColor?: string
+  game: GameMeta
+  avatar: Avatar
 }
 
-export default function GameScene({ playerColor = '#ff5ab1' }: Props) {
+export default function GameScene({ game, avatar }: Props) {
+  const { world: W, spawn } = pickWorld(game.category)
   return (
     <KeyboardControls map={KEYS}>
       <Canvas
         shadows
-        camera={{ position: [0, 5, 10], fov: 60 }}
+        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60 }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 2]}
       >
         <Sky sunPosition={[20, 40, 20]} turbidity={8} rayleigh={2} />
-        <fog attach="fog" args={['#cfe7ff', 40, 80]} />
+        <fog attach="fog" args={['#cfe7ff', 40, 90]} />
         <ambientLight intensity={0.55} />
         <directionalLight
           position={[20, 30, 10]}
@@ -34,15 +41,31 @@ export default function GameScene({ playerColor = '#ff5ab1' }: Props) {
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
           shadow-camera-near={0.5}
-          shadow-camera-far={80}
+          shadow-camera-far={90}
           shadow-camera-left={-40}
           shadow-camera-right={40}
           shadow-camera-top={40}
           shadow-camera-bottom={-40}
         />
-        <World />
-        <Player color={playerColor} />
+        <Physics gravity={[0, -30, 0]}>
+          <W />
+          <Player avatar={avatar} startPos={spawn} />
+        </Physics>
       </Canvas>
     </KeyboardControls>
   )
+}
+
+function pickWorld(cat: GameMeta['category']) {
+  switch (cat) {
+    case 'race':
+      return { world: RaceWorld, spawn: RACE_SPAWN }
+    case 'sandbox':
+    case 'rp':
+    case 'sim':
+      return { world: SandboxWorld, spawn: SANDBOX_SPAWN }
+    case 'obby':
+    default:
+      return { world: ObbyWorld, spawn: OBBY_SPAWN }
+  }
 }
