@@ -3,6 +3,7 @@ import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
+import { Tree, Bush } from '../Scenery'
 
 const GRASS = '#6fd83e'
 const WALL_BLUE = '#2f5599'
@@ -132,6 +133,16 @@ export default function ObbyWorld() {
         size={[6, 2, 2]}
         result={{ kind: 'win', label: 'ФИНИШ!', subline: 'Ты прошёл обби!' }}
       />
+
+      {/* Деревья и кусты по периметру (декор, красоты ради) */}
+      <Tree pos={[-15, 0, -6]} variant={0} />
+      <Tree pos={[15, 0, -6]} variant={1} />
+      <Tree pos={[-15, 0, -16]} variant={2} />
+      <Tree pos={[15, 0, -16]} variant={3} />
+      <Tree pos={[-15, 0, -26]} variant={4} />
+      <Tree pos={[15, 0, -26]} variant={0} />
+      <Bush pos={[-12, 0, 0]} variant={0} scale={1.2} />
+      <Bush pos={[12, 0, 0]} variant={1} scale={1} />
     </>
   )
 }

@@ -4,8 +4,8 @@ import NPC from '../NPC'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
+import { Tree, Bush, Flowers, GrassTuft, Building } from '../Scenery'
 
-// Яркая сочная трава как у Bloxels.
 const GRASS = '#6fd83e'
 const WALL_BLUE = '#2f5599'
 const WALL_BLUE_TOP = '#3d6ab5'
@@ -21,16 +21,15 @@ function Ground() {
   )
 }
 
-// Воксельные стены-бордюры по периметру (как синие стены на скрине Bloxels)
 function Walls() {
-  const W = 80 // ширина поля
-  const H = 5 // высота стен
-  const T = 2 // толщина
-  const items: Array<{ pos: [number, number, number]; size: [number, number, number]; color: string }> = [
-    { pos: [0, H / 2, -W / 2 - T / 2], size: [W + T * 2, H, T], color: WALL_BLUE },
-    { pos: [0, H / 2, W / 2 + T / 2], size: [W + T * 2, H, T], color: WALL_BLUE },
-    { pos: [-W / 2 - T / 2, H / 2, 0], size: [T, H, W], color: WALL_BLUE },
-    { pos: [W / 2 + T / 2, H / 2, 0], size: [T, H, W], color: WALL_BLUE },
+  const W = 80
+  const H = 5
+  const T = 2
+  const items: Array<{ pos: [number, number, number]; size: [number, number, number] }> = [
+    { pos: [0, H / 2, -W / 2 - T / 2], size: [W + T * 2, H, T] },
+    { pos: [0, H / 2, W / 2 + T / 2], size: [W + T * 2, H, T] },
+    { pos: [-W / 2 - T / 2, H / 2, 0], size: [T, H, W] },
+    { pos: [W / 2 + T / 2, H / 2, 0], size: [T, H, W] },
   ]
   return (
     <>
@@ -38,9 +37,8 @@ function Walls() {
         <RigidBody key={i} type="fixed" colliders="cuboid" position={w.pos}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={w.size} />
-            <meshStandardMaterial color={w.color} roughness={0.95} />
+            <meshStandardMaterial color={WALL_BLUE} roughness={0.95} />
           </mesh>
-          {/* верхний бортик чуть светлее — объём */}
           <mesh position={[0, w.size[1] / 2 + 0.15, 0]}>
             <boxGeometry args={[w.size[0], 0.3, w.size[2] + 0.1]} />
             <meshStandardMaterial color={WALL_BLUE_TOP} roughness={0.95} />
@@ -51,80 +49,60 @@ function Walls() {
   )
 }
 
-function House({ pos, color }: { pos: [number, number, number]; color: string }) {
-  return (
-    <group position={pos}>
-      <RigidBody type="fixed" colliders="cuboid" position={[0, 1, 0]}>
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[3, 2, 3]} />
-          <meshStandardMaterial color={color} roughness={0.85} />
-        </mesh>
-      </RigidBody>
-      <mesh position={[0, 2.5, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-        <coneGeometry args={[2.4, 1.2, 4]} />
-        <meshStandardMaterial color="#8b4513" roughness={0.9} />
-      </mesh>
-    </group>
-  )
-}
-
-// Воксельное дерево — как на скрине Bloxels: тонкий тёмный куб-ствол + большой куб-крона
-function Tree({ pos }: { pos: [number, number, number] }) {
-  return (
-    <group position={pos}>
-      <RigidBody type="fixed" colliders="cuboid" position={[0, 1.1, 0]}>
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[0.5, 2.2, 0.5]} />
-          <meshStandardMaterial color="#3a2410" roughness={0.95} />
-        </mesh>
-      </RigidBody>
-      <mesh position={[0, 3.2, 0]} castShadow>
-        <boxGeometry args={[2, 2, 2]} />
-        <meshStandardMaterial color="#3fc724" roughness={0.9} />
-      </mesh>
-    </group>
-  )
-}
-
-// Мелкие пучки травы для атмосферы
-function GrassTufts() {
-  const positions: Array<[number, number, number]> = [
-    [2, 0.1, -4], [-3, 0.1, 3], [5, 0.1, 5], [-5, 0.1, -7],
-    [8, 0.1, -2], [-8, 0.1, 2], [3, 0.1, 9], [-3, 0.1, -12],
-    [10, 0.1, 6], [-10, 0.1, -3], [12, 0.1, -8], [-12, 0.1, 6],
-  ]
-  return (
-    <>
-      {positions.map((p, i) => (
-        <mesh key={i} position={p} castShadow>
-          <boxGeometry args={[0.2, 0.3, 0.2]} />
-          <meshStandardMaterial color="#2aad1c" roughness={0.95} />
-        </mesh>
-      ))}
-    </>
-  )
-}
-
 export default function SandboxWorld() {
   return (
     <>
       <Ground />
       <Walls />
-      <GrassTufts />
-      <House pos={[-8, 0, -8]} color="#ff8c1a" />
-      <House pos={[8, 0, -10]} color="#4c97ff" />
-      <House pos={[-10, 0, 5]} color="#c879ff" />
-      <Tree pos={[-4, 0, -4]} />
-      <Tree pos={[3, 0, -3]} />
-      <Tree pos={[-6, 0, 2]} />
-      <Tree pos={[5, 0, 6]} />
-      <Tree pos={[-14, 0, -2]} />
-      <Tree pos={[14, 0, 2]} />
-      <Tree pos={[-2, 0, 12]} />
-      <Tree pos={[2, 0, -14]} />
+
+      {/* Дома — Kenney City Kit (настоящие здания) */}
+      <Building pos={[-10, 0, -12]} letter="a" scale={2.6} rotY={Math.PI / 4} />
+      <Building pos={[12, 0, -14]} letter="b" scale={2.6} rotY={-Math.PI / 5} />
+      <Building pos={[-14, 0, 6]} letter="c" scale={2.6} rotY={Math.PI / 2} />
+      <Building pos={[14, 0, 8]} letter="d" scale={2.6} rotY={-Math.PI / 2} />
+
+      {/* Деревья — Stylized Nature (5 вариантов, случайные) */}
+      <Tree pos={[-4, 0, -4]} variant={0} />
+      <Tree pos={[3, 0, -3]} variant={1} rotY={0.5} />
+      <Tree pos={[-6, 0, 2]} variant={2} />
+      <Tree pos={[5, 0, 6]} variant={3} rotY={1.2} />
+      <Tree pos={[-14, 0, -2]} variant={4} />
+      <Tree pos={[14, 0, -2]} variant={0} rotY={-0.8} />
+      <Tree pos={[-2, 0, 14]} variant={1} />
+      <Tree pos={[2, 0, -18]} variant={2} rotY={2} />
+      <Tree pos={[-8, 0, -18]} variant={3} />
+      <Tree pos={[8, 0, -20]} variant={4} rotY={0.4} />
+
+      {/* Кусты и цветы — атмосфера */}
+      <Bush pos={[1, 0, 2]} variant={1} scale={0.9} />
+      <Bush pos={[-5, 0, -6]} variant={0} scale={1.1} />
+      <Bush pos={[7, 0, 2]} variant={1} scale={1} rotY={1} />
+      <Flowers pos={[-2, 0, 5]} scale={1.3} />
+      <Flowers pos={[4, 0, -8]} scale={1.1} rotY={0.5} />
+      <Flowers pos={[-7, 0, -2]} scale={1} />
+
+      {/* Трава */}
+      {[
+        [-3, 0, 1],
+        [2, 0, -2],
+        [6, 0, 4],
+        [-8, 0, 6],
+        [9, 0, -4],
+        [-10, 0, -8],
+        [-4, 0, 10],
+        [5, 0, 12],
+      ].map((p, i) => (
+        <GrassTuft
+          key={i}
+          pos={p as [number, number, number]}
+          tall={i % 2 === 0}
+          scale={0.9 + (i % 3) * 0.1}
+          rotY={i * 0.7}
+        />
+      ))}
 
       {/* Продавец за прилавком */}
-      <NPC pos={[3, 0, -12]} label="ЛАВКА" />
+      <NPC pos={[3, 0, -6]} label="ЛАВКА" />
 
       {/* GLTF-NPC с анимациями */}
       <GltfMonster which="bunny" pos={[-7, 0, -7]} scale={1.2} rotY={Math.PI / 4} animation="Yes" />
@@ -134,7 +112,7 @@ export default function SandboxWorld() {
       <Enemy pos={[6, 1.4, -6]} patrolX={2} color="#ff5464" />
       <GltfMonster which="birb" pos={[0, 2.2, 4]} patrolX={5} scale={0.8} sensor animation="Run" />
 
-      {/* Монетки раскиданы */}
+      {/* Монетки */}
       {[
         [0, 1, -4],
         [4, 1, 4],
@@ -149,7 +127,7 @@ export default function SandboxWorld() {
       ))}
 
       <GoalTrigger
-        pos={[3, 1.5, -12]}
+        pos={[3, 1.5, -6]}
         size={[2, 3, 2]}
         result={{
           kind: 'win',

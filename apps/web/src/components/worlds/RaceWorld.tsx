@@ -1,7 +1,7 @@
 import { RigidBody } from '@react-three/rapier'
 import Coin from '../Coin'
-import Vehicle from '../Vehicle'
 import GoalTrigger from '../GoalTrigger'
+import { ParkedCar, Tree } from '../Scenery'
 
 function Ground() {
   return (
@@ -75,10 +75,20 @@ export default function RaceWorld() {
       <Checkpoint z={-35} color="#4c97ff" />
       <Checkpoint z={-55} color="#c879ff" />
 
-      {/* Машины на обочине */}
-      <Vehicle pos={[-4, 0, -20]} color="#ff5464" />
-      <Vehicle pos={[4, 0, -45]} color="#4c97ff" />
-      <Vehicle pos={[-4, 0, -68]} color="#ffd644" />
+      {/* Машины на обочине — Kenney Car Kit (настоящие 3D-модели) */}
+      <ParkedCar pos={[-4, 0, -20]} model="police" rotY={Math.PI / 2} />
+      <ParkedCar pos={[4, 0, -32]} model="taxi" rotY={-Math.PI / 2} />
+      <ParkedCar pos={[-4, 0, -45]} model="sedan" rotY={Math.PI / 2} />
+      <ParkedCar pos={[4, 0, -58]} model="firetruck" rotY={-Math.PI / 2} />
+      <ParkedCar pos={[-4, 0, -68]} model="race" rotY={Math.PI / 2} />
+
+      {/* Деревья по обочинам */}
+      <Tree pos={[-10, 0, -8]} variant={0} />
+      <Tree pos={[10, 0, -18]} variant={1} />
+      <Tree pos={[-10, 0, -28]} variant={2} />
+      <Tree pos={[10, 0, -40]} variant={3} />
+      <Tree pos={[-10, 0, -52]} variant={4} />
+      <Tree pos={[10, 0, -64]} variant={0} />
 
       {/* Монетки по траектории */}
       {[-8, -16, -22, -30, -40, -50, -64].map((z, i) => (
