@@ -18,7 +18,7 @@ function Grass() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, -30]} receiveShadow>
       <planeGeometry args={[120, 120]} />
-      <meshStandardMaterial color="#48c774" />
+      <meshStandardMaterial color="#6fd83e" roughness={0.9} />
     </mesh>
   )
 }

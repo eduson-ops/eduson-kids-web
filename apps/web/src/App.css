@@ -611,6 +611,23 @@ body:has(.lobby-v2) {
 }
 .hud-pill.gold { color: #ffd644; }
 
+.world-label {
+  background: rgba(0, 0, 0, 0.55);
+  color: #5bff78;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.world-label-money {
+  display: inline-block;
+}
+
 .goal-overlay {
   position: absolute;
   inset: 0;

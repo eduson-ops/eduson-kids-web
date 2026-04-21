@@ -4,6 +4,10 @@ import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 
+const GRASS = '#6fd83e'
+const WALL_BLUE = '#2f5599'
+const WALL_BLUE_TOP = '#3d6ab5'
+
 interface BlockDef {
   pos: [number, number, number]
   size?: [number, number, number]
@@ -26,17 +30,12 @@ const PILLARS: BlockDef[] = Array.from({ length: 6 }, (_, i) => ({
   color: '#8b9bb4',
 }))
 
-const WALLS: BlockDef[] = [
-  { pos: [-10, 1, -10], size: [1, 2, 40], color: '#2a3142' },
-  { pos: [10, 1, -10], size: [1, 2, 40], color: '#2a3142' },
-]
-
 function Block({ pos, size, color }: BlockDef) {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={pos}>
       <mesh castShadow receiveShadow>
         <boxGeometry args={size ?? [2.4, 1, 2.4]} />
-        <meshStandardMaterial color={color} />
+        <meshStandardMaterial color={color} roughness={0.85} />
       </mesh>
     </RigidBody>
   )
@@ -47,9 +46,37 @@ function Ground() {
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -10]}>
       <mesh receiveShadow>
         <boxGeometry args={[80, 0.5, 80]} />
-        <meshStandardMaterial color="#48c774" />
+        <meshStandardMaterial color={GRASS} roughness={0.9} />
       </mesh>
     </RigidBody>
+  )
+}
+
+function Walls() {
+  const W = 80
+  const H = 5
+  const T = 2
+  const items: Array<{ pos: [number, number, number]; size: [number, number, number] }> = [
+    { pos: [0, H / 2, -W / 2 - T / 2 - 10], size: [W + T * 2, H, T] },
+    { pos: [0, H / 2, W / 2 + T / 2 - 10], size: [W + T * 2, H, T] },
+    { pos: [-W / 2 - T / 2, H / 2, -10], size: [T, H, W] },
+    { pos: [W / 2 + T / 2, H / 2, -10], size: [T, H, W] },
+  ]
+  return (
+    <>
+      {items.map((w, i) => (
+        <RigidBody key={i} type="fixed" colliders="cuboid" position={w.pos}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={w.size} />
+            <meshStandardMaterial color={WALL_BLUE} roughness={0.95} />
+          </mesh>
+          <mesh position={[0, w.size[1] / 2 + 0.15, 0]}>
+            <boxGeometry args={[w.size[0], 0.3, w.size[2] + 0.1]} />
+            <meshStandardMaterial color={WALL_BLUE_TOP} roughness={0.95} />
+          </mesh>
+        </RigidBody>
+      ))}
+    </>
   )
 }
 
@@ -62,6 +89,7 @@ function Finish() {
           color="#ffd644"
           emissive="#ffaa00"
           emissiveIntensity={0.25}
+          roughness={0.7}
         />
       </mesh>
     </RigidBody>
@@ -72,18 +100,15 @@ export default function ObbyWorld() {
   return (
     <>
       <Ground />
+      <Walls />
       {PLATFORMS.map((b, i) => (
         <Block key={`p${i}`} {...b} />
       ))}
       {PILLARS.map((b, i) => (
         <Block key={`pl${i}`} {...b} />
       ))}
-      {WALLS.map((b, i) => (
-        <Block key={`w${i}`} {...b} />
-      ))}
       <Finish />
 
-      {/* Монетки над каждой платформой — собирать на прыжке */}
       {PLATFORMS.map((p, i) => (
         <Coin key={`c${i}`} pos={[p.pos[0], p.pos[1] + 1.2, p.pos[2]]} />
       ))}
@@ -92,10 +117,8 @@ export default function ObbyWorld() {
       <Coin pos={[6, 1, -12]} />
       <Coin pos={[-6, 1, -12]} />
 
-      {/* Пара патрулирующих врагов */}
       <Enemy pos={[0, 1.5, -9]} patrolX={3} />
       <Enemy pos={[0, 2.5, -17]} patrolX={4} color="#c879ff" />
-      {/* Демон-босс у финиша — машет рукой! */}
       <GltfMonster
         which="blueDemon"
         pos={[0, 3.1, -28]}
@@ -104,7 +127,6 @@ export default function ObbyWorld() {
         animation="Wave"
       />
 
-      {/* Триггер победы над финишем */}
       <GoalTrigger
         pos={[0, 4, -26]}
         size={[6, 2, 2]}

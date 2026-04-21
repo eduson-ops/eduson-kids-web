@@ -4,6 +4,7 @@ import { Physics } from '@react-three/rapier'
 import Player from './Player'
 import Sun from './Sun'
 import GradientSky from './GradientSky'
+import VoxelClouds from './VoxelClouds'
 import ObbyWorld, { OBBY_SPAWN } from './worlds/ObbyWorld'
 import RaceWorld, { RACE_SPAWN } from './worlds/RaceWorld'
 import SandboxWorld, { SANDBOX_SPAWN } from './worlds/SandboxWorld'
@@ -39,6 +40,8 @@ export default function GameScene({ game, avatar }: Props) {
       >
         {/* Градиентное голубое небо через shader — всегда голубое */}
         <GradientSky top="#3d88ff" bottom="#b8e1ff" />
+        {/* Pixel-voxel облака, медленно плывут */}
+        <VoxelClouds />
         {/* Видимое солнце */}
         <Sun position={SUN_POS} />
         {/* Мягкий туман только в самой дали, не глушит небо */}

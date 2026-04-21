@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
 import AvatarModel from './AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from './PlayerCharacter'
+import FloatingLabel from './FloatingLabel'
 import { SFX } from '../lib/audio'
 
 type Controls = {
@@ -132,9 +133,9 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
       footstepTimer.current = 0
     }
 
-    // Камера: orbit за персонажем. Distance 7, high 4, углы yaw/pitch
-    const dist = 7
-    const camHeight = 4
+    // Камера: orbit за персонажем. Bloxels-ближе и чуть ниже.
+    const dist = 5.5
+    const camHeight = 2.5
     const pitchY = Math.sin(cam.pitch) * dist * 0.6
     const pitchDist = Math.cos(cam.pitch) * dist
 
@@ -171,6 +172,7 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
         ) : (
           <AvatarModel ref={visual} avatar={avatar} />
         )}
+        <FloatingLabel />
       </group>
     </RigidBody>
   )
