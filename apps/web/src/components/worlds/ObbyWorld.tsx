@@ -1,4 +1,8 @@
 import { RigidBody } from '@react-three/rapier'
+import Coin from '../Coin'
+import Enemy from '../Enemy'
+import GoalTrigger from '../GoalTrigger'
+import GltfMonster from '../GltfMonster'
 
 interface BlockDef {
   pos: [number, number, number]
@@ -6,7 +10,6 @@ interface BlockDef {
   color: string
 }
 
-// Радужная полоса прыгательных платформ — классический obby-паттерн.
 const PLATFORMS: BlockDef[] = [
   { pos: [0, 0.5, -4], color: '#ff5ab1' },
   { pos: [3, 0.8, -7], color: '#ffd644' },
@@ -58,7 +61,7 @@ function Finish() {
         <meshStandardMaterial
           color="#ffd644"
           emissive="#ffd644"
-          emissiveIntensity={0.4}
+          emissiveIntensity={0.9}
         />
       </mesh>
     </RigidBody>
@@ -79,6 +82,28 @@ export default function ObbyWorld() {
         <Block key={`w${i}`} {...b} />
       ))}
       <Finish />
+
+      {/* Монетки над каждой платформой — собирать на прыжке */}
+      {PLATFORMS.map((p, i) => (
+        <Coin key={`c${i}`} pos={[p.pos[0], p.pos[1] + 1.2, p.pos[2]]} />
+      ))}
+      <Coin pos={[5, 1, -4]} />
+      <Coin pos={[-5, 1, -4]} />
+      <Coin pos={[6, 1, -12]} />
+      <Coin pos={[-6, 1, -12]} />
+
+      {/* Пара патрулирующих врагов */}
+      <Enemy pos={[0, 1.5, -9]} patrolX={3} />
+      <Enemy pos={[0, 2.5, -17]} patrolX={4} color="#c879ff" />
+      {/* Демон-босс у финиша */}
+      <GltfMonster which="blueDemon" pos={[0, 3.1, -28]} scale={1.4} rotY={Math.PI} />
+
+      {/* Триггер победы над финишем */}
+      <GoalTrigger
+        pos={[0, 4, -26]}
+        size={[6, 2, 2]}
+        result={{ kind: 'win', label: 'ФИНИШ!', subline: 'Ты прошёл обби!' }}
+      />
     </>
   )
 }

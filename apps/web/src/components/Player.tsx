@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
 import AvatarModel from './AvatarModel'
 import type { AvatarModelHandle } from './AvatarModel'
+import { SFX } from '../lib/audio'
 
 type Controls = {
   forward: boolean
@@ -23,7 +24,7 @@ interface Props {
 
 const SPEED = 7
 const JUMP = 10
-const CAP_HEIGHT = 0.5 // половина высоты капсулы (без сфер)
+const CAP_HEIGHT = 0.5
 const CAP_RADIUS = 0.45
 
 export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
@@ -36,32 +37,34 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
 
   const phase = useRef(0)
   const idlePhase = useRef(0)
-  const facing = useRef(new THREE.Vector3(0, 0, -1))
   const desiredRotY = useRef(0)
+  const prevGrounded = useRef(true)
+  const footstepTimer = useRef(0)
 
-  // На всякий: если персонаж выпал за пределы — телепортируем обратно
   const startVec = new THREE.Vector3(...startPos)
 
   useEffect(() => {
-    // Стартовая камера — сразу за игроком
-    camera.position.set(startPos[0], startPos[1] + 4, startPos[2] + 8)
-    camera.lookAt(startPos[0], startPos[1], startPos[2])
-  }, [camera, startPos])
+    if (typeof window !== 'undefined' && !window.__ekCam) {
+      window.__ekCam = { yaw: 0, pitch: -0.2, locked: false }
+    }
+  }, [])
 
   useFrame((_, dt) => {
     if (!body.current) return
     const { forward, back, left, right, jump } = get()
 
-    // Направления камеры в плоскости
-    const camDir = new THREE.Vector3()
-    camera.getWorldDirection(camDir)
-    camDir.y = 0
-    camDir.normalize()
-    const camRight = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0))
+    // Yaw/pitch берутся из CameraController (pointer-lock) или 0 если нет
+    const cam = window.__ekCam ?? { yaw: 0, pitch: -0.2, locked: false }
+
+    // Forward-вектор в плоскости XZ, задан yaw камеры
+    const sinY = Math.sin(cam.yaw)
+    const cosY = Math.cos(cam.yaw)
+    const camFwd = new THREE.Vector3(-sinY, 0, -cosY)
+    const camRight = new THREE.Vector3(cosY, 0, -sinY)
 
     const move = new THREE.Vector3()
-    if (forward) move.add(camDir)
-    if (back) move.addScaledVector(camDir, -1)
+    if (forward) move.add(camFwd)
+    if (back) move.addScaledVector(camFwd, -1)
     if (right) move.add(camRight)
     if (left) move.addScaledVector(camRight, -1)
 
@@ -72,15 +75,13 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
       move.normalize()
       vx = move.x * SPEED
       vz = move.z * SPEED
-      facing.current.copy(move)
       desiredRotY.current = Math.atan2(move.x, move.z)
     } else {
-      // трение в воздухе поменьше, на земле — почти полная остановка
       vx *= 0.8
       vz *= 0.8
     }
 
-    // Проверка "на земле" — raycast вниз
+    // Grounded ray
     const pos = body.current.translation()
     const rayOrigin = { x: pos.x, y: pos.y - (CAP_HEIGHT + CAP_RADIUS) + 0.05, z: pos.z }
     const rayDir = { x: 0, y: -1, z: 0 }
@@ -88,13 +89,20 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
     const hit = world.castRay(ray, 0.25, true, undefined, undefined, undefined, body.current)
     const grounded = hit !== null
 
+    // Звук приземления
+    if (grounded && !prevGrounded.current && curVel.y < -3) {
+      SFX.land()
+    }
+    prevGrounded.current = grounded
+
     if (jump && grounded) {
       body.current.setLinvel({ x: vx, y: JUMP, z: vz }, true)
+      SFX.jump()
     } else {
       body.current.setLinvel({ x: vx, y: curVel.y, z: vz }, true)
     }
 
-    // Поворот визуала плавно
+    // Поворот визуала
     if (meshGroup.current) {
       meshGroup.current.rotation.y = lerpAngle(
         meshGroup.current.rotation.y,
@@ -103,7 +111,7 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
       )
     }
 
-    // Анимация
+    // Анимация + шаги
     const speed2D = Math.hypot(vx, vz)
     phase.current += dt * Math.max(3, speed2D * 2)
     idlePhase.current += dt * 2
@@ -114,16 +122,31 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
       idlePhase: idlePhase.current,
     })
 
-    // Камера follow
+    if (grounded && speed2D > 1) {
+      footstepTimer.current += dt * speed2D
+      if (footstepTimer.current > 3.2) {
+        footstepTimer.current = 0
+        SFX.step()
+      }
+    } else {
+      footstepTimer.current = 0
+    }
+
+    // Камера: orbit за персонажем. Distance 7, high 4, углы yaw/pitch
+    const dist = 7
+    const camHeight = 4
+    const pitchY = Math.sin(cam.pitch) * dist * 0.6
+    const pitchDist = Math.cos(cam.pitch) * dist
+
     const desiredCam = new THREE.Vector3(
-      pos.x - camDir.x * 7,
-      pos.y + 4,
-      pos.z - camDir.z * 7
+      pos.x - camFwd.x * pitchDist,
+      pos.y + camHeight + pitchY,
+      pos.z - camFwd.z * pitchDist
     )
-    camera.position.lerp(desiredCam, 0.08)
+    camera.position.lerp(desiredCam, cam.locked ? 0.18 : 0.08)
     camera.lookAt(pos.x, pos.y + 0.5, pos.z)
 
-    // Respawn если упал в бездну
+    // Respawn
     if (pos.y < -20) {
       body.current.setTranslation({ x: startVec.x, y: startVec.y + 2, z: startVec.z }, true)
       body.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
@@ -133,6 +156,7 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
   return (
     <RigidBody
       ref={body}
+      name="player"
       type="dynamic"
       colliders={false}
       position={startPos}

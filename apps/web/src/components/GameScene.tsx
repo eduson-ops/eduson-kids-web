@@ -5,6 +5,8 @@ import Player from './Player'
 import ObbyWorld, { OBBY_SPAWN } from './worlds/ObbyWorld'
 import RaceWorld, { RACE_SPAWN } from './worlds/RaceWorld'
 import SandboxWorld, { SANDBOX_SPAWN } from './worlds/SandboxWorld'
+import CameraController from './CameraController'
+import PostFX from './PostFX'
 import type { GameMeta } from '../lib/games'
 import type { Avatar } from '../lib/avatars'
 
@@ -51,6 +53,8 @@ export default function GameScene({ game, avatar }: Props) {
           <W />
           <Player avatar={avatar} startPos={spawn} />
         </Physics>
+        <CameraController />
+        <PostFX />
       </Canvas>
     </KeyboardControls>
   )

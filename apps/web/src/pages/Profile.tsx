@@ -22,8 +22,10 @@ export default function Profile() {
 
   const patch = (p: Partial<Avatar>) => setAvatar((a) => ({ ...a, ...p }))
 
-  const saveAndBack = () => {
+  const saveAndBack = async () => {
     saveAvatar(avatar)
+    const { apiPutAvatar } = await import('../lib/api')
+    void apiPutAvatar(avatar) // fire-and-forget sync to backend if online
     navigate('/')
   }
 

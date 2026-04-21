@@ -1,28 +1,31 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { apiLoginChildCode, apiLoginGuest } from '../lib/api'
 
 export default function Login() {
   const navigate = useNavigate()
   const [childCode, setChildCode] = useState('')
   const [status, setStatus] = useState<'idle' | 'checking' | 'error'>('idle')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (childCode.length !== 6) {
       setStatus('error')
       return
     }
     setStatus('checking')
-    // MVP: любой 6-значный код принимается (dev-режим без бэка).
-    // Stage 1 US-01: real auth через /api/v1/auth/child-code
+    // Пробуем бэк; если он не запущен — работаем оффлайн (localStorage)
+    const r = await apiLoginChildCode(childCode)
+    const name = r?.user?.name ?? `Игрок-${childCode.slice(-3)}`
     localStorage.setItem('ek_child_code', childCode)
-    localStorage.setItem('ek_child_name', `Игрок-${childCode.slice(-3)}`)
-    setTimeout(() => navigate('/'), 300)
+    localStorage.setItem('ek_child_name', name)
+    navigate('/')
   }
 
-  const quickStart = () => {
+  const quickStart = async () => {
+    const r = await apiLoginGuest()
     localStorage.setItem('ek_child_code', '000000')
-    localStorage.setItem('ek_child_name', 'Гость')
+    localStorage.setItem('ek_child_name', r?.user?.name ?? 'Гость')
     navigate('/')
   }
 
