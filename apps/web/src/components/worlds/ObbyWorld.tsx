@@ -34,7 +34,7 @@ const WALLS: BlockDef[] = [
 function Block({ pos, size, color }: BlockDef) {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={pos}>
-      <mesh castShadow receiveShadow>
+      <mesh>
         <boxGeometry args={size ?? [2.4, 1, 2.4]} />
         <meshStandardMaterial color={color} />
       </mesh>
@@ -45,7 +45,7 @@ function Block({ pos, size, color }: BlockDef) {
 function Ground() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -10]}>
-      <mesh receiveShadow>
+      <mesh>
         <boxGeometry args={[80, 0.5, 80]} />
         <meshStandardMaterial color="#5ba55b" />
       </mesh>
@@ -56,13 +56,9 @@ function Ground() {
 function Finish() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, 3.1, -26]}>
-      <mesh castShadow>
+      <mesh>
         <boxGeometry args={[6, 0.2, 2]} />
-        <meshStandardMaterial
-          color="#ffd644"
-          emissive="#ffd644"
-          emissiveIntensity={0.9}
-        />
+        <meshStandardMaterial color="#ffd644" />
       </mesh>
     </RigidBody>
   )
@@ -95,8 +91,14 @@ export default function ObbyWorld() {
       {/* Пара патрулирующих врагов */}
       <Enemy pos={[0, 1.5, -9]} patrolX={3} />
       <Enemy pos={[0, 2.5, -17]} patrolX={4} color="#c879ff" />
-      {/* Демон-босс у финиша */}
-      <GltfMonster which="blueDemon" pos={[0, 3.1, -28]} scale={1.4} rotY={Math.PI} />
+      {/* Демон-босс у финиша — машет рукой! */}
+      <GltfMonster
+        which="blueDemon"
+        pos={[0, 3.1, -28]}
+        scale={1.4}
+        rotY={Math.PI}
+        animation="Wave"
+      />
 
       {/* Триггер победы над финишем */}
       <GoalTrigger

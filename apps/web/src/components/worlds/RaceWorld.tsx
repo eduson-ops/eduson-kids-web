@@ -6,7 +6,7 @@ import GoalTrigger from '../GoalTrigger'
 function Ground() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -30]}>
-      <mesh receiveShadow>
+      <mesh>
         <boxGeometry args={[14, 0.5, 80]} />
         <meshStandardMaterial color="#4a4e5a" />
       </mesh>
@@ -16,7 +16,7 @@ function Ground() {
 
 function Grass() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, -30]} receiveShadow>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.3, -30]}>
       <planeGeometry args={[120, 120]} />
       <meshStandardMaterial color="#3d8a3d" />
     </mesh>
@@ -34,7 +34,7 @@ function Wall({
 }) {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={pos}>
-      <mesh castShadow receiveShadow>
+      <mesh>
         <boxGeometry args={size} />
         <meshStandardMaterial color={color} />
       </mesh>
@@ -47,15 +47,15 @@ function Checkpoint({ z, color }: { z: number; color: string }) {
     <group position={[0, 0, z]}>
       <mesh position={[-6, 2, 0]}>
         <boxGeometry args={[0.4, 4, 0.4]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
+        <meshStandardMaterial color={color} />
       </mesh>
       <mesh position={[6, 2, 0]}>
         <boxGeometry args={[0.4, 4, 0.4]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
+        <meshStandardMaterial color={color} />
       </mesh>
       <mesh position={[0, 4, 0]}>
         <boxGeometry args={[12, 0.3, 0.3]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} />
+        <meshStandardMaterial color={color} />
       </mesh>
     </group>
   )
@@ -87,7 +87,7 @@ export default function RaceWorld() {
 
       {/* Финиш */}
       <RigidBody type="fixed" colliders="cuboid" position={[0, 0.1, -70]}>
-        <mesh receiveShadow>
+        <mesh>
           <boxGeometry args={[14, 0.2, 2]} />
           <meshStandardMaterial color="#ffffff" />
         </mesh>

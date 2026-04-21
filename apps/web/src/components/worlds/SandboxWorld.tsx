@@ -8,7 +8,7 @@ import GltfMonster from '../GltfMonster'
 function Ground() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, 0]}>
-      <mesh receiveShadow>
+      <mesh>
         <boxGeometry args={[80, 0.5, 80]} />
         <meshStandardMaterial color="#6cb76c" />
       </mesh>
@@ -20,12 +20,12 @@ function House({ pos, color }: { pos: [number, number, number]; color: string })
   return (
     <group position={pos}>
       <RigidBody type="fixed" colliders="cuboid" position={[0, 1, 0]}>
-        <mesh castShadow receiveShadow>
+        <mesh>
           <boxGeometry args={[3, 2, 3]} />
           <meshStandardMaterial color={color} />
         </mesh>
       </RigidBody>
-      <mesh position={[0, 2.5, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+      <mesh position={[0, 2.5, 0]} rotation={[0, Math.PI / 4, 0]}>
         <coneGeometry args={[2.4, 1.2, 4]} />
         <meshStandardMaterial color="#8b4513" />
       </mesh>
@@ -37,12 +37,12 @@ function Tree({ pos }: { pos: [number, number, number] }) {
   return (
     <group position={pos}>
       <RigidBody type="fixed" colliders="cuboid" position={[0, 0.75, 0]}>
-        <mesh castShadow>
+        <mesh>
           <cylinderGeometry args={[0.2, 0.25, 1.5, 6]} />
           <meshStandardMaterial color="#8b4513" />
         </mesh>
       </RigidBody>
-      <mesh position={[0, 2, 0]} castShadow>
+      <mesh position={[0, 2, 0]}>
         <sphereGeometry args={[0.9, 10, 10]} />
         <meshStandardMaterial color="#2f7a2f" />
       </mesh>
@@ -67,17 +67,36 @@ export default function SandboxWorld() {
       {/* Продавец за прилавком (как на скрине Блокселей) */}
       <NPC pos={[3, 0, -12]} label="ЛАВКА" />
 
-      {/* Зайка-NPC у домика */}
-      <GltfMonster which="bunny" pos={[-7, 0, -7]} scale={1.2} rotY={Math.PI / 4} />
-      {/* Кактус-монстр у другого домика */}
-      <GltfMonster which="cactoro" pos={[7, 0, -8]} scale={1.3} rotY={-0.5} />
-      {/* Алиен-путешественник */}
+      {/* Зайка-NPC у домика — радуется (Yes) */}
+      <GltfMonster
+        which="bunny"
+        pos={[-7, 0, -7]}
+        scale={1.2}
+        rotY={Math.PI / 4}
+        animation="Yes"
+      />
+      {/* Кактус-монстр у другого домика — машет рукой */}
+      <GltfMonster
+        which="cactoro"
+        pos={[7, 0, -8]}
+        scale={1.3}
+        rotY={-0.5}
+        animation="Wave"
+      />
+      {/* Алиен-путешественник — просто Idle (дышит) */}
       <GltfMonster which="alien" pos={[-9, 0, 6]} scale={1.1} rotY={1.2} />
 
       {/* Пара "злых" капель (процедурные) */}
       <Enemy pos={[6, 1.4, -6]} patrolX={2} color="#ff5464" />
-      {/* Летающая птичка-патруль из Quaternius */}
-      <GltfMonster which="birb" pos={[0, 2.2, 4]} patrolX={5} scale={0.8} sensor />
+      {/* Летающая птичка-патруль из Quaternius — анимация Run */}
+      <GltfMonster
+        which="birb"
+        pos={[0, 2.2, 4]}
+        patrolX={5}
+        scale={0.8}
+        sensor
+        animation="Run"
+      />
 
       {/* Монетки по карте */}
       {[

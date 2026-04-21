@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
 import AvatarModel from './AvatarModel'
-import type { AvatarModelHandle } from './AvatarModel'
+import PlayerCharacter, { type PlayerVisualHandle } from './PlayerCharacter'
 import { SFX } from '../lib/audio'
 
 type Controls = {
@@ -29,7 +29,7 @@ const CAP_RADIUS = 0.45
 
 export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
   const body = useRef<RapierRigidBody>(null!)
-  const visual = useRef<AvatarModelHandle>(null!)
+  const visual = useRef<PlayerVisualHandle>(null!)
   const meshGroup = useRef<THREE.Group>(null!)
   const [, get] = useKeyboardControls<keyof Controls>()
   const { camera } = useThree()
@@ -166,7 +166,11 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
     >
       <CapsuleCollider args={[CAP_HEIGHT, CAP_RADIUS]} friction={0.8} />
       <group ref={meshGroup} position={[0, -CAP_HEIGHT - CAP_RADIUS, 0]}>
-        <AvatarModel ref={visual} avatar={avatar} />
+        {avatar.character && avatar.character !== 'custom' ? (
+          <PlayerCharacter ref={visual} which={avatar.character} />
+        ) : (
+          <AvatarModel ref={visual} avatar={avatar} />
+        )}
       </group>
     </RigidBody>
   )

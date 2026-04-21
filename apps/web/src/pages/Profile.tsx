@@ -3,13 +3,14 @@ import { OrbitControls, Sky } from '@react-three/drei'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AvatarModel from '../components/AvatarModel'
-import type { AvatarModelHandle } from '../components/AvatarModel'
+import PlayerCharacter, { type PlayerVisualHandle } from '../components/PlayerCharacter'
 import {
   COLOR_PALETTE,
   PRESET_AVATARS,
   loadAvatar,
   saveAvatar,
   type Avatar,
+  type CharacterModel,
   type EarStyle,
   type HatStyle,
   type TailStyle,
@@ -61,14 +62,36 @@ export default function Profile() {
                   style={{
                     background: `linear-gradient(135deg, ${p.bodyColor}, ${p.accentColor})`,
                   }}
-                />
+                >
+                  {p.character !== 'custom' && <span className="preset-tag">3D</span>}
+                </div>
                 <small>{p.name}</small>
               </button>
             ))}
           </div>
         </section>
 
-        <Section title="Форма тела">
+        <Section title="Персонаж">
+          <PillGroup<CharacterModel>
+            value={avatar.character}
+            options={[
+              ['custom', 'Свой котик'],
+              ['bunny', 'Кролик'],
+              ['cactoro', 'Кактус'],
+              ['alien', 'Алиен'],
+              ['birb', 'Птичка'],
+              ['blueDemon', 'Демон'],
+            ]}
+            onChange={(v) => patch({ character: v })}
+          />
+          <p className="help-small">
+            {avatar.character === 'custom'
+              ? 'Собери сам: форма, уши, шляпа, хвост, цвета — ниже.'
+              : '3D-модель с анимациями: ходьба, бег, прыжок.'}
+          </p>
+        </Section>
+
+        <Section title="Форма тела (только для своего котика)">
           <PillGroup<BodyShape>
             value={avatar.bodyShape}
             options={[
@@ -170,7 +193,7 @@ export default function Profile() {
 }
 
 function PreviewAvatar({ avatar }: { avatar: Avatar }) {
-  const handle = useRef<AvatarModelHandle>(null!)
+  const handle = useRef<PlayerVisualHandle>(null!)
   const phase = useRef(0)
   const idle = useRef(0)
   useFrame((_, dt) => {
@@ -185,7 +208,11 @@ function PreviewAvatar({ avatar }: { avatar: Avatar }) {
   })
   return (
     <group position={[0, 0, 0]}>
-      <AvatarModel ref={handle} avatar={avatar} />
+      {avatar.character && avatar.character !== 'custom' ? (
+        <PlayerCharacter ref={handle} which={avatar.character} />
+      ) : (
+        <AvatarModel ref={handle} avatar={avatar} />
+      )}
     </group>
   )
 }

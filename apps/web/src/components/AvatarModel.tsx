@@ -1,21 +1,12 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react'
 import * as THREE from 'three'
 import type { Avatar, BodyShape } from '../lib/avatars'
+import type { PlayerVisualHandle } from './PlayerCharacter'
 
-export interface AvatarModelHandle {
-  update: (state: AnimState) => void
-}
-
-export interface AnimState {
-  /** скорость в плоскости XZ в единицах в секунду (0 = idle) */
-  speed: number
-  /** ↑ рассчитывается на каждом тике игроком */
-  phase: number
-  /** true если в воздухе (прыжок / падение) */
-  airborne: boolean
-  /** фаза "дыхания" в idle */
-  idlePhase: number
-}
+// Переиспользуем единый интерфейс, чтобы Player мог переключаться между
+// процедурным (этим) и GLTF (PlayerCharacter) визуалом.
+export type AvatarModelHandle = PlayerVisualHandle
+export type AnimState = Parameters<PlayerVisualHandle['update']>[0]
 
 interface Props {
   avatar: Avatar

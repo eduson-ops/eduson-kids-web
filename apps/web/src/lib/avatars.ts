@@ -4,9 +4,18 @@ export type EarStyle = 'cat' | 'bear' | 'bunny' | 'none'
 export type HatStyle = 'none' | 'cap' | 'crown' | 'helmet' | 'wizard'
 export type TailStyle = 'none' | 'cat' | 'fluffy' | 'dragon'
 export type BodyShape = 'standard' | 'chubby' | 'thin'
+export type CharacterModel =
+  | 'custom'
+  | 'alien'
+  | 'birb'
+  | 'blueDemon'
+  | 'bunny'
+  | 'cactoro'
 
 export interface Avatar {
   name: string
+  /** какой 3D-персонаж: "custom" = процедурный котик + цвета / остальные — GLTF с анимациями */
+  character: CharacterModel
   bodyColor: string
   headColor: string
   accentColor: string // уши, хвост, шляпа если "не задано иначе"
@@ -17,8 +26,66 @@ export interface Avatar {
 }
 
 export const PRESET_AVATARS: Avatar[] = [
+  // GLTF-пресеты (с анимациями ходьбы, бега, прыжка)
+  {
+    name: 'Крольчишка',
+    character: 'bunny',
+    bodyColor: '#ffd1e8',
+    headColor: '#ffd1e8',
+    accentColor: '#ff5ab1',
+    earStyle: 'bunny',
+    hatStyle: 'none',
+    tailStyle: 'fluffy',
+    bodyShape: 'standard',
+  },
+  {
+    name: 'Кактусчик',
+    character: 'cactoro',
+    bodyColor: '#5ba55b',
+    headColor: '#5ba55b',
+    accentColor: '#ffd644',
+    earStyle: 'none',
+    hatStyle: 'crown',
+    tailStyle: 'none',
+    bodyShape: 'standard',
+  },
+  {
+    name: 'Инопланетянин',
+    character: 'alien',
+    bodyColor: '#c879ff',
+    headColor: '#c879ff',
+    accentColor: '#ffd644',
+    earStyle: 'none',
+    hatStyle: 'helmet',
+    tailStyle: 'none',
+    bodyShape: 'standard',
+  },
+  {
+    name: 'Птичка',
+    character: 'birb',
+    bodyColor: '#ffd644',
+    headColor: '#ffd644',
+    accentColor: '#ff8c1a',
+    earStyle: 'none',
+    hatStyle: 'none',
+    tailStyle: 'none',
+    bodyShape: 'standard',
+  },
+  {
+    name: 'Синий Демон',
+    character: 'blueDemon',
+    bodyColor: '#4c97ff',
+    headColor: '#4c97ff',
+    accentColor: '#ff5464',
+    earStyle: 'none',
+    hatStyle: 'none',
+    tailStyle: 'dragon',
+    bodyShape: 'standard',
+  },
+  // Процедурные (собираешь сам: цвет, уши, шляпа, хвост)
   {
     name: 'Розовый котик',
+    character: 'custom',
     bodyColor: '#ff5ab1',
     headColor: '#ff5ab1',
     accentColor: '#ffffff',
@@ -28,52 +95,13 @@ export const PRESET_AVATARS: Avatar[] = [
     bodyShape: 'standard',
   },
   {
-    name: 'Лесной медвежонок',
-    bodyColor: '#8b5a2b',
-    headColor: '#8b5a2b',
-    accentColor: '#2a1a0a',
-    earStyle: 'bear',
-    hatStyle: 'cap',
-    tailStyle: 'none',
-    bodyShape: 'chubby',
-  },
-  {
-    name: 'Зайка-синичка',
-    bodyColor: '#4c97ff',
-    headColor: '#e8eaf2',
-    accentColor: '#ff5ab1',
-    earStyle: 'bunny',
-    hatStyle: 'none',
-    tailStyle: 'fluffy',
-    bodyShape: 'standard',
-  },
-  {
-    name: 'Маленький дракон',
-    bodyColor: '#5ba55b',
-    headColor: '#5ba55b',
-    accentColor: '#ffd644',
-    earStyle: 'none',
-    hatStyle: 'crown',
-    tailStyle: 'dragon',
-    bodyShape: 'thin',
-  },
-  {
     name: 'Ночной волшебник',
+    character: 'custom',
     bodyColor: '#2a2840',
     headColor: '#f0e0d0',
     accentColor: '#c879ff',
     earStyle: 'none',
     hatStyle: 'wizard',
-    tailStyle: 'none',
-    bodyShape: 'standard',
-  },
-  {
-    name: 'Космонавт',
-    bodyColor: '#f0f0f0',
-    headColor: '#e8eaf2',
-    accentColor: '#4c97ff',
-    earStyle: 'none',
-    hatStyle: 'helmet',
     tailStyle: 'none',
     bodyShape: 'standard',
   },
@@ -92,7 +120,10 @@ export function loadAvatar(): Avatar {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<Avatar>
-      return { ...PRESET_AVATARS[0], ...parsed } as Avatar
+      // миграция: если старый Avatar без character → ставим 'custom'
+      const merged = { ...PRESET_AVATARS[0], ...parsed } as Avatar
+      if (!merged.character) merged.character = 'custom'
+      return merged
     }
   } catch {
     /* fallthrough */

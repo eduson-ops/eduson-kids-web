@@ -6,7 +6,6 @@ import ObbyWorld, { OBBY_SPAWN } from './worlds/ObbyWorld'
 import RaceWorld, { RACE_SPAWN } from './worlds/RaceWorld'
 import SandboxWorld, { SANDBOX_SPAWN } from './worlds/SandboxWorld'
 import CameraController from './CameraController'
-import PostFX from './PostFX'
 import type { GameMeta } from '../lib/games'
 import type { Avatar } from '../lib/avatars'
 
@@ -28,33 +27,24 @@ export default function GameScene({ game, avatar }: Props) {
   return (
     <KeyboardControls map={KEYS}>
       <Canvas
-        shadows
         camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60 }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 2]}
       >
         <Sky sunPosition={[20, 40, 20]} turbidity={8} rayleigh={2} />
         <fog attach="fog" args={['#cfe7ff', 40, 90]} />
-        <ambientLight intensity={0.55} />
-        <directionalLight
-          position={[20, 30, 10]}
-          intensity={1.4}
-          castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
-          shadow-camera-near={0.5}
-          shadow-camera-far={90}
-          shadow-camera-left={-40}
-          shadow-camera-right={40}
-          shadow-camera-top={40}
-          shadow-camera-bottom={-40}
-        />
+        {/* Плоское приятное освещение без теней:
+            ambient + hemisphere + два мягких directional с разных сторон.
+            Это даёт объём без тяжёлого shadow-map пайплайна. */}
+        <ambientLight intensity={0.75} />
+        <hemisphereLight args={['#cfe7ff', '#3d8a3d', 0.5]} />
+        <directionalLight position={[20, 30, 10]} intensity={0.9} />
+        <directionalLight position={[-15, 25, -10]} intensity={0.4} />
         <Physics gravity={[0, -30, 0]}>
           <W />
           <Player avatar={avatar} startPos={spawn} />
         </Physics>
         <CameraController />
-        <PostFX />
       </Canvas>
     </KeyboardControls>
   )
