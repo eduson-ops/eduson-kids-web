@@ -1,8 +1,9 @@
 import { Canvas } from '@react-three/fiber'
-import { KeyboardControls, Sky } from '@react-three/drei'
+import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import Player from './Player'
 import Sun from './Sun'
+import GradientSky from './GradientSky'
 import ObbyWorld, { OBBY_SPAWN } from './worlds/ObbyWorld'
 import RaceWorld, { RACE_SPAWN } from './worlds/RaceWorld'
 import SandboxWorld, { SANDBOX_SPAWN } from './worlds/SandboxWorld'
@@ -23,10 +24,8 @@ interface Props {
   avatar: Avatar
 }
 
-// Позиция солнца: утреннее высоко-боковое (не зенит) — даёт красивые длинные тени
-// и драматичный голубой оттенок неба. Используется И для directional-света, И для
-// визуального диска солнца, И для Sky-шейдера.
-const SUN_POS: [number, number, number] = [50, 30, 20]
+// Позиция солнца: высоко-слева-сбоку — даёт драматичные тени, но не выгорает.
+const SUN_POS: [number, number, number] = [50, 45, 20]
 
 export default function GameScene({ game, avatar }: Props) {
   const { world: W, spawn } = pickWorld(game.category)
@@ -34,34 +33,24 @@ export default function GameScene({ game, avatar }: Props) {
     <KeyboardControls map={KEYS}>
       <Canvas
         shadows="soft"
-        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60 }}
+        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60, far: 600 }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 2]}
       >
-        {/* Базовый фон на случай проблем со Sky shader — тот же голубой */}
-        <color attach="background" args={['#7ec0f5']} />
-        {/* Голубое небо с выраженным градиентом.
-            rayleigh=3 → больше синего рассеивания
-            turbidity=6 → атмосфера не слишком мутная
-            низкое солнце → чёткий контраст горизонта и зенита */}
-        <Sky
-          distance={450000}
-          sunPosition={SUN_POS}
-          turbidity={6}
-          rayleigh={3}
-          mieCoefficient={0.005}
-          mieDirectionalG={0.85}
-        />
-        {/* Видимый солнечный диск в направлении света */}
+        {/* Градиентное голубое небо через shader — всегда голубое */}
+        <GradientSky top="#3d88ff" bottom="#b8e1ff" />
+        {/* Видимое солнце */}
         <Sun position={SUN_POS} />
-        {/* Туман — только очень далеко, чтобы не затирать небо */}
-        <fog attach="fog" args={['#a8d5ff', 110, 240]} />
-        {/* Освещение */}
-        <ambientLight intensity={0.45} />
-        <hemisphereLight args={['#a8d5ff', '#48c774', 0.5]} />
+        {/* Мягкий туман только в самой дали, не глушит небо */}
+        <fog attach="fog" args={['#b8e1ff', 140, 320]} />
+
+        {/* Освещение: тёплое солнце + голубая заливка тени + сильный ambient.
+            Избегаем "чёрного силуэта" персонажа когда он стоит между камерой и солнцем. */}
+        <ambientLight intensity={0.9} />
+        <hemisphereLight args={['#bfe4ff', '#5bc87d', 0.55]} />
         <directionalLight
           position={SUN_POS}
-          intensity={1.4}
+          intensity={1.3}
           color="#fff3d8"
           castShadow
           shadow-mapSize-width={1024}
@@ -74,9 +63,9 @@ export default function GameScene({ game, avatar }: Props) {
           shadow-camera-bottom={-30}
           shadow-bias={-0.0005}
         />
-        {/* Лёгкая контровая подсветка с другой стороны — чтобы теневая сторона
-            не была полностью чёрной */}
-        <directionalLight position={[-20, 15, -15]} intensity={0.2} color="#b0d8ff" />
+        {/* Контровая подсветка с противоположной стороны — тень не чернеет */}
+        <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
+
         <Physics gravity={[0, -30, 0]}>
           <W />
           <Player avatar={avatar} startPos={spawn} />

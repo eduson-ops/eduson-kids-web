@@ -1,10 +1,11 @@
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Sky } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AvatarModel from '../components/AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from '../components/PlayerCharacter'
 import Sun from '../components/Sun'
+import GradientSky from '../components/GradientSky'
 import {
   COLOR_PALETTE,
   PRESET_AVATARS,
@@ -163,19 +164,11 @@ export default function Profile() {
       </aside>
 
       <div className="profile-preview">
-        <Canvas shadows="soft" camera={{ position: [0, 1.8, 5], fov: 40 }}>
-          <color attach="background" args={['#7ec0f5']} />
-          <Sky
-            distance={450000}
-            sunPosition={[50, 30, 20]}
-            turbidity={6}
-            rayleigh={3}
-            mieCoefficient={0.005}
-            mieDirectionalG={0.85}
-          />
+        <Canvas shadows="soft" camera={{ position: [0, 1.8, 5], fov: 40, far: 600 }}>
+          <GradientSky top="#3d88ff" bottom="#b8e1ff" />
           <Sun position={[50, 30, 20]} />
-          <ambientLight intensity={0.5} />
-          <hemisphereLight args={['#a8d5ff', '#48c774', 0.4]} />
+          <ambientLight intensity={0.9} />
+          <hemisphereLight args={['#bfe4ff', '#5bc87d', 0.55]} />
           <directionalLight
             position={[50, 30, 20]}
             intensity={1.3}
@@ -184,6 +177,7 @@ export default function Profile() {
             shadow-mapSize-width={1024}
             shadow-mapSize-height={1024}
           />
+          <directionalLight position={[-20, 15, -15]} intensity={0.4} color="#b0d8ff" />
           <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
             <circleGeometry args={[4, 32]} />
             <meshStandardMaterial color="#48c774" />
