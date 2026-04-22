@@ -152,8 +152,19 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
       {/* Placement hint */}
       {placement && !open && (
         <div className="spawn-placement-hint">
-          📍 Кликни в мир чтобы поставить <b>{findItem(placement.kind as PropKind)?.label ?? placement.kind}</b>.
-          Esc — отмена · Q — другой объект
+          <span>📍 Кликни в мир чтобы поставить <b>{findItem(placement.kind as PropKind)?.label ?? placement.kind}</b>.
+          Esc — отмена · Q — другой объект</span>
+          <div className="spawn-hint-colors">
+            {TOOL_COLORS.map((c) => (
+              <button
+                key={c}
+                className="spawn-hint-swatch"
+                style={{ background: c, outline: placement.color === c ? '2px solid #fff' : '2px solid transparent' }}
+                onClick={() => setPlacement({ ...placement, color: c })}
+                aria-label={`Цвет ${c}`}
+              />
+            ))}
+          </div>
         </div>
       )}
 

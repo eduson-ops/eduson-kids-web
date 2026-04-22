@@ -112,6 +112,20 @@ export default function Parent() {
   const totalLessons = activity.reduce((s, a) => s + a.lessonsCompleted, 0)
   const earnedAch = ACHIEVEMENTS.filter((a) => a.earnedAt).length
 
+  // Current module / lesson computed from real progress
+  const lessonsCompleted = p.completedLessons
+  const currentLesson = Math.min(48, lessonsCompleted + 1)
+  const currentModuleN = Math.max(1, Math.ceil(currentLesson / 6))
+  const MODULE_TITLES = [
+    'Первые шаги в Эдюсон Kids', 'Движение и события', 'Переменные и счёт',
+    'Функции и повторы', 'Условия и логика', 'Переход в Python',
+    'События и состояния', 'Публикация + авторство',
+  ]
+  const currentModuleTitle = MODULE_TITLES[currentModuleN - 1] ?? MODULE_TITLES[0]
+  const lessonInModule = ((currentLesson - 1) % 6) + 1
+  const moduleProgress = Math.round(((lessonInModule - 1) / 6) * 100)
+  const moduleCompletedCount = lessonInModule - 1
+
   // Timeline: генерим из activity + achievements
   const timeline: TimelineEvent[] = useMemo(() => {
     const events: TimelineEvent[] = []
@@ -182,18 +196,18 @@ export default function Parent() {
         <h2 className="h2" style={{ marginBottom: 20 }}>Текущий модуль</h2>
         <div className="kb-card kb-card--feature" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
           <div>
-            <div className="eyebrow">Модуль 1 · Первые шаги в Эдюсон Kids</div>
-            <h3 className="h3" style={{ margin: '8px 0 12px' }}>Урок 4 из 6 — Переменные и счёт</h3>
+            <div className="eyebrow">Модуль {currentModuleN} · {currentModuleTitle}</div>
+            <h3 className="h3" style={{ margin: '8px 0 12px' }}>Урок {lessonInModule} из 6</h3>
             <div className="kb-progress kb-progress--lg">
-              <div className="kb-progress-bar" style={{ width: '60%', background: 'var(--violet)' }} />
+              <div className="kb-progress-bar" style={{ width: `${moduleProgress}%`, background: 'var(--violet)' }} />
             </div>
             <div style={{ display: 'flex', gap: 24, marginTop: 16, fontSize: 14, color: 'var(--ink-soft)', fontWeight: 600 }}>
-              <span>✓ 3 урока завершено</span>
-              <span>🎯 осталось 3</span>
-              <span>📅 обычно 1 урок/неделю</span>
+              <span>✓ {moduleCompletedCount} {moduleCompletedCount === 1 ? 'урок завершён' : 'урока завершено'}</span>
+              <span>🎯 осталось {6 - moduleCompletedCount}</span>
+              <span>📊 всего {lessonsCompleted} / 48</span>
             </div>
           </div>
-          <Link to="/learn/4" className="kb-btn kb-btn--lg">
+          <Link to={`/learn/lesson/${currentLesson}`} className="kb-btn kb-btn--lg">
             Открыть урок
           </Link>
         </div>
