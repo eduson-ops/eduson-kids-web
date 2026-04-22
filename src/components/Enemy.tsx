@@ -1,0 +1,80 @@
+import { useFrame } from '@react-three/fiber'
+import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
+import { useRef } from 'react'
+import { enemyHit, shakeCamera } from '../lib/gameState'
+import { SFX } from '../lib/audio'
+
+interface Props {
+  pos: [number, number, number]
+  /** амплитуда патрулирования по X */
+  patrolX?: number
+  color?: string
+}
+
+/**
+ * Летающий враг-капля. Патрулирует слева-направо, крутится.
+ * Коллизия — сенсор, персонажа не сбивает в MVP (но можно добавить урон/респаун).
+ */
+export default function Enemy({ pos, patrolX = 3, color = '#ff5464' }: Props) {
+  const rb = useRef<RapierRigidBody>(null!)
+  const t0 = useRef(Math.random() * 10)
+
+  useFrame((_, dt) => {
+    if (!rb.current) return
+    t0.current += dt
+    const x = pos[0] + Math.sin(t0.current * 1.2) * patrolX
+    const yBob = pos[1] + Math.sin(t0.current * 2) * 0.2
+    rb.current.setNextKinematicTranslation({ x, y: yBob, z: pos[2] })
+    rb.current.setNextKinematicRotation({ x: 0, y: t0.current * 0.8, z: 0, w: 1 })
+  })
+
+  return (
+    <RigidBody
+      ref={rb}
+      type="kinematicPosition"
+      colliders="ball"
+      position={pos}
+      sensor
+      onIntersectionEnter={({ other }) => {
+        if (other.rigidBodyObject?.name === 'player') {
+          enemyHit()
+          SFX.lose()
+          shakeCamera(0.4, 0.3)
+        }
+      }}
+    >
+      <group>
+        <mesh castShadow>
+          <sphereGeometry args={[0.45, 16, 12]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.3} />
+        </mesh>
+        {/* злые глазки */}
+        <mesh position={[-0.15, 0.08, 0.4]}>
+          <sphereGeometry args={[0.09, 8, 8]} />
+          <meshStandardMaterial color="#fff" />
+        </mesh>
+        <mesh position={[0.15, 0.08, 0.4]}>
+          <sphereGeometry args={[0.09, 8, 8]} />
+          <meshStandardMaterial color="#fff" />
+        </mesh>
+        <mesh position={[-0.15, 0.08, 0.47]}>
+          <sphereGeometry args={[0.045, 6, 6]} />
+          <meshStandardMaterial color="#000" />
+        </mesh>
+        <mesh position={[0.15, 0.08, 0.47]}>
+          <sphereGeometry args={[0.045, 6, 6]} />
+          <meshStandardMaterial color="#000" />
+        </mesh>
+        {/* мини-крылья */}
+        <mesh position={[-0.4, 0.15, 0]} rotation={[0, 0, 0.6]}>
+          <boxGeometry args={[0.3, 0.04, 0.25]} />
+          <meshStandardMaterial color="#fff" transparent opacity={0.6} />
+        </mesh>
+        <mesh position={[0.4, 0.15, 0]} rotation={[0, 0, -0.6]}>
+          <boxGeometry args={[0.3, 0.04, 0.25]} />
+          <meshStandardMaterial color="#fff" transparent opacity={0.6} />
+        </mesh>
+      </group>
+    </RigidBody>
+  )
+}

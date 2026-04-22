@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 5 — Функции и события | KubiK · Eduson Kids</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --brand:#7c5cff;--brand-light:#b397ff;--accent:#ff5ab1;
+    --bg:#0a0a18;--surface:#111128;--surface2:#1a1a35;
+    --border:#2a2a4a;--text:#eeeeff;--muted:#8888aa;
+  }
+  html,body{margin:0;padding:0;font-family:'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+  .slide{display:none;min-height:100vh;padding:3rem 2rem;animation:fade .4s ease;}
+  .slide.active{display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--border);transition:.2s;cursor:pointer;}
+  .dot.active{background:var(--accent);transform:scale(1.5);}
+  pre,code{font-family:'JetBrains Mono','Fira Code',Consolas,monospace;}
+  pre{background:#08081a;border:1px solid var(--border);border-radius:.75rem;padding:1.2rem;color:#dde;overflow-x:auto;font-size:.88rem;line-height:1.7;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;}
+  .badge{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .9rem;border-radius:999px;font-size:.72rem;font-weight:600;}
+  .kb{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1rem;border-radius:.5rem;color:#fff;font-weight:700;font-size:.85rem;margin:.2rem;box-shadow:0 3px 0 rgba(0,0,0,.35);user-select:none;}
+  .kb-hat{border-radius:.9rem .9rem .5rem .5rem;border-top:3px solid rgba(255,255,255,.2);}
+  .kb-e{background:#E8963A;}
+  .kb-v{background:#EF4444;}
+  .kb-c{background:#F59E0B;}
+  .kb-l{background:#06B6D4;}
+  .kb-f{background:#EC4899;}
+  .kb-d{background:#64748B;}
+  .kb-a{background:#8B5CF6;}
+  .kb-w{background:#10B981;}
+  .slot{display:inline-block;background:rgba(0,0,0,.3);border:1.5px dashed rgba(255,255,255,.3);border-radius:.3rem;padding:.1rem .5rem;min-width:2.5rem;text-align:center;font-size:.8rem;}
+  .qbtn{border:2px solid var(--border);border-radius:.75rem;padding:.9rem 1.5rem;background:var(--surface2);color:var(--text);cursor:pointer;transition:.2s;text-align:left;width:100%;}
+  .qbtn:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .qbtn.correct{background:#052a15;border-color:#5bff78;color:#5bff78;}
+  .qbtn.wrong{background:#2a0510;border-color:#ff5464;color:#ff5464;}
+  #progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--brand));transition:.4s;z-index:100;}
+  /* Flow diagram */
+  .flow-box{background:var(--surface2);border:2px solid var(--border);border-radius:.75rem;padding:.75rem 1.25rem;text-align:center;font-weight:600;min-width:100px;}
+  .flow-arr{color:var(--brand);font-size:1.5rem;display:flex;align-items:center;}
+  /* Animation for function call */
+  @keyframes callpulse{0%{box-shadow:0 0 0 0 rgba(236,72,153,.5)}70%{box-shadow:0 0 0 12px rgba(236,72,153,0)}100%{box-shadow:0 0 0 0 rgba(236,72,153,0)}}
+  .call-pulse{animation:callpulse 1s ease-out;}
+  /* Code highlight colors */
+  .hl-fn{color:#f472b6;}
+  .hl-kw{color:#7c5cff;}
+  .hl-str{color:#86efac;}
+  .hl-num{color:#fbbf24;}
+  .hl-cmt{color:#4a5568;font-style:italic;}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b px-4 py-2 flex justify-between items-center"
+  style="background:rgba(10,10,24,.85);border-color:var(--border);">
+  <div class="flex items-center gap-3">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <rect x="2" y="2" width="11" height="11" rx="2.5" fill="#7c5cff"/>
+      <rect x="15" y="2" width="11" height="11" rx="2.5" fill="#ff5ab1"/>
+      <rect x="2" y="15" width="11" height="11" rx="2.5" fill="#06b6d4"/>
+      <rect x="15" y="15" width="11" height="11" rx="2.5" fill="#10b981"/>
+    </svg>
+    <span class="font-black text-base" style="color:var(--accent);">KubiK</span>
+    <span class="text-xs hidden md:inline" style="color:var(--muted);">· Модуль 2 · Урок 5 · 45 мин</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <button id="themeBtn" class="px-3 py-1 rounded text-sm" style="background:var(--surface2);">☀️</button>
+    <span id="counter" class="text-sm" style="color:var(--muted);">1 / 14</span>
+  </div>
+</header>
+
+<main id="deck" class="pt-14">
+
+<!-- S1: Title -->
+<section class="slide active" data-slide="1">
+  <div class="text-center max-w-3xl">
+    <span class="badge" style="background:rgba(255,90,177,.15);color:var(--accent);">Модуль 2 · Урок 5</span>
+    <h1 class="text-5xl md:text-7xl font-black mt-5 leading-none"
+      style="background:linear-gradient(135deg,var(--accent),var(--brand));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+      Функции<br>и события
+    </h1>
+    <p class="text-lg mt-6 max-w-xl mx-auto" style="color:var(--muted);">
+      Перестань копировать один и тот же код — заверни его в функцию. Научись создавать собственные команды для игрового мира.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+      <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">⏱ 45 минут</span>
+      <span class="badge" style="background:rgba(255,90,177,.1);color:var(--accent);">🎯 10–15 лет</span>
+      <span class="badge" style="background:rgba(236,72,153,.1);color:#f472b6;">🔧 Функции</span>
+    </div>
+  </div>
+</section>
+
+<!-- S2: Проблема — повторяющийся код -->
+<section class="slide" data-slide="2">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">😰 Проблема: повторение кода</h2>
+    <p class="mb-5" style="color:var(--muted);">Ты хочешь спавнить врага в 3 разных местах. Без функции — так:</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card" style="border-color:#ff5464;">
+        <div class="text-sm font-bold mb-2" style="color:#ff5464;">❌ Без функции — 18 строк</div>
+        <pre style="font-size:.76rem;">@старт:
+    переменная враг1 = создать_объект(
+        "зомби", [10, 0, 10])
+    враг1.здоровье = 100
+    враг1.скорость = 2
+
+    переменная враг2 = создать_объект(
+        "зомби", [-10, 0, 10])
+    враг2.здоровье = 100
+    враг2.скорость = 2
+
+    переменная враг3 = создать_объект(
+        "зомби", [0, 0, -15])
+    враг3.здоровье = 100
+    враг3.скорость = 2</pre>
+      </div>
+      <div class="card" style="border-color:#5bff78;">
+        <div class="text-sm font-bold mb-2" style="color:#5bff78;">✅ С функцией — 6 строк</div>
+        <pre style="font-size:.76rem;">функция спавн_врага(x, z):
+    переменная е = создать_объект(
+        "зомби", [x, 0, z])
+    е.здоровье = 100
+    е.скорость = 2
+    вернуть е
+
+@старт:
+    спавн_врага(10, 10)
+    спавн_врага(-10, 10)
+    спавн_врага(0, -15)</pre>
+      </div>
+    </div>
+    <div class="mt-4 card" style="border-color:var(--brand);background:rgba(124,92,255,.08);">
+      <p class="text-sm">💡 Принцип <b>DRY — Don't Repeat Yourself</b> («не повторяй себя»). Функция — способ упаковать повторяющееся действие в одну команду.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S3: Анатомия функции -->
+<section class="slide" data-slide="3">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-6">🔬 Анатомия функции</h2>
+    <div class="relative">
+      <pre class="text-lg leading-loose" id="anatomy-code">
+<span id="a-kw" class="hl-kw cursor-pointer hover:underline">функция</span> <span id="a-name" class="hl-fn cursor-pointer hover:underline">спавн_врага</span>(<span id="a-params" class="cursor-pointer hover:underline" style="color:#fbbf24;">x, z</span>):
+    переменная е = создать_объект(<span class="hl-str">"зомби"</span>, [x, 0, z])
+    е.здоровье = <span class="hl-num">100</span>
+    <span id="a-ret" class="cursor-pointer hover:underline" style="color:#f472b6;">вернуть</span> е
+      </pre>
+      <div id="anatomy-hint" class="mt-4 card min-h-16" style="border-color:var(--brand);background:rgba(124,92,255,.1);">
+        <p class="text-sm" style="color:var(--muted);">⬆️ Нажми на подчёркнутый элемент, чтобы узнать подробнее</p>
+      </div>
+    </div>
+    <script>
+      const hints={
+        'a-kw':'<b>функция</b> — ключевое слово объявления. Всегда в начале. В Python: <code>def</code>',
+        'a-name':'<b>Имя функции</b> — любое слово на русском или латинице. По имени вызываем: <code>спавн_врага(10, 5)</code>',
+        'a-params':'<b>Параметры</b> — входные значения. x и z — координаты. При вызове подставляются конкретные числа.',
+        'a-ret':'<b>вернуть</b> — возвращает значение вызывающему коду. Можно вернуть объект, число, строку или ничего.'
+      };
+      Object.keys(hints).forEach(id=>{
+        document.getElementById(id)?.addEventListener('click',()=>{
+          document.getElementById('anatomy-hint').innerHTML='<p class="text-sm">'+hints[id]+'</p>';
+        });
+      });
+    </script>
+  </div>
+</section>
+
+<!-- S4: Блочный вид функции -->
+<section class="slide" data-slide="4">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-5">🧱 Как выглядит в редакторе</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:#EC4899;">Блоки</div>
+        <!-- Hat block -->
+        <div class="kb kb-f kb-hat w-full mb-1">🔧 функция спавн_врага( <span class="slot">x</span> <span class="slot">z</span> )</div>
+        <!-- Body -->
+        <div class="pl-4 border-l-2 border-pink-500/30 ml-2">
+          <div class="kb kb-a w-full mb-1">🏗️ создать_объект( <span class="slot">"зомби"</span> [<span class="slot">x</span>,0,<span class="slot">z</span>] )</div>
+          <div class="kb kb-v w-full mb-1">🔩 е.здоровье = <span class="slot">100</span></div>
+          <!-- Return cap -->
+          <div class="kb kb-f w-full" style="border-radius:.5rem .5rem 0 0;">🔙 вернуть <span class="slot">е</span></div>
+        </div>
+        <div class="mt-4 text-xs" style="color:var(--muted);">Блок <b>вернуть</b> — всегда последний. Его дно плоское («CAP»).</div>
+      </div>
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:var(--muted);">Типы возвращаемых значений</div>
+        <div class="space-y-2">
+          <div class="p-3 rounded-lg" style="background:var(--surface2);">
+            <div class="text-xs font-bold mb-1" style="color:#fbbf24;">Число</div>
+            <pre style="font-size:.78rem;padding:.5rem;">функция урон(базовый):
+    вернуть базовый * 2</pre>
+          </div>
+          <div class="p-3 rounded-lg" style="background:var(--surface2);">
+            <div class="text-xs font-bold mb-1" style="color:#86efac;">Строка</div>
+            <pre style="font-size:.78rem;padding:.5rem;">функция приветствие(имя):
+    вернуть соединить("Привет, ", имя)</pre>
+          </div>
+          <div class="p-3 rounded-lg" style="background:var(--surface2);">
+            <div class="text-xs font-bold mb-1" style="color:#f472b6;">Ничего (без return)</div>
+            <pre style="font-size:.78rem;padding:.5rem;">функция показать_счёт():
+    сказать(текст(счёт))</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S5: Вызов функции — интерактив -->
+<section class="slide" data-slide="5">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-4">▶️ Интерактив: вызов функции</h2>
+    <p class="mb-5" style="color:var(--muted);">Нажимай кнопки — смотри, как данные проходят через функцию.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:#EC4899;">Функция</div>
+        <pre id="fn-code" style="font-size:.85rem;">функция урон_от_врага(базовый):
+    переменная итог = базовый * 2
+    вернуть итог</pre>
+        <div class="mt-4 flex gap-2 flex-wrap">
+          <button onclick="callFn(5)" class="px-4 py-2 rounded-lg font-bold text-white text-sm" style="background:#EC4899;">Вызвать(5)</button>
+          <button onclick="callFn(10)" class="px-4 py-2 rounded-lg font-bold text-white text-sm" style="background:#7c5cff;">Вызвать(10)</button>
+          <button onclick="callFn(25)" class="px-4 py-2 rounded-lg font-bold text-white text-sm" style="background:#06b6d4;">Вызвать(25)</button>
+        </div>
+      </div>
+      <div class="card flex flex-col items-center justify-center gap-4">
+        <div class="text-sm" style="color:var(--muted);">Вход <code>базовый</code>:</div>
+        <div id="fn-input" class="text-4xl font-black" style="color:#fbbf24;">—</div>
+        <div class="text-3xl" style="color:var(--muted);">↓ × 2 ↓</div>
+        <div class="text-sm" style="color:var(--muted);">Результат:</div>
+        <div id="fn-output" class="text-5xl font-black" style="color:#f472b6;">—</div>
+        <div id="fn-msg" class="text-sm" style="color:var(--muted);">нажми кнопку</div>
+      </div>
+    </div>
+    <script>
+      function callFn(n){
+        document.getElementById('fn-input').textContent=n;
+        document.getElementById('fn-output').textContent=n*2;
+        document.getElementById('fn-msg').textContent='урон_от_врага('+n+') → '+n*2;
+        document.getElementById('fn-output').style.animation='none';
+        void document.getElementById('fn-output').offsetWidth;
+        document.getElementById('fn-output').style.animation='callpulse .6s ease';
+      }
+    </script>
+  </div>
+</section>
+
+<!-- S6: Собственные события -->
+<section class="slide" data-slide="6">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">📡 Собственные события</h2>
+    <p class="mb-5" style="color:var(--muted);">KubiK позволяет создавать свои события — функции-обработчики с декоратором <code style="color:#E8963A;">@</code>.</p>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div>
+        <div class="text-sm font-bold mb-3" style="color:#E8963A;">Встроенные события</div>
+        <div class="space-y-2">
+          <div class="kb kb-e kb-hat w-full">@старт</div>
+          <div class="kb kb-e kb-hat w-full">@нажата_клавиша( <span class="slot">пробел</span> )</div>
+          <div class="kb kb-e kb-hat w-full">@столкновение( <span class="slot">объект</span> )</div>
+          <div class="kb kb-e kb-hat w-full">@каждые( <span class="slot">3</span> сек )</div>
+          <div class="kb kb-e kb-hat w-full">@клик_мыши( <span class="slot">кнопка</span> )</div>
+        </div>
+      </div>
+      <div>
+        <div class="text-sm font-bold mb-3" style="color:#7c5cff;">Комбинации — мощь!</div>
+        <pre style="font-size:.8rem;">мир счёт = 0
+
+@каждые(5, сек):
+    спавн_врага(
+        случайное(-50,50),
+        случайное(-50,50)
+    )
+
+@столкновение(монета):
+    добавить_очки(10)
+    удалить(монета)
+
+@нажата_клавиша(пробел):
+    игрок.прыгнуть(высота=6)
+
+функция добавить_очки(n):
+    счёт += n
+    сказать(текст(счёт))</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S7: Flow диаграмма программы -->
+<section class="slide" data-slide="7">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-6">🗺️ Поток программы</h2>
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <div class="flow-box" style="border-color:#E8963A;background:rgba(232,150,58,.1);">
+        @старт<br><span style="font-size:.75rem;color:var(--muted);">инициализация</span>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:#7c5cff;background:rgba(124,92,255,.1);">
+        функции<br><span style="font-size:.75rem;color:var(--muted);">объявления</span>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-box" style="border-color:#06b6d4;background:rgba(6,182,212,.1);">
+        Event Loop<br><span style="font-size:.75rem;color:var(--muted);">ждёт событий</span>
+      </div>
+    </div>
+    <div class="flex flex-col items-center mt-4">
+      <div class="flow-arr" style="transform:rotate(90deg);">→</div>
+      <div class="flex gap-4 mt-2">
+        <div class="flow-box" style="border-color:#E8963A;">@нажата_клавиша</div>
+        <div class="flow-box" style="border-color:#E8963A;">@столкновение</div>
+        <div class="flow-box" style="border-color:#E8963A;">@каждые(N сек)</div>
+      </div>
+      <div class="flow-arr mt-2" style="transform:rotate(90deg);">→</div>
+      <div class="flex gap-4 mt-2">
+        <div class="flow-box" style="border-color:#EC4899;">функция()</div>
+        <div class="flow-box" style="border-color:#EC4899;">функция()</div>
+        <div class="flow-box" style="border-color:#EC4899;">функция()</div>
+      </div>
+      <div class="flow-arr mt-2" style="transform:rotate(90deg);color:#5bff78;">→</div>
+      <div class="flow-box mt-2" style="border-color:#5bff78;background:rgba(91,255,120,.08);">
+        Изменение мира 3D
+      </div>
+    </div>
+    <div class="mt-4 card" style="border-color:var(--brand);background:rgba(124,92,255,.08);">
+      <p class="text-sm">KubiK — <b>event-driven</b>: программа не идёт сверху вниз раз и всё. Она ждёт событий и реагирует. Как живой мир!</p>
+    </div>
+  </div>
+</section>
+
+<!-- S8: Параметры и аргументы -->
+<section class="slide" data-slide="8">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🎛️ Параметры vs аргументы</h2>
+    <p class="mb-5" style="color:var(--muted);">Терминология важна — она используется в Python, JS, любом языке.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card" style="border-color:#EC4899;">
+        <div class="text-sm font-bold mb-3" style="color:#EC4899;">Параметр — при объявлении</div>
+        <pre style="font-size:.85rem;">функция <span style="color:#f472b6;">спавн</span>(<span style="color:#fbbf24;">x</span>, <span style="color:#fbbf24;">z</span>):
+              ↑    ↑
+         <span style="color:#fbbf24;">параметры</span> (имена-заглушки)</pre>
+        <div class="mt-3 text-sm" style="color:var(--muted);">Параметр — это «ящик» внутри функции. Пока функция не вызвана, в нём пусто.</div>
+      </div>
+      <div class="card" style="border-color:#7c5cff;">
+        <div class="text-sm font-bold mb-3" style="color:var(--brand-light);">Аргумент — при вызове</div>
+        <pre style="font-size:.85rem;"><span style="color:#f472b6;">спавн</span>(<span style="color:#86efac;">10</span>, <span style="color:#86efac;">-5</span>)
+         ↑     ↑
+    <span style="color:#86efac;">аргументы</span> (реальные значения)</pre>
+        <div class="mt-3 text-sm" style="color:var(--muted);">Аргумент — реальное значение, которое подставляется в «ящик» при вызове.</div>
+      </div>
+    </div>
+    <div class="mt-4 card">
+      <div class="text-sm font-bold mb-3">Визуализация передачи</div>
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="p-3 rounded-lg text-center" style="background:rgba(124,92,255,.15);border:1px solid var(--brand);">
+          <div class="text-xs" style="color:var(--muted);">вызов</div>
+          <div class="font-bold">спавн(<span style="color:#fbbf24;">10</span>, <span style="color:#fbbf24;">-5</span>)</div>
+        </div>
+        <div class="text-2xl" style="color:var(--brand);">→</div>
+        <div class="p-3 rounded-lg text-center" style="background:rgba(236,72,153,.15);border:1px solid #EC4899;">
+          <div class="text-xs" style="color:var(--muted);">внутри функции</div>
+          <div class="font-bold">x = <span style="color:#fbbf24;">10</span>, z = <span style="color:#fbbf24;">-5</span></div>
+        </div>
+        <div class="text-2xl" style="color:#5bff78;">→</div>
+        <div class="p-3 rounded-lg text-center" style="background:rgba(91,255,120,.1);border:1px solid #5bff78;">
+          <div class="text-xs" style="color:var(--muted);">результат</div>
+          <div class="font-bold">зомби на [10,0,-5]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S9: Практика — Лабиринт врагов -->
+<section class="slide" data-slide="9">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🛠️ Задание: «Волны врагов»</h2>
+    <p class="mb-5" style="color:var(--muted);">Сделай систему волн: с каждой волной враги становятся сильнее.</p>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="space-y-3">
+        <div class="card flex gap-3">
+          <span class="text-xl">1️⃣</span>
+          <div>
+            <div class="font-bold text-sm">Объяви переменные волны</div>
+            <div class="kb kb-v mt-1" style="background:#7c5cff;font-size:.75rem;">мир волна = 1</div>
+            <div class="kb kb-v mt-1" style="background:#7c5cff;font-size:.75rem;">мир живые_враги = 0</div>
+          </div>
+        </div>
+        <div class="card flex gap-3">
+          <span class="text-xl">2️⃣</span>
+          <div>
+            <div class="font-bold text-sm">Напиши функцию спавна</div>
+            <div class="kb kb-f kb-hat mt-1" style="font-size:.75rem;">функция начать_волну(номер)</div>
+          </div>
+        </div>
+        <div class="card flex gap-3">
+          <span class="text-xl">3️⃣</span>
+          <div>
+            <div class="font-bold text-sm">Вызывай при победе</div>
+            <div class="kb kb-c mt-1" style="font-size:.75rem;">если живые_враги == 0</div>
+            <div class="pl-4"><div class="kb kb-f mt-1" style="font-size:.75rem;">начать_волну(волна + 1)</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <pre style="font-size:.76rem;">мир волна = 1
+мир живые_враги = 0
+
+функция начать_волну(номер):
+    волна = номер
+    переменная кол = номер * 3
+    повторить кол раз:
+        переменная е = создать_объект(
+            "зомби",
+            [случайное(-40,40),0,
+             случайное(-40,40)])
+        е.здоровье = 50 * номер
+        живые_враги += 1
+
+@старт:
+    начать_волну(1)
+
+@столкновение(пуля):
+    живые_враги -= 1
+    если живые_враги <= 0:
+        сказать("Волна " + текст(волна) +
+                " пройдена!")
+        начать_волну(волна + 1)</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S10: Функции без return — side effects -->
+<section class="slide" data-slide="10">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">⚡ Функции без «вернуть»</h2>
+    <p class="mb-5" style="color:var(--muted);">Не все функции возвращают значение. Некоторые просто <b>делают</b> — меняют мир, показывают текст.</p>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:#10B981;">Функция-действие (void)</div>
+        <pre style="font-size:.82rem;">функция показать_hud():
+    сказать(соединить(
+        "♥ ", текст(жизни),
+        "  ⭐ ", текст(счёт)
+    ))
+
+# Вызов — просто имя без присваивания
+@каждые(2, сек):
+    показать_hud()</pre>
+        <div class="mt-3 text-xs" style="color:var(--muted);">Нет <code>вернуть</code> → ничего не возвращает. Просто выполняет действие.</div>
+      </div>
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:#EC4899;">Функция-вычисление (return)</div>
+        <pre style="font-size:.82rem;">функция итоговый_урон(база, броня):
+    переменная урон = база - броня
+    если урон < 1:
+        урон = 1
+    вернуть урон
+
+# Вызов — результат используем
+@столкновение(враг):
+    переменная д = итоговый_урон(30, 10)
+    жизни -= д
+    сказать(соединить("-", текст(д), " HP"))</pre>
+      </div>
+    </div>
+    <div class="mt-4 card" style="border-color:#ffd644;background:rgba(255,214,68,.06);">
+      <p class="text-sm">⚡ Правило: если результат нужен снаружи — <code>вернуть</code>. Если только делаем что-то — без возврата.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S11: Python side-by-side -->
+<section class="slide" data-slide="11">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🐍 Функции в Python</h2>
+    <p class="mb-5" style="color:var(--muted);">Нажми переключатель Python в редакторе — KubiK покажет тот же код на Python.</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <div class="p-3 rounded-t-xl font-bold text-center" style="background:#EC4899;color:#fff;">KubiK Text</div>
+        <pre style="border-radius:0 0 .75rem .75rem;font-size:.83rem;">функция начать_волну(номер):
+    волна = номер
+    переменная кол = номер * 3
+    повторить кол раз:
+        спавн_врага(
+            случайное(-40,40),
+            случайное(-40,40),
+            50 * номер
+        )
+
+@каждые(5, сек):
+    если живые_враги <= 0:
+        начать_волну(волна + 1)</pre>
+      </div>
+      <div>
+        <div class="p-3 rounded-t-xl font-bold text-center" style="background:#4c97ff;color:#fff;">Python 3 (автогенерация)</div>
+        <pre style="border-radius:0 0 .75rem .75rem;font-size:.83rem;">def начать_волну(номер):
+    global волна
+    волна = номер
+    кол = номер * 3
+    for _ in range(кол):
+        спавн_врага(
+            random.randint(-40, 40),
+            random.randint(-40, 40),
+            50 * номер
+        )
+
+@every(5, "sec")
+def _():
+    if живые_враги <= 0:
+        начать_волну(волна + 1)</pre>
+      </div>
+    </div>
+    <div class="mt-4 card" style="border-color:var(--brand);">
+      <p class="text-sm">Видишь разницу? <code>def</code> вместо <code>функция</code>, <code>global</code> для мировых переменных, <code>range()</code> вместо <code>повторить...раз</code>. Логика — та же.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S12: Ошибки в функциях -->
+<section class="slide" data-slide="12">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-5">🐛 Ошибки в функциях</h2>
+    <div class="space-y-4">
+      <div class="card" style="border-color:#ff5464;">
+        <div class="flex gap-3 items-start">
+          <div>
+            <div class="font-bold text-red-400 mb-1">E-KB-0031: неверное число аргументов</div>
+            <pre style="font-size:.8rem;">функция спавн(x, z):   # ожидает 2 аргумента
+    ...
+
+спавн(10)              # ❌ передан 1 аргумент
+спавн(10, 5, 2)        # ❌ передано 3 аргумента
+спавн(10, -5)          # ✅</pre>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-color:#ffd644;">
+        <div class="flex gap-3 items-start">
+          <div>
+            <div class="font-bold text-yellow-300 mb-1">⚠️ Рекурсия без выхода (бесконечный вызов)</div>
+            <pre style="font-size:.8rem;">функция бесконечно():
+    бесконечно()    # ❌ вызывает себя без условия выхода
+    # E-KB-0055: глубина вызовов > 100</pre>
+            <pre style="font-size:.8rem;margin-top:.5rem;">функция обратный_отсчёт(n):
+    если n <= 0:
+        сказать "Старт! 🚀"
+        вернуть         # ← условие выхода
+    сказать(текст(n))
+    обратный_отсчёт(n - 1)  # ✅ с уменьшением</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S13: Тест -->
+<section class="slide" data-slide="13">
+  <div class="max-w-2xl w-full">
+    <h2 class="text-4xl font-black mb-2">📝 Проверка знаний</h2>
+    <p class="mb-6" style="color:var(--muted);">Что выведет код?<br><code style="color:#f472b6;">функция дважды(x): вернуть x * 2</code><br><code>сказать(дважды(7))</code></p>
+    <div class="space-y-3" id="quiz1">
+      <button class="qbtn" onclick="qans(this,false,'q1')">7</button>
+      <button class="qbtn" onclick="qans(this,true,'q1')">14</button>
+      <button class="qbtn" onclick="qans(this,false,'q1')">27</button>
+      <button class="qbtn" onclick="qans(this,false,'q1')">«дважды(7)»</button>
+    </div>
+    <div id="q1-fb" class="mt-4 text-sm hidden" style="color:#5bff78;">
+      ✅ Верно! дважды(7) → 7 * 2 → 14. Функция возвращает число, сказать выводит 14.
+    </div>
+    <div class="mt-6">
+      <p class="mb-3" style="color:var(--muted);">Что такое DRY в программировании?</p>
+      <div class="space-y-2" id="quiz2">
+        <button class="qbtn text-sm" onclick="qans(this,false,'q2')">Особый тип переменных</button>
+        <button class="qbtn text-sm" onclick="qans(this,true,'q2')">Don't Repeat Yourself — не повторяй код</button>
+        <button class="qbtn text-sm" onclick="qans(this,false,'q2')">Команда осушения (drying) игрового мира</button>
+      </div>
+      <div id="q2-fb" class="mt-3 text-sm hidden" style="color:#5bff78;">✅ Don't Repeat Yourself — функции помогают следовать этому принципу.</div>
+    </div>
+  </div>
+</section>
+
+<!-- S14: Итог -->
+<section class="slide" data-slide="14">
+  <div class="max-w-3xl w-full text-center">
+    <div class="text-6xl mb-4">⚙️</div>
+    <h2 class="text-5xl font-black mb-4" style="background:linear-gradient(135deg,var(--accent),var(--brand));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+      Урок завершён!
+    </h2>
+    <p class="text-lg mb-8" style="color:var(--muted);">Теперь ты пишешь повторно используемые блоки кода.</p>
+    <div class="grid md:grid-cols-3 gap-4 mb-8">
+      <div class="card text-center">
+        <div class="text-3xl mb-2">🔧</div>
+        <div class="font-bold text-sm">функция + вернуть</div>
+        <div class="text-xs mt-1" style="color:var(--muted);">объявление и возврат</div>
+      </div>
+      <div class="card text-center">
+        <div class="text-3xl mb-2">📡</div>
+        <div class="font-bold text-sm">События + Функции</div>
+        <div class="text-xs mt-1" style="color:var(--muted);">event-driven архитектура</div>
+      </div>
+      <div class="card text-center">
+        <div class="text-3xl mb-2">🐍</div>
+        <div class="font-bold text-sm">В Python: def</div>
+        <div class="text-xs mt-1" style="color:var(--muted);">один клик переключения</div>
+      </div>
+    </div>
+    <div class="flex gap-4 justify-center flex-wrap">
+      <a href="L4_variables_score.html" class="px-6 py-3 rounded-xl font-bold" style="background:var(--surface2);color:var(--muted);">← Урок 4</a>
+      <a href="L6_python_mode.html" class="px-6 py-3 rounded-xl font-bold text-white" style="background:linear-gradient(135deg,var(--accent),var(--brand));">Урок 6: Python →</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav class="fixed bottom-4 left-0 right-0 flex justify-center gap-2 z-50" id="dots"></nav>
+<button id="prev" class="fixed left-3 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition hover:scale-110"
+  style="background:var(--surface2);color:var(--muted);">‹</button>
+<button id="next" class="fixed right-3 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition hover:scale-110"
+  style="background:var(--accent);color:#fff;">›</button>
+
+<script>
+const TOTAL=14;let cur=1;
+function go(n){
+  n=Math.max(1,Math.min(TOTAL,n));
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.querySelector(`[data-slide="${n}"]`).classList.add('active');
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===n-1));
+  document.getElementById('counter').textContent=n+' / '+TOTAL;
+  document.getElementById('progress').style.width=((n-1)/(TOTAL-1)*100)+'%';
+  cur=n;
+}
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.getElementById('next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ')go(cur+1);
+  if(e.key==='ArrowLeft')go(cur-1);
+});
+const nav=document.getElementById('dots');
+for(let i=1;i<=TOTAL;i++){
+  const d=document.createElement('div');d.className='dot'+(i===1?' active':'');
+  d.onclick=()=>go(i);nav.appendChild(d);
+}
+document.getElementById('progress').style.width='0%';
+let light=false;
+document.getElementById('themeBtn').onclick=()=>{
+  light=!light;
+  document.body.style.background=light?'#f4f0ff':'#0a0a18';
+  document.body.style.color=light?'#1a1a35':'#eeeeff';
+  document.getElementById('themeBtn').textContent=light?'🌙':'☀️';
+}
+function qans(btn,correct,id){
+  const all=document.querySelectorAll('#quiz'+id.slice(1)+' .qbtn, #'+id+' .qbtn');
+  document.querySelectorAll(`#${id} .qbtn, [id^="${id}"] .qbtn`).forEach(b=>b.disabled=true);
+  btn.classList.add(correct?'correct':'wrong');
+  if(!correct){
+    const container=btn.closest('.space-y-3, .space-y-2');
+    if(container)container.querySelectorAll('.qbtn').forEach(b=>{
+      if((id==='q1'&&b.textContent.includes('14'))||(id==='q2'&&b.textContent.includes("Don't")))b.classList.add('correct');
+    });
+  }
+  document.getElementById(id+'-fb').classList.remove('hidden');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KubiK — Учебный портал | Eduson Kids Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --brand:#7c5cff;--brand-light:#b397ff;--accent:#ff5ab1;
+    --py:#4c97ff;
+    --bg:#0a0a18;--surface:#111128;--surface2:#1a1a35;
+    --border:#2a2a4a;--text:#eeeeff;--muted:#8888aa;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Inter','Segoe UI',sans-serif;}
+  a{text-decoration:none;color:inherit;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:1rem;
+    padding:1.5rem;transition:.2s;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(124,92,255,.2);}
+  .badge{display:inline-flex;align-items:center;padding:.25rem .75rem;border-radius:999px;
+    font-size:.7rem;font-weight:600;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .float{animation:float 4s ease-in-out infinite;}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Hero -->
+<header class="relative overflow-hidden" style="background:linear-gradient(135deg,#0a0a18,#141430);">
+  <div class="absolute inset-0 opacity-10" style="background:radial-gradient(circle at 30% 50%,#7c5cff,transparent 60%),radial-gradient(circle at 70% 50%,#ff5ab1,transparent 60%);"></div>
+  <div class="relative max-w-5xl mx-auto px-6 py-16 text-center">
+    <!-- KubiK logo -->
+    <div class="float inline-block mb-6">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+        <rect x="4" y="4" width="26" height="26" rx="6" fill="#7c5cff"/>
+        <rect x="34" y="4" width="26" height="26" rx="6" fill="#ff5ab1"/>
+        <rect x="4" y="34" width="26" height="26" rx="6" fill="#06b6d4"/>
+        <rect x="34" y="34" width="26" height="26" rx="6" fill="#10b981"/>
+      </svg>
+    </div>
+    <div class="text-sm font-bold mb-2" style="color:var(--brand-light);letter-spacing:.1em;text-transform:uppercase;">
+      Eduson Kids Platform
+    </div>
+    <h1 class="text-5xl md:text-6xl font-black mb-4" style="background:linear-gradient(135deg,var(--brand),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+      KubiK Учебный портал
+    </h1>
+    <p class="text-lg max-w-2xl mx-auto" style="color:var(--muted);">
+      Первые 6 уроков программирования — от блоков до Python. Каждый урок = интерактивная презентация + методичка для учителя.
+    </p>
+    <div class="flex flex-wrap gap-3 justify-center mt-6">
+      <span class="badge" style="background:rgba(124,92,255,.15);color:var(--brand-light);">🎯 9–15 лет</span>
+      <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">⏱ 4 ч 45 мин</span>
+      <span class="badge" style="background:rgba(255,90,177,.1);color:var(--accent);">🧱 KubiK Blocks + Python</span>
+      <span class="badge" style="background:rgba(76,151,255,.1);color:var(--py);">🏫 ФГОС Информатика 7–9</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-12">
+
+  <!-- Module 1 -->
+  <div class="mb-10">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="px-3 py-1 rounded-full text-sm font-bold" style="background:rgba(124,92,255,.15);color:var(--brand-light);">Модуль 1</div>
+      <h2 class="text-2xl font-black">🏗️ Строю мир</h2>
+      <span class="text-sm" style="color:var(--muted);">— KubiK Блоки</span>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4">
+
+      <a href="L1_first_game.html" class="card">
+        <div class="flex items-start justify-between mb-3">
+          <span class="text-3xl">🎮</span>
+          <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">45 мин</span>
+        </div>
+        <h3 class="font-bold text-lg mb-1">Урок 1</h3>
+        <p class="font-semibold mb-2" style="color:var(--brand-light);">Первая игра за 10 минут</p>
+        <p class="text-sm" style="color:var(--muted);">Obby — прыгающие платформы. Создаём 3D-сцену, ставим Part, запускаем.</p>
+        <div class="mt-4 flex gap-2 flex-wrap">
+          <span class="badge" style="background:rgba(124,92,255,.1);color:var(--brand-light);">Блоки</span>
+          <span class="badge" style="background:rgba(30,41,59,.5);color:var(--muted);">3D редактор</span>
+        </div>
+      </a>
+
+      <a href="L2_player_movement.html" class="card">
+        <div class="flex items-start justify-between mb-3">
+          <span class="text-3xl">🕹️</span>
+          <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">45 мин</span>
+        </div>
+        <h3 class="font-bold text-lg mb-1">Урок 2</h3>
+        <p class="font-semibold mb-2" style="color:var(--brand-light);">Движение персонажа</p>
+        <p class="text-sm" style="color:var(--muted);">WASD управление, прыжки, скорость. Первые скрипты для управления игроком.</p>
+        <div class="mt-4 flex gap-2 flex-wrap">
+          <span class="badge" style="background:rgba(59,130,232,.15);color:#5ba0ff;">Движение</span>
+          <span class="badge" style="background:rgba(30,41,59,.5);color:var(--muted);">Скрипт</span>
+        </div>
+      </a>
+
+      <a href="L3_events_collisions.html" class="card">
+        <div class="flex items-start justify-between mb-3">
+          <span class="text-3xl">💥</span>
+          <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">45 мин</span>
+        </div>
+        <h3 class="font-bold text-lg mb-1">Урок 3</h3>
+        <p class="font-semibold mb-2" style="color:var(--brand-light);">События и коллизии</p>
+        <p class="text-sm" style="color:var(--muted);">@старт, @столкновение, @нажата_клавиша. Монетки, шипы, финиш.</p>
+        <div class="mt-4 flex gap-2 flex-wrap">
+          <span class="badge" style="background:rgba(232,150,58,.15);color:#ffb24a;">События</span>
+          <span class="badge" style="background:rgba(30,41,59,.5);color:var(--muted);">Коллизии</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Module 2 -->
+  <div class="mb-10">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="px-3 py-1 rounded-full text-sm font-bold" style="background:rgba(255,90,177,.15);color:var(--accent);">Модуль 2</div>
+      <h2 class="text-2xl font-black">⚙️ Программирую</h2>
+      <span class="text-sm" style="color:var(--muted);">— KubiK Блоки + Text</span>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+
+      <a href="L4_variables_score.html" class="card">
+        <div class="flex items-start justify-between mb-3">
+          <span class="text-3xl">📦</span>
+          <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">45 мин</span>
+        </div>
+        <h3 class="font-bold text-lg mb-1">Урок 4</h3>
+        <p class="font-semibold mb-2" style="color:var(--accent);">Переменные и счёт</p>
+        <p class="text-sm" style="color:var(--muted);">переменная / мир / сохраняемая. Счётчик монет, рекорд, инвентарь-словарь.</p>
+        <div class="mt-4 flex gap-2 flex-wrap">
+          <span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;">Переменные</span>
+          <span class="badge" style="background:rgba(100,116,139,.15);color:#94a3b8;">Словарь</span>
+          <span class="badge" style="background:rgba(76,151,255,.1);color:var(--py);">Python preview</span>
+        </div>
+      </a>
+
+      <a href="L5_functions_events.html" class="card">
+        <div class="flex items-start justify-between mb-3">
+          <span class="text-3xl">🔧</span>
+          <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">45 мин</span>
+        </div>
+        <h3 class="font-bold text-lg mb-1">Урок 5</h3>
+        <p class="font-semibold mb-2" style="color:var(--accent);">Функции и события</p>
+        <p class="text-sm" style="color:var(--muted);">функция / вернуть / параметры. DRY-принцип. Система волн врагов.</p>
+        <div class="mt-4 flex gap-2 flex-wrap">
+          <span class="badge" style="background:rgba(236,72,153,.15);color:#f472b6;">Функции</span>
+          <span class="badge" style="background:rgba(232,150,58,.15);color:#ffb24a;">Events</span>
+          <span class="badge" style="background:rgba(76,151,255,.1);color:var(--py);">Python preview</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Module 3 -->
+  <div class="mb-10">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="px-3 py-1 rounded-full text-sm font-bold" style="background:rgba(76,151,255,.15);color:var(--py);">Модуль 3</div>
+      <h2 class="text-2xl font-black">🐍 Python режим</h2>
+      <span class="text-sm" style="color:var(--muted);">— Python 3 · ФГОС</span>
+    </div>
+    <div class="grid md:grid-cols-1 gap-4 max-w-lg">
+
+      <a href="L6_python_mode.html" class="card" style="border-color:rgba(76,151,255,.3);">
+        <div class="flex items-start justify-between mb-3">
+          <span class="text-3xl">🐍</span>
+          <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">50 мин</span>
+        </div>
+        <h3 class="font-bold text-lg mb-1">Урок 6</h3>
+        <p class="font-semibold mb-2" style="color:var(--py);">Python режим</p>
+        <p class="text-sm mb-3" style="color:var(--muted);">def, if/else, global, f-строки, отступы. Одинаковая логика — другой синтаксис. Переход к школьной информатике.</p>
+        <div class="flex gap-2 flex-wrap">
+          <span class="badge" style="background:rgba(76,151,255,.15);color:var(--py);">Python 3</span>
+          <span class="badge" style="background:rgba(255,90,177,.1);color:var(--accent);">ФГОС 7–9 кл.</span>
+          <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">Финальный урок модуля</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Teacher resources -->
+  <div class="card mt-8" style="border-color:rgba(124,92,255,.3);background:rgba(124,92,255,.05);">
+    <h2 class="text-xl font-black mb-4">📚 Ресурсы для учителя</h2>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div>
+        <div class="font-bold text-sm mb-2" style="color:var(--brand-light);">Методички</div>
+        <ul class="space-y-1 text-sm" style="color:var(--muted);">
+          <li><a href="L1_teacher_guide.md" class="hover:underline" style="color:var(--text);">Урок 1: методичка</a></li>
+          <li><a href="L2_teacher_guide.md" class="hover:underline" style="color:var(--text);">Урок 2: методичка</a></li>
+          <li><a href="L3_teacher_guide.md" class="hover:underline" style="color:var(--text);">Урок 3: методичка</a></li>
+          <li><a href="L4_teacher_guide.md" class="hover:underline" style="color:var(--text);">Урок 4: методичка</a></li>
+          <li><a href="L5_teacher_guide.md" class="hover:underline" style="color:var(--text);">Урок 5: методичка</a></li>
+          <li><a href="L6_teacher_guide.md" class="hover:underline" style="color:var(--text);">Урок 6: методичка</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-bold text-sm mb-2" style="color:var(--brand-light);">Документация</div>
+        <ul class="space-y-1 text-sm" style="color:var(--muted);">
+          <li><a href="../../architecture/block_language_spec.md" class="hover:underline" style="color:var(--text);">KubiK Language Spec v1.0</a></li>
+          <li><a href="../../architecture/python_methodology.md" class="hover:underline" style="color:var(--text);">Python Integration Methodology</a></li>
+          <li><a href="../../research/r1_block_programming_comparison.md" class="hover:underline" style="color:var(--text);">Сравнение блочных сред (R1)</a></li>
+          <li><a href="../00_analysis_competitors.md" class="hover:underline" style="color:var(--text);">Анализ конкурентов (00)</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="font-bold text-sm mb-2" style="color:var(--brand-light);">Быстрый старт</div>
+        <div class="text-sm space-y-2" style="color:var(--muted);">
+          <p>1. Открыть нужный <code>Lx.html</code> в браузере</p>
+          <p>2. ← → или Space для навигации</p>
+          <p>3. Открыть методичку рядом</p>
+          <p>4. На слайде «Практика» → переключить в KubiK Editor</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Python API cheatsheet -->
+  <div class="card mt-4" style="border-color:rgba(76,151,255,.3);background:rgba(76,151,255,.04);">
+    <h2 class="text-xl font-black mb-4">🐍 Python API — шпаргалка</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <div class="text-xs font-bold mb-2" style="color:var(--py);text-transform:uppercase;letter-spacing:.08em;">Движение</div>
+        <pre class="text-xs p-3 rounded-lg" style="background:#08081a;color:#ccd6f6;">move_forward(N)   # вперёд N шагов
+move_back(N)      # назад
+turn_left()       # налево 90°
+turn_right()      # направо 90°
+jump()            # прыжок</pre>
+      </div>
+      <div>
+        <div class="text-xs font-bold mb-2" style="color:var(--py);text-transform:uppercase;letter-spacing:.08em;">Строительство</div>
+        <pre class="text-xs p-3 rounded-lg" style="background:#08081a;color:#ccd6f6;">place_block(x,y,z,"red")
+remove_block(x,y,z)
+tower(height,x,z,"blue")
+square(size,x,z,"green")
+set_sky("night")</pre>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="border-t mt-16 py-8 text-center text-sm" style="border-color:var(--border);color:var(--muted);">
+  <div class="flex items-center justify-center gap-3 mb-2">
+    <svg width="20" height="20" viewBox="0 0 28 28" fill="none">
+      <rect x="2" y="2" width="11" height="11" rx="2.5" fill="#7c5cff"/>
+      <rect x="15" y="2" width="11" height="11" rx="2.5" fill="#ff5ab1"/>
+      <rect x="2" y="15" width="11" height="11" rx="2.5" fill="#06b6d4"/>
+      <rect x="15" y="15" width="11" height="11" rx="2.5" fill="#10b981"/>
+    </svg>
+    <strong style="color:var(--brand-light);">KubiK · Eduson Kids Platform</strong>
+  </div>
+  <p>© 2026 Eduson Kids. Curriculum v2.0 · CC BY-NC-SA 4.0 для партнёрских школ</p>
+  <p class="mt-1">legal@eduson-kids.ru · kubik-lang.ru</p>
+</footer>
+
+</body>
+</html>

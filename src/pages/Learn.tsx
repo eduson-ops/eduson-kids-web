@@ -1,0 +1,412 @@
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import PlatformShell from '../components/PlatformShell'
+import {
+  MODULES,
+  ALL_LESSONS,
+  getLesson,
+  getModuleByLesson,
+  getModule,
+  KIND_LABEL,
+  KIND_COLOR,
+  type Lesson,
+  type Module,
+} from '../lib/curriculum'
+import {
+  isLessonDone,
+  markLessonDone,
+  unmarkLesson,
+  countDone,
+  countDoneInModule,
+  getCurrentLesson,
+  subscribeProgress,
+} from '../lib/progress'
+
+/**
+ * Learn — каталог и детали 48-урочного курса KubiK.
+ * Routes:
+ *   /learn                → все модули (карточки с прогрессом)
+ *   /learn/module/:N      → все 6 уроков модуля N
+ *   /learn/:lessonN       → детали урока (термины/блоки/капстон/презентация)
+ */
+export default function Learn() {
+  const params = useParams()
+  const [, force] = useState(0)
+  useEffect(() => subscribeProgress(() => force((x) => x + 1)), [])
+
+  // Новые роуты /learn/module/:moduleN и /learn/lesson/:lessonN
+  if (params.moduleN) {
+    const n = Number(params.moduleN) || 1
+    const m = getModule(n)
+    return m ? <ModulePage m={m} /> : <NotFound />
+  }
+  if (params.lessonN) {
+    const n = Number(params.lessonN) || 1
+    const lesson = getLesson(n)
+    const m = getModuleByLesson(n)
+    return lesson && m ? <LessonPage lesson={lesson} m={m} /> : <NotFound />
+  }
+
+  // Legacy /learn/:moduleOrLesson
+  const mol = params.moduleOrLesson
+  if (mol?.startsWith('module')) {
+    const n = Number(mol.replace('module', '').replace('/', '')) || 1
+    const m = getModule(n)
+    return m ? <ModulePage m={m} /> : <NotFound />
+  }
+  const asNum = Number(mol)
+  if (asNum && asNum >= 1 && asNum <= 48) {
+    const lesson = getLesson(asNum)
+    const m = getModuleByLesson(asNum)
+    return lesson && m ? <LessonPage lesson={lesson} m={m} /> : <NotFound />
+  }
+
+  return <CatalogPage />
+}
+
+// ─────────────────────────────────────────────────────────
+// Страница 1 · Каталог 8 модулей
+// ─────────────────────────────────────────────────────────
+function CatalogPage() {
+  const totalDone = countDone()
+  const currentN = getCurrentLesson(ALL_LESSONS.map((l) => l.n))
+  const currentLesson = getLesson(currentN)
+  const currentModule = getModuleByLesson(currentN)
+
+  return (
+    <PlatformShell activeKey="learn">
+      <header style={{ marginBottom: 32 }}>
+        <span className="eyebrow">Программа обучения</span>
+        <h1 className="h1" style={{ marginTop: 10 }}>48 уроков · 8 модулей</h1>
+        <p style={{ fontSize: 17, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 720, lineHeight: 1.55 }}>
+          Годовой курс блочного программирования. От первой платформы до публикации собственной 3D-игры.
+          Каждый модуль заканчивается <b>проектным уроком</b> и <b>публичной защитой капстона</b>.
+        </p>
+      </header>
+
+      {/* Прогресс-панель + «Продолжить» */}
+      <div className="curric-summary">
+        <div className="curric-summary-stats">
+          <div>
+            <div className="eyebrow">Ты прошёл</div>
+            <div className="curric-summary-big">{totalDone} / 48</div>
+          </div>
+          <div>
+            <div className="eyebrow">Всего модулей</div>
+            <div className="curric-summary-big">{MODULES.filter((m) => countDoneInModule(m.n, m.lessons.map((l) => l.n)) === m.lessons.length).length} / 8</div>
+          </div>
+          <div>
+            <div className="eyebrow">Часов занятий</div>
+            <div className="curric-summary-big">{Math.round((totalDone * 45) / 60)} / 36 ч</div>
+          </div>
+        </div>
+        {currentLesson && currentModule && (
+          <Link to={`/learn/lesson/${currentN}`} className="kb-btn kb-btn--lg curric-continue">
+            ▶ Продолжить: урок {currentN} «{currentLesson.title}»
+          </Link>
+        )}
+      </div>
+
+      {/* Карта из 8 модулей */}
+      <div className="curric-modules">
+        {MODULES.map((m) => {
+          const lessonNums = m.lessons.map((l) => l.n)
+          const done = countDoneInModule(m.n, lessonNums)
+          const pct = (done / m.lessons.length) * 100
+          // DEV: все модули разблокированы на время разработки
+          const unlocked = true
+          void countDoneInModule; void getModule   // suppress unused in dev-unlock mode
+
+          return (
+            <Link
+              key={m.n}
+              to={unlocked ? `/learn/module/${m.n}` : '#'}
+              className={`curric-module ${unlocked ? '' : 'locked'}`}
+              style={{ '--accent': m.accent } as React.CSSProperties}
+            >
+              <div className="curric-module-head">
+                <span className="curric-module-emoji">{m.emoji}</span>
+                <div className="curric-module-meta">
+                  <span className="eyebrow">Модуль {m.n} · возраст {m.ageAnchor}</span>
+                  <h3 className="curric-module-title">{m.title}</h3>
+                </div>
+                {!unlocked && <span className="curric-module-lock">🔒</span>}
+              </div>
+              <p className="curric-module-story">{m.story}</p>
+              <div className="curric-module-capstone">
+                <span className="eyebrow">Капстон</span>
+                <strong>{m.capstone.name}</strong> · {m.capstone.genre}
+              </div>
+              <div className="curric-module-progress">
+                <div className="kb-progress">
+                  <div className="kb-progress-bar" style={{ width: `${pct}%`, background: m.accent }} />
+                </div>
+                <small>{done} / {m.lessons.length} уроков</small>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </PlatformShell>
+  )
+}
+
+// ─────────────────────────────────────────────────────────
+// Страница 2 · Детали модуля (6 уроков)
+// ─────────────────────────────────────────────────────────
+function ModulePage({ m }: { m: Module }) {
+  const done = countDoneInModule(m.n, m.lessons.map((l) => l.n))
+
+  return (
+    <PlatformShell activeKey="learn">
+      <Link to="/learn" className="kb-shell-nav-link" style={{ display: 'inline-block', marginBottom: 16 }}>
+        ← Все модули
+      </Link>
+      <header className="curric-module-hero" style={{ '--accent': m.accent } as React.CSSProperties}>
+        <div>
+          <span className="eyebrow">Модуль {m.n} · 6 уроков · возраст {m.ageAnchor}</span>
+          <h1 className="h1" style={{ margin: '10px 0 12px', display: 'flex', gap: 14, alignItems: 'center' }}>
+            <span style={{ fontSize: 48 }}>{m.emoji}</span> {m.title}
+          </h1>
+          <p className="curric-module-story-big">{m.story}</p>
+          <div className="curric-capstone-pill">
+            <strong>🏆 Капстон:</strong> {m.capstone.name} · жанр {m.capstone.genre}
+            {m.capstone.worldId && (
+              <Link to={`/play/${m.capstone.worldId}`} className="kb-btn kb-btn--sm" style={{ marginLeft: 12 }}>
+                ▶ Сыграть в эталон
+              </Link>
+            )}
+          </div>
+        </div>
+        <div className="curric-module-hero-progress">
+          <div className="curric-summary-big">{done}/6</div>
+          <small>пройдено</small>
+        </div>
+      </header>
+
+      <div className="curric-lesson-list">
+        {m.lessons.map((l, idx) => {
+          // DEV: все уроки разблокированы на время разработки
+          void idx
+          const isDone = isLessonDone(l.n)
+          const unlocked = true
+
+          return (
+            <Link
+              key={l.n}
+              to={unlocked ? `/learn/lesson/${l.n}` : '#'}
+              className={`curric-lesson-card ${!unlocked ? 'locked' : ''} ${isDone ? 'done' : ''}`}
+              style={{ '--accent': KIND_COLOR[l.kind] } as React.CSSProperties}
+            >
+              <div className="curric-lesson-n">
+                {isDone ? '✓' : l.n}
+              </div>
+              <div className="curric-lesson-body">
+                <div className="curric-lesson-meta">
+                  <span className="curric-lesson-kind">{KIND_LABEL[l.kind]}</span>
+                  <span className="curric-lesson-local">L{l.localN}/6</span>
+                </div>
+                <h4 className="curric-lesson-title">{l.title}</h4>
+                <p className="curric-lesson-hook">{l.hook}</p>
+              </div>
+              <div className="curric-lesson-cta">
+                {!unlocked ? '🔒' : isDone ? 'Пройдено' : 'Открыть →'}
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </PlatformShell>
+  )
+}
+
+// ─────────────────────────────────────────────────────────
+// Страница 3 · Деталь конкретного урока
+// ─────────────────────────────────────────────────────────
+function LessonPage({ lesson, m }: { lesson: Lesson; m: Module }) {
+  const isDone = isLessonDone(lesson.n)
+  const nextLesson = getLesson(lesson.n + 1)
+  const prevLesson = getLesson(lesson.n - 1)
+
+  return (
+    <PlatformShell activeKey="learn">
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+        <Link to={`/learn/module/${m.n}`} className="kb-shell-nav-link">
+          ← Модуль {m.n}: {m.title}
+        </Link>
+        <span style={{ color: 'var(--ink-soft)', fontSize: 13 }}>·</span>
+        <span className="eyebrow">Урок {lesson.n} из 48 · {KIND_LABEL[lesson.kind]}</span>
+      </div>
+
+      <header className="curric-lesson-hero">
+        <h1 className="h1" style={{ margin: '0 0 12px' }}>{lesson.title}</h1>
+        <p className="curric-lesson-hook-big">{lesson.hook}</p>
+      </header>
+
+      <div className="curric-lesson-grid">
+        {/* Основная колонка */}
+        <section>
+          {/* Presentation + Studio CTA — всегда доступно (auto-generated для L7-L48) */}
+          <div className="kb-card kb-card--feature" style={{ marginBottom: 18 }}>
+            <div className="eyebrow">Интерактивная презентация · 9 слайдов</div>
+            <h3 className="h3" style={{ margin: '8px 0 14px' }}>Запустить урок на экране</h3>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Link to={`/learn/lesson/${lesson.n}/present`} className="kb-btn kb-btn--lg">
+                ▶ Открыть презентацию
+              </Link>
+              {lesson.htmlFile && (
+                <a
+                  href={lesson.htmlFile}
+                  target="_blank"
+                  rel="noopener"
+                  className="kb-btn kb-btn--secondary"
+                  title="Старая HTML-версия (L1-L6)"
+                >
+                  📄 Классическая версия
+                </a>
+              )}
+              <Link to="/studio" className="kb-btn kb-btn--secondary">
+                🧱 Открыть Студию
+              </Link>
+              {lesson.guideFile && (
+                <a
+                  href={lesson.guideFile}
+                  target="_blank"
+                  rel="noopener"
+                  className="kb-btn kb-btn--secondary"
+                >
+                  📖 Методичка учителя
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Новые термины */}
+          {lesson.terms.length > 0 && (
+            <div className="kb-card" style={{ marginBottom: 18 }}>
+              <div className="eyebrow">Новые термины</div>
+              <div className="curric-chips">
+                {lesson.terms.map((t) => (
+                  <span key={t} className="curric-chip">📖 {t}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Новые блоки */}
+          {lesson.newBlocks.length > 0 && (
+            <div className="kb-card" style={{ marginBottom: 18 }}>
+              <div className="eyebrow">Новые блоки</div>
+              <div className="curric-chips">
+                {lesson.newBlocks.map((b) => (
+                  <code key={b} className="curric-chip curric-chip-block">🧩 {b}</code>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Дифференциация */}
+          {lesson.differentiation && (
+            <div className="kb-card" style={{ marginBottom: 18 }}>
+              <div className="eyebrow">Дифференциация по возрасту</div>
+              <div className="curric-diff">
+                <div><b className="curric-diff-tag" style={{ color: '#34C38A' }}>🟢 9-10 лет</b>
+                  <div>{lesson.differentiation.easy}</div></div>
+                <div><b className="curric-diff-tag" style={{ color: '#FFD43C' }}>🟡 11-12 лет</b>
+                  <div>{lesson.differentiation.mid}</div></div>
+                <div><b className="curric-diff-tag" style={{ color: '#ff5464' }}>🔴 13-15 лет</b>
+                  <div>{lesson.differentiation.hard}</div></div>
+              </div>
+            </div>
+          )}
+
+          {/* Капстон-вклад */}
+          {lesson.capstoneContribution && (
+            <div className="kb-card" style={{ marginBottom: 18, borderLeft: `4px solid ${m.accent}` }}>
+              <div className="eyebrow">Вклад в капстон</div>
+              <p style={{ margin: '6px 0 0' }}><strong>{m.capstone.name}:</strong> {lesson.capstoneContribution}</p>
+            </div>
+          )}
+
+          {/* Действия */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 24 }}>
+            {!isDone ? (
+              <button className="kb-btn kb-btn--lg" onClick={() => markLessonDone(lesson.n)}>
+                ✓ Отметить пройденным
+              </button>
+            ) : (
+              <button className="kb-btn kb-btn--secondary" onClick={() => unmarkLesson(lesson.n)}>
+                ↺ Снять отметку
+              </button>
+            )}
+            {nextLesson && (
+              <Link to={`/learn/lesson/${nextLesson.n}`} className="kb-btn kb-btn--secondary kb-btn--lg">
+                Урок {nextLesson.n}: {nextLesson.title} →
+              </Link>
+            )}
+          </div>
+        </section>
+
+        {/* Сайдбар: прошлый/следующий урок + прогресс */}
+        <aside className="curric-side">
+          <div className="kb-card">
+            <div className="eyebrow">Этот урок</div>
+            <h4 style={{ margin: '6px 0 8px' }}>{KIND_LABEL[lesson.kind]}</h4>
+            <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0 }}>
+              {lesson.kind === 'recall' && 'Первые 10 мин — повторяем прошлый модуль. Остальные 35 — новая тема.'}
+              {lesson.kind === 'concept' && 'Новая идея с метафорой из реального мира + демо учителя.'}
+              {lesson.kind === 'practice' && 'Пошаговая практика под инструкцию. Повторяем за учителем.'}
+              {lesson.kind === 'project' && 'Собираем капстон модуля — это твой выход недели.'}
+              {lesson.kind === 'defense' && 'Публичная защита — 2 мин презентация, взаимооценка, рубрика.'}
+            </p>
+          </div>
+
+          <nav className="kb-card" style={{ marginTop: 14 }}>
+            <div className="eyebrow">Навигация</div>
+            {prevLesson && prevLesson.moduleN === lesson.moduleN && (
+              <Link to={`/learn/lesson/${prevLesson.n}`} className="curric-side-nav">
+                ← L{prevLesson.n}: {prevLesson.title}
+              </Link>
+            )}
+            {nextLesson && nextLesson.moduleN === lesson.moduleN && (
+              <Link to={`/learn/lesson/${nextLesson.n}`} className="curric-side-nav">
+                L{nextLesson.n}: {nextLesson.title} →
+              </Link>
+            )}
+            {nextLesson && nextLesson.moduleN !== lesson.moduleN && (
+              <Link to={`/learn/module/${nextLesson.moduleN}`} className="curric-side-nav">
+                Следующий модуль: M{nextLesson.moduleN} →
+              </Link>
+            )}
+          </nav>
+
+          <div className="kb-card" style={{ marginTop: 14, background: `${m.accent}15` }}>
+            <div className="eyebrow">Капстон модуля</div>
+            <strong>🏆 {m.capstone.name}</strong>
+            <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '4px 0 8px' }}>жанр: {m.capstone.genre}</p>
+            {m.capstone.worldId && (
+              <Link to={`/play/${m.capstone.worldId}`} className="kb-btn kb-btn--sm" style={{ width: '100%' }}>
+                ▶ Сыграть в эталон
+              </Link>
+            )}
+          </div>
+        </aside>
+      </div>
+    </PlatformShell>
+  )
+}
+
+function NotFound() {
+  return (
+    <PlatformShell activeKey="learn">
+      <div className="kb-card kb-card--feature" style={{ textAlign: 'center', padding: 40 }}>
+        <div style={{ fontSize: 56, marginBottom: 12 }}>🔍</div>
+        <h2 className="h2" style={{ margin: '0 0 10px' }}>Урок не найден</h2>
+        <p style={{ color: 'var(--ink-soft)', marginBottom: 20 }}>
+          Возможно, ты попал на несуществующую страницу. Вернись в каталог.
+        </p>
+        <Link to="/learn" className="kb-btn kb-btn--lg">← В каталог</Link>
+      </div>
+    </PlatformShell>
+  )
+}

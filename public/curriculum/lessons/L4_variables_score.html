@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 4 — Переменные и счёт | KubiK · Eduson Kids</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --brand:#7c5cff;--brand-light:#b397ff;--accent:#ff5ab1;
+    --bg:#0a0a18;--surface:#111128;--surface2:#1a1a35;
+    --border:#2a2a4a;--text:#eeeeff;--muted:#8888aa;
+  }
+  html,body{margin:0;padding:0;font-family:'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);}
+  .slide{display:none;min-height:100vh;padding:3rem 2rem;animation:fade .4s ease;}
+  .slide.active{display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  @keyframes fade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--border);transition:.2s;cursor:pointer;}
+  .dot.active{background:var(--brand);transform:scale(1.5);}
+  pre,code{font-family:'JetBrains Mono','Fira Code',Consolas,monospace;}
+  pre{background:#08081a;border:1px solid var(--border);border-radius:.75rem;padding:1.2rem;color:#dde;overflow-x:auto;font-size:.88rem;line-height:1.7;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:1rem;padding:1.5rem;}
+  .badge{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .9rem;border-radius:999px;font-size:.72rem;font-weight:600;}
+  /* KubiK blocks */
+  .kb{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1rem;border-radius:.5rem;color:#fff;font-weight:700;font-size:.85rem;margin:.2rem;box-shadow:0 3px 0 rgba(0,0,0,.35);user-select:none;position:relative;}
+  .kb::before{content:'';position:absolute;left:0;bottom:-3px;right:0;height:3px;border-radius:0 0 .4rem .4rem;background:rgba(0,0,0,.3);}
+  .kb-hat{border-radius:.9rem .9rem .5rem .5rem;border-top:3px solid rgba(255,255,255,.2);}
+  .kb-e{background:#E8963A;} /* event */
+  .kb-v{background:#EF4444;} /* variable */
+  .kb-c{background:#F59E0B;} /* condition */
+  .kb-l{background:#06B6D4;} /* loop */
+  .kb-f{background:#EC4899;} /* function */
+  .kb-d{background:#64748B;} /* data */
+  .kb-a{background:#8B5CF6;} /* action */
+  .kb-w{background:#10B981;} /* world3d */
+  /* Type-safe slot */
+  .slot{display:inline-block;background:rgba(0,0,0,.3);border:1.5px dashed rgba(255,255,255,.3);border-radius:.3rem;padding:.1rem .5rem;min-width:2.5rem;text-align:center;font-size:.8rem;}
+  /* Python comparison */
+  .py-box{background:#0d1117;border:1px solid #3b3f5a;border-radius:.75rem;padding:1rem 1.2rem;}
+  .py-box .lang{font-size:.7rem;font-weight:700;color:#4c97ff;letter-spacing:.05em;margin-bottom:.4rem;}
+  /* scope table */
+  .scope-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-top:.75rem;}
+  .scope-cell{background:var(--surface2);border:1px solid var(--border);border-radius:.75rem;padding:1rem;text-align:center;}
+  /* quiz */
+  .qbtn{border:2px solid var(--border);border-radius:.75rem;padding:.9rem 1.5rem;background:var(--surface2);color:var(--text);cursor:pointer;transition:.2s;text-align:left;width:100%;}
+  .qbtn:hover{border-color:var(--brand);transform:translateY(-1px);}
+  .qbtn.correct{background:#052a15;border-color:#5bff78;color:#5bff78;}
+  .qbtn.wrong{background:#2a0510;border-color:#ff5464;color:#ff5464;}
+  /* progress bar */
+  #progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--brand),var(--accent));transition:.4s;z-index:100;}
+  /* counter diagram */
+  .counter-anim{font-size:3.5rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--brand);text-shadow:0 0 30px var(--brand);}
+  @keyframes countup{from{opacity:.3;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+  .count-step{animation:countup .3s ease forwards;}
+  /* inventory card */
+  .inv-row{display:flex;align-items:center;gap:.75rem;padding:.6rem;background:var(--surface2);border-radius:.5rem;margin:.3rem 0;}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<!-- Header -->
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b px-4 py-2 flex justify-between items-center"
+  style="background:rgba(10,10,24,.85);border-color:var(--border);">
+  <div class="flex items-center gap-3">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <rect x="2" y="2" width="11" height="11" rx="2.5" fill="#7c5cff"/>
+      <rect x="15" y="2" width="11" height="11" rx="2.5" fill="#ff5ab1"/>
+      <rect x="2" y="15" width="11" height="11" rx="2.5" fill="#06b6d4"/>
+      <rect x="15" y="15" width="11" height="11" rx="2.5" fill="#10b981"/>
+    </svg>
+    <span class="font-black text-base" style="color:var(--brand);">KubiK</span>
+    <span class="text-xs hidden md:inline" style="color:var(--muted);">· Модуль 2 · Урок 4 · 45 мин</span>
+  </div>
+  <div class="flex items-center gap-3">
+    <button id="themeBtn" class="px-3 py-1 rounded text-sm" style="background:var(--surface2);">☀️</button>
+    <span id="counter" class="text-sm" style="color:var(--muted);">1 / 14</span>
+  </div>
+</header>
+
+<!-- Slides -->
+<main id="deck" class="pt-14">
+
+<!-- S1: Title -->
+<section class="slide active" data-slide="1">
+  <div class="text-center max-w-3xl">
+    <span class="badge" style="background:rgba(124,92,255,.15);color:var(--brand-light);">Модуль 2 · Урок 4</span>
+    <h1 class="text-5xl md:text-7xl font-black mt-5 leading-none"
+      style="background:linear-gradient(135deg,var(--brand),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+      Переменные<br>и счёт
+    </h1>
+    <p class="text-lg mt-6 max-w-xl mx-auto" style="color:var(--muted);">
+      Научишься запоминать числа, строки и инвентарь прямо внутри игры — и заставишь счётчик работать в реальном времени.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+      <span class="badge" style="background:rgba(91,255,120,.1);color:#5bff78;">⏱ 45 минут</span>
+      <span class="badge" style="background:rgba(255,90,177,.1);color:var(--accent);">🎯 9–15 лет</span>
+      <span class="badge" style="background:rgba(6,182,212,.1);color:#06b6d4;">🧱 Блоки + KubiK Text</span>
+    </div>
+  </div>
+</section>
+
+<!-- S2: Мотивация — зачем переменные -->
+<section class="slide" data-slide="2">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🤔 Зачем игре память?</h2>
+    <p class="mb-6" style="color:var(--muted);">Без переменных игра «забывает» всё после каждого хода.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card" style="border-color:#ff5464;">
+        <div class="text-sm font-bold mb-3" style="color:#ff5464;">❌ Без переменной</div>
+        <svg viewBox="0 0 280 140" class="w-full rounded-lg">
+          <rect width="280" height="140" fill="#1a0a0a"/>
+          <text x="140" y="45" fill="#ff5464" text-anchor="middle" font-size="13">Монета собрана!</text>
+          <text x="140" y="75" fill="#888" text-anchor="middle" font-size="11">Счёт = ???</text>
+          <text x="140" y="105" fill="#555" text-anchor="middle" font-size="10">игра не помнит</text>
+        </svg>
+      </div>
+      <div class="card" style="border-color:#5bff78;">
+        <div class="text-sm font-bold mb-3" style="color:#5bff78;">✅ С переменной</div>
+        <svg viewBox="0 0 280 140" class="w-full rounded-lg">
+          <rect width="280" height="140" fill="#0a1a0a"/>
+          <rect x="90" y="30" width="100" height="36" rx="8" fill="#EF4444" opacity=".9"/>
+          <text x="140" y="53" fill="#fff" text-anchor="middle" font-weight="bold" font-size="13">мир счёт = 0</text>
+          <text x="140" y="85" fill="#5bff78" text-anchor="middle" font-size="12">Монета! счёт += 10</text>
+          <text x="140" y="110" fill="#5bff78" text-anchor="middle" font-size="16" font-weight="bold">счёт = 10 ✓</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S3: Три вида переменных KubiK -->
+<section class="slide" data-slide="3">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">📦 Три вида переменных</h2>
+    <p class="mb-5" style="color:var(--muted);">KubiK знает, где хранить данные. Ты только выбираешь вид.</p>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="card" style="border-color:#EF4444;">
+        <div class="kb kb-v mb-3 w-full justify-center">переменная</div>
+        <div class="font-bold mb-1">Локальная</div>
+        <div class="text-sm mb-3" style="color:var(--muted);">Живёт только внутри функции или события. Никто снаружи не видит.</div>
+        <pre style="font-size:.78rem;">переменная x = 5
+переменная имя = "Андрей"</pre>
+      </div>
+      <div class="card" style="border-color:#7c5cff;">
+        <div class="kb kb-v mb-3 w-full justify-center" style="background:#7c5cff;">мир</div>
+        <div class="font-bold mb-1">Мировая</div>
+        <div class="text-sm mb-3" style="color:var(--muted);">Видна всем скриптам одного мира. Счёт, HP, имя игрока — сюда.</div>
+        <pre style="font-size:.78rem;">мир счёт = 0
+мир жизни = 3</pre>
+      </div>
+      <div class="card" style="border-color:#06b6d4;">
+        <div class="kb kb-v mb-3 w-full justify-center" style="background:#06b6d4;">сохраняемая</div>
+        <div class="font-bold mb-1">Сохраняемая</div>
+        <div class="text-sm mb-3" style="color:var(--muted);">Остаётся между сессиями. Рекорды, прогресс — сюда.</div>
+        <pre style="font-size:.78rem;">сохраняемая рекорд = 0</pre>
+      </div>
+    </div>
+    <div class="mt-4 card" style="border-color:var(--brand);background:rgba(124,92,255,.08);">
+      <span class="text-sm">💡 <b>Правило:</b> используй <code class="kb kb-v" style="font-size:.75rem;padding:.2rem .5rem;">мир</code> для игровых данных, <code class="kb kb-v" style="font-size:.75rem;padding:.2rem .5rem;background:#06b6d4;">сохраняемая</code> для рекордов.</span>
+    </div>
+  </div>
+</section>
+
+<!-- S4: Блоки переменных визуально -->
+<section class="slide" data-slide="4">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-6">🧱 Блоки в редакторе</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <div class="text-sm font-bold mb-3" style="color:var(--muted);">Палитра «Переменные»</div>
+        <div class="card" style="min-height:220px;">
+          <div class="kb kb-v w-full mb-2">📦 переменная имя = <span class="slot">значение</span></div>
+          <div class="kb kb-v w-full mb-2" style="background:#7c5cff;">🌍 мир счёт = <span class="slot">0</span></div>
+          <div class="kb kb-v w-full mb-2" style="background:#06b6d4;">💾 сохраняемая рекорд = <span class="slot">0</span></div>
+          <div class="kb kb-v w-full mb-2">⬆️ увеличить <span class="slot">имя</span> на <span class="slot">1</span></div>
+          <div class="kb kb-v w-full">🔁 установить <span class="slot">имя</span> = <span class="slot">значение</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="text-sm font-bold mb-3" style="color:var(--muted);">Что генерирует KubiK Text</div>
+        <pre>мир счёт = 0
+мир жизни = 3
+сохраняемая рекорд = 0
+
+@старт:
+    сказать "Игра началась!"
+    счёт = 0
+
+@столкновение(монета):
+    счёт += 10
+    удалить(монета)
+    если счёт > рекорд:
+        рекорд = счёт</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S5: Анимированный счётчик -->
+<section class="slide" data-slide="5">
+  <div class="max-w-3xl w-full text-center">
+    <h2 class="text-4xl font-black mb-4">🎮 Попробуй сам: счётчик монет</h2>
+    <p class="mb-6" style="color:var(--muted);">Нажимай «Монета» и смотри, как работает <code style="color:var(--accent);">счёт += 10</code></p>
+    <div class="card p-8 flex flex-col items-center gap-6">
+      <div class="counter-anim" id="scoreDisplay">0</div>
+      <div class="text-sm" style="color:var(--muted);">мир <b style="color:#EF4444;">счёт</b></div>
+      <div class="flex gap-4 flex-wrap justify-center">
+        <button onclick="addScore(10)" class="px-6 py-3 rounded-xl font-bold text-white transition hover:scale-105"
+          style="background:#f59e0b;">🪙 +10 монета</button>
+        <button onclick="addScore(50)" class="px-6 py-3 rounded-xl font-bold text-white transition hover:scale-105"
+          style="background:#8b5cf6;">💎 +50 кристалл</button>
+        <button onclick="addScore(-20)" class="px-6 py-3 rounded-xl font-bold text-white transition hover:scale-105"
+          style="background:#ef4444;">💀 -20 урон</button>
+        <button onclick="resetScore()" class="px-4 py-3 rounded-xl font-bold transition hover:scale-105"
+          style="background:var(--surface2);color:var(--muted);">↺ сброс</button>
+      </div>
+      <div id="recordDisplay" class="text-sm" style="color:#06b6d4;">
+        сохраняемая рекорд = <b id="recVal">0</b>
+      </div>
+    </div>
+    <script>
+      let score=0,record=0;
+      function addScore(n){
+        score+=n;if(score<0)score=0;
+        if(score>record)record=score;
+        document.getElementById('scoreDisplay').textContent=score;
+        document.getElementById('recVal').textContent=record;
+        document.getElementById('scoreDisplay').classList.remove('count-step');
+        void document.getElementById('scoreDisplay').offsetWidth;
+        document.getElementById('scoreDisplay').classList.add('count-step');
+      }
+      function resetScore(){score=0;document.getElementById('scoreDisplay').textContent=0;}
+    </script>
+  </div>
+</section>
+
+<!-- S6: Тип данных - Строки -->
+<section class="slide" data-slide="6">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">📝 Переменные-строки</h2>
+    <p class="mb-5" style="color:var(--muted);">Хранить можно не только числа — но и текст (имя игрока, сообщения).</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:#8b5cf6;">Блочный вид</div>
+        <div class="kb kb-v w-full mb-2">📝 переменная имя = <span class="slot">"Андрей"</span></div>
+        <div class="kb kb-a w-full mb-2">💬 сказать <span class="slot">имя</span></div>
+        <div class="kb kb-d w-full mb-2">🔗 соединить <span class="slot">имя</span> + <span class="slot">" победил!"</span></div>
+        <div class="mt-3 text-xs" style="color:var(--muted);">Блок «соединить» — из палитры <b>Данные</b></div>
+      </div>
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:#4c97ff;">KubiK Text</div>
+        <pre>переменная имя = "Андрей"
+переменная приветствие = соединить(
+    "Привет, ", имя, "!"
+)
+сказать(приветствие)
+# → "Привет, Андрей!"</pre>
+      </div>
+    </div>
+    <div class="mt-4 card" style="border-color:#f59e0b;background:rgba(245,158,11,.07);">
+      <p class="text-sm">⚠️ <b>KubiK не смешивает строки и числа автоматически</b> — надо явно: <code style="color:var(--accent);">текст(счёт)</code> или <code style="color:var(--accent);">число("5")</code>. Это защищает от ошибки E-KB-0042.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S7: Словарь — инвентарь -->
+<section class="slide" data-slide="7">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🎒 Словарь — инвентарь</h2>
+    <p class="mb-5" style="color:var(--muted);">Словарь хранит несколько значений под одним именем — идеально для инвентаря.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <div class="text-sm font-bold mb-3" style="color:#64748b;">Блочный вид</div>
+        <div class="card">
+          <div class="kb kb-d w-full mb-2">📚 создать словарь <span class="slot">инвентарь</span></div>
+          <div class="kb kb-d w-full mb-2">➕ добавить в <span class="slot">инвентарь</span>: <span class="slot">"меч"</span> → <span class="slot">1</span></div>
+          <div class="kb kb-d w-full mb-2">🔍 получить из <span class="slot">инвентарь</span> ключ <span class="slot">"меч"</span></div>
+          <div class="mt-3 p-3 rounded-lg" style="background:var(--surface2);">
+            <div class="text-xs font-bold mb-2" style="color:var(--muted);">Результат:</div>
+            <div class="inv-row"><span>⚔️ меч</span><span class="ml-auto font-bold" style="color:#f59e0b;">×1</span></div>
+            <div class="inv-row"><span>🪙 монеты</span><span class="ml-auto font-bold" style="color:#f59e0b;">×42</span></div>
+            <div class="inv-row"><span>🧪 зелье</span><span class="ml-auto font-bold" style="color:#f59e0b;">×3</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="text-sm font-bold mb-3" style="color:#4c97ff;">KubiK Text</div>
+        <pre>переменная инвентарь = {
+    "меч": 1,
+    "монеты": 42,
+    "зелье": 3
+}
+
+@столкновение(сундук):
+    инвентарь["монеты"] += 10
+    удалить(сундук)
+    сказать(соединить(
+        "Монет: ",
+        текст(инвентарь["монеты"])
+    ))</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S8: Python vs KubiK side-by-side -->
+<section class="slide" data-slide="8">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🐍 KubiK и Python — одно и то же</h2>
+    <p class="mb-5" style="color:var(--muted);">Переменные работают одинаково. Переключишь режим — и увидишь Python-код.</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <div class="py-box">
+          <div class="lang">KubiK TEXT</div>
+          <pre style="background:none;border:none;padding:0;margin:0;font-size:.85rem;">мир счёт = 0
+мир жизни = 3
+сохраняемая рекорд = 0
+
+@столкновение(монета):
+    счёт += 10
+    если счёт > рекорд:
+        рекорд = счёт</pre>
+        </div>
+      </div>
+      <div>
+        <div class="py-box" style="border-color:#4c97ff;">
+          <div class="lang" style="color:#5bff78;">PYTHON 3 (автоматически)</div>
+          <pre style="background:none;border:none;padding:0;margin:0;font-size:.85rem;">score = 0       # world var
+lives = 3
+record = 0      # persistent
+
+@on_collision("coin")
+def _():
+    global score, record
+    score += 10
+    if score > record:
+        record = score</pre>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 card" style="border-color:var(--brand);background:rgba(124,92,255,.08);">
+      <p class="text-sm">✨ <b>Переключение 1 кликом</b> — кнопка «Python» в углу редактора. KubiK транспилирует твои блоки в настоящий Python 3.11 в браузере.</p>
+    </div>
+  </div>
+</section>
+
+<!-- S9: Задание — собери игру -->
+<section class="slide" data-slide="9">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🛠️ Задание: «Сборщик монет»</h2>
+    <p class="mb-5" style="color:var(--muted);">Построй мини-игру за 15 минут. Шаг за шагом.</p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="space-y-3">
+        <div class="card flex gap-3 items-start">
+          <span class="text-2xl">1️⃣</span>
+          <div>
+            <div class="font-bold">Объяви мировые переменные</div>
+            <div class="kb kb-v mt-1" style="background:#7c5cff;">мир счёт = 0</div>
+            <div class="kb kb-v mt-1" style="background:#7c5cff;">мир жизни = 3</div>
+          </div>
+        </div>
+        <div class="card flex gap-3 items-start">
+          <span class="text-2xl">2️⃣</span>
+          <div>
+            <div class="font-bold">Добавь обработчик монет</div>
+            <div class="kb kb-e kb-hat mt-1">@столкновение(монета)</div>
+            <div class="pl-4 mt-1"><div class="kb kb-v">увеличить счёт на 10</div></div>
+            <div class="pl-4"><div class="kb kb-a">сказать соединить(«Счёт: », счёт)</div></div>
+          </div>
+        </div>
+        <div class="card flex gap-3 items-start">
+          <span class="text-2xl">3️⃣</span>
+          <div>
+            <div class="font-bold">Добавь условие победы</div>
+            <div class="kb kb-c mt-1">если счёт >= 100</div>
+            <div class="pl-4"><div class="kb kb-a">сказать "Победа! 🎉"</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="text-sm font-bold mb-2" style="color:var(--muted);">Готовый скрипт</div>
+        <pre style="font-size:.78rem;">мир счёт = 0
+мир жизни = 3
+сохраняемая рекорд = 0
+
+@старт:
+    сказать "Собирай монеты!"
+
+@столкновение(монета):
+    счёт += 10
+    удалить(монета)
+    сказать(соединить(
+        "Счёт: ", текст(счёт)))
+    если счёт > рекорд:
+        рекорд = счёт
+    если счёт >= 100:
+        сказать "Победа! 🎉"
+
+@столкновение(шип):
+    жизни -= 1
+    если жизни <= 0:
+        сказать "Игра окончена 💀"</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S10: Частые ошибки -->
+<section class="slide" data-slide="10">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🐛 Частые ошибки</h2>
+    <p class="mb-5" style="color:var(--muted);">KubiK объясняет ошибки по-русски. Запомни самые частые.</p>
+    <div class="space-y-4">
+      <div class="card" style="border-color:#ff5464;">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">❌</span>
+          <div class="flex-1">
+            <div class="font-bold text-red-400 mb-1">E-KB-0042: нельзя сложить число и текст</div>
+            <pre style="font-size:.8rem;">сказать(счёт + " очков")  # ❌ ОШИБКА</pre>
+            <pre style="font-size:.8rem;margin-top:.5rem;">сказать(текст(счёт) + " очков")  # ✅</pre>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-color:#ff5464;">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">❌</span>
+          <div class="flex-1">
+            <div class="font-bold text-red-400 mb-1">E-KB-0015: переменная не объявлена</div>
+            <pre style="font-size:.8rem;">@столкновение(монета):
+    счёт += 10  # ❌ если мир счёт не объявлен наверху</pre>
+            <pre style="font-size:.8rem;margin-top:.5rem;">мир счёт = 0  # сначала объяви
+
+@столкновение(монета):
+    счёт += 10  # ✅</pre>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-color:#ffd644;">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">⚠️</span>
+          <div class="flex-1">
+            <div class="font-bold text-yellow-300 mb-1">Совет: отлаживай с «сказать»</div>
+            <pre style="font-size:.8rem;">@каждые(2, сек):
+    сказать(соединить("Счёт = ", текст(счёт)))</pre>
+            <div class="text-sm mt-1" style="color:var(--muted);">Временный принт поможет найти, когда значение меняется.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S11: Продвинутый уровень — функции с переменными -->
+<section class="slide" data-slide="11">
+  <div class="max-w-4xl w-full">
+    <h2 class="text-4xl font-black mb-2">🚀 Следующий шаг: функции</h2>
+    <p class="mb-5" style="color:var(--muted);">Функция принимает значение и возвращает результат. Это мощнее просто переменной.</p>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="card">
+        <div class="text-sm font-bold mb-3" style="color:#EC4899;">Блок «Функция»</div>
+        <div class="kb kb-f kb-hat w-full mb-2">функция добавить_очки(кол-во)</div>
+        <div class="pl-4">
+          <div class="kb kb-v mb-1">увеличить счёт на <span class="slot">кол-во</span></div>
+          <div class="kb kb-c mb-1">если счёт > рекорд</div>
+          <div class="pl-4"><div class="kb kb-v">установить рекорд = счёт</div></div>
+          <div class="kb kb-f mt-2">вернуть счёт</div>
+        </div>
+        <div class="mt-3 text-xs" style="color:var(--muted);">Функция — в <b>Уроке 5</b>. Предпросмотр!</div>
+      </div>
+      <div>
+        <pre>функция добавить_очки(кол_во):
+    счёт += кол_во
+    если счёт > рекорд:
+        рекорд = счёт
+    вернуть счёт
+
+# Вызов:
+@столкновение(монета):
+    переменная новый = добавить_очки(10)
+    сказать(соединить(
+        "Новый счёт: ", текст(новый)))</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S12: Мини-тест 1 -->
+<section class="slide" data-slide="12">
+  <div class="max-w-2xl w-full">
+    <h2 class="text-4xl font-black mb-2">📝 Проверка знаний #1</h2>
+    <p class="mb-6" style="color:var(--muted);">Какое ключевое слово использовать, чтобы рекорд сохранился после закрытия вкладки?</p>
+    <div class="space-y-3" id="quiz1">
+      <button class="qbtn" onclick="answer(this,false)">переменная рекорд = 0</button>
+      <button class="qbtn" onclick="answer(this,false)">мир рекорд = 0</button>
+      <button class="qbtn" onclick="answer(this,true)">сохраняемая рекорд = 0</button>
+      <button class="qbtn" onclick="answer(this,false)">глобальная рекорд = 0</button>
+    </div>
+    <div id="quiz1-fb" class="mt-4 text-sm hidden" style="color:#5bff78;">
+      ✅ Верно! <code>сохраняемая</code> хранит данные между сессиями (в KV-хранилище).
+    </div>
+  </div>
+</section>
+
+<!-- S13: Мини-тест 2 -->
+<section class="slide" data-slide="13">
+  <div class="max-w-2xl w-full">
+    <h2 class="text-4xl font-black mb-2">📝 Проверка знаний #2</h2>
+    <p class="mb-6" style="color:var(--muted);">Что не так в коде ниже?<br><code style="color:var(--accent);">сказать("Счёт: " + счёт)</code></p>
+    <div class="space-y-3" id="quiz2">
+      <button class="qbtn" onclick="answer2(this,false)">Неверное имя переменной</button>
+      <button class="qbtn" onclick="answer2(this,true)">Нельзя складывать строку и число напрямую</button>
+      <button class="qbtn" onclick="answer2(this,false)">Функция «сказать» не принимает аргументы</button>
+      <button class="qbtn" onclick="answer2(this,false)">Нет ничего неправильного</button>
+    </div>
+    <div id="quiz2-fb" class="mt-4 text-sm hidden" style="color:#5bff78;">
+      ✅ Правильно! Надо: <code>сказать(соединить("Счёт: ", текст(счёт)))</code> — E-KB-0042.
+    </div>
+  </div>
+</section>
+
+<!-- S14: Итог урока -->
+<section class="slide" data-slide="14">
+  <div class="max-w-3xl w-full text-center">
+    <div class="text-6xl mb-4">🏆</div>
+    <h2 class="text-5xl font-black mb-4" style="background:linear-gradient(135deg,var(--brand),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+      Урок завершён!
+    </h2>
+    <p class="text-lg mb-8" style="color:var(--muted);">Ты освоил переменные — память игры.</p>
+    <div class="grid md:grid-cols-3 gap-4 mb-8">
+      <div class="card text-center">
+        <div class="text-3xl mb-2">📦</div>
+        <div class="font-bold text-sm">3 вида переменных</div>
+        <div class="text-xs mt-1" style="color:var(--muted);">local / мир / сохраняемая</div>
+      </div>
+      <div class="card text-center">
+        <div class="text-3xl mb-2">🎒</div>
+        <div class="font-bold text-sm">Словарь-инвентарь</div>
+        <div class="text-xs mt-1" style="color:var(--muted);">{"меч": 1, "монеты": 42}</div>
+      </div>
+      <div class="card text-center">
+        <div class="text-3xl mb-2">🐍</div>
+        <div class="font-bold text-sm">Python выглядит похоже</div>
+        <div class="text-xs mt-1" style="color:var(--muted);">Переключение 1 кликом</div>
+      </div>
+    </div>
+    <div class="flex gap-4 justify-center flex-wrap">
+      <a href="L3_events_collisions.html" class="px-6 py-3 rounded-xl font-bold" style="background:var(--surface2);color:var(--muted);">← Урок 3</a>
+      <a href="L5_functions_events.html" class="px-6 py-3 rounded-xl font-bold text-white" style="background:linear-gradient(135deg,var(--brand),var(--accent));">Урок 5 →</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Navigation dots -->
+<nav class="fixed bottom-4 left-0 right-0 flex justify-center gap-2 z-50" id="dots"></nav>
+<!-- Arrow nav -->
+<button id="prev" class="fixed left-3 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition hover:scale-110"
+  style="background:var(--surface2);color:var(--muted);">‹</button>
+<button id="next" class="fixed right-3 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full flex items-center justify-center text-xl font-bold transition hover:scale-110"
+  style="background:var(--brand);color:#fff;">›</button>
+
+<script>
+const TOTAL=14;let cur=1;
+const slides=()=>document.querySelectorAll('.slide');
+const progress=()=>{document.getElementById('progress').style.width=((cur-1)/(TOTAL-1)*100)+'%'}
+function go(n){
+  n=Math.max(1,Math.min(TOTAL,n));
+  slides().forEach(s=>s.classList.remove('active'));
+  document.querySelector(`[data-slide="${n}"]`).classList.add('active');
+  document.querySelectorAll('.dot').forEach((d,i)=>{d.classList.toggle('active',i===n-1)});
+  document.getElementById('counter').textContent=n+' / '+TOTAL;
+  cur=n;progress();
+}
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.getElementById('next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ')go(cur+1);
+  if(e.key==='ArrowLeft')go(cur-1);
+});
+// Build dots
+const nav=document.getElementById('dots');
+for(let i=1;i<=TOTAL;i++){
+  const d=document.createElement('div');d.className='dot'+(i===1?' active':'');
+  d.onclick=()=>go(i);nav.appendChild(d);
+}
+progress();
+// Theme
+let light=false;
+document.getElementById('themeBtn').onclick=()=>{
+  light=!light;
+  document.body.style.background=light?'#f4f0ff':'#0a0a18';
+  document.body.style.color=light?'#1a1a35':'#eeeeff';
+  document.getElementById('themeBtn').textContent=light?'🌙':'☀️';
+}
+// Quiz helpers
+function answer(btn,correct){
+  const all=document.querySelectorAll('#quiz1 .qbtn');
+  all.forEach(b=>b.disabled=true);
+  btn.classList.add(correct?'correct':'wrong');
+  if(!correct){
+    all.forEach(b=>{if(b.textContent.includes('сохраняемая'))b.classList.add('correct')});
+  }
+  document.getElementById('quiz1-fb').classList.remove('hidden');
+}
+function answer2(btn,correct){
+  const all=document.querySelectorAll('#quiz2 .qbtn');
+  all.forEach(b=>b.disabled=true);
+  btn.classList.add(correct?'correct':'wrong');
+  if(!correct){
+    all.forEach(b=>{if(b.textContent.includes('складывать'))b.classList.add('correct')});
+  }
+  document.getElementById('quiz2-fb').classList.remove('hidden');
+}
+</script>
+</body>
+</html>

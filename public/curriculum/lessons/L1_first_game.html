@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 1 — Первая игра за 10 минут | Eduson Kids</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  html,body{margin:0;padding:0;font-family:'Inter','Segoe UI',sans-serif;}
+  .slide{display:none;min-height:100vh;padding:3rem 2rem;animation:fade .4s ease;}
+  .slide.active{display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .dot{width:10px;height:10px;border-radius:50%;background:#475569;transition:.2s;cursor:pointer;}
+  .dot.active{background:#38bdf8;transform:scale(1.4);}
+  pre{background:#0f172a;border:1px solid #334155;border-radius:.6rem;padding:1rem;color:#e2e8f0;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:.9rem;}
+  .light pre{background:#f1f5f9;color:#0f172a;border-color:#cbd5e1;}
+  .badge{display:inline-block;padding:.25rem .8rem;border-radius:999px;font-size:.75rem;font-weight:600;}
+  .card{background:rgba(30,41,59,.7);border:1px solid #334155;border-radius:1rem;padding:1.5rem;}
+  .light .card{background:#fff;border-color:#cbd5e1;}
+  .quiz-btn{transition:.2s;}
+  .quiz-btn:hover{transform:translateY(-2px);}
+  .quiz-btn.correct{background:#16a34a !important;color:#fff !important;}
+  .quiz-btn.wrong{background:#dc2626 !important;color:#fff !important;}
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100 transition-colors">
+
+<!-- Header -->
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur bg-slate-950/70 border-b border-slate-800 px-4 py-2 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <span class="text-2xl">🎮</span>
+    <span class="font-bold text-sky-400">Eduson Kids</span>
+    <span class="text-xs text-slate-400 hidden md:inline">· Урок 1 · 45 минут</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <button id="themeBtn" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sm">🌙</button>
+    <span id="counter" class="text-sm text-slate-400">1 / 12</span>
+  </div>
+</header>
+
+<!-- Slides -->
+<main id="deck" class="pt-14">
+
+<!-- S1 Title -->
+<section class="slide active" data-slide="1">
+  <div class="text-center max-w-3xl">
+    <span class="badge bg-sky-500/20 text-sky-300">Модуль 1 · Урок 1</span>
+    <h1 class="text-5xl md:text-7xl font-black mt-4 bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">Первая игра за 10 минут</h1>
+    <p class="text-xl text-slate-300 mt-6">Сегодня ты сделаешь <b>Obby</b> — игру с прыгающими платформами. В конце урока в неё можно будет играть по ссылке.</p>
+    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+      <span class="badge bg-emerald-500/20 text-emerald-300">⏱ 45 минут</span>
+      <span class="badge bg-fuchsia-500/20 text-fuchsia-300">🎯 Для 9-15 лет</span>
+      <span class="badge bg-amber-500/20 text-amber-300">🧱 Блоки</span>
+    </div>
+  </div>
+</section>
+
+<!-- Step 2 · Recall / Prior knowledge (9-step) -->
+<section class="slide" data-slide="1b">
+  <div class="max-w-3xl">
+    <span class="badge bg-fuchsia-500/20 text-fuchsia-300">Шаг 2 · Вспомни</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">🧠 Что ты уже знаешь?</h2>
+    <p class="text-slate-300 mb-6">Это твой первый урок. Давай проверим, что ты уже умеешь.</p>
+    <div class="space-y-3" id="q-recall-1">
+      <p class="text-lg font-semibold">Когда ты в последний раз создавал игру?</p>
+      <button class="quiz-btn card block w-full text-left" onclick="quizPick(this, true, 'q-recall-1')">Никогда — всё впервые!</button>
+      <button class="quiz-btn card block w-full text-left" onclick="quizPick(this, true, 'q-recall-1')">Пробовал, но не получилось</button>
+      <button class="quiz-btn card block w-full text-left" onclick="quizPick(this, true, 'q-recall-1')">Делал в Scratch/Minecraft</button>
+    </div>
+    <p class="text-sm text-slate-500 mt-4">💡 Любой ответ верный — мы начинаем с нуля.</p>
+  </div>
+</section>
+
+<!-- Step 3 · Vocabulary -->
+<section class="slide" data-slide="1c">
+  <div class="max-w-4xl">
+    <span class="badge bg-emerald-500/20 text-emerald-300">Шаг 3 · Словарь урока</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">📖 3 слова которые надо запомнить</h2>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="card">
+        <div class="text-3xl mb-2">🌍</div>
+        <h3 class="text-lg font-bold text-sky-400">Сцена</h3>
+        <p class="text-slate-300 text-sm mt-2">Пустой 3D-мир. Это твой холст.</p>
+      </div>
+      <div class="card">
+        <div class="text-3xl mb-2">🧱</div>
+        <h3 class="text-lg font-bold text-fuchsia-400">Часть (Part)</h3>
+        <p class="text-slate-300 text-sm mt-2">Один блок: кубик, монета, точка старта. Кирпичик Лего.</p>
+      </div>
+      <div class="card">
+        <div class="text-3xl mb-2">▶</div>
+        <h3 class="text-lg font-bold text-amber-400">Запуск (Play)</h3>
+        <p class="text-slate-300 text-sm mt-2">Переключаем сцену в «живую игру». Физика включается.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S2 Hook -->
+<section class="slide" data-slide="2">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">🔥 Смотри, что мы сделаем</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card">
+        <svg viewBox="0 0 300 180" class="w-full">
+          <rect x="0" y="0" width="300" height="180" fill="#1e293b"/>
+          <rect x="20" y="130" width="50" height="15" fill="#22c55e" rx="3"/>
+          <rect x="90" y="110" width="50" height="15" fill="#ef4444" rx="3"/>
+          <rect x="160" y="90" width="50" height="15" fill="#3b82f6" rx="3"/>
+          <rect x="230" y="70" width="50" height="15" fill="#f59e0b" rx="3"/>
+          <circle cx="45" cy="115" r="10" fill="#fbbf24"/>
+          <text x="150" y="30" fill="#e2e8f0" text-anchor="middle" font-size="14" font-weight="bold">Твой первый Obby</text>
+        </svg>
+        <p class="mt-4 text-slate-300">Прыгаешь по разноцветным платформам, не падаешь в воду — финиш!</p>
+      </div>
+      <div class="card">
+        <h3 class="text-xl font-bold mb-3">Что ты научишься делать:</h3>
+        <ul class="space-y-2 text-slate-300">
+          <li>✅ Открывать редактор Eduson Kids</li>
+          <li>✅ Создавать 3D-объекты (Part)</li>
+          <li>✅ Менять цвет и размер</li>
+          <li>✅ Ставить точку спавна игрока</li>
+          <li>✅ Запускать игру кнопкой Play</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S3 Что такое Eduson Kids -->
+<section class="slide" data-slide="3">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">🌍 Что такое Eduson Kids?</h2>
+    <p class="text-lg text-slate-300 mb-4">Это 3D-платформа, где ты <b>строишь свои миры</b> и <b>программируешь их поведение</b>. В отличие от игры — здесь ты автор, а не игрок.</p>
+    <div class="grid md:grid-cols-3 gap-4 mt-8">
+      <div class="card text-center">
+        <div class="text-5xl mb-2">🏗</div>
+        <h3 class="font-bold">Редактор карт</h3>
+        <p class="text-sm text-slate-400 mt-2">Drag-and-drop 3D объекты</p>
+      </div>
+      <div class="card text-center">
+        <div class="text-5xl mb-2">🧩</div>
+        <h3 class="font-bold">Блочный код</h3>
+        <p class="text-sm text-slate-400 mt-2">Как Scratch, но в 3D</p>
+      </div>
+      <div class="card text-center">
+        <div class="text-5xl mb-2">🐍</div>
+        <h3 class="font-bold">Python (для старших)</h3>
+        <p class="text-sm text-slate-400 mt-2">Переключаемся одной кнопкой</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S4 Интерфейс -->
+<section class="slide" data-slide="4">
+  <div class="max-w-5xl">
+    <h2 class="text-4xl font-bold mb-6">🖥 Интерфейс редактора</h2>
+    <svg viewBox="0 0 600 340" class="w-full">
+      <rect width="600" height="340" fill="#0f172a" stroke="#334155"/>
+      <rect x="0" y="0" width="600" height="30" fill="#1e293b"/>
+      <circle cx="15" cy="15" r="5" fill="#ef4444"/>
+      <circle cx="30" cy="15" r="5" fill="#f59e0b"/>
+      <circle cx="45" cy="15" r="5" fill="#22c55e"/>
+      <text x="300" y="20" text-anchor="middle" fill="#94a3b8" font-size="12">Eduson Kids Editor</text>
+      <rect x="0" y="30" width="120" height="310" fill="#1e293b" stroke="#334155"/>
+      <text x="60" y="55" text-anchor="middle" fill="#38bdf8" font-size="11" font-weight="bold">Объекты</text>
+      <rect x="10" y="65" width="100" height="25" fill="#334155" rx="4"/>
+      <text x="60" y="82" text-anchor="middle" fill="#e2e8f0" font-size="10">🧱 Part</text>
+      <rect x="10" y="95" width="100" height="25" fill="#334155" rx="4"/>
+      <text x="60" y="112" text-anchor="middle" fill="#e2e8f0" font-size="10">📍 Spawn</text>
+      <rect x="10" y="125" width="100" height="25" fill="#334155" rx="4"/>
+      <text x="60" y="142" text-anchor="middle" fill="#e2e8f0" font-size="10">📜 Script</text>
+      <rect x="120" y="30" width="360" height="310" fill="#0c1a2e"/>
+      <text x="300" y="180" text-anchor="middle" fill="#475569" font-size="14">🎬 3D Сцена (клик = поставить объект)</text>
+      <rect x="480" y="30" width="120" height="310" fill="#1e293b" stroke="#334155"/>
+      <text x="540" y="55" text-anchor="middle" fill="#f472b6" font-size="11" font-weight="bold">Свойства</text>
+      <text x="490" y="80" fill="#cbd5e1" font-size="10">Цвет: 🟩</text>
+      <text x="490" y="100" fill="#cbd5e1" font-size="10">Размер: 4×1×4</text>
+      <text x="490" y="120" fill="#cbd5e1" font-size="10">Якорь: ✅</text>
+      <rect x="240" y="300" width="120" height="30" fill="#16a34a" rx="5"/>
+      <text x="300" y="320" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">▶ Play</text>
+    </svg>
+    <div class="grid md:grid-cols-3 gap-4 mt-6 text-sm">
+      <div class="card"><b class="text-sky-400">Слева</b> — каталог объектов</div>
+      <div class="card"><b class="text-emerald-400">Центр</b> — 3D сцена</div>
+      <div class="card"><b class="text-pink-400">Справа</b> — свойства выбранного</div>
+    </div>
+  </div>
+</section>
+
+<!-- S5 Шаг 1 -->
+<section class="slide" data-slide="5">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">🟩 Шаг 1. Создаём платформу</h2>
+    <div class="grid md:grid-cols-2 gap-6 items-center">
+      <div>
+        <ol class="space-y-3 text-lg text-slate-300">
+          <li><span class="badge bg-sky-500/20 text-sky-300">1</span> В левой панели найди <b>Part</b></li>
+          <li><span class="badge bg-sky-500/20 text-sky-300">2</span> Перетащи в сцену</li>
+          <li><span class="badge bg-sky-500/20 text-sky-300">3</span> В правой панели поставь размер <b>8 × 1 × 8</b></li>
+          <li><span class="badge bg-sky-500/20 text-sky-300">4</span> Цвет — <span class="inline-block w-4 h-4 bg-green-500 rounded align-middle"></span> зелёный</li>
+        </ol>
+      </div>
+      <div class="card">
+        <svg viewBox="0 0 200 150" class="w-full">
+          <ellipse cx="100" cy="130" rx="80" ry="8" fill="#1e293b"/>
+          <rect x="40" y="90" width="120" height="30" fill="#22c55e" stroke="#16a34a" stroke-width="2"/>
+          <polygon points="40,90 60,70 180,70 160,90" fill="#4ade80"/>
+          <polygon points="160,90 180,70 180,100 160,120" fill="#15803d"/>
+        </svg>
+        <p class="text-center text-slate-400 text-sm mt-2">✅ Так выглядит первая платформа</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S6 Шаг 2 -->
+<section class="slide" data-slide="6">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">📍 Шаг 2. Ставим Spawn</h2>
+    <p class="text-lg text-slate-300 mb-4"><b>Spawn</b> — это точка, где появляется игрок, когда нажимает Play. Без неё игрок не появится.</p>
+    <div class="card">
+      <h3 class="text-xl font-bold text-amber-400 mb-2">⚠ Правило</h3>
+      <p class="text-slate-300">Spawn должен стоять <b>над платформой</b>, иначе игрок упадёт в пустоту.</p>
+    </div>
+    <div class="mt-6 card">
+      <h3 class="font-bold mb-2">Пошагово:</h3>
+      <ol class="list-decimal ml-6 space-y-1 text-slate-300">
+        <li>Слева → <b>Spawn Point</b></li>
+        <li>Перетащи над зелёной платформой (чуть выше)</li>
+        <li>Проверь: Spawn подсвечен синим</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- S7 Шаг 3 -->
+<section class="slide" data-slide="7">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">🌈 Шаг 3. Делаем Obby — 5 платформ</h2>
+    <p class="text-lg text-slate-300 mb-4">Скопируй платформу ещё 4 раза (Ctrl+D), расставь на разном расстоянии и высоте. Меняй цвета.</p>
+    <svg viewBox="0 0 500 200" class="w-full card">
+      <rect x="0" y="0" width="500" height="200" fill="#0f172a"/>
+      <rect x="20" y="170" width="60" height="12" fill="#22c55e"/>
+      <rect x="110" y="150" width="60" height="12" fill="#ef4444"/>
+      <rect x="200" y="125" width="60" height="12" fill="#3b82f6"/>
+      <rect x="290" y="95" width="60" height="12" fill="#f59e0b"/>
+      <rect x="380" y="60" width="80" height="12" fill="#a855f7"/>
+      <circle cx="50" cy="155" r="8" fill="#fbbf24"/>
+      <text x="420" y="50" fill="#e2e8f0" text-anchor="middle" font-size="14">🏁 Финиш</text>
+    </svg>
+    <p class="text-slate-400 text-center mt-4 text-sm">Последнюю платформу сделай фиолетовой — это финиш.</p>
+  </div>
+</section>
+
+<!-- S8 Шаг 4 -->
+<section class="slide" data-slide="8">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">▶ Шаг 4. Запускаем!</h2>
+    <p class="text-lg text-slate-300 mb-6">Нажми зелёную кнопку <b>▶ Play</b> вверху редактора.</p>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card">
+        <h3 class="font-bold text-emerald-400 mb-2">Что должно быть</h3>
+        <ul class="space-y-1 text-slate-300">
+          <li>• Игрок появился над зелёной платформой</li>
+          <li>• WASD — движение, Space — прыжок</li>
+          <li>• Можно допрыгать до фиолетовой</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 class="font-bold text-red-400 mb-2">Если что-то не так</h3>
+        <ul class="space-y-1 text-slate-300">
+          <li>• Игрок падает → включи <b>якорь</b> у платформ</li>
+          <li>• Нет игрока → проверь Spawn</li>
+          <li>• Проваливается → Spawn чуть ВЫШЕ платформы</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S9 Теория -->
+<section class="slide" data-slide="9">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">🧠 Что мы сейчас выучили?</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card">
+        <h3 class="text-xl font-bold text-sky-400">Объект (Part)</h3>
+        <p class="text-slate-300 mt-2">Любая вещь в 3D-мире: платформа, стена, монетка. У объекта есть <b>свойства</b>: цвет, размер, позиция.</p>
+      </div>
+      <div class="card">
+        <h3 class="text-xl font-bold text-fuchsia-400">Сцена (Scene)</h3>
+        <p class="text-slate-300 mt-2">Контейнер, где живут все объекты. Это твой "мир".</p>
+      </div>
+      <div class="card">
+        <h3 class="text-xl font-bold text-emerald-400">Spawn</h3>
+        <p class="text-slate-300 mt-2">Специальный объект: точка появления игрока.</p>
+      </div>
+      <div class="card">
+        <h3 class="text-xl font-bold text-amber-400">Якорь (Anchor)</h3>
+        <p class="text-slate-300 mt-2">Свойство "не падать от гравитации". Платформы должны быть якорёнными.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S10 Первый скрипт -->
+<section class="slide" data-slide="10">
+  <div class="max-w-4xl">
+    <h2 class="text-4xl font-bold mb-6">📜 Бонус: первая строчка кода</h2>
+    <p class="text-lg text-slate-300 mb-4">Выдели красную платформу → в правой панели нажми <b>+ Script</b> → вставь:</p>
+    <pre>-- Блок: "когда игрок касается"
+part.Touched:Connect(function(player)
+    print("Привет, " .. player.Name .. "!")
+end)</pre>
+    <p class="text-slate-400 mt-4 text-sm">Это <b>Luau</b> — язык скриптов Eduson Kids. Пока не изучаем, просто смотрим как выглядит.</p>
+    <div class="mt-4 card bg-sky-900/40 border-sky-500/30">
+      <b class="text-sky-300">💡 Важно:</b> на L2-L6 будем писать только в блоках. Код — для старших.
+    </div>
+  </div>
+</section>
+
+<!-- S11 Мини-квиз -->
+<section class="slide" data-slide="11">
+  <div class="max-w-3xl">
+    <h2 class="text-4xl font-bold mb-6">🎯 Мини-квиз</h2>
+    <div class="card mb-4">
+      <p class="font-bold text-lg mb-3">1. Что такое Spawn?</p>
+      <div class="grid grid-cols-1 gap-2">
+        <button class="quiz-btn card text-left" onclick="this.classList.add('wrong')">Платформа для прыжка</button>
+        <button class="quiz-btn card text-left" onclick="this.classList.add('correct')">Точка появления игрока ✓</button>
+        <button class="quiz-btn card text-left" onclick="this.classList.add('wrong')">Цвет платформы</button>
+      </div>
+    </div>
+    <div class="card">
+      <p class="font-bold text-lg mb-3">2. Что произойдёт, если платформа НЕ якорёная?</p>
+      <div class="grid grid-cols-1 gap-2">
+        <button class="quiz-btn card text-left" onclick="this.classList.add('correct')">Упадёт от гравитации ✓</button>
+        <button class="quiz-btn card text-left" onclick="this.classList.add('wrong')">Станет красной</button>
+        <button class="quiz-btn card text-left" onclick="this.classList.add('wrong')">Ничего</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- S12 Домашка -->
+<!-- Step 8 · Open-ended task -->
+<section class="slide" data-slide="11b">
+  <div class="max-w-4xl">
+    <span class="badge bg-amber-500/20 text-amber-300">Шаг 8 · Открытая задача</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">🎨 Придумай историю</h2>
+    <div class="card">
+      <p class="text-lg text-slate-200 mb-4">Твой Obby — это <b>маленький мир</b>. Ответь сам себе:</p>
+      <ol class="space-y-3 text-slate-300">
+        <li><b>1.</b> Кто живёт в твоём мире? (герой, питомец, роботы?)</li>
+        <li><b>2.</b> Что ждёт на финише? (сокровище, дверь, питомец, победа?)</li>
+        <li><b>3.</b> Какой цвет у твоего мира? (зелёный лес, ночной город, космос?)</li>
+      </ol>
+      <p class="text-slate-400 mt-6 text-sm">Раскрась свой Obby в эту историю — поменяй цвета блоков, добавь финиш, выбери небо.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" data-slide="12">
+  <div class="max-w-4xl text-center">
+    <h2 class="text-4xl font-bold mb-6">🏠 Домашнее задание</h2>
+    <div class="card text-left max-w-2xl mx-auto">
+      <ol class="space-y-3 text-lg text-slate-300">
+        <li>1. Сделай <b>Obby из 8 платформ</b> (сейчас 5)</li>
+        <li>2. Добавь хотя бы одну <b>движущуюся</b> (подсказка: сдвигай позицию Y)</li>
+        <li>3. Поделись ссылкой с другом — пусть попробует пройти</li>
+      </ol>
+    </div>
+    <div class="mt-8">
+      <p class="text-xl text-sky-400 font-bold">До следующего урока! 🚀</p>
+      <p class="text-slate-400 mt-2">Урок 2: научим игрока бегать быстрее через блочный скрипт</p>
+    </div>
+    <a href="L1_teacher_guide.md" class="inline-block mt-6 text-sm text-slate-500 underline">📖 Методичка для учителя</a>
+  </div>
+</section>
+
+<!-- Step 9 · Closure + tease next -->
+<section class="slide" data-slide="13">
+  <div class="max-w-3xl text-center">
+    <span class="badge bg-sky-500/20 text-sky-300">Шаг 9 · Итог</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">⏭ В следующем уроке…</h2>
+    <div class="card text-left max-w-2xl mx-auto">
+      <p class="text-slate-300 mb-4">Закончи вслух фразу: <i>«В моей игре есть ___, которое делает ___»</i></p>
+      <div class="border-t border-slate-700 my-4"></div>
+      <h3 class="text-2xl font-bold text-fuchsia-400 mb-3">Урок 2 · Движение персонажа</h3>
+      <p class="text-slate-300">Научимся управлять героем: <b>WASD</b>, прыжок, скорость. И узнаем, что такое <b>физика</b> в играх.</p>
+    </div>
+    <p class="text-slate-500 mt-8 text-sm">🏆 Ты прошёл первый урок. Ты теперь автор.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- Nav -->
+<footer class="fixed bottom-0 left-0 right-0 backdrop-blur bg-slate-950/80 border-t border-slate-800 px-4 py-3">
+  <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <button id="prevBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded">← Назад</button>
+    <div id="dots" class="flex gap-2"></div>
+    <button id="nextBtn" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded font-semibold">Дальше →</button>
+  </div>
+  <p class="text-center text-xs text-slate-600 mt-2">© 2026 Eduson Kids · Урок 1 · v1.0</p>
+</footer>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+const dotsEl=document.getElementById('dots');
+const counter=document.getElementById('counter');
+let i=0;
+slides.forEach((_,idx)=>{const d=document.createElement('div');d.className='dot'+(idx===0?' active':'');d.onclick=()=>go(idx);dotsEl.appendChild(d);});
+function go(n){if(n<0||n>=slides.length)return;slides[i].classList.remove('active');dotsEl.children[i].classList.remove('active');i=n;slides[i].classList.add('active');dotsEl.children[i].classList.add('active');counter.textContent=(i+1)+' / '+slides.length;window.scrollTo(0,0);}
+document.getElementById('prevBtn').onclick=()=>go(i-1);
+document.getElementById('nextBtn').onclick=()=>go(i+1);
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')go(i+1);if(e.key==='ArrowLeft')go(i-1);});
+const themeBtn=document.getElementById('themeBtn');
+themeBtn.onclick=()=>{document.body.classList.toggle('light');document.body.classList.toggle('bg-slate-950');document.body.classList.toggle('bg-white');document.body.classList.toggle('text-slate-100');document.body.classList.toggle('text-slate-900');themeBtn.textContent=document.body.classList.contains('light')?'☀':'🌙';};
+// Quiz helper — подсвечивает correct/wrong кнопки
+function quizPick(btn, ok, groupId){
+  const group=document.getElementById(groupId);
+  if(!group)return;
+  [...group.querySelectorAll('.quiz-btn')].forEach(b=>b.disabled=true);
+  btn.classList.add(ok?'correct':'wrong');
+}
+</script>
+</body>
+</html>

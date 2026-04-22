@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KubiK · Живой режим — блоки управляют миром</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Nunito', system-ui, sans-serif; }
+  .slide{display:none;min-height:100vh;padding:3rem 2rem;animation:fade .4s ease;}
+  .slide.active{display:flex;flex-direction:column;justify-content:center;align-items:center;}
+  @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .badge{display:inline-block;padding:.2rem .75rem;border-radius:.5rem;font-size:.75rem;font-weight:700;}
+  .card{background:#1e1828;border-radius:1rem;padding:1.25rem;border:1px solid #2a2038;box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  .dot{width:8px;height:8px;border-radius:50%;background:#3d3148;cursor:pointer;transition:.15s;}
+  .dot.active{background:#6B5CE7;transform:scale(1.3);}
+  .quiz-btn{transition:.2s;}
+  .quiz-btn:hover{transform:translateY(-2px);}
+  .quiz-btn.correct{background:#16a34a !important;color:#fff !important;}
+  .quiz-btn.wrong{background:#dc2626 !important;color:#fff !important;}
+  .block-viz {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:8px 14px; border-radius:10px; color:#fff; font-weight:700;
+    box-shadow:0 3px 0 rgba(0,0,0,.25); font-size:14px;
+  }
+  .py-line { font-family: 'JetBrains Mono', Consolas, monospace; color:#dce0f1; font-size:14px; }
+  .py-kw { color:#6B5CE7; font-weight:700; }
+  .py-fn { color:#FFB4C8; }
+  .py-num { color:#FFD43C; }
+  .py-str { color:#9FE8C7; }
+  kbd { background:#2a2038; padding:2px 8px; border-radius:4px; font-family: monospace; color:#FFD43C; border:1px solid #3d3148; }
+  .arrow-pulse {
+    animation: pulseArrow 1.8s ease-in-out infinite;
+  }
+  @keyframes pulseArrow {
+    0%,100% { opacity: .5; transform: translateX(0); }
+    50% { opacity: 1; transform: translateX(8px); }
+  }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur bg-slate-950/70 border-b border-slate-800 px-4 py-2 flex justify-between items-center">
+  <div class="flex items-center gap-3">
+    <span class="text-2xl">⚡</span>
+    <span class="font-bold text-violet-400">Эдусон Kids</span>
+    <span class="text-xs text-slate-400 hidden md:inline">· Живой режим · 45 минут</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <span id="counter" class="text-sm text-slate-400">1 / 12</span>
+  </div>
+</header>
+
+<main class="pt-14">
+
+<!-- Slide 1: Intro -->
+<section class="slide active">
+  <div class="text-center max-w-3xl">
+    <span class="badge bg-violet-500/20 text-violet-300">Демо-урок</span>
+    <h1 class="text-5xl md:text-7xl font-black mt-4 bg-gradient-to-r from-violet-400 via-pink-400 to-yellow-300 bg-clip-text text-transparent">
+      Живой режим
+    </h1>
+    <p class="text-xl text-slate-300 mt-6">
+      Перетаскиваешь блок — мир меняется <b>мгновенно</b>.<br/>
+      Без кнопки «Запустить». Без ожидания. Как руль на машинке.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3 justify-center">
+      <span class="badge bg-violet-500/20 text-violet-300">⚡ Blocks → World</span>
+      <span class="badge bg-pink-500/20 text-pink-300">🔥 Immediate feedback</span>
+      <span class="badge bg-yellow-500/20 text-yellow-300">10-15 лет</span>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 2: Recall -->
+<section class="slide">
+  <div class="max-w-3xl">
+    <span class="badge bg-pink-500/20 text-pink-300">Шаг 2 · Вспомни</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">🧠 Что ты уже знаешь</h2>
+    <p class="text-slate-300 mb-6">Одна подсказка перед началом. Ответь сам себе:</p>
+    <div class="space-y-3" id="q1">
+      <p class="text-lg font-semibold">Где мы пишем блоки?</p>
+      <button class="quiz-btn card block w-full text-left" onclick="q(this,false,'q1')">В папке «Документы»</button>
+      <button class="quiz-btn card block w-full text-left" onclick="q(this,true,'q1')">🎯 В <b>Студии → Скрипт</b></button>
+      <button class="quiz-btn card block w-full text-left" onclick="q(this,false,'q1')">На бумаге</button>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 3: Vocabulary -->
+<section class="slide">
+  <div class="max-w-4xl">
+    <span class="badge bg-emerald-500/20 text-emerald-300">Шаг 3 · Словарь</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">📖 4 слова</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card">
+        <div class="text-3xl mb-2">⚡</div>
+        <h3 class="text-lg font-bold text-violet-400">Живой режим</h3>
+        <p class="text-slate-300 text-sm mt-2">Редактор сам запускает код когда ты меняешь блок. Никаких кнопок.</p>
+      </div>
+      <div class="card">
+        <div class="text-3xl mb-2">🔄</div>
+        <h3 class="text-lg font-bold text-pink-400">Blocks → Code</h3>
+        <p class="text-slate-300 text-sm mt-2">Блок слева превращается в строку Python справа. Одно в одно.</p>
+      </div>
+      <div class="card">
+        <div class="text-3xl mb-2">📡</div>
+        <h3 class="text-lg font-bold text-sky-400">Команда миру</h3>
+        <p class="text-slate-300 text-sm mt-2">Одна строка кода = одна команда. «Поставь блок», «иди», «прыгни».</p>
+      </div>
+      <div class="card">
+        <div class="text-3xl mb-2">⏸</div>
+        <h3 class="text-lg font-bold text-yellow-400">Debounce 500мс</h3>
+        <p class="text-slate-300 text-sm mt-2">Меняешь много блоков подряд — система ждёт полсекунды, потом прогонит один раз.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 4: Analogy -->
+<section class="slide">
+  <div class="max-w-4xl">
+    <span class="badge bg-yellow-500/20 text-yellow-300">Аналогия</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">🎮 Как радиоуправляемая машинка</h2>
+    <div class="grid md:grid-cols-3 gap-4 items-center">
+      <div class="card text-center">
+        <div class="text-6xl mb-3">🕹</div>
+        <h3 class="text-xl font-bold text-violet-300">Пульт</h3>
+        <p class="text-slate-300 mt-2">Это <b>блоки</b>. Ты крутишь, нажимаешь.</p>
+      </div>
+      <div class="text-5xl text-center text-yellow-400 arrow-pulse">→</div>
+      <div class="card text-center">
+        <div class="text-6xl mb-3">🚗</div>
+        <h3 class="text-xl font-bold text-pink-300">Машинка</h3>
+        <p class="text-slate-300 mt-2">Это <b>мир</b> в Test-табе. Реагирует сразу.</p>
+      </div>
+    </div>
+    <p class="text-center text-slate-400 mt-8 text-lg italic">
+      Тебе не нужно жать «поехали» — руль просто работает.
+    </p>
+  </div>
+</section>
+
+<!-- Slide 5: Teacher modeling -->
+<section class="slide">
+  <div class="max-w-4xl">
+    <span class="badge bg-violet-500/20 text-violet-300">Шаг 4 · Модель учителя</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">📹 Как это выглядит</h2>
+    <div class="space-y-4">
+      <div class="card flex items-start gap-4">
+        <div class="text-4xl">①</div>
+        <div>
+          <h3 class="font-bold text-lg text-violet-300">Открой Студия → Скрипт</h3>
+          <p class="text-slate-300 mt-1">Тулбар сверху. Справа от режимов — чекбокс <b>⚡ Живой режим</b>.</p>
+        </div>
+      </div>
+      <div class="card flex items-start gap-4">
+        <div class="text-4xl">②</div>
+        <div>
+          <h3 class="font-bold text-lg text-pink-300">Включи чекбокс</h3>
+          <p class="text-slate-300 mt-1">Справа от него появится <b>пульсирующий жёлтый ON</b>. Это знак что система слушает каждый твой блок.</p>
+        </div>
+      </div>
+      <div class="card flex items-start gap-4">
+        <div class="text-4xl">③</div>
+        <div>
+          <h3 class="font-bold text-lg text-yellow-300">Перетащи блок</h3>
+          <p class="text-slate-300 mt-1">Например <code class="bg-slate-800 px-2 rounded text-yellow-200">поставить блок красный</code>. В Python справа появится новая строка.</p>
+        </div>
+      </div>
+      <div class="card flex items-start gap-4 border-violet-500/50 border-2">
+        <div class="text-4xl">④</div>
+        <div>
+          <h3 class="font-bold text-lg text-violet-300">Переключись на Test</h3>
+          <p class="text-slate-300 mt-1"><b>Красный кубик уже в мире!</b> Ты не нажимал «Запустить» — он появился сам.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 6: How it works inside -->
+<section class="slide">
+  <div class="max-w-4xl">
+    <span class="badge bg-sky-500/20 text-sky-300">Под капотом</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">⚙ Что происходит за кулисами</h2>
+    <div class="space-y-3">
+      <div class="flex items-center gap-4">
+        <span class="block-viz" style="background:#6B5CE7">🧱 Ты тащишь блок</span>
+        <span class="text-yellow-400 text-2xl arrow-pulse">→</span>
+        <span class="text-slate-300">Редактор заметил изменение</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="block-viz" style="background:#FFB4C8">⏸ Подождал 500мс</span>
+        <span class="text-yellow-400 text-2xl arrow-pulse">→</span>
+        <span class="text-slate-300">Вдруг ты ещё что-то изменишь — ждём</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="block-viz" style="background:#9FE8C7;color:#15141b">🔄 Блоки → Python</span>
+        <span class="text-yellow-400 text-2xl arrow-pulse">→</span>
+        <span class="text-slate-300">Сгенерировали код</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="block-viz" style="background:#FFD43C;color:#15141b">🐍 Python → Pyodide</span>
+        <span class="text-yellow-400 text-2xl arrow-pulse">→</span>
+        <span class="text-slate-300">Выполнили в Worker-потоке</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="block-viz" style="background:#c879ff">📡 Команды → Test</span>
+        <span class="text-yellow-400 text-2xl arrow-pulse">→</span>
+        <span class="text-slate-300">Сцена обновилась</span>
+      </div>
+    </div>
+    <p class="text-center text-slate-400 mt-8 text-sm italic">
+      Всё это — за <b>менее 1 секунды</b>. Ты просто видишь результат.
+    </p>
+  </div>
+</section>
+
+<!-- Slide 7: Code anatomy -->
+<section class="slide">
+  <div class="max-w-4xl">
+    <span class="badge bg-pink-500/20 text-pink-300">Что генерируется</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">🔬 Один блок = одна строка</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <div class="text-sm text-slate-400 mb-2">Ты тащишь:</div>
+        <div class="space-y-2">
+          <span class="block-viz" style="background:#FFB4C8">🎬 при запуске</span><br/>
+          <span class="block-viz ml-8" style="background:#9FE8C7;color:#15141b">🔁 повторить 5 раз</span><br/>
+          <span class="block-viz ml-16" style="background:#A9D8FF;color:#15141b">🧱 поставить блок жёлтый</span><br/>
+          <span class="block-viz ml-16" style="background:#6B5CE7">🏃 идти вперёд 2</span>
+        </div>
+      </div>
+      <div>
+        <div class="text-sm text-slate-400 mb-2">Живой режим пишет:</div>
+        <div class="card py-line">
+          <div><span class="py-kw">def</span> <span class="py-fn">on_start</span>():</div>
+          <div class="ml-4"><span class="py-kw">for</span> _ <span class="py-kw">in</span> <span class="py-fn">range</span>(<span class="py-num">5</span>):</div>
+          <div class="ml-8"><span class="py-fn">place_block</span>(<span class="py-str">"yellow"</span>)</div>
+          <div class="ml-8"><span class="py-fn">move_forward</span>(<span class="py-num">2</span>)</div>
+          <div><span class="py-fn">on_start</span>()</div>
+        </div>
+      </div>
+    </div>
+    <p class="text-center text-slate-400 mt-6 text-sm">
+      А в мире — <b>лесенка из 5 жёлтых кубиков</b>. Сразу. Без кнопок.
+    </p>
+  </div>
+</section>
+
+<!-- Slide 8: Practice -->
+<section class="slide">
+  <div class="max-w-4xl">
+    <span class="badge bg-emerald-500/20 text-emerald-300">Шаг 5 · Практика</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">✋ Твоя очередь</h2>
+    <ol class="space-y-4 text-lg text-slate-300">
+      <li class="card">
+        <b class="text-violet-300">1.</b> Открой Студия → Скрипт → вкладка <b>L2 «Мост»</b>.
+      </li>
+      <li class="card">
+        <b class="text-pink-300">2.</b> Включи <b>⚡ Живой режим</b> вверху.
+      </li>
+      <li class="card">
+        <b class="text-yellow-300">3.</b> Собери эту конструкцию:<br/>
+        <code class="block mt-2 p-3 bg-slate-900 rounded text-sm">при запуске:
+  повторить 5 раз:
+    поставить блок жёлтый
+    идти вперёд 2
+    повернуть направо</code>
+      </li>
+      <li class="card border-violet-500/50 border-2">
+        <b class="text-violet-300">4.</b> Переключись на <b>▶ Тест</b>. Появилась лесенка?
+      </li>
+      <li class="card">
+        <b class="text-sky-300">5.</b> Вернись в Скрипт. Меняй <b>цвет</b> или <b>число повторов</b>. Смотри как мир реагирует.
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- Slide 9: Common mistakes -->
+<section class="slide">
+  <div class="max-w-3xl">
+    <span class="badge bg-red-500/20 text-red-300">Шаг 6 · Разбор ошибок</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">🐞 Частые затыки</h2>
+    <div class="space-y-3">
+      <div class="card">
+        <div class="font-bold text-red-300">«Ничего не появляется»</div>
+        <div class="text-slate-300 text-sm mt-1">→ Галочка Живой не стоит ИЛИ блоки не внутри @старт</div>
+      </div>
+      <div class="card">
+        <div class="font-bold text-yellow-300">«Мир захламлён»</div>
+        <div class="text-slate-300 text-sm mt-1">→ Нажми <kbd>Сброс</kbd> в Build-табе. Каждый прогон добавляет новые кубики поверх старых.</div>
+      </div>
+      <div class="card">
+        <div class="font-bold text-orange-300">«Тормозит»</div>
+        <div class="text-slate-300 text-sm mt-1">→ Слишком много повторений. Выключи Живой, используй «Запустить» вручную.</div>
+      </div>
+    </div>
+    <p class="text-center text-slate-400 mt-6 text-sm italic">
+      Это не баги — это физика системы. Ты понимаешь границы инструмента.
+    </p>
+  </div>
+</section>
+
+<!-- Slide 10: Open task -->
+<section class="slide">
+  <div class="max-w-4xl">
+    <span class="badge bg-amber-500/20 text-amber-300">Шаг 8 · Открытая задача</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">🎨 Интерактивная вывеска</h2>
+    <p class="text-slate-300 mb-4">Сделай <b>живую вывеску</b>: одно изменение — вся конструкция перестроится.</p>
+    <div class="space-y-3">
+      <div class="card">
+        <b class="text-emerald-300">🟢 Легко:</b> 3 кубика в ряд. Цвет одинаковый. Поменяй цвет — все три меняются.
+      </div>
+      <div class="card">
+        <b class="text-yellow-300">🟡 Средне:</b> Функция <code class="bg-slate-900 px-2 rounded">постройка(цвет)</code> из 5 блоков. Вызови 3 раза. Правка функции — все 3 башни перестраиваются.
+      </div>
+      <div class="card">
+        <b class="text-red-300">🔴 Сложно:</b> Перейди в <b>L3 Python</b>. Напиши цикл for. Проверь — Live работает и там: каждое нажатие клавиши через 500мс запускает код.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 11: Why it matters -->
+<section class="slide">
+  <div class="max-w-3xl">
+    <span class="badge bg-violet-500/20 text-violet-300">Идея</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">💡 Почему это важно?</h2>
+    <div class="space-y-4 text-slate-300">
+      <p class="card">
+        Взрослые программисты работают с <b>hot-reload</b>: изменил строку — сайт перезагрузился. <b>VS Code, React, Next.js</b> — все так умеют.
+      </p>
+      <p class="card">
+        Ты только что использовал то же самое. Просто в упрощённом виде.
+      </p>
+      <p class="card text-violet-300 italic">
+        «Обучение работает, когда между действием и результатом — доли секунды» — Сеймур Пейперт, MIT.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 12: Next lesson -->
+<section class="slide">
+  <div class="max-w-3xl text-center">
+    <span class="badge bg-sky-500/20 text-sky-300">Шаг 9 · Итог</span>
+    <h2 class="text-4xl font-bold mt-3 mb-6">⏭ Дальше</h2>
+    <div class="card text-left max-w-2xl mx-auto">
+      <p class="text-slate-300 mb-4">Закончи вслух: <i>«Я включил Живой режим и мой блок ___ создал ___ в мире»</i></p>
+      <div class="border-t border-slate-700 my-4"></div>
+      <h3 class="text-2xl font-bold text-violet-400 mb-3">Следующий урок · L6 «Переход в Python»</h3>
+      <p class="text-slate-300">Мы начнём читать настоящий Python — тот самый код, который живой режим уже пишет за тебя.</p>
+    </div>
+    <p class="text-slate-500 mt-8 text-sm">⚡ Ты увидел hot-reload своими глазами. Ты — уже разработчик.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="fixed bottom-0 left-0 right-0 backdrop-blur bg-slate-950/80 border-t border-slate-800 px-4 py-3">
+  <div class="max-w-5xl mx-auto flex items-center justify-between">
+    <button id="prevBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded">← Назад</button>
+    <div id="dots" class="flex gap-2"></div>
+    <button id="nextBtn" class="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded font-semibold">Дальше →</button>
+  </div>
+  <p class="text-center text-xs text-slate-600 mt-2">© 2026 Эдусон Kids · Живой режим · v1.0</p>
+</footer>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+const dotsEl=document.getElementById('dots');
+const counter=document.getElementById('counter');
+let i=0;
+slides.forEach((_,idx)=>{const d=document.createElement('div');d.className='dot'+(idx===0?' active':'');d.onclick=()=>go(idx);dotsEl.appendChild(d);});
+function go(n){if(n<0||n>=slides.length)return;slides[i].classList.remove('active');dotsEl.children[i].classList.remove('active');i=n;slides[i].classList.add('active');dotsEl.children[i].classList.add('active');counter.textContent=(i+1)+' / '+slides.length;window.scrollTo(0,0);}
+document.getElementById('prevBtn').onclick=()=>go(i-1);
+document.getElementById('nextBtn').onclick=()=>go(i+1);
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')go(i+1);if(e.key==='ArrowLeft')go(i-1);});
+function q(btn, ok, groupId){
+  const g=document.getElementById(groupId);
+  if(!g)return;
+  [...g.querySelectorAll('.quiz-btn')].forEach(b=>b.disabled=true);
+  btn.classList.add(ok?'correct':'wrong');
+}
+</script>
+</body>
+</html>
