@@ -17,6 +17,7 @@ import {
   addSpawnedPart,
   addRemoved,
   setRecolor,
+  getRecoloredForWorld,
   hashPos,
   pushUndo,
   type PropKind,
@@ -59,8 +60,9 @@ export default function UniversalClickCatcher({ worldId, children }: Props) {
     }
     if (Array.isArray(mat)) mat.forEach(applyOne)
     else applyOne(mat)
+    const prevHex = getRecoloredForWorld(worldId)[ph]
     setRecolor(worldId, ph, hex)
-    pushUndo({ kind: 'recolor', worldId, posHash: ph })
+    pushUndo({ kind: 'recolor', worldId, posHash: ph, prevHex })
   }
 
   const applyRemove = (obj: THREE.Object3D) => {
