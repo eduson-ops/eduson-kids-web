@@ -1,9 +1,11 @@
 import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
-import { OrbitControls, type OrbitControlsProps } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import GradientSky from '../components/GradientSky'
 import Sun from '../components/Sun'
+import { PieceGeometry } from '../components/BuildModeController'
+import { pieceSize, type BuildPieceKind } from '../lib/buildModeState'
 import {
   addPart,
   getState,
@@ -26,15 +28,30 @@ function EditGrid({ onPlace }: { onPlace: (pos: [number, number, number]) => voi
   }
   return (
     <>
-      <gridHelper args={[40, 40, '#88a0c0', '#5a7291']} position={[0, 0.01, 0]} />
+      <gridHelper
+        args={[40, 40, '#88a0c0', '#5a7291']}
+        position={[0, 0.05, 0]}
+        onUpdate={(self) => {
+          const mat = self.material as THREE.Material
+          mat.depthWrite = false
+          mat.transparent = true
+          self.renderOrder = 1
+        }}
+      />
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, 0, 0]}
+        position={[0, -0.02, 0]}
         onClick={handleClick}
         receiveShadow
       >
         <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color="#6a9a55" roughness={0.95} />
+        <meshStandardMaterial
+          color="#6a9a55"
+          roughness={0.95}
+          polygonOffset
+          polygonOffsetFactor={1}
+          polygonOffsetUnits={1}
+        />
       </mesh>
     </>
   )
@@ -86,6 +103,8 @@ function PartMesh({
       >
         {part.type === 'coin' ? (
           <cylinderGeometry args={[0.35, 0.35, 0.08, 16]} />
+        ) : part.type === 'ramp' || part.type === 'roof' ? (
+          <PieceGeometry kind={part.type as BuildPieceKind} />
         ) : (
           <boxGeometry args={[1, 1, 1]} />
         )}
@@ -138,14 +157,24 @@ interface Props {
 }
 
 export default function BuildScene({ state }: Props) {
-  const controls = useRef<OrbitControlsProps>(null!)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const controls = useRef<any>(null)
 
   const onPlace = (pos: [number, number, number]) => {
     const s = getState()
+    let scale: [number, number, number] = [1, 1, 1]
+    let position = pos
+    if (s.placingType === 'wall' || s.placingType === 'floor' || s.placingType === 'ramp' || s.placingType === 'roof') {
+      scale = pieceSize(s.placingType as BuildPieceKind)
+      // Для build-pieces правим Y чтобы ghost вставал корректно: floor на Y=0,
+      // остальные от Y=scale[1]/2
+      const y = s.placingType === 'floor' ? 0 : scale[1] / 2
+      position = [pos[0], y, pos[2]]
+    }
     addPart({
       type: s.placingType,
-      position: pos,
-      scale: s.placingType === 'coin' ? [1, 1, 1] : [1, 1, 1],
+      position,
+      scale,
       rotation: [0, 0, 0],
       color: s.placingColor,
       material: 'plastic',
@@ -156,7 +185,7 @@ export default function BuildScene({ state }: Props) {
   return (
     <Canvas
       shadows="soft"
-      camera={{ position: [8, 9, 12], fov: 45, far: 600 }}
+      camera={{ position: [8, 9, 12], fov: 45, near: 0.1, far: 600 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 2]}
       onPointerMissed={() => selectPart(null)}
@@ -180,7 +209,7 @@ export default function BuildScene({ state }: Props) {
         shadow-camera-right={40}
         shadow-camera-top={40}
         shadow-camera-bottom={-40}
-        shadow-bias={-0.0005}
+        shadow-bias={-0.0001}
       />
       <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
 
@@ -198,7 +227,7 @@ export default function BuildScene({ state }: Props) {
       <PlacingPreview />
 
       <OrbitControls
-        ref={controls as unknown as React.Ref<never>}
+        ref={controls}
         enableDamping
         dampingFactor={0.15}
         maxPolarAngle={Math.PI / 2 - 0.05}

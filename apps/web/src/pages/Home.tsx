@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { GAMES, type GameMeta } from '../lib/games'
+import PlatformShell from '../components/PlatformShell'
 
 type TopTab = 'featured' | 'templates'
 type BottomTab = 'best' | 'fresh' | 'hot' | 'online'
@@ -43,12 +44,6 @@ export default function Home() {
 
   const onlineCount = GAMES.reduce((s, g) => s + g.playersOnline, 0)
 
-  const logout = () => {
-    localStorage.removeItem('ek_child_code')
-    localStorage.removeItem('ek_child_name')
-    setChildName(null)
-  }
-
   const playRandom = () => {
     const pool = topRow.length ? topRow : bottomRow
     const pick = pool[Math.floor(Math.random() * pool.length)]
@@ -56,88 +51,81 @@ export default function Home() {
   }
 
   return (
-    <div className="lobby-v2">
-      <header className="lobby-topbar">
-        <div className="search-pill">
-          <span className="search-icon" aria-hidden>🔎</span>
+    <PlatformShell activeKey="play">
+      {/* Hero row: search + random play */}
+      <section style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 16, marginBottom: 32, alignItems: 'center' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          background: 'var(--paper)',
+          border: '1.5px solid rgba(21,20,27,.08)',
+          borderRadius: 999,
+          padding: '10px 20px',
+          boxShadow: 'var(--sh-1)',
+        }}>
+          <span aria-hidden>🔎</span>
           <input
-            className="search-input"
-            placeholder="Найти…"
+            placeholder="Найти мир…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            style={{
+              flex: 1,
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              fontFamily: 'var(--f-ui)',
+              fontSize: 15,
+              fontWeight: 500,
+              color: 'var(--ink)',
+            }}
           />
         </div>
-        <div className="lobby-auth">
-          {/* Аватар-котик виден всегда — ведёт в /profile с 3D-превью */}
-          <Link
-            to="/profile"
-            className="avatar-btn"
-            aria-label="Мой аватар"
-            title="Мой аватар"
-          >
-            <span aria-hidden>🐱</span>
-          </Link>
-          {childName ? (
-            <>
-              <span className="hello">Привет, {childName}</span>
-              <button
-                className="btn ghost tiny"
-                onClick={logout}
-                aria-label="Выйти"
-              >
-                выйти
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="icon-btn" aria-label="Регистрация">
-                <span aria-hidden>👤</span>
-                <span className="plus-bubble" aria-hidden>+</span>
-              </Link>
-              <Link to="/login" className="login-cat">
-                Войти
-                <span className="login-cat-icon" aria-hidden>🐱</span>
-              </Link>
-            </>
-          )}
-        </div>
+        <button className="kb-btn kb-btn--secondary" onClick={playRandom}>
+          🎲 Случайный мир
+        </button>
+      </section>
+
+      {/* Header row */}
+      <header style={{ marginBottom: 24 }}>
+        <span className="eyebrow">Каталог миров</span>
+        <h1 className="h1" style={{ marginTop: 8, fontSize: 40 }}>
+          {childName ? `Привет, ${childName}!` : 'Выбирай свой мир'}
+        </h1>
+        <p style={{ fontSize: 16, color: 'var(--ink-soft)', marginTop: 8, maxWidth: 600 }}>
+          {childName
+            ? 'Играй и учись. Каждый мир проверяет навыки из уроков.'
+            : 'Каждый мир построен нашими учениками. Поиграй — и создай свой.'}
+        </p>
       </header>
 
-      <section className="lobby-section-v2">
-        <TabChips<TopTab>
-          options={[
-            ['featured', 'рекомендуем'],
-            ['templates', 'шаблоны'],
-          ]}
+      <section style={{ marginBottom: 40 }}>
+        <BrandChips<TopTab>
+          options={[['featured', 'Рекомендуем'], ['templates', 'Шаблоны']]}
           value={topTab}
           onChange={setTopTab}
         />
         <GameGrid games={topRow} />
       </section>
 
-      <section className="lobby-section-v2">
-        <TabChips<BottomTab>
+      <section>
+        <BrandChips<BottomTab>
           options={[
-            ['best', 'лучшее'],
-            ['fresh', 'новое'],
-            ['hot', 'горячее'],
-            ['online', `онлайн  ${onlineCount}`],
+            ['best', 'Лучшее'],
+            ['fresh', 'Новое'],
+            ['hot', 'Горячее'],
+            ['online', `Онлайн · ${onlineCount}`],
           ]}
           value={bottomTab}
           onChange={setBottomTab}
         />
         <GameGrid games={bottomRow} withCreateFirst />
       </section>
-
-      <button className="play-fab" onClick={playRandom} aria-label="Играть">
-        <span className="fab-icon" aria-hidden>🎮</span>
-        <span>играть</span>
-      </button>
-    </div>
+    </PlatformShell>
   )
 }
 
-function TabChips<T extends string>({
+function BrandChips<T extends string>({
   options,
   value,
   onChange,
@@ -147,11 +135,11 @@ function TabChips<T extends string>({
   onChange: (v: T) => void
 }) {
   return (
-    <div className="tab-chips">
+    <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
       {options.map(([k, label]) => (
         <button
           key={k}
-          className={`tab-chip ${value === k ? 'active' : ''}`}
+          className={`kb-chip ${value === k ? 'kb-chip--active' : ''}`}
           onClick={() => onChange(k)}
         >
           {label}
@@ -163,59 +151,106 @@ function TabChips<T extends string>({
 
 function GameGrid({ games, withCreateFirst }: { games: GameMeta[]; withCreateFirst?: boolean }) {
   return (
-    <div className="game-grid-v2">
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+      gap: 16,
+    }}>
       {withCreateFirst && (
-        <Link to="/studio" className="game-card-v2 create-card-v2">
-          <div className="thumb-v2 create-thumb-v2">
-            <span className="plus-big">＋</span>
-          </div>
-          <div className="card-meta">
-            <div className="author-line">
-              <span className="author-dot" style={{ background: '#a4a9bc' }} />
-              <span className="author-name">Твоя игра</span>
+        <Link
+          to="/studio"
+          className="kb-card"
+          style={{
+            textDecoration: 'none',
+            background: 'var(--violet-soft)',
+            borderColor: 'var(--violet)',
+            borderStyle: 'dashed',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 240,
+            transition: 'transform .15s var(--ease)',
+          }}
+        >
+          <div style={{
+            width: 64,
+            height: 64,
+            borderRadius: 18,
+            background: 'var(--violet)',
+            color: 'var(--paper)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 36,
+            fontFamily: 'var(--f-display)',
+            fontWeight: 900,
+            boxShadow: '0 4px 0 var(--violet-deep)',
+          }}>+</div>
+          <div style={{ textAlign: 'center' }}>
+            <div className="h3" style={{ fontSize: 16, color: 'var(--violet-ink)' }}>Создай свой мир</div>
+            <div style={{ fontSize: 13, color: 'var(--violet-ink)', opacity: 0.7, marginTop: 4 }}>
+              Студия Эдюсон Kids
             </div>
-            <div className="game-title-v2">Создать свою игру</div>
           </div>
         </Link>
       )}
-      {games.map((g) => (
-        <GameCard key={g.id} game={g} />
-      ))}
+      {games.map((g) => <GameCard key={g.id} game={g} />)}
     </div>
   )
 }
 
 function GameCard({ game }: { game: GameMeta }) {
   return (
-    <Link to={`/play/${game.id}`} className="game-card-v2">
+    <Link
+      to={`/play/${game.id}`}
+      className="kb-card"
+      style={{
+        textDecoration: 'none',
+        padding: 0,
+        overflow: 'hidden',
+        transition: 'transform .15s var(--ease), box-shadow .15s var(--ease)',
+      }}
+    >
       <div
-        className="thumb-v2"
         style={{
           background: `linear-gradient(135deg, ${game.color}, ${darken(game.color, 0.25)})`,
+          minHeight: 140,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
         }}
       >
         {game.playersOnline > 0 && (
-          <span className="players-badge-v2">👥 {game.playersOnline}</span>
+          <span style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            background: 'rgba(21,20,27,.75)',
+            color: 'var(--paper)',
+            padding: '3px 10px',
+            borderRadius: 999,
+            fontSize: 12,
+            fontWeight: 700,
+          }}>
+            👥 {game.playersOnline}
+          </span>
         )}
-        <span className="thumb-emoji-v2">{game.emoji}</span>
+        <span style={{ fontSize: 64 }}>{game.emoji}</span>
       </div>
-      <div className="card-meta">
-        <div className="author-line">
-          <span
-            className="author-dot"
-            style={{ background: game.authorColor }}
-            aria-hidden
-          />
-          <span className="author-name">{game.author}</span>
+      <div style={{ padding: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+          <span style={{
+            width: 8,
+            height: 8,
+            borderRadius: 999,
+            background: game.authorColor,
+          }} />
+          <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>{game.author}</span>
         </div>
-        <div className="game-title-v2">{game.title}</div>
-        <div className="stats-line">
-          <span className="stat">
-            <span aria-hidden>👁</span> {formatCount(game.views)}
-          </span>
-          <span className="stat">
-            <span aria-hidden>❤</span> {game.likes}
-          </span>
+        <div className="h3" style={{ fontSize: 15, marginBottom: 6 }}>{game.title}</div>
+        <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>
+          <span>👁 {formatCount(game.views)}</span>
+          <span>❤ {game.likes}</span>
         </div>
       </div>
     </Link>

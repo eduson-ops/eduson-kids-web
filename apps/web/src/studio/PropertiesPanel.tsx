@@ -1,12 +1,13 @@
+import { useState } from 'react'
 import type { EditorState, MaterialType } from './editorState'
 import {
-  PALETTE_COLORS,
   SCENE_PRESETS,
   deletePart,
   duplicatePart,
   setLightingPreset,
   updatePart,
 } from './editorState'
+import ObjectScriptEditor from '../components/ObjectScriptEditor'
 
 interface Props {
   state: EditorState
@@ -23,6 +24,8 @@ const MATERIALS: Array<[MaterialType, string]> = [
 
 export default function PropertiesPanel({ state }: Props) {
   const selected = state.parts.find((p) => p.id === state.selectedId) ?? null
+  const [editingScriptFor, setEditingScriptFor] = useState<string | null>(null)
+  const editingPart = editingScriptFor ? state.parts.find((p) => p.id === editingScriptFor) : null
 
   return (
     <aside className="studio-props">
@@ -36,6 +39,7 @@ export default function PropertiesPanel({ state }: Props) {
                 onChange={(e) => updatePart(selected.id, { name: e.target.value })}
               />
               <span className="prop-type">{selected.type}</span>
+              {selected.scripts && <span className="prop-script-badge" title="У объекта есть скрипт">⚡</span>}
             </div>
             <div className="prop-actions">
               <button onClick={() => duplicatePart(selected.id)}>Дублировать</button>
@@ -43,6 +47,36 @@ export default function PropertiesPanel({ state }: Props) {
                 Удалить
               </button>
             </div>
+          </section>
+
+          {/* ── Per-object scripting — ключевая фишка ── */}
+          <section className="prop-script-section">
+            <h4>📜 Скрипт объекта</h4>
+            {selected.scripts ? (
+              <>
+                <div className="prop-script-summary">
+                  <span className="prop-script-dot" />
+                  <span>Скрипт готов · {countEvents(selected.scripts.python)} событий</span>
+                </div>
+                <div className="prop-script-actions">
+                  <button className="kb-btn kb-btn--sm" onClick={() => setEditingScriptFor(selected.id)}>
+                    ✏ Редактировать
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="prop-script-hint">
+                  Добавь поведение прямо этому объекту: реакция на касание, на старт сцены, на сигнал.
+                </p>
+                <button
+                  className="kb-btn kb-btn--sm prop-script-add"
+                  onClick={() => setEditingScriptFor(selected.id)}
+                >
+                  ⚡ Запрограммировать объект
+                </button>
+              </>
+            )}
           </section>
 
           <section>
@@ -85,27 +119,6 @@ export default function PropertiesPanel({ state }: Props) {
                   />
                 </label>
               ))}
-            </div>
-          </section>
-
-          <section>
-            <h4>Цвет</h4>
-            <div className="color-palette sm">
-              {PALETTE_COLORS.map((c) => (
-                <button
-                  key={c}
-                  className={`palette-swatch ${selected.color === c ? 'active' : ''}`}
-                  style={{ background: c }}
-                  onClick={() => updatePart(selected.id, { color: c })}
-                />
-              ))}
-              <label className="palette-custom">
-                <input
-                  type="color"
-                  value={selected.color}
-                  onChange={(e) => updatePart(selected.id, { color: e.target.value })}
-                />
-              </label>
             </div>
           </section>
 
@@ -162,17 +175,31 @@ export default function PropertiesPanel({ state }: Props) {
             <h4>Всё в сцене</h4>
             <ul className="scene-list">
               {state.parts.map((p) => (
-                <li key={p.id}>
+                <li key={p.id} className={p.scripts ? 'has-script' : ''}>
                   <span className="scene-dot" style={{ background: p.color }} />
                   <span>{p.name}</span>
+                  {p.scripts && <span className="scene-item-badge" title="Запрограммирован">⚡</span>}
                 </li>
               ))}
             </ul>
           </section>
         </>
       )}
+
+      {editingPart && (
+        <ObjectScriptEditor
+          target={{ scope: 'part', part: editingPart }}
+          onClose={() => setEditingScriptFor(null)}
+        />
+      )}
     </aside>
   )
+}
+
+/** Посчитать число hat-событий (для бейджа «N событий»). */
+function countEvents(python: string): number {
+  const matches = python.match(/^def (on_\w+)\(/gm)
+  return matches ? matches.length : 0
 }
 
 function lightingLabel(p: string): string {

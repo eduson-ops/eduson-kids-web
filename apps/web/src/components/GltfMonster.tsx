@@ -4,16 +4,17 @@ import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { useEffect, useMemo, useRef } from 'react'
 import { SkeletonUtils } from 'three/examples/jsm/Addons.js'
 import { Box3, Group, Mesh, Vector3 } from 'three'
+import { PUBLIC_BASE } from '../lib/publicPath'
 
 // Quaternius Ultimate Monsters (CC0). Все модели содержат одинаковый
 // набор анимаций: Idle, Walk, Run, Jump, Wave, Punch, Death, HitReact,
 // Duck, Jump_Idle, Jump_Land, No, Weapon, Yes.
 export const MONSTER_URLS = {
-  alien: '/models/ultimate-monsters/Big/glTF/Alien.gltf',
-  birb: '/models/ultimate-monsters/Big/glTF/Birb.gltf',
-  blueDemon: '/models/ultimate-monsters/Big/glTF/BlueDemon.gltf',
-  bunny: '/models/ultimate-monsters/Big/glTF/Bunny.gltf',
-  cactoro: '/models/ultimate-monsters/Big/glTF/Cactoro.gltf',
+  alien: `${PUBLIC_BASE}/models/ultimate-monsters/Big/glTF/Alien.gltf`,
+  birb: `${PUBLIC_BASE}/models/ultimate-monsters/Big/glTF/Birb.gltf`,
+  blueDemon: `${PUBLIC_BASE}/models/ultimate-monsters/Big/glTF/BlueDemon.gltf`,
+  bunny: `${PUBLIC_BASE}/models/ultimate-monsters/Big/glTF/Bunny.gltf`,
+  cactoro: `${PUBLIC_BASE}/models/ultimate-monsters/Big/glTF/Cactoro.gltf`,
 } as const
 
 export type MonsterId = keyof typeof MONSTER_URLS

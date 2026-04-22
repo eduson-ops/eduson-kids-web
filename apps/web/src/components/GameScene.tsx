@@ -8,9 +8,31 @@ import VoxelClouds from './VoxelClouds'
 import ObbyWorld, { OBBY_SPAWN } from './worlds/ObbyWorld'
 import RaceWorld, { RACE_SPAWN } from './worlds/RaceWorld'
 import SandboxWorld, { SANDBOX_SPAWN } from './worlds/SandboxWorld'
+import TowerWorld, { TOWER_SPAWN } from './worlds/TowerWorld'
+import GardenWorld, { GARDEN_SPAWN } from './worlds/GardenWorld'
+import PetSimWorld, { PETSIM_SPAWN } from './worlds/PetSimWorld'
+import BotTownWorld, { BOTTOWN_SPAWN } from './worlds/BotTownWorld'
+import FashionWorld, { FASHION_SPAWN } from './worlds/FashionWorld'
+import MysteryWorld, { MYSTERY_SPAWN } from './worlds/MysteryWorld'
+import NightsWorld, { NIGHTS_SPAWN } from './worlds/NightsWorld'
+import TycoonWorld, { TYCOON_SPAWN } from './worlds/TycoonWorld'
+import AbilityBuilderWorld, { ABILITY_SPAWN } from './worlds/AbilityBuilderWorld'
+import PetBrainWorld, { PETBRAIN_SPAWN } from './worlds/PetBrainWorld'
 import CameraController from './CameraController'
+import AdaptiveDPR from './AdaptiveDPR'
+import Scriptable from './Scriptable'
+import UniversalClickCatcher from './UniversalClickCatcher'
+import WorldAdditions from './WorldAdditions'
+import WorldOverridesApplier from './WorldOverridesApplier'
+import ScriptGhosts from './ScriptGhosts'
+import { getWorldTargets } from './worlds/scriptableTargets'
 import type { GameMeta } from '../lib/games'
 import type { Avatar } from '../lib/avatars'
+
+// Определяем «слабый» клиент по числу логических ядер — на таких экономим на тенях.
+const IS_LOW_CORE =
+  typeof navigator !== 'undefined' && (navigator.hardwareConcurrency ?? 8) <= 4
+const SHADOW_MAP_SIZE = IS_LOW_CORE ? 512 : 1024
 
 const KEYS = [
   { name: 'forward', keys: ['KeyW', 'ArrowUp'] },
@@ -18,6 +40,7 @@ const KEYS = [
   { name: 'left', keys: ['KeyA', 'ArrowLeft'] },
   { name: 'right', keys: ['KeyD', 'ArrowRight'] },
   { name: 'jump', keys: ['Space'] },
+  { name: 'sprint', keys: ['ShiftLeft', 'ShiftRight'] },
 ]
 
 interface Props {
@@ -30,11 +53,12 @@ const SUN_POS: [number, number, number] = [50, 45, 20]
 
 export default function GameScene({ game, avatar }: Props) {
   const { world: W, spawn } = pickWorld(game.category)
+  const scriptTargets = getWorldTargets(game.id, game.category)
   return (
     <KeyboardControls map={KEYS}>
       <Canvas
         shadows="soft"
-        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60, far: 600 }}
+        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60, near: 0.1, far: 600 }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 2]}
       >
@@ -56,24 +80,46 @@ export default function GameScene({ game, avatar }: Props) {
           intensity={1.3}
           color="#fff3d8"
           castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
+          shadow-mapSize-width={SHADOW_MAP_SIZE}
+          shadow-mapSize-height={SHADOW_MAP_SIZE}
           shadow-camera-near={0.5}
           shadow-camera-far={120}
           shadow-camera-left={-30}
           shadow-camera-right={30}
           shadow-camera-top={30}
           shadow-camera-bottom={-30}
-          shadow-bias={-0.0005}
+          shadow-bias={-0.0001}
+          shadow-normalBias={0.02}
         />
         {/* Контровая подсветка с противоположной стороны — тень не чернеет */}
         <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
 
         <Physics gravity={[0, -30, 0]}>
-          <W />
+          <UniversalClickCatcher worldId={game.id}>
+            <W />
+            <WorldAdditions worldId={game.id} />
+            {scriptTargets.map((t) => (
+              <Scriptable
+                key={t.id}
+                worldId={game.id}
+                objectId={t.id}
+                pos={t.pos}
+                label={t.label}
+                radius={t.radius ?? 1.2}
+              />
+            ))}
+            {/* Невидимые Scriptable для universal-click скриптов (at_*) */}
+            <ScriptGhosts
+              worldId={game.id}
+              knownIds={new Set(scriptTargets.map((t) => t.id))}
+            />
+          </UniversalClickCatcher>
           <Player avatar={avatar} startPos={spawn} />
         </Physics>
+        {/* Applier живёт ВНЕ Physics — ему нужен доступ к scene через useThree */}
+        <WorldOverridesApplier worldId={game.id} />
         <CameraController />
+        <AdaptiveDPR />
       </Canvas>
     </KeyboardControls>
   )
@@ -83,6 +129,26 @@ function pickWorld(cat: GameMeta['category']) {
   switch (cat) {
     case 'race':
       return { world: RaceWorld, spawn: RACE_SPAWN }
+    case 'tower':
+      return { world: TowerWorld, spawn: TOWER_SPAWN }
+    case 'garden':
+      return { world: GardenWorld, spawn: GARDEN_SPAWN }
+    case 'pets':
+      return { world: PetSimWorld, spawn: PETSIM_SPAWN }
+    case 'town':
+      return { world: BotTownWorld, spawn: BOTTOWN_SPAWN }
+    case 'fashion':
+      return { world: FashionWorld, spawn: FASHION_SPAWN }
+    case 'mystery':
+      return { world: MysteryWorld, spawn: MYSTERY_SPAWN }
+    case 'nights':
+      return { world: NightsWorld, spawn: NIGHTS_SPAWN }
+    case 'tycoon':
+      return { world: TycoonWorld, spawn: TYCOON_SPAWN }
+    case 'ability':
+      return { world: AbilityBuilderWorld, spawn: ABILITY_SPAWN }
+    case 'petbrain':
+      return { world: PetBrainWorld, spawn: PETBRAIN_SPAWN }
     case 'sandbox':
     case 'rp':
     case 'sim':

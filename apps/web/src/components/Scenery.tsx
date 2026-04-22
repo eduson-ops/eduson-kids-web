@@ -1,14 +1,16 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 import StaticModel from './StaticModel'
+import { PUBLIC_BASE } from '../lib/publicPath'
 
 // Пути к готовым паковым моделям — все CC0, лежат в public/models.
-const STYLIZED = '/models/stylized-nature'
+// PUBLIC_BASE пустой локально и '/eduson-kids-web' в проде GH Pages.
+const STYLIZED = `${PUBLIC_BASE}/models/stylized-nature`
 // Kenney Nature был переименован (kenney-nature/Models/glb), остальные —
 // пока с пробелом в папке ("GLB format") из-за Windows lock на переименовании.
-const CITY = '/models/kenney-city/Models/GLB%20format'
-const CAR = '/models/kenney-car/Models/GLB%20format'
-const NATURE = '/models/kenney-nature/Models/glb'
+const CITY = `${PUBLIC_BASE}/models/kenney-city/Models/GLB%20format`
+const CAR = `${PUBLIC_BASE}/models/kenney-car/Models/GLB%20format`
+const NATURE = `${PUBLIC_BASE}/models/kenney-nature/Models/glb`
 
 // ─── Деревья (Stylized Nature) ─────────────────────────────
 

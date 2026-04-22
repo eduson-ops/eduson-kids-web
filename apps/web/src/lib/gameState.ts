@@ -75,6 +75,43 @@ export function addCoin(n = 1) {
   notify()
 }
 
+export function setScore(n: number) {
+  state.coins = Math.max(0, Math.min(9999, Math.floor(n)))
+  notify()
+}
+
+export function enemyHit() {
+  // Dispatches a custom event picked up by Player.tsx to trigger respawn
+  window.dispatchEvent(new CustomEvent('ek:enemy-hit'))
+}
+
+/**
+ * Дрожание камеры. Отправляет event 'ek:shake', Player.tsx подхватывает и сдвигает камеру.
+ * @param intensity 0..1+ — амплитуда сдвига в юнитах мира (0.4 — сильный хит, 0.2 — мягкое win)
+ * @param duration сек — длительность, линейный decay до 0
+ */
+export function shakeCamera(intensity: number, duration: number) {
+  window.dispatchEvent(new CustomEvent('ek:shake', { detail: { intensity, duration } }))
+}
+
+export function playerSay(text: string) {
+  window.dispatchEvent(new CustomEvent('ek:player-say', { detail: { text: String(text).slice(0, 140) } }))
+}
+
+/**
+ * Apply a WorldCommand (from Python runtime) to the live game state.
+ * Returns true if handled, false if unknown op.
+ */
+export function applyWorldCommand(cmd: { op: string; [k: string]: unknown }): boolean {
+  switch (cmd.op) {
+    case 'add_score': addCoin((cmd.n as number) ?? 1); return true
+    case 'set_score': setScore((cmd.n as number) ?? 0); return true
+    case 'player_say': playerSay((cmd.text as string) ?? ''); return true
+    case 'enemy_hit': enemyHit(); return true
+    default: return false
+  }
+}
+
 export function setGoal(g: GoalResult) {
   if (state.goal) return
   state.goal = g

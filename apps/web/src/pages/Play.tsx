@@ -6,15 +6,32 @@ import { loadAvatar } from '../lib/avatars'
 import {
   disposeGame,
   resetGame,
+  shakeCamera,
   startTimer,
   subscribe,
   type GameState,
 } from '../lib/gameState'
 import { SFX, getMuted, setMuted } from '../lib/audio'
 import { apiPutProgress } from '../lib/api'
+import { warmPyodide } from '../lib/pyodide-executor'
 import EscapeMenu from '../components/EscapeMenu'
 import Leaderboard from '../components/Leaderboard'
 import OnboardingOverlay from '../components/OnboardingOverlay'
+import ConfettiOverlay from '../components/ConfettiOverlay'
+import ObjectScriptEditor from '../components/ObjectScriptEditor'
+import PlayScriptRuntime from '../components/PlayScriptRuntime'
+import WorldContextMenu from '../components/WorldContextMenu'
+import SpawnMenu from '../components/SpawnMenu'
+import {
+  isEditMode,
+  setEditMode,
+  subscribeEditMode,
+  subscribeFocus,
+  setFocusedObject,
+} from '../lib/playEditMode'
+import { getAllScriptsForWorld, subscribeWorldScripts } from '../lib/worldScripts'
+import { getWorldTargets, getTargetLabel, type WorldTarget } from '../components/worlds/scriptableTargets'
+import { getRemovedForWorld, getRecoloredForWorld, resetWorldEdits } from '../lib/worldEdits'
 
 export default function Play() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -28,21 +45,45 @@ export default function Play() {
     goal: null,
   })
   const [muted, setMutedState] = useState(getMuted())
+  const [edit, setEdit] = useState(isEditMode())
+  const [focused, setFocused] = useState<string | null>(null)
+  const [scriptedCount, setScriptedCount] = useState(0)
   const avatar = useMemo(() => loadAvatar(), [])
+
+  useEffect(() => subscribeEditMode(setEdit), [])
+  useEffect(() => subscribeFocus(setFocused), [])
+
+  // Safety check: если в мире сохранено подозрительно много правок — предложить reset
+  const editsCount = useMemo(() => {
+    if (!gameId) return 0
+    return getRemovedForWorld(gameId).size + Object.keys(getRecoloredForWorld(gameId)).length
+  }, [gameId, edit])
+  useEffect(() => {
+    const refresh = () => {
+      if (gameId) setScriptedCount(getAllScriptsForWorld(gameId).length)
+    }
+    refresh()
+    return subscribeWorldScripts(refresh)
+  }, [gameId])
+
+  // При размонтировании Play — гарантированно выйти из режима редактирования
+  useEffect(() => () => setEditMode(false), [])
 
   useEffect(() => {
     if (!localStorage.getItem('ek_child_name')) {
       localStorage.setItem('ek_child_name', 'Гость')
     }
+    // Прогреваем Pyodide параллельно загрузке сцены — чтобы первый Run в Студии не ждал
+    void warmPyodide()
     resetGame()
     startTimer()
     let syncedGoal = false
     const unsub = subscribe((s) => {
       setState(s)
-      // Когда цель достигнута — синкуем прогресс на бэк (если онлайн)
       if (s.goal && !syncedGoal && gameId) {
         syncedGoal = true
         void apiPutProgress(gameId, s.coins, s.timeMs, s.goal.kind === 'win')
+        if (s.goal.kind === 'win') shakeCamera(0.2, 0.4)
       }
     })
     const t = setTimeout(() => setReady(true), 250)
@@ -73,6 +114,11 @@ export default function Play() {
     )
   }
 
+  const worldTargets: WorldTarget[] = gameId
+    ? getWorldTargets(gameId, game.category)
+    : []
+  const focusedTarget = focused ? worldTargets.find((t) => t.id === focused) : null
+
   return (
     <div className="play-root">
       <div className="play-canvas">
@@ -100,20 +146,97 @@ export default function Play() {
         <div className="hud-right">
           <span className="hud-pill">⏱ {formatTime(state.timeMs)}</span>
           <span className="hud-pill gold">💰 {state.coins}</span>
+          <button
+            className={`hud-btn edit-toggle ${edit ? 'active' : ''}`}
+            onClick={() => {
+              SFX.click()
+              setEditMode(!edit)
+            }}
+            aria-label="Режим редактирования"
+            title={
+              worldTargets.length > 0
+                ? 'Редактировать объекты на карте (клик по жёлтой ауре откроет блоки)'
+                : 'В этом мире пока нет скриптуемых объектов'
+            }
+            disabled={worldTargets.length === 0}
+          >
+            ⚡ {edit ? 'Выкл' : 'Ред.'}
+            {scriptedCount > 0 && <span className="edit-count">{scriptedCount}</span>}
+          </button>
           <button className="hud-btn" onClick={toggleMute} aria-label="Звук">
             {muted ? '🔇' : '🔊'}
           </button>
         </div>
       </div>
 
+      {edit && (
+        <div className="edit-mode-hint">
+          <strong>⚡ Режим редактирования.</strong>
+          Клик по жёлтой ауре объекта → редактор блоков. <kbd>Q</kbd> — меню спавна.
+          {editsCount > 0 && (
+            <button
+              className="edit-mode-exit"
+              style={{ background: 'rgba(255,84,100,0.3)', borderColor: 'rgba(255,84,100,0.6)' }}
+              onClick={() => {
+                if (!gameId) return
+                if (confirm(`У тебя ${editsCount} правок в этом мире (удаления + перекраски). Вернуть мир как был?`)) {
+                  resetWorldEdits(gameId)
+                  location.reload()
+                }
+              }}
+              title="Если карта кажется сломанной — это починит её"
+            >
+              🔄 Сбросить {editsCount} правки
+            </button>
+          )}
+          <button className="edit-mode-exit" onClick={() => setEditMode(false)}>
+            Выйти
+          </button>
+        </div>
+      )}
+
       <div className="hud-help">
         <strong>WASD</strong> — ходить · <strong>Space</strong> — прыжок ·
         <strong> клик</strong> — захват мыши (ESC — отменить)
       </div>
 
+      <PlayScriptRuntime />
       <EscapeMenu gameTitle={game.title} />
       <Leaderboard gameTitle={game.title} />
       <OnboardingOverlay />
+
+      {state.goal?.kind === 'win' && <ConfettiOverlay />}
+
+      {focusedTarget && gameId && (
+        <ObjectScriptEditor
+          target={{
+            scope: 'world',
+            worldId: gameId,
+            objectId: focusedTarget.id,
+            label: getTargetLabel(focusedTarget),
+          }}
+          onClose={() => setFocusedObject(null)}
+        />
+      )}
+
+      {/* Universal edit: если ребёнок кликнул по случайному мешу (не на Scriptable),
+          focused будет иметь id вида "at_x_y_z" — отобразим редактор для такой точки. */}
+      {focused && !focusedTarget && gameId && focused.startsWith('at_') && (
+        <ObjectScriptEditor
+          target={{
+            scope: 'world',
+            worldId: gameId,
+            objectId: focused,
+            label: 'Объект на карте',
+          }}
+          onClose={() => setFocusedObject(null)}
+        />
+      )}
+
+      {/* Контекстное меню — появляется при клике по ЛЮБОМУ мешу в edit-режиме */}
+      {gameId && <WorldContextMenu worldId={gameId} />}
+      {/* Q-меню спавна (GMod-style) — Q в Edit-режиме открывает */}
+      {gameId && <SpawnMenu worldId={gameId} />}
 
       {state.goal && (
         <div className="goal-overlay">

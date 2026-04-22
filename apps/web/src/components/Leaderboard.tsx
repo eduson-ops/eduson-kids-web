@@ -24,9 +24,13 @@ export default function Leaderboard({ gameTitle }: Props) {
     running: true,
     goal: null,
   })
-  const [mockRivals] = useState<LeaderRow[]>(() => generateMockRivals())
+  const [mockRivals, setMockRivals] = useState<LeaderRow[]>(() => generateMockRivals(0))
 
-  useEffect(() => subscribe(setState), [])
+  useEffect(() => subscribe((s) => {
+    setState(s)
+    // Rivals slowly "catch up" — regenerate from coin-seeded values
+    setMockRivals(generateMockRivals(s.coins))
+  }), [])
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
@@ -79,14 +83,23 @@ export default function Leaderboard({ gameTitle }: Props) {
   )
 }
 
-function generateMockRivals(): LeaderRow[] {
-  const NAMES = [
-    'Игрок-342', 'Маша', 'Дима', 'Артур', 'Соня',
-    'Саша', 'Лев', 'Ариана', 'Никита', 'Юля',
-  ]
-  const shuffled = [...NAMES].sort(() => Math.random() - 0.5).slice(0, 7)
-  return shuffled.map((name) => ({
+// Mulberry32 PRNG — deterministic from seed, no random() so rivals don't jump around
+function seededRand(seed: number) {
+  let s = seed | 0
+  return () => {
+    s = Math.imul(s ^ (s >>> 15), 1 | s)
+    s ^= s + Math.imul(s ^ (s >>> 7), 61 | s)
+    return ((s ^ (s >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function generateMockRivals(playerCoins: number): LeaderRow[] {
+  const NAMES = ['Маша', 'Дима', 'Артур', 'Соня', 'Саша', 'Лев', 'Ариана']
+  const rand = seededRand(42)
+  // Spread rivals around player score ±3, so leaderboard feels competitive
+  const base = Math.max(1, playerCoins)
+  return NAMES.map((name, i) => ({
     name,
-    coins: Math.floor(Math.random() * 15) + 1,
+    coins: Math.max(0, base + Math.floor((rand() - 0.5) * 6) + (i % 3 === 0 ? 2 : 0)),
   }))
 }

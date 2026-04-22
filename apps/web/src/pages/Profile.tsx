@@ -18,6 +18,7 @@ import {
   type TailStyle,
   type BodyShape,
 } from '../lib/avatars'
+import { NikselMini } from '../design/mascot/Niksel'
 
 export default function Profile() {
   const navigate = useNavigate()
@@ -36,8 +37,12 @@ export default function Profile() {
     <div className="profile-root">
       <aside className="profile-side">
         <header className="profile-side-top">
-          <Link to="/" className="btn ghost tiny">← лобби</Link>
-          <h1>Мой аватар</h1>
+          <Link to="/" className="studio-brand-lockup" aria-label="Эдюсон Kids — главная" style={{ color: 'var(--ink)', fontSize: 14 }}>
+            <NikselMini size={28} />
+            <span>Эдюсон</span>
+            <span className="kb-shell-brand-kids">Kids</span>
+          </Link>
+          <h1 style={{ marginTop: 12 }}>Мой аватар</h1>
         </header>
 
         <label className="profile-row">

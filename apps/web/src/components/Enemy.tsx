@@ -1,6 +1,8 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { useRef } from 'react'
+import { enemyHit, shakeCamera } from '../lib/gameState'
+import { SFX } from '../lib/audio'
 
 interface Props {
   pos: [number, number, number]
@@ -33,6 +35,13 @@ export default function Enemy({ pos, patrolX = 3, color = '#ff5464' }: Props) {
       colliders="ball"
       position={pos}
       sensor
+      onIntersectionEnter={({ other }) => {
+        if (other.rigidBodyObject?.name === 'player') {
+          enemyHit()
+          SFX.lose()
+          shakeCamera(0.4, 0.3)
+        }
+      }}
     >
       <group>
         <mesh castShadow>
