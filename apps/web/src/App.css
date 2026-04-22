@@ -1599,6 +1599,7 @@ body:has(.lobby-v2) {
   box-shadow: inset 2px 0 0 rgba(255, 212, 60, 0.5);
 }
 .scene-list li.has-script:hover { background: rgba(255, 212, 60, 0.12); }
+.scene-list li.selected { background: rgba(108, 92, 231, 0.18); outline: 1px solid rgba(108, 92, 231, 0.4); border-radius: 6px; }
 .scene-item-badge {
   margin-left: auto;
   font-size: 13px;

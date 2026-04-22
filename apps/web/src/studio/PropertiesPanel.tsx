@@ -4,6 +4,7 @@ import {
   SCENE_PRESETS,
   deletePart,
   duplicatePart,
+  selectPart,
   setLightingPreset,
   updatePart,
 } from './editorState'
@@ -20,6 +21,12 @@ const MATERIALS: Array<[MaterialType, string]> = [
   ['grass', 'Трава'],
   ['stone', 'Камень'],
   ['neon', 'Неон'],
+]
+
+const QUICK_COLORS = [
+  '#ff5464', '#ffd644', '#48c774', '#4c97ff', '#c879ff',
+  '#ff8c1a', '#ff5ab1', '#88d4ff', '#ffffff', '#2a3340',
+  '#6B5CE7', '#FFD43C', '#9FE8C7', '#FFB4C8', '#A9D8FF',
 ]
 
 export default function PropertiesPanel({ state }: Props) {
@@ -123,6 +130,53 @@ export default function PropertiesPanel({ state }: Props) {
           </section>
 
           <section>
+            <h4>Поворот (°)</h4>
+            <div className="prop-xyz">
+              {(['x', 'y', 'z'] as const).map((axis, i) => (
+                <label key={axis}>
+                  <span>{axis.toUpperCase()}</span>
+                  <input
+                    type="number"
+                    step={15}
+                    value={Math.round((selected.rotation[i] * 180) / Math.PI)}
+                    onChange={(e) => {
+                      const rot = [...selected.rotation] as [number, number, number]
+                      rot[i] = ((parseFloat(e.target.value) || 0) * Math.PI) / 180
+                      updatePart(selected.id, { rotation: rot })
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h4>Цвет</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+              {QUICK_COLORS.map((c) => (
+                <button
+                  key={c}
+                  title={c}
+                  style={{
+                    width: 24, height: 24, borderRadius: 6, background: c, border: 'none', cursor: 'pointer',
+                    outline: selected.color === c ? '2px solid var(--violet)' : '2px solid transparent',
+                    outlineOffset: 1,
+                  }}
+                  onClick={() => updatePart(selected.id, { color: c })}
+                />
+              ))}
+              <label title="Произвольный цвет" style={{ cursor: 'pointer' }}>
+                <input
+                  type="color"
+                  value={selected.color}
+                  onChange={(e) => updatePart(selected.id, { color: e.target.value })}
+                  style={{ width: 24, height: 24, border: 'none', borderRadius: 6, padding: 0, cursor: 'pointer' }}
+                />
+              </label>
+            </div>
+          </section>
+
+          <section>
             <h4>Материал</h4>
             <div className="pill-group">
               {MATERIALS.map(([m, label]) => (
@@ -175,7 +229,12 @@ export default function PropertiesPanel({ state }: Props) {
             <h4>Всё в сцене</h4>
             <ul className="scene-list">
               {state.parts.map((p) => (
-                <li key={p.id} className={p.scripts ? 'has-script' : ''}>
+                <li
+                  key={p.id}
+                  className={`${p.scripts ? 'has-script' : ''} ${state.selectedId === p.id ? 'selected' : ''}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => selectPart(p.id)}
+                >
                   <span className="scene-dot" style={{ background: p.color }} />
                   <span>{p.name}</span>
                   {p.scripts && <span className="scene-item-badge" title="Запрограммирован">⚡</span>}

@@ -102,7 +102,7 @@ export default function Hub() {
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Прогресс</span>
-            <strong>{lessonsCompleted} / 48 {plural(48, 'lesson')}</strong>
+            <strong>{lessonsCompleted} / 48 {plural(lessonsCompleted, 'lesson')}</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Стрик</span>

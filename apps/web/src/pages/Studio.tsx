@@ -5,7 +5,7 @@ import ScriptTab from '../studio/ScriptTab'
 import TestTab from '../studio/TestTab'
 import StudioIntroOverlay from '../components/StudioIntroOverlay'
 import StudioTour, { replayTour } from '../components/StudioTour'
-import { getState, resetScene, subscribe, type EditorState } from '../studio/editorState'
+import { getState, resetScene, subscribe, selectPart, deletePart, undoEditor, type EditorState } from '../studio/editorState'
 import { runPython, warmPyodide } from '../lib/pyodide-executor'
 import { emitCommands } from '../lib/commandBus'
 import type { WorldCommand } from '../lib/python-world-runtime'
@@ -24,6 +24,25 @@ export default function Studio() {
   const [confirmReset, setConfirmReset] = useState(false)
 
   useEffect(() => subscribe(setState), [])
+
+  // Global keyboard shortcuts: Delete = remove selected, Ctrl+Z = undo, Escape = deselect
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const id = getState().selectedId
+        if (id) deletePart(id)
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        undoEditor()
+      } else if (e.key === 'Escape') {
+        selectPart(null)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // Прогреваем Pyodide сразу — первая попытка Live-режима должна быть быстрой
   useEffect(() => {

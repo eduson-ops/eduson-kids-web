@@ -285,6 +285,7 @@ export function addPart(p: Omit<PartObject, 'id' | 'name'>, name?: string): stri
     name: name ?? `${p.type} ${state.parts.filter((x) => x.type === p.type).length + 1}`,
   }
   state = { ...state, parts: [...state.parts, part], selectedId: id }
+  pushUndo({ kind: 'add', partId: id })
   persist()
   emit()
   return id
@@ -301,6 +302,8 @@ export function updatePart(id: string, patch: Partial<PartObject>) {
 
 export function deletePart(id: string) {
   if (id.startsWith('ground-') || id.startsWith('spawn-')) return // нельзя удалить базу
+  const part = state.parts.find((p) => p.id === id)
+  if (part) pushUndo({ kind: 'delete', part, prevSelectedId: state.selectedId })
   state = {
     ...state,
     parts: state.parts.filter((p) => p.id !== id),
@@ -395,7 +398,42 @@ export function setAutoRun(v: boolean) {
 export function resetScene() {
   state = defaultScene()
   localStorage.removeItem('ek_studio_v1')
+  undoStack.length = 0
   emit()
+}
+
+// ─── Undo stack ───────────────────────────────────────────
+type UndoOp =
+  | { kind: 'add'; partId: string }
+  | { kind: 'delete'; part: PartObject; prevSelectedId: string | null }
+
+const undoStack: UndoOp[] = []
+const UNDO_LIMIT = 40
+
+function pushUndo(op: UndoOp) {
+  undoStack.push(op)
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift()
+}
+
+export function undoEditor(): boolean {
+  const op = undoStack.pop()
+  if (!op) return false
+  if (op.kind === 'add') {
+    state = {
+      ...state,
+      parts: state.parts.filter((p) => p.id !== op.partId),
+      selectedId: null,
+    }
+  } else {
+    state = {
+      ...state,
+      parts: [...state.parts, op.part],
+      selectedId: op.prevSelectedId,
+    }
+  }
+  persist()
+  emit()
+  return true
 }
 
 export { PALETTE_COLORS, SCENE_PRESETS }
