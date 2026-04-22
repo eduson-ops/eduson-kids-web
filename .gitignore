@@ -62,3 +62,4 @@ Thumbs.db
 
 # Local overrides
 .claude/settings.local.json
+apps/gh-pages-tmp
