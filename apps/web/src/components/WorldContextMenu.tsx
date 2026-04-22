@@ -7,7 +7,7 @@ import {
   makeObjectIdFromPos,
   type ClickContext,
 } from '../lib/playEditMode'
-import { addSpawnedPart, addRemoved, setRecolor, hashPos } from '../lib/worldEdits'
+import { addSpawnedPart, addRemoved, setRecolor, getRecoloredForWorld, hashPos, pushUndo } from '../lib/worldEdits'
 import { SFX } from '../lib/audio'
 
 interface Props {
@@ -49,12 +49,12 @@ export default function WorldContextMenu({ worldId }: Props) {
   const removeMesh = () => {
     const obj = ctx.objectRef as THREE.Object3D | null
     if (obj) {
-      // Мгновенная визуальная реакция
       obj.visible = false
-      // Persistence: сохраняем position-hash по world-position меша
       const wp = new THREE.Vector3()
       obj.getWorldPosition(wp)
-      addRemoved(worldId, hashPos([wp.x, wp.y, wp.z]))
+      const ph = hashPos([wp.x, wp.y, wp.z])
+      pushUndo({ kind: 'remove', worldId, posHash: ph })
+      addRemoved(worldId, ph)
     }
     SFX.click()
     close()
@@ -63,7 +63,6 @@ export default function WorldContextMenu({ worldId }: Props) {
   const recolor = (hex: string) => {
     const obj = ctx.objectRef as THREE.Mesh | null
     if (obj) {
-      // Мгновенная визуальная реакция
       const mat = obj.material as THREE.MeshStandardMaterial | THREE.MeshStandardMaterial[] | undefined
       if (mat) {
         const apply = (m: THREE.MeshStandardMaterial) => {
@@ -73,10 +72,12 @@ export default function WorldContextMenu({ worldId }: Props) {
         if (Array.isArray(mat)) mat.forEach(apply)
         else apply(mat)
       }
-      // Persistence: сохраняем по world-position
       const wp = new THREE.Vector3()
       obj.getWorldPosition(wp)
-      setRecolor(worldId, hashPos([wp.x, wp.y, wp.z]), hex)
+      const ph = hashPos([wp.x, wp.y, wp.z])
+      const prevHex = getRecoloredForWorld(worldId)[ph]
+      pushUndo({ kind: 'recolor', worldId, posHash: ph, prevHex })
+      setRecolor(worldId, ph, hex)
     }
     SFX.click()
     close()

@@ -7,7 +7,9 @@ import * as THREE from 'three'
 import { PUBLIC_BASE } from '../lib/publicPath'
 import {
   getAdditionsForWorld,
+  getRecoloredForWorld,
   subscribeEdits,
+  hashPos,
   type SpawnedPart,
 } from '../lib/worldEdits'
 import { Tree, Bush, Mushroom, Rock, Flowers, GrassTuft, Building, ParkedCar } from './Scenery'
@@ -20,15 +22,23 @@ interface Props {
 
 export default function WorldAdditions({ worldId }: Props) {
   const [parts, setParts] = useState<SpawnedPart[]>(() => getAdditionsForWorld(worldId))
+  const [recolored, setRecolored] = useState<Record<string, string>>(() => getRecoloredForWorld(worldId))
 
   useEffect(() => {
-    const refresh = () => setParts(getAdditionsForWorld(worldId))
+    const refresh = () => {
+      setParts(getAdditionsForWorld(worldId))
+      setRecolored(getRecoloredForWorld(worldId))
+    }
     return subscribeEdits(refresh)
   }, [worldId])
 
   const nodes = useMemo(
-    () => parts.map((p) => <SpawnedMesh key={p.id} part={p} />),
-    [parts]
+    () => parts.map((p) => {
+      const posHash = hashPos(p.pos)
+      const effectiveColor = recolored[posHash] ?? p.color
+      return <SpawnedMesh key={p.id} part={{ ...p, color: effectiveColor }} />
+    }),
+    [parts, recolored]
   )
   return <>{nodes}</>
 }
