@@ -497,9 +497,9 @@ export default function LessonPresentation() {
         ) : (
           <button
             className="lp-nav-btn lp-nav-next"
-            onClick={() => { markLessonDone(n); navigate(`/learn/lesson/${n}`) }}
+            onClick={() => { markLessonDone(n); navigate(nextLesson ? `/learn/lesson/${n + 1}` : '/learn') }}
           >
-            ✓ Урок пройден
+            ✓ Урок пройден →
           </button>
         )}
       </footer>

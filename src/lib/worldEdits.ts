@@ -28,6 +28,8 @@ export type PropKind =
   | 'building' | 'car' | 'pumpkin' | 'coffin' | 'candle'
   // Procedural mechanics
   | 'speed-pad' | 'portal' | 'crystal' | 'campfire' | 'sign' | 'stair-step'
+  // Architecture
+  | 'arch' | 'fence' | 'bench' | 'flower-pot' | 'halfpipe'
 
 export interface SpawnedPart {
   id: string

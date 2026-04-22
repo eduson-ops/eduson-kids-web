@@ -7634,6 +7634,7 @@ body:has(.lobby-v2) {
 .kb-cover--ink    { background: var(--ink);    color: var(--paper); }
 .kb-cover--mint   { background: var(--mint-deep); color: var(--paper); }
 .kb-cover--pink   { background: var(--pink-deep); color: var(--paper); }
+.kb-cover--violet { background: var(--violet); color: var(--paper); }
 
 .kb-cover-meta {
   display: flex;

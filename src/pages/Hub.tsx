@@ -66,7 +66,11 @@ export default function Hub() {
       {/* Cover-style hero (Designbook pattern) */}
       <section className="kb-cover">
         <div className="kb-cover-meta">
-          <span className="eyebrow">С&nbsp;возвращением{name ? `, ${name}` : ''}</span>
+          <span className="eyebrow">
+            {lessonsCompleted === 0
+              ? `Добро пожаловать${name ? `, ${name}` : ''}!`
+              : `С возвращением${name ? `, ${name}` : ''}`}
+          </span>
           <span className="kb-cover-meta-row">
             <span>v1.0</span>
             <span className="dot" />
@@ -77,12 +81,14 @@ export default function Hub() {
           Эдюсон<br/>Kids<span className="kb-cover-accent">.</span>
         </h1>
         <p className="kb-cover-sub">
-          Строй 3D-миры, собирай игры из блоков, пиши Python.<br/>
-          Платформа блочного программирования для&nbsp;возраста 9–15&nbsp;лет.
+          {lessonsCompleted === 0
+            ? <>Строй 3D-миры, собирай игры из блоков, пиши Python.<br/>Платформа для&nbsp;возраста 9–15&nbsp;лет&nbsp;— начни прямо сейчас.</>
+            : <>Строй 3D-миры, собирай игры из блоков, пиши Python.<br/>Платформа блочного программирования для&nbsp;возраста 9–15&nbsp;лет.</>
+          }
         </p>
         <div className="kb-cover-actions">
           <Link to={`/learn/${currentLesson}`} className="kb-btn kb-btn--lg kb-btn--secondary">
-            ▶ Продолжить урок {currentLesson}
+            {lessonsCompleted === 0 ? '🚀 Начать урок 1' : `▶ Продолжить урок ${currentLesson}`}
           </Link>
           <Link to="/learn" className="kb-btn kb-btn--lg kb-btn--ghost" style={{ color: 'var(--paper)', boxShadow: 'inset 0 0 0 2px rgba(255,251,243,.6)' }}>
             Все уроки

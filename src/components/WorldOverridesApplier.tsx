@@ -100,12 +100,6 @@ export default function WorldOverridesApplier({ worldId }: Props) {
           recoloredCount++
         }
       }
-      if (hiddenCount || recoloredCount) {
-        console.log(
-          `[WorldOverrides] world=${worldId}: hidden ${hiddenCount}, recolored ${recoloredCount} ` +
-          `(out of ${totalMeshes} total meshes)`
-        )
-      }
     }
 
     // Первичное применение — с задержкой, чтобы сцена успела построиться

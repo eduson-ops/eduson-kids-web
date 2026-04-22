@@ -125,6 +125,18 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'candle', label: 'Свеча', emoji: '🕯', defaultColor: '#fff3d8', tags: ['свеча','candle'] },
     ],
   },
+  {
+    id: 'architecture',
+    name: 'Архитектура',
+    icon: '🏛',
+    items: [
+      { kind: 'arch',       label: 'Арка',      emoji: '🏛', defaultColor: '#c0c0c0', tags: ['арка','arch','ворота','портал'], hint: 'Каменная арка-проход' },
+      { kind: 'fence',      label: 'Забор',      emoji: '🪟', defaultColor: '#8b5a2b', tags: ['забор','fence','ограда','плетень'], hint: 'Деревянный забор' },
+      { kind: 'bench',      label: 'Скамейка',   emoji: '🪑', defaultColor: '#8b5a2b', tags: ['скамья','скамейка','bench','сидение'], hint: 'Парковая скамья' },
+      { kind: 'flower-pot', label: 'Клумба',     emoji: '🪴', defaultColor: '#9FE8C7', tags: ['клумба','цветочный горшок','flower-pot','плантер'], hint: 'Декоративная клумба' },
+      { kind: 'halfpipe',   label: 'Хаф-пайп',  emoji: '🛹', defaultColor: '#9FE8C7', tags: ['хаф-пайп','halfpipe','скейт','рампа'], hint: 'Скейт-рампа изогнутая' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
