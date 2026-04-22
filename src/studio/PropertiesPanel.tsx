@@ -22,6 +22,12 @@ const MATERIALS: Array<[MaterialType, string]> = [
   ['neon', 'Неон'],
 ]
 
+const QUICK_COLORS = [
+  '#ff5464', '#ffd644', '#48c774', '#4c97ff', '#c879ff',
+  '#ff8c1a', '#ff5ab1', '#88d4ff', '#ffffff', '#2a3340',
+  '#6B5CE7', '#FFD43C', '#9FE8C7', '#FFB4C8', '#A9D8FF',
+]
+
 export default function PropertiesPanel({ state }: Props) {
   const selected = state.parts.find((p) => p.id === state.selectedId) ?? null
   const [editingScriptFor, setEditingScriptFor] = useState<string | null>(null)
@@ -119,6 +125,32 @@ export default function PropertiesPanel({ state }: Props) {
                   />
                 </label>
               ))}
+            </div>
+          </section>
+
+          <section>
+            <h4>Цвет</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+              {QUICK_COLORS.map((c) => (
+                <button
+                  key={c}
+                  title={c}
+                  style={{
+                    width: 24, height: 24, borderRadius: 6, background: c, border: 'none', cursor: 'pointer',
+                    outline: selected.color === c ? '2px solid var(--violet)' : '2px solid transparent',
+                    outlineOffset: 1,
+                  }}
+                  onClick={() => updatePart(selected.id, { color: c })}
+                />
+              ))}
+              <label title="Произвольный цвет" style={{ cursor: 'pointer' }}>
+                <input
+                  type="color"
+                  value={selected.color}
+                  onChange={(e) => updatePart(selected.id, { color: e.target.value })}
+                  style={{ width: 24, height: 24, border: 'none', borderRadius: 6, padding: 0, cursor: 'pointer' }}
+                />
+              </label>
             </div>
           </section>
 
