@@ -19,6 +19,7 @@ export default function Studio() {
   const [tab, setTab] = useState<Tab>('build')
   const [state, setState] = useState<EditorState>(getState())
   const [saved, setSaved] = useState<string>('сохранено')
+  const [scriptError, setScriptError] = useState<string | null>(null)
 
   useEffect(() => subscribe(setState), [])
 
@@ -41,8 +42,9 @@ export default function Studio() {
       try {
         const cmds = (await runPython(code)) as unknown as WorldCommand[]
         emitCommands(cmds)
-      } catch {
-        /* тихо проглатываем ошибки авто-запуска — overlay покажет ноль прогонов */
+        setScriptError(null)
+      } catch (e) {
+        setScriptError(e instanceof Error ? e.message : String(e))
       }
     }, 500)
     return () => window.clearTimeout(id)
@@ -61,7 +63,10 @@ export default function Studio() {
       try {
         const cmds = (await runPython(code)) as unknown as WorldCommand[]
         emitCommands(cmds)
-      } catch { /* silent */ }
+        setScriptError(null)
+      } catch (e) {
+        setScriptError(e instanceof Error ? e.message : String(e))
+      }
     })()
   }, [tab, state.autoRun, state.pythonCode, state.luaCode, state.scriptMode])
 
@@ -125,13 +130,23 @@ export default function Studio() {
           <span className={`save-indicator ${saved.includes('✓') ? 'ok' : ''}`}>{saved}</span>
         </div>
         <div className="studio-actions">
+          {scriptError && (
+            <span className="studio-error-pill" title={scriptError}>
+              ⚠ Ошибка
+            </span>
+          )}
           <button className="ghost" onClick={onReset}>
             Сброс
           </button>
           <button className="ghost" onClick={() => replayTour()} title="Повторить тур по Студии">
             ❓ Тур
           </button>
-          <button className="publish" disabled title="Публикация в v1.0">
+          <button
+            className="publish"
+            disabled
+            title="Публикация появится в v1.1 — скоро!"
+            onClick={() => alert('Публикация миров появится в следующем обновлении. Следи за новостями! 🚀')}
+          >
             📤 Опубликовать
           </button>
         </div>

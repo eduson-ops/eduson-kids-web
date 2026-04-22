@@ -18,6 +18,7 @@ const StudentPortfolio = lazy(() => import('./pages/StudentPortfolio'))
 const SharedSite = lazy(() => import('./pages/SharedSite'))
 const VkCallback = lazy(() => import('./pages/VkCallback'))
 const Designbook = lazy(() => import('./pages/Designbook'))
+const Billing = lazy(() => import('./pages/Billing'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -199,6 +200,14 @@ export default function App() {
           element={
             <Suspense fallback={<RouteLoader label="Открываю дизайнбук…" />}>
               <Designbook />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю оплату…" />}>
+              <Billing />
             </Suspense>
           }
         />

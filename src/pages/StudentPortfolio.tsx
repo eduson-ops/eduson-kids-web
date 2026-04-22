@@ -70,11 +70,12 @@ export default function StudentPortfolio() {
   const unlocked = getUnlockedAchievements()
   const progressPct = (lessonsDone / 48) * 100
 
-  // Capstones status
-  const capstones = MODULES.map((m) => {
+  // Capstones status — memo so MODULES loop doesn't run on every render
+  const capstones = useMemo(() => MODULES.map((m) => {
     const done = countDoneInModule(m.n, m.lessons.map((l) => l.n)) === m.lessons.length
     return { m, done }
-  })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [lessonsDone])
   const capstonesDone = capstones.filter((c) => c.done).length
 
   // Studio scene data

@@ -58,7 +58,7 @@ export default function GameScene({ game, avatar }: Props) {
     <KeyboardControls map={KEYS}>
       <Canvas
         shadows="soft"
-        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60, far: 600 }}
+        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60, near: 0.1, far: 600 }}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 2]}
       >
@@ -88,7 +88,7 @@ export default function GameScene({ game, avatar }: Props) {
           shadow-camera-right={30}
           shadow-camera-top={30}
           shadow-camera-bottom={-30}
-          shadow-bias={-0.0005}
+          shadow-bias={-0.0001}
           shadow-normalBias={0.02}
         />
         {/* Контровая подсветка с противоположной стороны — тень не чернеет */}

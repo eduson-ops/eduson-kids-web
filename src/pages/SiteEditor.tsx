@@ -846,22 +846,27 @@ function CodeMode({ site }: { site: Site }) {
 
 /* ─────── Share modal ─────── */
 
+const SHARE_URL_LIMIT = 8000
+
 function ShareModal({ site, onClose }: { site: Site; onClose: () => void }) {
-  const encoded = useMemo(() => {
+  const { encoded, tooLarge } = useMemo(() => {
     try {
-      // Берём «живой» снимок: html + css + theme + name — этого достаточно для превью у друга
       const snap = { n: site.name, t: site.theme, h: site.html, c: site.css }
       const json = JSON.stringify(snap)
-      return btoa(unescape(encodeURIComponent(json)))
+      const enc = btoa(unescape(encodeURIComponent(json)))
+      return { encoded: enc, tooLarge: enc.length > SHARE_URL_LIMIT }
     } catch {
-      return ''
+      return { encoded: '', tooLarge: false }
     }
   }, [site])
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
-  const shareUrl = `${window.location.origin}${basePath}/share#s=${encoded}`
+  const shareUrl = encoded
+    ? `${window.location.origin}${basePath}/share#s=${encoded}`
+    : ''
   const [copied, setCopied] = useState(false)
 
   const copy = async () => {
+    if (!shareUrl) return
     try {
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
@@ -878,16 +883,24 @@ function ShareModal({ site, onClose }: { site: Site; onClose: () => void }) {
           <strong>🔗 Поделиться сайтом</strong>
           <button className="ghost" onClick={onClose}>×</button>
         </header>
-        <p className="share-hint">
-          Отправь ссылку другу — сайт откроется у него в браузере, без установки и без аккаунта.
-        </p>
-        <div className="share-url-row">
-          <input readOnly value={shareUrl} />
-          <button className="kb-btn" onClick={copy}>{copied ? '✓ Скопировано' : 'Копировать'}</button>
-        </div>
-        <p className="share-hint" style={{ fontSize: 12, opacity: 0.7, marginTop: 12 }}>
-          💡 Ссылка содержит сам сайт в закодированном виде. Чем сайт больше — тем длиннее ссылка.
-        </p>
+        {tooLarge ? (
+          <p className="share-hint" style={{ color: 'var(--pink-ink)', background: 'var(--pink-soft)', borderRadius: 8, padding: '10px 14px' }}>
+            ⚠ Сайт слишком большой для ссылки. Удали часть изображений или текста, чтобы уложиться в лимит браузера.
+          </p>
+        ) : (
+          <>
+            <p className="share-hint">
+              Отправь ссылку другу — сайт откроется у него в браузере, без установки и без аккаунта.
+            </p>
+            <div className="share-url-row">
+              <input readOnly value={shareUrl} />
+              <button className="kb-btn" onClick={copy}>{copied ? '✓ Скопировано' : 'Копировать'}</button>
+            </div>
+            <p className="share-hint" style={{ fontSize: 12, opacity: 0.7, marginTop: 12 }}>
+              💡 Ссылка содержит сам сайт в закодированном виде. Чем сайт больше — тем длиннее ссылка.
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

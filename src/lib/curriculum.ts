@@ -786,7 +786,7 @@ function generateFallbackQuiz(lesson: Lesson): QuizQuestion[] {
       if (d) distractors.push(d)
       else break
     }
-    const options = [primary, ...distractors].sort(() => 0.5 - Math.random())
+    const options = fisherYates([primary, ...distractors])
     out.push({
       text: `Какое главное слово сегодняшнего урока «${lesson.title}»?`,
       options,
@@ -827,7 +827,16 @@ function generateFallbackQuiz(lesson: Lesson): QuizQuestion[] {
     })
   }
 
-  return out.slice(0, 2)   // максимум 2 вопроса в автофоллбэке
+  return out.slice(0, 3)
+}
+
+function fisherYates<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
 }
 export function getModuleByLesson(n: number): Module | undefined {
   return MODULES.find((m) => m.lessons.some((l) => l.n === n))

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
+import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
 import { GAMES } from '../lib/games'
 
 /**
@@ -17,16 +18,16 @@ import { GAMES } from '../lib/games'
  *  - Build your own CTA
  */
 
-const MODULES = [
-  { n: 1, title: 'Первые шаги в Эдюсон Kids',   accent: 'violet', lessons: 6, emoji: '🧱' },
-  { n: 2, title: 'Движение и события',    accent: 'sky',    lessons: 6, emoji: '🎮' },
-  { n: 3, title: 'Переменные и счёт',     accent: 'mint',   lessons: 6, emoji: '💰' },
-  { n: 4, title: 'Функции и повторы',     accent: 'yellow', lessons: 6, emoji: '🔁' },
-  { n: 5, title: 'Условия и логика',      accent: 'pink',   lessons: 6, emoji: '🧠' },
-  { n: 6, title: 'Переход в Python',      accent: 'orange', lessons: 6, emoji: '🐍' },
-  { n: 7, title: 'События и состояния',   accent: 'violet', lessons: 6, emoji: '⚡' },
-  { n: 8, title: 'Публикация + авторство', accent: 'yellow', lessons: 6, emoji: '🏆' },
-] as const
+const MODULES: Array<{ n: number; title: string; accent: string; lessons: number; icon: NikselIconKind }> = [
+  { n: 1, title: 'Первые шаги в Эдюсон Kids', accent: 'violet', lessons: 6, icon: 'build' },
+  { n: 2, title: 'Движение и события',         accent: 'sky',    lessons: 6, icon: 'game' },
+  { n: 3, title: 'Переменные и счёт',          accent: 'mint',   lessons: 6, icon: 'coin' },
+  { n: 4, title: 'Функции и повторы',          accent: 'yellow', lessons: 6, icon: 'loop' },
+  { n: 5, title: 'Условия и логика',           accent: 'pink',   lessons: 6, icon: 'logic' },
+  { n: 6, title: 'Переход в Python',           accent: 'orange', lessons: 6, icon: 'python' },
+  { n: 7, title: 'События и состояния',        accent: 'violet', lessons: 6, icon: 'spark' },
+  { n: 8, title: 'Публикация + авторство',     accent: 'yellow', lessons: 6, icon: 'trophy' },
+]
 
 const ACCENT_MAP: Record<string, { color: string; soft: string; ink: string }> = {
   violet: { color: '#6B5CE7', soft: '#E4E0FC', ink: '#2A1F8C' },
@@ -37,12 +38,39 @@ const ACCENT_MAP: Record<string, { color: string; soft: string; ink: string }> =
   orange: { color: '#FF9454', soft: '#FFE2CE', ink: '#6B2A05' },
 }
 
+function readCurrentLesson(): number {
+  try {
+    const raw = localStorage.getItem('ek_progress_v1')
+    if (!raw) return 1
+    const p = JSON.parse(raw) as Record<string, unknown>
+    // Find highest completed lesson number
+    const done = Object.keys(p)
+      .map(Number)
+      .filter((n) => !isNaN(n) && p[String(n)] === true)
+    return done.length > 0 ? Math.max(...done) + 1 : 1
+  } catch {
+    return 1
+  }
+}
+
+function readCoins(): number {
+  try {
+    const raw = localStorage.getItem('ek_coins_v1')
+    return raw ? Number(raw) : 0
+  } catch {
+    return 0
+  }
+}
+
 export default function Hub() {
   const [name, setName] = useState<string | null>(null)
-  const [currentLesson] = useState(3) // TODO: wire to real progress
+  const [currentLesson, setCurrentLesson] = useState(1)
+  const [coins, setCoins] = useState(0)
 
   useEffect(() => {
     setName(localStorage.getItem('ek_child_name'))
+    setCurrentLesson(readCurrentLesson())
+    setCoins(readCoins())
   }, [])
 
   const featuredGames = GAMES.filter((g) => g.featured).slice(0, 3)
@@ -86,7 +114,7 @@ export default function Hub() {
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Монет</span>
-            <strong>{(currentLesson - 1) * 15} 💰</strong>
+            <strong>{coins} 💰</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Достижений</span>
@@ -98,11 +126,11 @@ export default function Hub() {
           <Niksel pose="wave" size={280} />
         </div>
 
-        {/* Deco blocks смещены вверх и в разные зоны — пингвин их не перекрывает. */}
-        <div className="kb-cover-deco" aria-hidden>
-          <div className="kb-cover-deco-block b-logic" style={{ left: '46%', top: 40, transform: 'rotate(6deg)' }}>Если</div>
-          <div className="kb-cover-deco-block b-data" style={{ right: 320, top: 28, transform: 'rotate(-4deg)' }}>Повтори</div>
-          <div className="kb-cover-deco-block b-event" style={{ right: 40, top: 40, transform: 'rotate(4deg)' }}>Клик</div>
+        {/* Plashki встают РЯДОМ в верхний ряд над title, НЕ над пингвином и не в его зоне. */}
+        <div className="kb-cover-deco kb-cover-deco--top-row" aria-hidden>
+          <div className="kb-cover-deco-block b-logic" style={{ transform: 'rotate(-4deg)' }}>Если</div>
+          <div className="kb-cover-deco-block b-data" style={{ transform: 'rotate(3deg)' }}>Повтори</div>
+          <div className="kb-cover-deco-block b-event" style={{ transform: 'rotate(-2deg)' }}>Клик</div>
         </div>
       </section>
 
@@ -121,7 +149,7 @@ export default function Hub() {
             </div>
             <div style={{ display: 'flex', gap: 24, marginTop: 16, fontSize: 14, color: 'var(--ink-soft)', fontWeight: 600 }}>
               <span>🏆 {currentLesson - 1} завершено</span>
-              <span>💰 {(currentLesson - 1) * 15} монет</span>
+              <span>💰 {coins} монет</span>
               <span>⭐ 2 достижения</span>
             </div>
           </div>
@@ -158,7 +186,9 @@ export default function Hub() {
                   <span className="kb-course-age">M{m.n}</span>
                   <span className="kb-course-level">{m.lessons} уроков</span>
                 </div>
-                <div className="kb-course-icon">{m.emoji}</div>
+                <div className="kb-course-icon kb-course-icon--niksel">
+                  <NikselIcon kind={m.icon} size={84} />
+                </div>
                 <div>
                   <div className="h3" style={{ fontSize: 16 }}>{m.title}</div>
                 </div>

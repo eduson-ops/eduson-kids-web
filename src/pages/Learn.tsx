@@ -25,6 +25,8 @@ import {
   getCurrentLesson,
   subscribeProgress,
 } from '../lib/progress'
+import { renderMd } from '../lib/md'
+import NikselIcon, { iconFromEmoji } from '../design/mascot/NikselIcon'
 
 /**
  * Learn — каталог и детали 48-урочного курса Эдюсон Kids.
@@ -120,7 +122,7 @@ function CoursesCatalog() {
               style={{ '--accent': c.accent } as React.CSSProperties}
             >
               <div className="curric-module-head">
-                <span className="curric-module-emoji">{c.emoji}</span>
+                <span className="curric-module-emoji"><NikselIcon kind={iconFromEmoji(c.emoji)} size={52} /></span>
                 <div className="curric-module-meta">
                   <span className="eyebrow">Возраст {c.ageRange} · {c.lessonDurationMin} мин</span>
                   <h3 className="curric-module-title">{c.title}</h3>
@@ -190,7 +192,7 @@ function CourseCatalogPage({ course }: { course: Course }) {
               style={{ '--accent': m.accent } as React.CSSProperties}
             >
               <div className="curric-module-head">
-                <span className="curric-module-emoji">{m.emoji}</span>
+                <span className="curric-module-emoji"><NikselIcon kind={iconFromEmoji(m.emoji)} size={52} /></span>
                 <div className="curric-module-meta">
                   <span className="eyebrow">Модуль {m.n} · {m.ageAnchor}</span>
                   <h3 className="curric-module-title">{m.title}</h3>
@@ -277,7 +279,7 @@ function _CatalogPage() {
               style={{ '--accent': m.accent } as React.CSSProperties}
             >
               <div className="curric-module-head">
-                <span className="curric-module-emoji">{m.emoji}</span>
+                <span className="curric-module-emoji"><NikselIcon kind={iconFromEmoji(m.emoji)} size={52} /></span>
                 <div className="curric-module-meta">
                   <span className="eyebrow">Модуль {m.n} · возраст {m.ageAnchor}</span>
                   <h3 className="curric-module-title">{m.title}</h3>
@@ -450,39 +452,42 @@ function LessonPage({ lesson, m, course }: { lesson: Lesson; m: Module; course: 
           {lesson.goal && (
             <div className="kb-card" style={{ marginBottom: 18 }}>
               <div className="eyebrow">Цель занятия</div>
-              <p style={{ margin: '6px 0 0', lineHeight: 1.55 }}>{lesson.goal}</p>
+              <div className="curric-lesson-md">{renderMd(lesson.goal)}</div>
             </div>
           )}
           {lesson.outcomes && (
             <div className="kb-card" style={{ marginBottom: 18 }}>
               <div className="eyebrow">Образовательные результаты</div>
-              <pre className="curric-lesson-md">{lesson.outcomes}</pre>
+              <div className="curric-lesson-md">{renderMd(lesson.outcomes)}</div>
             </div>
           )}
           {lesson.miniProject && (
             <div className="kb-card" style={{ marginBottom: 18, borderLeft: `4px solid ${m.accent}` }}>
               <div className="eyebrow">Мини-проект урока</div>
-              <pre className="curric-lesson-md">{lesson.miniProject}</pre>
+              <div className="curric-lesson-md">{renderMd(lesson.miniProject)}</div>
             </div>
           )}
           {lesson.homework && (
             <div className="kb-card" style={{ marginBottom: 18 }}>
               <div className="eyebrow">Домашнее задание</div>
-              <pre className="curric-lesson-md">{lesson.homework}</pre>
+              <div className="curric-lesson-md">{renderMd(lesson.homework)}</div>
             </div>
           )}
 
           {/* Новые термины */}
-          {lesson.terms.length > 0 && (
-            <div className="kb-card" style={{ marginBottom: 18 }}>
-              <div className="eyebrow">Новые термины</div>
-              <div className="curric-chips">
-                {lesson.terms.map((t) => (
-                  <span key={t} className="curric-chip">📖 {t}</span>
-                ))}
+          {(() => {
+            const cleanTerms = lesson.terms.filter((t) => !t.includes(':') && t.length < 40)
+            return cleanTerms.length > 0 && (
+              <div className="kb-card" style={{ marginBottom: 18 }}>
+                <div className="eyebrow">Новые термины</div>
+                <div className="curric-chips">
+                  {cleanTerms.map((t) => (
+                    <span key={t} className="curric-chip">📖 {t}</span>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )
+          })()}
 
           {/* Новые блоки */}
           {lesson.newBlocks.length > 0 && (

@@ -1234,6 +1234,22 @@ body:has(.lobby-v2) {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.studio-error-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--pink-soft);
+  color: var(--pink-ink);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: help;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .studio-main {
   flex: 1;
@@ -7681,6 +7697,29 @@ body:has(.lobby-v2) {
   bottom: 120px;
   z-index: 3;
   pointer-events: none;
+}
+/* Row of deco plashki placed ABOVE the title / penguin — upper-right corner */
+.kb-cover-deco--top-row {
+  position: absolute;
+  top: 24px;
+  right: 40px;
+  left: auto;
+  bottom: auto;
+  display: flex;
+  gap: 12px;
+  flex-wrap: nowrap;
+  pointer-events: none;
+  z-index: 2;
+  max-width: 55%;
+  justify-content: flex-end;
+}
+.kb-cover-deco--top-row .kb-cover-deco-block {
+  position: static;
+  top: auto; right: auto; left: auto; bottom: auto;
+}
+@media (max-width: 900px) {
+  .kb-cover-deco--top-row { max-width: 100%; right: 16px; top: 16px; gap: 8px; }
+  .kb-cover-deco--top-row .kb-cover-deco-block { font-size: 13px; padding: 8px 12px 10px; }
 }
 @media (max-width: 1100px) {
   .kb-cover-mascot { display: none; }

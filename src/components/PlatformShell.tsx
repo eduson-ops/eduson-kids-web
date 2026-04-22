@@ -13,7 +13,7 @@ interface Props {
   activeKey?: NavKey
 }
 
-type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook'
+type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing'
 
 interface NavItem {
   key: NavKey
@@ -31,24 +31,25 @@ const GROUPS: NavGroup[] = [
   {
     label: 'Обучение',
     items: [
-      { key: 'hub',     label: 'Главная',    to: '/',       emoji: '🏠' },
-      { key: 'learn',   label: 'Уроки',      to: '/learn',  emoji: '📚' },
-      { key: 'portfolio', label: 'Моё портфолио', to: '/me', emoji: '🏆' },
+      { key: 'hub',       label: 'Главная',       to: '/',      emoji: '🏠' },
+      { key: 'learn',     label: 'Уроки',         to: '/learn', emoji: '📚' },
+      { key: 'portfolio', label: 'Мой прогресс',  to: '/me',    emoji: '📊' },
     ],
   },
   {
     label: 'Творчество',
     items: [
-      { key: 'play',  label: 'Играть',   to: '/play',   emoji: '🎮' },
-      { key: 'build', label: 'Студия',   to: '/studio', emoji: '🧱' },
-      { key: 'sites', label: 'Сайты',    to: '/sites',  emoji: '🌐' },
+      { key: 'play',  label: 'Играть',  to: '/play',   emoji: '🎮' },
+      { key: 'build', label: 'Студия',  to: '/studio', emoji: '🧱' },
+      { key: 'sites', label: 'Сайты',   to: '/sites',  emoji: '🌐' },
     ],
   },
   {
     label: 'Аккаунт',
     items: [
       { key: 'parent',  label: 'Родителям', to: '/parent',  emoji: '👨‍👩‍👦' },
-      { key: 'profile', label: 'Профиль',   to: '/profile', emoji: '⚙️' },
+      { key: 'billing', label: 'Оплата',    to: '/billing', emoji: '💳' },
+      { key: 'profile', label: 'Аватар',    to: '/profile', emoji: '🎭' },
     ],
   },
   {
@@ -139,6 +140,7 @@ function inferKey(path: string): NavKey | undefined {
   if (path.startsWith('/parent')) return 'parent'
   if (path.startsWith('/me')) return 'portfolio'
   if (path.startsWith('/profile')) return 'profile'
+  if (path.startsWith('/billing')) return 'billing'
   if (path.startsWith('/designbook')) return 'designbook'
   return undefined
 }

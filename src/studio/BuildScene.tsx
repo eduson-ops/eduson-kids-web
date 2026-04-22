@@ -185,7 +185,7 @@ export default function BuildScene({ state }: Props) {
   return (
     <Canvas
       shadows="soft"
-      camera={{ position: [8, 9, 12], fov: 45, far: 600 }}
+      camera={{ position: [8, 9, 12], fov: 45, near: 0.1, far: 600 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 2]}
       onPointerMissed={() => selectPart(null)}
@@ -209,7 +209,7 @@ export default function BuildScene({ state }: Props) {
         shadow-camera-right={40}
         shadow-camera-top={40}
         shadow-camera-bottom={-40}
-        shadow-bias={-0.0005}
+        shadow-bias={-0.0001}
       />
       <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
 
