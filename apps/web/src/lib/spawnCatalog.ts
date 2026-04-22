@@ -177,6 +177,62 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'throne',      label: 'Трон',     emoji: '👑', defaultColor: '#FFD43C', tags: ['трон','throne','корона','king','chair'], hint: 'Королевский трон' },
     ],
   },
+  {
+    id: 'music',
+    name: 'Музыка',
+    icon: '🎵',
+    items: [
+      { kind: 'guitar',    label: 'Гитара',     emoji: '🎸', defaultColor: '#8b4513', tags: ['гитара','guitar','музыка','music','струны'], hint: 'Акустическая гитара' },
+      { kind: 'piano',     label: 'Пианино',    emoji: '🎹', defaultColor: '#2a2a2a', tags: ['пианино','piano','клавиши','keyboard','музыка'], hint: 'Чёрное пианино' },
+      { kind: 'drum-kit',  label: 'Барабаны',   emoji: '🥁', defaultColor: '#c0392b', tags: ['барабаны','drums','ударные','drum kit','музыка'], hint: 'Ударная установка' },
+    ],
+  },
+  {
+    id: 'sports',
+    name: 'Спорт',
+    icon: '⚽',
+    items: [
+      { kind: 'soccer-ball', label: 'Мяч',       emoji: '⚽', defaultColor: '#ffffff', tags: ['мяч','ball','футбол','soccer','football'], hint: 'Футбольный мяч' },
+      { kind: 'trophy',      label: 'Кубок',     emoji: '🏆', defaultColor: '#FFD43C', tags: ['кубок','trophy','победа','gold','первое место'], hint: 'Золотой кубок победителя' },
+      { kind: 'goal-net',    label: 'Ворота',    emoji: '🥅', defaultColor: '#ffffff', tags: ['ворота','net','goal','гол','футбол'], hint: 'Футбольные ворота' },
+    ],
+  },
+  {
+    id: 'animals',
+    name: 'Животные',
+    icon: '🐾',
+    items: [
+      { kind: 'duck',       label: 'Утка',       emoji: '🦆', defaultColor: '#FFD43C', tags: ['утка','duck','птица','bird','животное'], hint: 'Жёлтая утка' },
+      { kind: 'cat-statue', label: 'Кот',        emoji: '🐱', defaultColor: '#FF9454', tags: ['кот','cat','котик','животное','статуя'], hint: 'Фигурка кота манэки-нэко' },
+      { kind: 'fish-tank',  label: 'Аквариум',   emoji: '🐠', defaultColor: '#4c97ff', tags: ['аквариум','fish','рыба','рыбки','tank'], hint: 'Аквариум с рыбками' },
+    ],
+  },
+  {
+    id: 'household',
+    name: 'Интерьер',
+    icon: '🏠',
+    items: [
+      { kind: 'table',      label: 'Стол',       emoji: '🪑', defaultColor: '#8b5a2b', tags: ['стол','table','мебель','интерьер'], hint: 'Деревянный стол' },
+      { kind: 'bookshelf',  label: 'Полка',      emoji: '📚', defaultColor: '#8b5a2b', tags: ['полка','shelf','книги','книжная','мебель'], hint: 'Книжная полка' },
+      { kind: 'lamp-floor', label: 'Торшер',     emoji: '💡', defaultColor: '#FFD43C', tags: ['торшер','lamp','лампа','свет','интерьер'], hint: 'Напольный торшер' },
+    ],
+  },
+  {
+    id: 'transportation', name: 'Транспорт', icon: '✈️',
+    items: [
+      { kind: 'airplane', label: 'Самолёт', emoji: '✈️', defaultColor: '#88d4ff', tags: ['самолёт','airplane','авиация','летит','небо'], hint: 'Пассажирский самолёт' },
+      { kind: 'boat',     label: 'Лодка',   emoji: '⛵', defaultColor: '#ff8c1a', tags: ['лодка','boat','ship','корабль','море','вода'], hint: 'Парусная лодка' },
+      { kind: 'train',    label: 'Поезд',   emoji: '🚂', defaultColor: '#e53', tags: ['поезд','train','локомотив','железная','дорога'], hint: 'Паровоз' },
+    ],
+  },
+  {
+    id: 'playground', name: 'Площадка', icon: '🛝',
+    items: [
+      { kind: 'swing',   label: 'Качели',   emoji: '🪁', defaultColor: '#4c97ff', tags: ['качели','swing','детская','площадка'], hint: 'Детские качели' },
+      { kind: 'slide',   label: 'Горка',    emoji: '🛝', defaultColor: '#ff5464', tags: ['горка','slide','спуск','детская','площадка'], hint: 'Детская горка' },
+      { kind: 'seesaw',  label: 'Качалка',  emoji: '⚖️', defaultColor: '#48c774', tags: ['качалка','seesaw','балансир','детская','площадка'], hint: 'Качалка-балансир' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

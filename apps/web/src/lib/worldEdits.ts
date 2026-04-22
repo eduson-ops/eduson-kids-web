@@ -38,6 +38,18 @@ export type PropKind =
   | 'rocket' | 'robot' | 'ufo'
   // Fantasy
   | 'castle-tower' | 'magic-orb' | 'throne'
+  // Music
+  | 'guitar' | 'piano' | 'drum-kit'
+  // Sports
+  | 'soccer-ball' | 'trophy' | 'goal-net'
+  // Animals
+  | 'duck' | 'cat-statue' | 'fish-tank'
+  // Household
+  | 'table' | 'bookshelf' | 'lamp-floor'
+  // Transportation
+  | 'airplane' | 'boat' | 'train'
+  // Playground
+  | 'swing' | 'slide' | 'seesaw'
 
 export interface SpawnedPart {
   id: string
