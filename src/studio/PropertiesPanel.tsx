@@ -129,6 +129,27 @@ export default function PropertiesPanel({ state }: Props) {
           </section>
 
           <section>
+            <h4>Поворот (°)</h4>
+            <div className="prop-xyz">
+              {(['x', 'y', 'z'] as const).map((axis, i) => (
+                <label key={axis}>
+                  <span>{axis.toUpperCase()}</span>
+                  <input
+                    type="number"
+                    step={15}
+                    value={Math.round((selected.rotation[i] * 180) / Math.PI)}
+                    onChange={(e) => {
+                      const rot = [...selected.rotation] as [number, number, number]
+                      rot[i] = ((parseFloat(e.target.value) || 0) * Math.PI) / 180
+                      updatePart(selected.id, { rotation: rot })
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <section>
             <h4>Цвет</h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
               {QUICK_COLORS.map((c) => (
