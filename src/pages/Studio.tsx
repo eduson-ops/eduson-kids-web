@@ -20,6 +20,7 @@ export default function Studio() {
   const [state, setState] = useState<EditorState>(getState())
   const [saved, setSaved] = useState<string>('сохранено')
   const [scriptError, setScriptError] = useState<string | null>(null)
+  const [publishToast, setPublishToast] = useState(false)
 
   useEffect(() => subscribe(setState), [])
 
@@ -142,12 +143,11 @@ export default function Studio() {
             ❓ Тур
           </button>
           <button
-            className="publish"
-            disabled
+            className={`publish${publishToast ? ' publish--toast' : ''}`}
             title="Публикация появится в v1.1 — скоро!"
-            onClick={() => alert('Публикация миров появится в следующем обновлении. Следи за новостями! 🚀')}
+            onClick={() => { setPublishToast(true); setTimeout(() => setPublishToast(false), 3000) }}
           >
-            📤 Опубликовать
+            {publishToast ? '🚀 Скоро в v1.1!' : '📤 Опубликовать'}
           </button>
         </div>
       </header>

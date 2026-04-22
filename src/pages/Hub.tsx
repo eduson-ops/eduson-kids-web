@@ -100,11 +100,11 @@ export default function Hub() {
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Монет</span>
-            <strong>{coins} 💰</strong>
+            <strong>{pluralize(coins, 'coin')}</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Достижений</span>
-            <strong>2 ⭐</strong>
+            <strong>{p.achievements} ⭐</strong>
           </div>
         </div>
 

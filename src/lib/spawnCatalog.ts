@@ -66,6 +66,19 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
+    id: 'mechanics',
+    name: 'Механики',
+    icon: '⚡',
+    items: [
+      { kind: 'speed-pad',  label: 'Ускоритель', emoji: '⚡', defaultColor: '#FFD43C', tags: ['ускоритель','speed','скорость','boost'], hint: 'Платформа-ускоритель' },
+      { kind: 'portal',     label: 'Портал',     emoji: '🌀', defaultColor: '#6B5CE7', tags: ['портал','portal','телепорт','ring'], hint: 'Светящееся кольцо' },
+      { kind: 'crystal',    label: 'Кристалл',   emoji: '💎', defaultColor: '#5AA9FF', tags: ['кристалл','crystal','gem','камень'], hint: 'Светящийся кристалл' },
+      { kind: 'campfire',   label: 'Костёр',     emoji: '🔥', defaultColor: '#FF9454', tags: ['костёр','campfire','огонь','fire'], hint: 'Декоративный костёр' },
+      { kind: 'sign',       label: 'Знак',       emoji: '🪧', defaultColor: '#8b5a2b', tags: ['знак','sign','табличка','доска'], hint: 'Деревянная табличка' },
+      { kind: 'stair-step', label: 'Ступень',    emoji: '🔲', defaultColor: '#9FE8C7', tags: ['ступень','stair','лестница','step'], hint: 'Ступенька для лестниц' },
+    ],
+  },
+  {
     id: 'nature',
     name: 'Природа',
     icon: '🌳',

@@ -1234,6 +1234,15 @@ body:has(.lobby-v2) {
   opacity: 0.5;
   cursor: not-allowed;
 }
+.studio-actions .publish--toast {
+  background: #6B5CE7;
+  animation: publish-pop .15s ease;
+}
+@keyframes publish-pop {
+  0% { transform: scale(.95); }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
 .studio-error-pill {
   display: inline-flex;
   align-items: center;

@@ -26,6 +26,8 @@ export type PropKind =
   | 'light' | 'torch' | 'neon-sign'
   // Decor (Kenney)
   | 'building' | 'car' | 'pumpkin' | 'coffin' | 'candle'
+  // Procedural mechanics
+  | 'speed-pad' | 'portal' | 'crystal' | 'campfire' | 'sign' | 'stair-step'
 
 export interface SpawnedPart {
   id: string
