@@ -21,6 +21,7 @@ export default function Studio() {
   const [saved, setSaved] = useState<string>('сохранено')
   const [scriptError, setScriptError] = useState<string | null>(null)
   const [publishToast, setPublishToast] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
 
   useEffect(() => subscribe(setState), [])
 
@@ -83,11 +84,7 @@ export default function Studio() {
     navigate('/')
   }
 
-  const onReset = () => {
-    if (confirm('Сбросить сцену до начальной? Твои изменения пропадут.')) {
-      resetScene()
-    }
-  }
+  const onReset = () => setConfirmReset(true)
 
   const count = state.parts.length
 
@@ -136,9 +133,15 @@ export default function Studio() {
               ⚠ Ошибка
             </span>
           )}
-          <button className="ghost" onClick={onReset}>
-            Сброс
-          </button>
+          {!confirmReset ? (
+            <button className="ghost" onClick={onReset}>Сброс</button>
+          ) : (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>Стереть всё?</span>
+              <button className="ghost" style={{ color: '#ff5464', borderColor: '#ff5464' }} onClick={() => { resetScene(); setConfirmReset(false) }}>Да</button>
+              <button className="ghost" onClick={() => setConfirmReset(false)}>Нет</button>
+            </span>
+          )}
           <button className="ghost" onClick={() => replayTour()} title="Повторить тур по Студии">
             ❓ Тур
           </button>

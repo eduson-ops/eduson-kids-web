@@ -72,6 +72,7 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
   const [toolColor, setToolColorLocal] = useState(getToolColor())
   const [prefs, setPrefs] = useState(getPrefs())
   const [undoAvail, setUndoAvail] = useState(canUndo())
+  const [confirmReset, setConfirmReset] = useState(false)
 
   useEffect(() => subscribeEditMode(setEdit), [])
   useEffect(() => subscribePlacement(setPlacementLocal), [])
@@ -265,17 +266,17 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                     >
                       ↩ Отменить последнее
                     </button>
-                    <button
-                      className="tools-action danger"
-                      onClick={() => {
-                        if (confirm('Снести ВСЕ твои правки в этом мире: удалённые, перекрашенные, заспавненые?')) {
-                          resetWorldEdits(worldId)
-                          SFX.click()
-                        }
-                      }}
-                    >
-                      💥 Обнулить карту
-                    </button>
+                    {!confirmReset ? (
+                      <button className="tools-action danger" onClick={() => setConfirmReset(true)}>
+                        💥 Обнулить карту
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <span style={{ fontSize: 12 }}>Удалить все правки?</span>
+                        <button className="tools-action danger" onClick={() => { resetWorldEdits(worldId); SFX.click(); setConfirmReset(false) }}>Да</button>
+                        <button className="tools-action" onClick={() => setConfirmReset(false)}>Нет</button>
+                      </div>
+                    )}
                   </div>
                 </section>
 
