@@ -6,6 +6,7 @@ import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
 import { GAMES } from '../lib/games'
 import { plural, pluralize } from '../lib/plural'
 import { useProgress } from '../hooks/useProgress'
+import { useMascotMood } from '../hooks/useMascotMood'
 
 /**
  * Hub — the new front door of Eduson Kids.
@@ -45,6 +46,7 @@ export default function Hub() {
   const p = useProgress()
   const currentLesson = p.currentLesson
   const coins = p.completedLessons * 15 // placeholder: 15 coins per lesson
+  const mood = useMascotMood('hub')
 
   useEffect(() => {
     setName(localStorage.getItem('ek_child_name'))
@@ -106,7 +108,7 @@ export default function Hub() {
         </div>
 
         <div className="kb-cover-mascot" aria-hidden>
-          <Niksel pose="wave" size={280} />
+          <Niksel pose={mood} size={280} />
         </div>
 
         {/* Plashki встают РЯДОМ в верхний ряд над title, НЕ над пингвином и не в его зоне. */}

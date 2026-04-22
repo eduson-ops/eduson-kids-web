@@ -19,6 +19,7 @@ const SharedSite = lazy(() => import('./pages/SharedSite'))
 const VkCallback = lazy(() => import('./pages/VkCallback'))
 const Designbook = lazy(() => import('./pages/Designbook'))
 const Billing = lazy(() => import('./pages/Billing'))
+const Settings = lazy(() => import('./pages/Settings'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -208,6 +209,14 @@ export default function App() {
           element={
             <Suspense fallback={<RouteLoader label="Открываю оплату…" />}>
               <Billing />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю настройки…" />}>
+              <Settings />
             </Suspense>
           }
         />

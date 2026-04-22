@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
-import { getDailyLastN } from '../lib/progress'
-import { plural, pluralize } from '../lib/plural'
+import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
+import { pluralize } from '../lib/plural'
+import { useProgress } from '../hooks/useProgress'
+import { useMascotMood } from '../hooks/useMascotMood'
 import {
   getVkUser,
   getParentLink,
@@ -48,12 +50,12 @@ const ACHIEVEMENTS: Achievement[] = [
 ]
 
 /**
- * Загрузка реальной активности из localStorage через progress.ts.
- * Если за 28 дней нет ни одной записи (новый пользователь) — показываем
- * детерминированный mock, чтобы график не выглядел пустым на демо.
+ * Трансформация реальной активности из useProgress().dailyLast28
+ * в формат, ожидаемый графиком. Если за 28 дней нет ни одной записи
+ * (новый пользователь) — показываем детерминированный mock, чтобы
+ * график не выглядел пустым на демо.
  */
-function loadRealActivity(): Activity[] {
-  const last28 = getDailyLastN(28)
+function buildActivity(last28: ReturnType<typeof useProgress>['dailyLast28']): Activity[] {
   const anyReal = last28.some((d) => d.data.minutes > 0 || d.data.lessons > 0)
   if (!anyReal) return loadMockActivity()
   return last28.map((d, idx) => ({
@@ -95,7 +97,9 @@ function formatMinutes(min: number): string {
 export default function Parent() {
   const [childName, setChildName] = useState<string>('твой ребёнок')
   const [parentName, setParentName] = useState<string>('родитель')
-  const activity = useMemo(() => loadRealActivity(), [])
+  const p = useProgress()
+  const activity = useMemo(() => buildActivity(p.dailyLast28), [p.dailyLast28])
+  const mood = useMascotMood('parent')
 
   useEffect(() => {
     setChildName(localStorage.getItem('ek_child_name') ?? 'твой ребёнок')
@@ -139,7 +143,7 @@ export default function Parent() {
           </div>
         </div>
         <div className="kb-hero-mascot">
-          <Niksel pose="think" size={240} />
+          <Niksel pose={mood} size={240} />
         </div>
       </section>
 
@@ -151,10 +155,10 @@ export default function Parent() {
       <section style={{ marginBottom: 40 }}>
         <h2 className="h2" style={{ marginBottom: 20 }}>За последние 4 недели</h2>
         <div className="kb-grid-4">
-          <KpiCard value={String(totalLessons)} label="Уроков завершено" emoji="🎓" accent="#6B5CE7" />
-          <KpiCard value={formatMinutes(totalMinutes)} label="Времени в Эдюсон Kids" emoji="⏱" accent="#5AA9FF" />
-          <KpiCard value={String(totalCoins)} label="Монет собрано" emoji="💰" accent="#FFD43C" />
-          <KpiCard value={`${earnedAch} / ${ACHIEVEMENTS.length}`} label="Достижений" emoji="🏆" accent="#FF9454" />
+          <KpiCard value={String(totalLessons)} label="Уроков завершено" iconKind="book" accent="#6B5CE7" />
+          <KpiCard value={formatMinutes(totalMinutes)} label="Времени в Эдюсон Kids" iconKind="spark" accent="#5AA9FF" />
+          <KpiCard value={String(totalCoins)} label="Монет собрано" iconKind="coin" accent="#FFD43C" />
+          <KpiCard value={`${earnedAch} / ${ACHIEVEMENTS.length}`} label="Достижений" iconKind="trophy" accent="#FF9454" />
         </div>
       </section>
 
@@ -250,10 +254,12 @@ export default function Parent() {
   )
 }
 
-function KpiCard({ value, label, emoji, accent }: { value: string; label: string; emoji: string; accent: string }) {
+function KpiCard({ value, label, iconKind, accent }: { value: string; label: string; iconKind: NikselIconKind; accent: string }) {
   return (
     <div className="kb-card kpi-card" style={{ '--accent': accent } as React.CSSProperties}>
-      <div className="kpi-emoji">{emoji}</div>
+      <div className="kpi-emoji" style={{ background: accent + '1a' }}>
+        <NikselIcon kind={iconKind} size={48} />
+      </div>
       <div className="kpi-value" style={{ color: accent }}>{value}</div>
       <div className="kpi-label">{label}</div>
     </div>

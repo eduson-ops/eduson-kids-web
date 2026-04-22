@@ -13,7 +13,7 @@ interface Props {
   activeKey?: NavKey
 }
 
-type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing'
+type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing' | 'settings'
 
 interface NavItem {
   key: NavKey
@@ -47,9 +47,10 @@ const GROUPS: NavGroup[] = [
   {
     label: 'Аккаунт',
     items: [
-      { key: 'parent',  label: 'Родителям', to: '/parent',  emoji: '👨‍👩‍👦' },
-      { key: 'billing', label: 'Оплата',    to: '/billing', emoji: '💳' },
-      { key: 'profile', label: 'Аватар',    to: '/profile', emoji: '🎭' },
+      { key: 'parent',   label: 'Родителям', to: '/parent',   emoji: '👨‍👩‍👦' },
+      { key: 'billing',  label: 'Оплата',    to: '/billing',  emoji: '💳' },
+      { key: 'settings', label: 'Настройки', to: '/settings', emoji: '⚙️' },
+      { key: 'profile',  label: 'Аватар',    to: '/profile',  emoji: '🎭' },
     ],
   },
   {
@@ -64,6 +65,11 @@ export default function PlatformShell({ children, activeKey }: Props) {
   const loc = useLocation()
   const navigate = useNavigate()
   const active = activeKey ?? inferKey(loc.pathname)
+  const isAdmin = typeof window !== 'undefined' && (
+    localStorage.getItem('ek_admin') === '1' ||
+    new URLSearchParams(window.location.search).get('admin') === '1'
+  )
+  const visibleGroups = isAdmin ? GROUPS : GROUPS.filter((g) => g.label !== 'Бренд')
   const [childName, setChildName] = useState<string | null>(null)
 
   useEffect(() => {
@@ -87,7 +93,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
         </Link>
 
         <div className="kb-sidenav-groups">
-          {GROUPS.map((g) => (
+          {visibleGroups.map((g) => (
             <div key={g.label} className="kb-sidenav-group">
               <div className="kb-sidenav-label">{g.label}</div>
               {g.items.map((item) => (
@@ -141,6 +147,7 @@ function inferKey(path: string): NavKey | undefined {
   if (path.startsWith('/me')) return 'portfolio'
   if (path.startsWith('/profile')) return 'profile'
   if (path.startsWith('/billing')) return 'billing'
+  if (path.startsWith('/settings')) return 'settings'
   if (path.startsWith('/designbook')) return 'designbook'
   return undefined
 }
