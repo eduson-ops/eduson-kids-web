@@ -309,6 +309,42 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'satellite-dish':
       return <SatelliteDish pos={pos} color={color} size={size} />
 
+    // ─── Еда ───
+    case 'cake':
+      return <Cake pos={pos} color={color} size={size} />
+    case 'donut':
+      return <Donut pos={pos} color={color} size={size} />
+    case 'ice-cream':
+      return <IceCream pos={pos} color={color} size={size} />
+
+    // ─── Sci-fi ───
+    case 'rocket':
+      return <Rocket pos={pos} color={color} size={size} />
+    case 'robot':
+      return <Robot pos={pos} color={color} size={size} />
+    case 'ufo':
+      return <UFO pos={pos} color={color} size={size} />
+
+    // ─── Фэнтези ───
+    case 'castle-tower':
+      return <CastleTower pos={pos} color={color} size={size} />
+    case 'magic-orb':
+      return <MagicOrb pos={pos} color={color} size={size} />
+    case 'throne':
+      return <Throne pos={pos} color={color} size={size} />
+    case 'guitar':
+      return <Guitar pos={pos} color={color} size={size} />
+    case 'piano':
+      return <Piano pos={pos} color={color} size={size} />
+    case 'drum-kit':
+      return <DrumKit pos={pos} color={color} size={size} />
+    case 'soccer-ball':
+      return <SoccerBall pos={pos} color={color} size={size} />
+    case 'trophy':
+      return <Trophy pos={pos} color={color} size={size} />
+    case 'goal-net':
+      return <GoalNet pos={pos} color={color} size={size} />
+
     default:
       return null
   }
@@ -738,6 +774,556 @@ function SatelliteDish({ pos, color, size }: { pos: [number, number, number]; co
       <mesh position={[0, size * 1.5, size * 0.72]} castShadow>
         <sphereGeometry args={[size * 0.1, 6, 4]} />
         <meshStandardMaterial color="#888" roughness={0.4} metalness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+// ─── Food ────────────────────────────────────────────────
+function Cake({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const CANDLE_COLORS = ['#ff5464', '#FFD43C', '#9FE8C7']
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 0.3, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[size * 0.7, size * 0.7, size * 0.55, 20]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size * 0.6, 0]}>
+        <torusGeometry args={[size * 0.7, size * 0.08, 8, 20]} />
+        <meshStandardMaterial color="#fff" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size * 0.88, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.52, size * 0.52, size * 0.42, 18]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size * 1.1, 0]}>
+        <torusGeometry args={[size * 0.52, size * 0.07, 8, 18]} />
+        <meshStandardMaterial color="#fff" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size * 1.3, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.34, size * 0.34, size * 0.3, 16]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {CANDLE_COLORS.map((cc, i) => {
+        const angle = (i / CANDLE_COLORS.length) * Math.PI * 2
+        return (
+          <group key={i} position={[Math.cos(angle) * size * 0.18, size * 1.55, Math.sin(angle) * size * 0.18]}>
+            <mesh>
+              <cylinderGeometry args={[size * 0.04, size * 0.04, size * 0.22, 6]} />
+              <meshStandardMaterial color={cc} roughness={0.7} />
+            </mesh>
+            <mesh position={[0, size * 0.18, 0]}>
+              <coneGeometry args={[size * 0.04, size * 0.1, 6]} />
+              <meshStandardMaterial color="#FF9454" emissive="#FF9454" emissiveIntensity={0.5} roughness={0.3} />
+            </mesh>
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
+function Donut({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={[pos[0], pos[1] + size * 0.28, pos[2]]} rotation={[Math.PI * 0.08, 0, 0]}>
+      <mesh castShadow>
+        <torusGeometry args={[size * 0.42, size * 0.22, 14, 28]} />
+        <meshStandardMaterial color="#C99E00" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size * 0.08, 0]} rotation={[0.1, 0, 0]}>
+        <torusGeometry args={[size * 0.42, size * 0.24, 14, 28, Math.PI * 1.7]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function IceCream({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const scoop2Color = color === '#9FE8C7' ? '#FFB4C8' : '#9FE8C7'
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 0.3, 0]} castShadow>
+        <coneGeometry args={[size * 0.35, size * 0.8, 10]} />
+        <meshStandardMaterial color="#C99E00" roughness={0.8} />
+      </mesh>
+      {[-0.15, 0, 0.15].map((y, i) => (
+        <mesh key={i} position={[0, size * (0.2 + (y + 0.15) * 2.5), 0]}>
+          <torusGeometry args={[size * (0.18 - i * 0.04), size * 0.012, 4, 14]} />
+          <meshStandardMaterial color="#8b5a2b" roughness={0.9} />
+        </mesh>
+      ))}
+      <mesh position={[0, size * 0.82, 0]} castShadow>
+        <sphereGeometry args={[size * 0.42, 16, 12]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size * 1.26, 0]} castShadow>
+        <sphereGeometry args={[size * 0.28, 14, 10]} />
+        <meshStandardMaterial color={scoop2Color} roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+// ─── Sci-fi ──────────────────────────────────────────────
+function Rocket({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const FIN_ANGLES = [0, Math.PI * 2 / 3, Math.PI * 4 / 3]
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 0.9, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.25, size * 0.25, size * 1.2, 12]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.4} />
+      </mesh>
+      <mesh position={[0, size * 1.7, 0]} castShadow>
+        <coneGeometry args={[size * 0.25, size * 0.6, 12]} />
+        <meshStandardMaterial color="#ff5464" roughness={0.4} />
+      </mesh>
+      <mesh position={[0, size * 1.0, size * 0.26]}>
+        <sphereGeometry args={[size * 0.1, 10, 8]} />
+        <meshStandardMaterial color="#A9D8FF" roughness={0.1} metalness={0.8} />
+      </mesh>
+      {FIN_ANGLES.map((a, i) => (
+        <mesh key={i} position={[Math.sin(a) * size * 0.35, size * 0.3, Math.cos(a) * size * 0.35]} rotation={[0, a, 0]} castShadow>
+          <boxGeometry args={[size * 0.08, size * 0.5, size * 0.35]} />
+          <meshStandardMaterial color="#ff5464" roughness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, size * 0.16, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.2, size * 0.3, size * 0.32, 10]} />
+        <meshStandardMaterial color="#333" roughness={0.5} metalness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function Robot({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const LEG_X = [-0.22, 0.22]
+  const ARM_X = [-0.55, 0.55]
+  const EYE_X = [-0.14, 0.14]
+  const CHEST_X = [-0.1, 0, 0.1]
+  const CHEST_COLORS = ['#ff5464', '#FFD43C', '#9FE8C7']
+  return (
+    <group position={pos}>
+      {LEG_X.map((x, i) => (
+        <mesh key={i} position={[size * x, size * 0.18, 0]} castShadow>
+          <boxGeometry args={[size * 0.22, size * 0.36, size * 0.22]} />
+          <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+        </mesh>
+      ))}
+      <mesh position={[0, size * 0.62, 0]} castShadow>
+        <boxGeometry args={[size * 0.7, size * 0.54, size * 0.44]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, size * 0.62, size * 0.23]}>
+        <boxGeometry args={[size * 0.36, size * 0.28, size * 0.04]} />
+        <meshStandardMaterial color="#222" roughness={0.6} />
+      </mesh>
+      {CHEST_X.map((x, i) => (
+        <mesh key={i} position={[size * x, size * 0.62, size * 0.26]}>
+          <sphereGeometry args={[size * 0.04, 6, 4]} />
+          <meshStandardMaterial color={CHEST_COLORS[i]} emissive={CHEST_COLORS[i]} emissiveIntensity={0.6} />
+        </mesh>
+      ))}
+      {ARM_X.map((x, i) => (
+        <mesh key={i} position={[size * x, size * 0.6, 0]} castShadow>
+          <boxGeometry args={[size * 0.18, size * 0.46, size * 0.18]} />
+          <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+        </mesh>
+      ))}
+      <mesh position={[0, size * 0.95, 0]}>
+        <cylinderGeometry args={[size * 0.1, size * 0.14, size * 0.12, 8]} />
+        <meshStandardMaterial color="#333" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size * 1.17, 0]} castShadow>
+        <boxGeometry args={[size * 0.52, size * 0.4, size * 0.42]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.4} />
+      </mesh>
+      {EYE_X.map((x, i) => (
+        <mesh key={i} position={[size * x, size * 1.2, size * 0.22]}>
+          <boxGeometry args={[size * 0.1, size * 0.07, size * 0.04]} />
+          <meshStandardMaterial color="#A9D8FF" emissive="#A9D8FF" emissiveIntensity={0.8} />
+        </mesh>
+      ))}
+      <mesh position={[0, size * 1.46, 0]}>
+        <cylinderGeometry args={[size * 0.025, size * 0.025, size * 0.22, 6]} />
+        <meshStandardMaterial color="#888" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size * 1.58, 0]}>
+        <sphereGeometry args={[size * 0.07, 8, 6]} />
+        <meshStandardMaterial color="#ff5464" emissive="#ff5464" emissiveIntensity={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function UFO({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const ref = useRef<THREE.Group>(null!)
+  const LIGHT_COLORS = ['#FFD43C', '#ff5464', '#9FE8C7', '#A9D8FF', '#FF9454']
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 0.8 })
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 0.18, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.8, size * 0.5, size * 0.2, 24]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.6} />
+      </mesh>
+      <mesh position={[0, size * 0.3, 0]}>
+        <cylinderGeometry args={[size * 0.48, size * 0.8, size * 0.12, 24]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.5} />
+      </mesh>
+      <mesh position={[0, size * 0.38, 0]} castShadow>
+        <sphereGeometry args={[size * 0.42, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+        <meshStandardMaterial color="#A9D8FF" roughness={0.1} metalness={0.3} transparent opacity={0.75} />
+      </mesh>
+      <mesh position={[0, size * 0.45, 0]}>
+        <sphereGeometry args={[size * 0.16, 10, 8]} />
+        <meshStandardMaterial color="#9FE8C7" roughness={0.5} />
+      </mesh>
+      <group ref={ref} position={[0, size * 0.14, 0]}>
+        {LIGHT_COLORS.map((lc, i) => (
+          <mesh key={i} position={[Math.cos(i * Math.PI * 0.4) * size * 0.62, 0, Math.sin(i * Math.PI * 0.4) * size * 0.62]}>
+            <sphereGeometry args={[size * 0.07, 6, 4]} />
+            <meshStandardMaterial color={lc} emissive={lc} emissiveIntensity={0.7} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  )
+}
+
+// ─── Fantasy ─────────────────────────────────────────────
+function CastleTower({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const MERLON_ANGLES = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5]
+  const WINDOW_Y = [size * 0.9, size * 1.4, size * 1.9]
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 1.1, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[size * 0.44, size * 0.48, size * 2.2, 14]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      <mesh position={[0, size * 0.45, size * 0.45]}>
+        <boxGeometry args={[size * 0.32, size * 0.55, size * 0.08]} />
+        <meshStandardMaterial color="#2a3340" roughness={0.8} />
+      </mesh>
+      {WINDOW_Y.map((y, j) => (
+        <mesh key={j} position={[0, y, size * 0.45]}>
+          <boxGeometry args={[size * 0.14, size * 0.22, size * 0.06]} />
+          <meshStandardMaterial color="#2a3340" roughness={0.8} />
+        </mesh>
+      ))}
+      {MERLON_ANGLES.map((a, i) => (
+        <mesh key={i} position={[Math.cos(a) * size * 0.38, size * 2.38, Math.sin(a) * size * 0.38]} castShadow>
+          <boxGeometry args={[size * 0.18, size * 0.26, size * 0.18]} />
+          <meshStandardMaterial color={color} roughness={0.9} />
+        </mesh>
+      ))}
+      <mesh position={[0, size * 2.6, 0]} castShadow>
+        <coneGeometry args={[size * 0.54, size * 0.7, 14]} />
+        <meshStandardMaterial color="#ff5464" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size * 3.05, 0]}>
+        <cylinderGeometry args={[size * 0.02, size * 0.02, size * 0.4, 6]} />
+        <meshStandardMaterial color="#888" roughness={0.6} />
+      </mesh>
+      <mesh position={[size * 0.12, size * 3.18, 0]}>
+        <boxGeometry args={[size * 0.24, size * 0.16, size * 0.02]} />
+        <meshStandardMaterial color="#FFD43C" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function MagicOrb({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const orbRef = useRef<THREE.Mesh>(null!)
+  const ringRef = useRef<THREE.Group>(null!)
+  useFrame((_, dt) => {
+    if (orbRef.current) orbRef.current.rotation.y += dt * 0.5
+    if (ringRef.current) ringRef.current.rotation.z += dt * 0.9
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 0.12, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.28, size * 0.32, size * 0.24, 10]} />
+        <meshStandardMaterial color="#8b5a2b" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size * 0.28, 0]}>
+        <cylinderGeometry args={[size * 0.1, size * 0.28, size * 0.08, 10]} />
+        <meshStandardMaterial color="#C99E00" roughness={0.5} metalness={0.4} />
+      </mesh>
+      <mesh ref={orbRef} position={[0, size * 0.65, 0]} castShadow>
+        <sphereGeometry args={[size * 0.38, 20, 16]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} roughness={0.1} metalness={0.2} transparent opacity={0.82} />
+      </mesh>
+      <mesh position={[0, size * 0.65, 0]}>
+        <sphereGeometry args={[size * 0.24, 14, 12]} />
+        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.4} roughness={0.1} transparent opacity={0.5} />
+      </mesh>
+      <group ref={ringRef} position={[0, size * 0.65, 0]}>
+        <mesh rotation={[Math.PI * 0.3, 0, 0]}>
+          <torusGeometry args={[size * 0.48, size * 0.04, 8, 22]} />
+          <meshStandardMaterial color="#FFD43C" roughness={0.3} metalness={0.6} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+function Throne({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const CROWN_X = [-0.32, -0.16, 0, 0.16, 0.32]
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 0.06, 0]} castShadow receiveShadow>
+        <boxGeometry args={[size * 1.1, size * 0.12, size * 0.9]} />
+        <meshStandardMaterial color="#8b5a2b" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size * 0.26, 0]} castShadow>
+        <boxGeometry args={[size * 0.88, size * 0.1, size * 0.72]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[-size * 0.46, size * 0.42, 0]} castShadow>
+        <boxGeometry args={[size * 0.1, size * 0.22, size * 0.66]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[size * 0.46, size * 0.42, 0]} castShadow>
+        <boxGeometry args={[size * 0.1, size * 0.22, size * 0.66]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, size * 0.8, -size * 0.34]} castShadow>
+        <boxGeometry args={[size * 0.88, size * 1.1, size * 0.12]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      {CROWN_X.map((x, i) => (
+        <mesh key={i} position={[size * x, size * 1.42, -size * 0.34]} castShadow>
+          <coneGeometry args={[size * 0.06, size * (i % 2 === 0 ? 0.22 : 0.16), 6]} />
+          <meshStandardMaterial color="#FFD43C" roughness={0.3} metalness={0.7} />
+        </mesh>
+      ))}
+      <mesh position={[0, size * 1.7, -size * 0.34]}>
+        <sphereGeometry args={[size * 0.07, 8, 6]} />
+        <meshStandardMaterial color="#ff5464" emissive="#ff5464" emissiveIntensity={0.4} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function Guitar({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos} rotation={[0, 0, Math.PI * 0.15]}>
+      {/* Body */}
+      <mesh position={[0, 0, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.32, size * 0.4, size * 0.18, 20]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, size * 0.12, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.28, size * 0.32, size * 0.14, 20]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      {/* Sound hole */}
+      <mesh position={[0, size * 0.06, size * 0.12]}>
+        <cylinderGeometry args={[size * 0.1, size * 0.1, size * 0.02, 16]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={1} />
+      </mesh>
+      {/* Neck */}
+      <mesh position={[0, size * 0.72, 0]} castShadow>
+        <boxGeometry args={[size * 0.1, size * 1.1, size * 0.08]} />
+        <meshStandardMaterial color="#6b4f2a" roughness={0.6} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, size * 1.34, 0]} castShadow>
+        <boxGeometry args={[size * 0.14, size * 0.22, size * 0.07]} />
+        <meshStandardMaterial color="#6b4f2a" roughness={0.6} />
+      </mesh>
+      {/* Strings */}
+      {[-0.03, -0.01, 0.01, 0.03].map((x, i) => (
+        <mesh key={i} position={[x * size, size * 0.7, size * 0.05]}>
+          <cylinderGeometry args={[size * 0.003, size * 0.003, size * 1.3, 4]} />
+          <meshStandardMaterial color="#c0c0c0" roughness={0.2} metalness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function Piano({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const WHITE_KEYS = 7
+  const BLACK_KEYS = [1, 2, 4, 5, 6]
+  return (
+    <group position={pos}>
+      {/* Body */}
+      <mesh position={[0, size * 0.38, 0]} castShadow receiveShadow>
+        <boxGeometry args={[size * 1.5, size * 0.7, size * 0.6]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.2} />
+      </mesh>
+      {/* Legs */}
+      {[-0.6, 0.6].map((x, i) => (
+        <mesh key={i} position={[x * size, size * 0.1, 0]} castShadow>
+          <boxGeometry args={[size * 0.1, size * 0.2, size * 0.1]} />
+          <meshStandardMaterial color={color} roughness={0.3} />
+        </mesh>
+      ))}
+      {/* White keys */}
+      {Array.from({ length: WHITE_KEYS }, (_, i) => (
+        <mesh key={i} position={[(i - 3) * size * 0.19, size * 0.73, size * 0.22]} castShadow>
+          <boxGeometry args={[size * 0.16, size * 0.06, size * 0.28]} />
+          <meshStandardMaterial color="#f0ede0" roughness={0.3} />
+        </mesh>
+      ))}
+      {/* Black keys */}
+      {BLACK_KEYS.map((i) => (
+        <mesh key={i} position={[(i - 3) * size * 0.19 - size * 0.095, size * 0.78, size * 0.12]}>
+          <boxGeometry args={[size * 0.1, size * 0.07, size * 0.18]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.2} />
+        </mesh>
+      ))}
+      {/* Lid */}
+      <mesh position={[0, size * 0.77, -size * 0.08]} rotation={[-Math.PI * 0.15, 0, 0]} castShadow>
+        <boxGeometry args={[size * 1.5, size * 0.04, size * 0.5]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function DrumKit({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Bass drum (large, on ground) */}
+      <mesh position={[0, size * 0.22, 0]} castShadow receiveShadow rotation={[Math.PI * 0.5, 0, 0]}>
+        <cylinderGeometry args={[size * 0.38, size * 0.38, size * 0.28, 20]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size * 0.22, size * 0.15]}>
+        <cylinderGeometry args={[size * 0.38, size * 0.38, size * 0.02, 20]} />
+        <meshStandardMaterial color="#e8e0d0" roughness={0.4} />
+      </mesh>
+      {/* Snare drum */}
+      <mesh position={[-size * 0.5, size * 0.5, size * 0.1]} castShadow>
+        <cylinderGeometry args={[size * 0.2, size * 0.2, size * 0.12, 16]} />
+        <meshStandardMaterial color="#c0c0c0" roughness={0.3} metalness={0.5} />
+      </mesh>
+      <mesh position={[-size * 0.5, size * 0.56, size * 0.1]}>
+        <cylinderGeometry args={[size * 0.2, size * 0.2, size * 0.01, 16]} />
+        <meshStandardMaterial color="#e8e0d0" roughness={0.4} />
+      </mesh>
+      {/* Hi-hat cymbal */}
+      <mesh position={[size * 0.5, size * 0.7, -size * 0.1]} castShadow>
+        <cylinderGeometry args={[size * 0.22, size * 0.22, size * 0.02, 20]} />
+        <meshStandardMaterial color="#d4af37" roughness={0.2} metalness={0.8} />
+      </mesh>
+      {/* Cymbal stand */}
+      <mesh position={[size * 0.5, size * 0.38, -size * 0.1]}>
+        <cylinderGeometry args={[size * 0.02, size * 0.02, size * 0.72, 6]} />
+        <meshStandardMaterial color="#888" roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* Tom-tom */}
+      <mesh position={[size * 0.15, size * 0.68, size * 0.05]} castShadow>
+        <cylinderGeometry args={[size * 0.15, size * 0.15, size * 0.12, 14]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[size * 0.15, size * 0.74, size * 0.05]}>
+        <cylinderGeometry args={[size * 0.15, size * 0.15, size * 0.01, 14]} />
+        <meshStandardMaterial color="#e8e0d0" roughness={0.4} />
+      </mesh>
+      {/* Drumsticks */}
+      {[-0.06, 0.06].map((x, i) => (
+        <mesh key={i} position={[x * size, size * 0.62, -size * 0.28]} rotation={[-Math.PI * 0.4, 0, x * 5]}>
+          <cylinderGeometry args={[size * 0.018, size * 0.01, size * 0.6, 6]} />
+          <meshStandardMaterial color="#d4a574" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SoccerBall({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size * 0.38, 0]} castShadow>
+        <sphereGeometry args={[size * 0.38, 24, 20]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Pentagon patches */}
+      {[
+        [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1],
+      ].map(([x, y, z], i) => (
+        <mesh key={i} position={[x * size * 0.33, y * size * 0.33 + size * 0.38, z * size * 0.33]}>
+          <dodecahedronGeometry args={[size * 0.1, 0]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function Trophy({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Base */}
+      <mesh position={[0, size * 0.06, 0]} castShadow receiveShadow>
+        <boxGeometry args={[size * 0.7, size * 0.12, size * 0.4]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.8} />
+      </mesh>
+      {/* Stem */}
+      <mesh position={[0, size * 0.22, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.08, size * 0.14, size * 0.22, 10]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.8} />
+      </mesh>
+      {/* Cup body */}
+      <mesh position={[0, size * 0.58, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.32, size * 0.2, size * 0.54, 18]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.8} />
+      </mesh>
+      {/* Cup rim */}
+      <mesh position={[0, size * 0.86, 0]} castShadow>
+        <torusGeometry args={[size * 0.32, size * 0.04, 8, 20]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.9} />
+      </mesh>
+      {/* Handles */}
+      {[-1, 1].map((side, i) => (
+        <mesh key={i} position={[side * size * 0.42, size * 0.58, 0]} castShadow>
+          <torusGeometry args={[size * 0.12, size * 0.03, 8, 12, Math.PI]} />
+          <meshStandardMaterial color={color} roughness={0.3} metalness={0.8} />
+        </mesh>
+      ))}
+      {/* Star on top */}
+      <mesh position={[0, size * 0.96, 0]}>
+        <sphereGeometry args={[size * 0.1, 10, 8]} />
+        <meshStandardMaterial color="#fff" emissive="#ffe066" emissiveIntensity={0.6} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function GoalNet({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Left post */}
+      <mesh position={[-size * 0.6, size * 0.6, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.04, size * 0.04, size * 1.2, 8]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.4} />
+      </mesh>
+      {/* Right post */}
+      <mesh position={[size * 0.6, size * 0.6, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.04, size * 0.04, size * 1.2, 8]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.4} />
+      </mesh>
+      {/* Crossbar */}
+      <mesh position={[0, size * 1.22, 0]} rotation={[0, 0, Math.PI * 0.5]} castShadow>
+        <cylinderGeometry args={[size * 0.04, size * 0.04, size * 1.2, 8]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.4} />
+      </mesh>
+      {/* Back bar */}
+      <mesh position={[0, size * 0.6, -size * 0.5]}>
+        <cylinderGeometry args={[size * 0.03, size * 0.03, size * 1.2, 6]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      {/* Top back bar */}
+      <mesh position={[0, size * 1.22, -size * 0.5]} rotation={[0, 0, Math.PI * 0.5]}>
+        <cylinderGeometry args={[size * 0.03, size * 0.03, size * 1.2, 6]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      {/* Net planes */}
+      <mesh position={[0, size * 0.61, -size * 0.25]} receiveShadow>
+        <boxGeometry args={[size * 1.16, size * 1.16, size * 0.5]} />
+        <meshStandardMaterial color="#ffffff" roughness={1} transparent opacity={0.18} side={2} />
       </mesh>
     </group>
   )
