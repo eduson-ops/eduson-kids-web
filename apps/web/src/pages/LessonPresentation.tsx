@@ -4,6 +4,7 @@ import { getLesson, getModuleByLesson, getLesson as getL, KIND_LABEL, getLessonQ
 import type { Lesson, Module, QuizQuestion } from '../lib/curriculum'
 import { markLessonDone, recordQuizResult } from '../lib/progress'
 import { ensureAchievementsWatcher } from '../lib/achievements'
+import { pluralize } from '../lib/plural'
 
 /**
  * LessonPresentation — автогенерированная презентация урока из curriculum data.
@@ -112,7 +113,7 @@ function QuizSlide({
             ✓ Проверить ответы
           </button>
           {!allAnswered && (
-            <p className="lp-subtle" style={{ marginTop: 8 }}>Ответь на все {quiz.length} вопроса чтобы проверить.</p>
+            <p className="lp-subtle" style={{ marginTop: 8 }}>Ответь на все {pluralize(quiz.length, 'question')} чтобы проверить.</p>
           )}
         </div>
       )}

@@ -151,12 +151,7 @@ export default function Play() {
               setEditMode(!edit)
             }}
             aria-label="Режим редактирования"
-            title={
-              worldTargets.length > 0
-                ? 'Редактировать объекты на карте (клик по жёлтой ауре откроет блоки)'
-                : 'В этом мире пока нет скриптуемых объектов'
-            }
-            disabled={worldTargets.length === 0}
+            title="Редактировать карту: спавн объектов (Q), перекраска, скрипты на объектах"
           >
             ⚡ {edit ? 'Выкл' : 'Ред.'}
             {scriptedCount > 0 && <span className="edit-count">{scriptedCount}</span>}

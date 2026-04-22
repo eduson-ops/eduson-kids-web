@@ -12,6 +12,9 @@ const FORMS = {
   module:      ['модуль',     'модуля',      'модулей']      as const,
   task:        ['задача',     'задачи',      'задач']        as const,
   hour:        ['час',        'часа',        'часов']        as const,
+  question:    ['вопрос',     'вопроса',     'вопросов']     as const,
+  object:      ['объект',     'объекта',     'объектов']     as const,
+  step:        ['шаг',        'шага',        'шагов']        as const,
 } as const
 
 export type PluralKey = keyof typeof FORMS
