@@ -147,6 +147,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'satellite-dish',label: 'Антенна',       emoji: '📡', defaultColor: '#c0c0c0', tags: ['антенна','тарелка','satellite','tech'], hint: 'Спутниковая тарелка' },
     ],
   },
+  {
+    id: 'food',
+    name: 'Еда',
+    icon: '🍰',
+    items: [
+      { kind: 'cake',      label: 'Торт',       emoji: '🎂', defaultColor: '#FFB4C8', tags: ['торт','cake','праздник','десерт'], hint: 'Трёхъярусный торт' },
+      { kind: 'donut',     label: 'Пончик',     emoji: '🍩', defaultColor: '#FF9454', tags: ['пончик','donut','круглый','сладкое'], hint: 'Тор-пончик с глазурью' },
+      { kind: 'ice-cream', label: 'Мороженое',  emoji: '🍦', defaultColor: '#9FE8C7', tags: ['мороженое','ice cream','конус','холодное'], hint: 'Рожок мороженого' },
+    ],
+  },
+  {
+    id: 'scifi',
+    name: 'Sci-Fi',
+    icon: '🚀',
+    items: [
+      { kind: 'rocket',   label: 'Ракета',   emoji: '🚀', defaultColor: '#c0c0c0', tags: ['ракета','rocket','космос','space'], hint: 'Космическая ракета' },
+      { kind: 'robot',    label: 'Робот',    emoji: '🤖', defaultColor: '#6B5CE7', tags: ['робот','robot','машина','android'], hint: 'Квадратный робот' },
+      { kind: 'ufo',      label: 'НЛО',      emoji: '🛸', defaultColor: '#9FE8C7', tags: ['нло','ufo','тарелка','космос','alien'], hint: 'Летающая тарелка' },
+    ],
+  },
+  {
+    id: 'fantasy',
+    name: 'Фэнтези',
+    icon: '🏰',
+    items: [
+      { kind: 'castle-tower', label: 'Башня',   emoji: '🏰', defaultColor: '#8b8b8b', tags: ['башня','замок','tower','castle','крепость'], hint: 'Каменная башня' },
+      { kind: 'magic-orb',   label: 'Орб',      emoji: '🔮', defaultColor: '#6B5CE7', tags: ['шар','орб','магия','magic','crystal ball'], hint: 'Светящийся магический шар' },
+      { kind: 'throne',      label: 'Трон',     emoji: '👑', defaultColor: '#FFD43C', tags: ['трон','throne','корона','king','chair'], hint: 'Королевский трон' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

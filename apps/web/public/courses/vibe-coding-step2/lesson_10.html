@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 10 — Мониторинг, логирование, защита от абьюза</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0B0F17;
+  --bg-2: #141B2D;
+  --violet: #7C3AED;
+  --cyan: #06B6D4;
+  --text: #E5E9F0;
+  --text-dim: #94A3B8;
+  --border: rgba(124, 58, 237, 0.2);
+  --border-bright: rgba(124, 58, 237, 0.5);
+  --glass: rgba(20, 27, 45, 0.55);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+}
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 400;
+  overflow: hidden;
+  line-height: 1.5;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(124, 58, 237, 0.22), transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(6, 182, 212, 0.18), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(124, 58, 237, 0.05), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--cyan));
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.7);
+  transition: width 0.35s ease; z-index: 100; width: 0%;
+}
+.slide-counter {
+  position: fixed; bottom: 20px; right: 28px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--text-dim); letter-spacing: 1px; z-index: 100;
+  background: var(--glass); backdrop-filter: blur(12px);
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--border);
+}
+.nav-hint {
+  position: fixed; bottom: 20px; left: 28px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text-dim); z-index: 100;
+  background: var(--glass); backdrop-filter: blur(12px);
+  padding: 6px 14px; border-radius: 20px;
+  border: 1px solid var(--border); letter-spacing: 0.5px;
+}
+.nav-hint kbd {
+  background: rgba(124, 58, 237, 0.2);
+  padding: 2px 6px; border-radius: 4px;
+  font-size: 10px; margin: 0 2px;
+  border: 1px solid var(--border-bright);
+}
+.slides-container { position: relative; width: 100vw; height: 100vh; z-index: 1; }
+.slide {
+  position: absolute; inset: 0;
+  display: none; flex-direction: column;
+  padding: 56px 88px 72px;
+  animation: slideIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+}
+.slide.active { display: flex; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.slide-num {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--cyan); letter-spacing: 2.5px;
+  margin-bottom: 10px; text-transform: uppercase;
+  font-weight: 500;
+}
+.slide h1 {
+  font-size: 56px; font-weight: 800; line-height: 1.05;
+  letter-spacing: -1.8px; margin-bottom: 18px;
+}
+.slide h2 {
+  font-size: 40px; font-weight: 700; line-height: 1.1;
+  letter-spacing: -1.2px; margin-bottom: 24px;
+}
+.slide h3 {
+  font-size: 22px; font-weight: 600; line-height: 1.25;
+  margin-bottom: 14px;
+}
+.gradient-text {
+  background: linear-gradient(135deg, var(--violet) 0%, var(--cyan) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.lead {
+  font-size: 19px; color: var(--text-dim);
+  max-width: 860px; line-height: 1.55;
+}
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 24px 28px;
+  transition: all 0.3s ease;
+}
+.glass-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+.grid { display: grid; gap: 20px; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.tag {
+  display: inline-block; padding: 5px 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  border-radius: 6px; border: 1px solid var(--border-bright);
+  color: var(--cyan); background: rgba(6, 182, 212, 0.1);
+  margin-right: 8px; margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.tag.violet { color: var(--violet); border-color: rgba(124, 58, 237, 0.5); background: rgba(124, 58, 237, 0.1); }
+.tag.warn { color: var(--warning); border-color: rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.1); }
+.tag.danger { color: var(--danger); border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.1); }
+.tag.success { color: var(--success); border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.1); }
+pre[class*="language-"] {
+  background: rgba(5, 8, 15, 0.75) !important;
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 24px !important;
+  font-size: 14px !important; line-height: 1.6 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  max-height: 360px; overflow-y: auto;
+}
+code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; }
+:not(pre) > code {
+  background: rgba(124, 58, 237, 0.15);
+  color: var(--cyan); padding: 2px 7px;
+  border-radius: 4px; font-size: 0.88em;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+ul, ol { list-style: none; }
+ul li, ol li {
+  position: relative; padding-left: 26px;
+  margin-bottom: 10px; line-height: 1.55;
+  color: var(--text);
+}
+ul li::before {
+  content: ''; position: absolute; left: 0; top: 10px;
+  width: 10px; height: 10px; border-radius: 2px;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+}
+ol { counter-reset: olc; }
+ol li { counter-increment: olc; }
+ol li::before {
+  content: counter(olc);
+  position: absolute; left: 0; top: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--cyan);
+  width: 22px; height: 22px;
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.hero { justify-content: center; align-items: flex-start; }
+.hero-meta {
+  display: flex; gap: 24px; margin-top: 36px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--text-dim); flex-wrap: wrap;
+}
+.hero-meta span { display: flex; align-items: center; gap: 8px; }
+.hero-meta .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--cyan); box-shadow: 0 0 8px var(--cyan);
+}
+.big-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 68px; font-weight: 800; line-height: 1;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+.big-number.danger {
+  background: linear-gradient(135deg, #EF4444, #F59E0B);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.metric-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; flex: 1; align-items: start; }
+.timeline {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
+  margin-top: 24px;
+}
+.timeline-item {
+  background: var(--glass); backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 14px;
+  position: relative;
+}
+.timeline-item .time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: var(--cyan); margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.timeline-item .label {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  margin-bottom: 4px;
+}
+.timeline-item .desc {
+  font-size: 11px; color: var(--text-dim); line-height: 1.4;
+}
+.flow-diagram {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin: 24px 0; flex-wrap: wrap;
+}
+.flow-node {
+  background: var(--glass); backdrop-filter: blur(12px);
+  border: 1px solid var(--border-bright);
+  border-radius: 10px; padding: 12px 18px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  min-width: 110px; text-align: center;
+}
+.flow-node.highlight {
+  border-color: var(--cyan);
+  background: rgba(6, 182, 212, 0.15);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+}
+.flow-arrow { color: var(--cyan); font-size: 20px; }
+.badge-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.callout {
+  border-left: 3px solid var(--cyan);
+  padding: 14px 20px; margin-top: 20px;
+  background: rgba(6, 182, 212, 0.08);
+  border-radius: 0 12px 12px 0;
+  font-size: 15px; color: var(--text);
+}
+.callout.danger { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.08); }
+.callout.warn { border-left-color: var(--warning); background: rgba(245, 158, 11, 0.08); }
+.callout.success { border-left-color: var(--success); background: rgba(16, 185, 129, 0.08); }
+.quote {
+  font-size: 22px; font-weight: 500; line-height: 1.45;
+  color: var(--text); font-style: italic;
+  padding-left: 20px; border-left: 3px solid var(--violet);
+  margin: 16px 0;
+}
+.meta-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--text-dim); letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.icon-box {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(6, 182, 212, 0.25));
+  border: 1px solid var(--border-bright);
+  margin-bottom: 14px;
+}
+.commands-list { display: flex; flex-direction: column; gap: 12px; }
+.cmd-row {
+  display: grid; grid-template-columns: 200px 1fr; gap: 20px;
+  align-items: center; padding: 12px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.cmd-row:last-child { border-bottom: none; }
+.cmd-code {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--cyan); font-weight: 500;
+}
+.cmd-desc { font-size: 14px; color: var(--text-dim); }
+.compare-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.compare-table th, .compare-table td {
+  padding: 12px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.compare-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--cyan);
+  letter-spacing: 1px; text-transform: uppercase;
+  font-weight: 600;
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table td:first-child { font-weight: 600; color: var(--text); }
+.log-line {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  padding: 6px 10px; border-radius: 6px;
+  display: grid; grid-template-columns: 80px 70px 1fr;
+  gap: 10px; align-items: center;
+  margin-bottom: 5px; background: rgba(5, 8, 15, 0.6);
+}
+.log-line .ts { color: var(--text-dim); font-size: 11px; }
+.log-line .lv { font-weight: 700; font-size: 11px; text-align: center; padding: 2px 6px; border-radius: 4px; }
+.log-line .lv.info { color: var(--cyan); background: rgba(6, 182, 212, 0.15); }
+.log-line .lv.warn { color: var(--warning); background: rgba(245, 158, 11, 0.15); }
+.log-line .lv.err { color: var(--danger); background: rgba(239, 68, 68, 0.15); }
+.log-line .msg { color: var(--text); font-size: 12px; }
+.speaker-indicator {
+  position: fixed; top: 16px; right: 24px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--violet); background: var(--glass);
+  backdrop-filter: blur(10px);
+  padding: 5px 11px; border-radius: 20px;
+  border: 1px solid var(--border-bright);
+  z-index: 100; display: none;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.speaker-notes {
+  display: none;
+  position: fixed; bottom: 60px; left: 28px; right: 28px;
+  max-height: 35vh; overflow-y: auto;
+  background: rgba(5, 8, 15, 0.96); backdrop-filter: blur(20px);
+  border: 1px solid var(--violet);
+  border-radius: 14px; padding: 20px 26px;
+  z-index: 90; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+}
+.speaker-notes.visible { display: block; }
+.speaker-notes .sn-title {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--violet); letter-spacing: 2px;
+  margin-bottom: 10px; text-transform: uppercase;
+}
+.speaker-notes .sn-content {
+  font-size: 14px; line-height: 1.6; color: var(--text);
+}
+.risk-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-top: 16px;
+}
+.risk-card {
+  background: var(--glass); backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px;
+}
+.risk-card.warn { border-left: 3px solid var(--warning); }
+.risk-card.err { border-left: 3px solid var(--danger); }
+.risk-card.ok { border-left: 3px solid var(--success); }
+.risk-card .rc-title {
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 8px; color: var(--text);
+}
+.risk-card .rc-fix {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text-dim); line-height: 1.5;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(124, 58, 237, 0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124, 58, 237, 0.5); }
+.monetize-stat {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 8px;
+}
+.monetize-stat .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px; font-weight: 700;
+  color: var(--cyan);
+}
+.monetize-stat .lbl {
+  font-size: 14px; color: var(--text-dim);
+}
+.final-slide { align-items: center; justify-content: center; text-align: center; }
+.final-slide h1 { font-size: 72px; margin-bottom: 20px; }
+.final-slide .lead { font-size: 20px; text-align: center; max-width: 700px; }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="slide-counter" id="slideCounter">01 / 22</div>
+<div class="nav-hint"><kbd>←</kbd><kbd>→</kbd> навигация · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+<div class="speaker-indicator" id="speakerIndicator">SPEAKER MODE</div>
+
+<div class="slides-container">
+
+<!-- Слайд 1: Hero -->
+<section class="slide hero active" data-notes="Привет, сегодня у нас урок про то, что превращает 'работающий API' в 'продакшн'. Мы разберём три вещи: логирование, rate-limiting и мониторинг. К концу урока ваш сервис будет готов к тому, чтобы вы смогли смело выставить его в открытый интернет и не бояться счёта на 10 000 рублей за токены LLM. Этот урок — про профессиональную гигиену. Без него ваш API — это бомба замедленного действия.">
+  <div class="slide-num">Step 2 · Модуль 1 · Неделя 10</div>
+  <h1>Мониторинг, логирование,<br><span class="gradient-text">защита от абьюза</span></h1>
+  <p class="lead">Превращаем API из «работает, пока не уронили» в боевой сервис: структурные логи, rate-limiting через slowapi, метрики VM, ротация логов. Теперь домен можно спокойно светить в публичном интернете.</p>
+  <div class="hero-meta">
+    <span><span class="dot"></span>Урок № 10</span>
+    <span><span class="dot"></span>60 минут</span>
+    <span><span class="dot"></span>Возраст 13–15</span>
+    <span><span class="dot"></span>Модуль «Интернет изнутри»</span>
+  </div>
+  <div class="badge-row" style="margin-top: 40px;">
+    <span class="tag violet">slowapi</span>
+    <span class="tag">logging</span>
+    <span class="tag">logrotate</span>
+    <span class="tag">htop</span>
+    <span class="tag">journalctl</span>
+    <span class="tag warn">rate-limit</span>
+    <span class="tag success">prod-ready</span>
+  </div>
+</section>
+
+<!-- Слайд 2: Почему этот урок нельзя пропустить -->
+<section class="slide" data-notes="Это не теоретическая страшилка. Скрипты, которые сканируют интернет на открытые API и дёргают их миллион раз, существуют — они называются абьюз-ботами. Каждый вызов LLM стоит денег. GigaChat — около 3 копеек за вызов. Умножьте на 1000 запросов в секунду. За час — 108 тысяч рублей. Это не гипотетика, это реальные истории из чатов российских разработчиков. Именно поэтому rate-limit — это не украшательство, а обязательная гигиена для любого публичного эндпоинта, который платно ходит наружу.">
+  <div class="slide-num">01 · Мотивация</div>
+  <h2>Почему без этого урока — нельзя</h2>
+  <div class="grid grid-3" style="margin-top: 16px;">
+    <div class="glass-card">
+      <div class="big-number danger">108к ₽</div>
+      <div class="metric-label">За час абьюза</div>
+      <p style="font-size: 14px; color: var(--text-dim); margin-top: 10px;">1000 запросов/сек × 0.03 ₽ за вызов GigaChat = 108 000 ₽ в час. Твоя карта родителя. Без шуток.</p>
+    </div>
+    <div class="glass-card">
+      <div class="big-number danger">~24ч</div>
+      <div class="metric-label">До первого сканера</div>
+      <p style="font-size: 14px; color: var(--text-dim); margin-top: 10px;">Публичный IP находят боты быстрее, чем ты допишешь README. Открытый LLM-API = подарок скрипт-киддис.</p>
+    </div>
+    <div class="glass-card">
+      <div class="big-number">0</div>
+      <div class="metric-label">Шанс отбиться без логов</div>
+      <p style="font-size: 14px; color: var(--text-dim); margin-top: 10px;">Без логов ты не докажешь банку/провайдеру, что это был абьюз, а не твои запросы. Логи = алиби.</p>
+    </div>
+  </div>
+  <div class="callout danger" style="margin-top: 32px;">
+    Публичный API без rate-limit и логов — это не «проект для портфолио», это бомба замедленного действия. До этого урока ты светил домен в Telegram — и это было рискованно. После — будет безопасно.
+  </div>
+</section>
+
+<!-- Слайд 3: Цель урока -->
+<section class="slide" data-notes="Сформулируем чёткую цель. В конце урока твой API будет уметь: жить под нагрузкой, блокировать спам с одного IP, писать структурные логи, рассказывать тебе, что с сервером. Это фундамент эксплуатации. Никаких фреймворков для 'настоящего продакшна' — только стандартные инструменты, которые работают десятилетиями.">
+  <div class="slide-num">02 · Цель</div>
+  <h2>Что будет к концу 60 минут</h2>
+  <div class="grid grid-2">
+    <div class="glass-card">
+      <div class="icon-box">01</div>
+      <h3>Rate-limit через slowapi</h3>
+      <p style="color: var(--text-dim); font-size: 15px;">10 запросов в минуту на IP. 11-й получает <code>429 Too Many Requests</code>. Защита от ботов без платного Cloudflare.</p>
+    </div>
+    <div class="glass-card">
+      <div class="icon-box">02</div>
+      <h3>Структурное логирование</h3>
+      <p style="color: var(--text-dim); font-size: 15px;">Каждый запрос, каждая ошибка, каждый 429 — в файл с форматом «время — уровень — событие». Чёрный ящик для сервера.</p>
+    </div>
+    <div class="glass-card">
+      <div class="icon-box">03</div>
+      <h3>Ротация логов</h3>
+      <p style="color: var(--text-dim); font-size: 15px;"><code>logrotate</code> режет логи ежедневно, хранит 7 дней. Диск в 20 GB не закончится посреди ночи.</p>
+    </div>
+    <div class="glass-card">
+      <div class="icon-box">04</div>
+      <h3>Базовый мониторинг VM</h3>
+      <p style="color: var(--text-dim); font-size: 15px;"><code>htop</code>, <code>df&nbsp;-h</code>, <code>ss&nbsp;-tlnp</code>. Три команды покрывают 90% админских вопросов.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 4: Результаты -->
+<section class="slide" data-notes="Разбираем лестницу компетенций — классическая Bloom-модель. 'Знает' — помнит термины. 'Понимает' — может объяснить ребёнку своими словами. 'Умеет' — воспроизведёт с шпаргалкой. 'Владеет' — делает на автомате, даже если разбудили в три ночи. К концу урока мы хотим уровень 'Владеет' по всем четырём пунктам — кроме тех, кто будет в третьем блоке смотреть в потолок.">
+  <div class="slide-num">03 · Результаты</div>
+  <h2>Лестница компетенций</h2>
+  <div class="grid grid-2">
+    <div class="glass-card">
+      <div class="meta-label">Знает</div>
+      <ul>
+        <li>Что такое rate-limit и зачем он нужен</li>
+        <li>Зачем логировать даже удачные запросы</li>
+        <li>Что такое ротация логов и почему без неё диск умирает</li>
+      </ul>
+    </div>
+    <div class="glass-card">
+      <div class="meta-label">Понимает</div>
+      <ul>
+        <li>Публичный API без лимитов = уязвимость + счёт на 10&nbsp;000&nbsp;₽</li>
+        <li>Лог ≠ <code>print()</code>. Лог — это структура</li>
+        <li>Мониторинг начинается не в Grafana, а с <code>htop</code></li>
+      </ul>
+    </div>
+    <div class="glass-card">
+      <div class="meta-label">Умеет</div>
+      <ul>
+        <li>Настроить slowapi с лимитом 10/min на IP</li>
+        <li>Включить ротацию логов через logrotate</li>
+        <li>Прочитать <code>journalctl -u vibe-api -f</code> при инциденте</li>
+      </ul>
+    </div>
+    <div class="glass-card">
+      <div class="meta-label">Владеет</div>
+      <ul>
+        <li>Форматом Python <code>logging</code> с уровнями INFO/WARN/ERROR</li>
+        <li>Чтением <code>df -h</code>, <code>free -h</code>, <code>ss -tlnp</code></li>
+        <li>Диагностикой «сервер тормозит» за 2 минуты</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 5: Поминутный план -->
+<section class="slide" data-notes="Поминутный план, чтобы не утонуть в материале. Первые 5 минут — быстрый разбор домашки прошлого урока (гороскоп и тон meme). С 5 до 15 — теория с живой демонстрацией лога реальной атаки. 30 минут на практику — это самая мясистая часть. Последние 15 минут — проект и демо. Следите за временем, особенно в блоке с ротацией логов — там легко застрять, если logrotate дебажить руками.">
+  <div class="slide-num">04 · Тайминг</div>
+  <h2>Поминутный план урока</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="time">0–5 мин</div>
+      <div class="label">Разогрев</div>
+      <div class="desc">ДЗ: тон meme, зачитываем самый угарный гороскоп</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">5–15 мин</div>
+      <div class="label">Теория-демо</div>
+      <div class="desc">Расчёт «1000 rps × 0.03 ₽». Живой лог атаки из портфолио</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">15–45 мин</div>
+      <div class="label">Практика</div>
+      <div class="desc">slowapi → logging → logrotate → htop/df/ss</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">45–55 мин</div>
+      <div class="label">Проект</div>
+      <div class="desc">Коммит <code>logging_config.py</code> и deploy/logrotate</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">55–60 мин</div>
+      <div class="label">Демо</div>
+      <div class="desc"><code>tail -n 30 /var/log/vibe-api.log</code> — у каждого</div>
+    </div>
+  </div>
+  <div class="glass-card" style="margin-top: 32px;">
+    <h3>Что нужно иметь к началу</h3>
+    <div class="badge-row">
+      <span class="tag success">Живой FastAPI на VM</span>
+      <span class="tag success">systemd-юнит с урока 6</span>
+      <span class="tag success">Nginx c SSL (урок 7–8)</span>
+      <span class="tag success">Эндпоинты /translate и /horoscope (урок 4, 9)</span>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 6: Arithmetic of abuse -->
+<section class="slide" data-notes="Это — математический разогрев. Не философствуем, считаем. Один запрос к GigaChat — в среднем 3 копейки. Бот делает 1000 запросов в секунду (это реалистичное число для простого HTTP-флуда). 1000 × 0.03 = 30 рублей в секунду. 1800 в минуту. 108 000 в час. 2.6 миллиона в сутки. Этот слайд должен буквально напугать — чтобы дальнейшая работа по настройке rate-limit воспринималась не как нудность, а как страховка.">
+  <div class="slide-num">05 · Арифметика абьюза</div>
+  <h2>Считаем на пальцах: во сколько тебе обойдётся <span class="gradient-text">открытый API</span></h2>
+  <div class="grid grid-4" style="margin-top: 24px;">
+    <div class="glass-card">
+      <div class="big-number" style="font-size: 48px;">0.03₽</div>
+      <div class="metric-label">1 вызов LLM</div>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">средний ценник GigaChat Pro</p>
+    </div>
+    <div class="glass-card">
+      <div class="big-number" style="font-size: 48px;">1000</div>
+      <div class="metric-label">rps от бота</div>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">простой HTTP-флуд, без ботнета</p>
+    </div>
+    <div class="glass-card">
+      <div class="big-number danger" style="font-size: 48px;">1.8к</div>
+      <div class="metric-label">₽ / минуту</div>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">пока ты моешь руки — уже 200 ₽</p>
+    </div>
+    <div class="glass-card">
+      <div class="big-number danger" style="font-size: 48px;">2.6М</div>
+      <div class="metric-label">₽ / сутки</div>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">пока ты спишь — карта родителя в нуле</p>
+    </div>
+  </div>
+  <div class="callout warn" style="margin-top: 28px;">
+    <strong>Реальный кейс 2024:</strong> один open-source автор выложил демо с GPT-4 API без лимита — получил $2300 за 4 часа, пока не нашёл уведомление от OpenAI. Боты мониторят GitHub по слову «demo». Не повторяй.
+  </div>
+</section>
+
+<!-- Слайд 7: Концепция rate-limit -->
+<section class="slide" data-notes="Теперь сама концепция. Rate-limit — это вахтёр в подъезде. Ты говоришь ему: 'с одного ключа — не больше 10 заходов за минуту'. Кто превысил — получает вежливый отказ 429. Алгоритмов много: fixed window, sliding window, token bucket. Мы возьмём самый простой — sliding window внутри slowapi — потому что для учебного проекта этого хватает. Главное — понять концепцию: ключ (обычно IP), лимит (N запросов в T времени), ответ (429).">
+  <div class="slide-num">06 · Концепция</div>
+  <h2>Что такое rate-limit на пальцах</h2>
+  <div class="split">
+    <div>
+      <p class="lead" style="margin-bottom: 20px;">Правило: «с одного IP не больше <strong>N запросов за T времени</strong>». Превысил — получи <code>429 Too Many Requests</code> и остынь.</p>
+      <div class="flow-diagram" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+        <div class="flow-node">Клиент → запрос 1</div>
+        <div class="flow-node">Клиент → запрос 2</div>
+        <div class="flow-node">...</div>
+        <div class="flow-node highlight">Клиент → запрос 10 · OK</div>
+        <div class="flow-node" style="border-color: var(--danger); color: var(--danger);">Клиент → запрос 11 · 429</div>
+      </div>
+      <div class="callout" style="margin-top: 16px;">
+        <code>429</code> — код «притормози, не успеваю». Клиент должен ждать <code>Retry-After</code> секунд.
+      </div>
+    </div>
+    <div>
+      <h3>Алгоритмы под капотом</h3>
+      <table class="compare-table">
+        <thead><tr><th>Алгоритм</th><th>Суть</th></tr></thead>
+        <tbody>
+          <tr><td>Fixed window</td><td>Минутные корзины. Просто, но есть «пики на границе»</td></tr>
+          <tr><td>Sliding window</td><td>Скользящее окно. Ровнее. <strong>Это slowapi</strong></td></tr>
+          <tr><td>Token bucket</td><td>Банка токенов, каждый запрос — один токен</td></tr>
+          <tr><td>Leaky bucket</td><td>Обратный token bucket, плавная выдача</td></tr>
+        </tbody>
+      </table>
+      <div class="callout success" style="margin-top: 14px;">
+        Для учебного проекта <strong>sliding window</strong> — идеально. Не надо писать руками — есть готовая библиотека <code>slowapi</code>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 8: Установка slowapi -->
+<section class="slide" data-notes="Первый шаг практики. Ставим slowapi — это аналог Flask-Limiter для FastAPI. Библиотека простая, живёт в памяти процесса. Для кластера из нескольких воркеров уже нужен Redis-backend, но у нас один процесс — нас хватит. Обязательно после установки сделайте pip freeze и обновите requirements.txt — иначе на следующем деплое VM забудет про slowapi.">
+  <div class="slide-num">07 · Практика · шаг 1</div>
+  <h2>Устанавливаем slowapi</h2>
+  <div class="grid grid-2">
+    <div>
+      <h3>В <code>venv</code> на VM</h3>
+      <div class="code-readonly"><pre><code class="language-bash">ssh ubuntu@&lt;твой-IP&gt;
+cd ~/vibe-step2-&lt;имя&gt;/api
+source .venv/bin/activate
+pip install slowapi
+pip freeze &gt; requirements.txt</code></pre><span class="lang-tag">bash</span></div>
+      <div class="callout warn" style="margin-top: 16px;">
+        Не забудь <code>pip freeze</code>. Иначе следующий деплой с чистой VM — и ты полчаса ищешь, почему <code>import slowapi</code> валится.
+      </div>
+    </div>
+    <div>
+      <h3>Что внутри библиотеки</h3>
+      <ul>
+        <li><code>Limiter</code> — главный класс, считает запросы</li>
+        <li><code>_rate_limit_exceeded_handler</code> — возвращает красивый 429</li>
+        <li><code>get_remote_address</code> — достаёт IP из запроса</li>
+        <li>In-memory storage (по умолчанию) или Redis</li>
+      </ul>
+      <div class="badge-row">
+        <span class="tag violet">slowapi</span>
+        <span class="tag">~28 KB</span>
+        <span class="tag">Python 3.8+</span>
+        <span class="tag success">MIT</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 9: Подключаем Limiter -->
+<section class="slide" data-notes="Самый важный код урока. Три шага: создать Limiter с функцией, которая достаёт IP из запроса; зарегистрировать его в app.state; повесить обработчик исключения; декоратором @limiter.limit повесить лимит на конкретный эндпоинт. Обязательно обращайте внимание: аргумент функции должен называться именно request, тип Request. Slowapi это требует — магия декоратора. Если назовёшь req — получишь странную ошибку.">
+  <div class="slide-num">08 · Практика · шаг 2</div>
+  <h2>Подключаем Limiter в main.py</h2>
+  <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">from fastapi import FastAPI, Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+limiter = Limiter(key_func=get_remote_address)
+
+app = FastAPI()
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.get("/horoscope")
+@limiter.limit("10/minute")
+async def horoscope(request: Request, sign: str, source: str = "gigachat"):
+    # ... твой код с LLM-вызовом
+    return {"sign": sign, "text": "..."}</div><div class="compiler-output"></div></div>
+  <div class="grid grid-2" style="margin-top: 20px;">
+    <div class="callout warn">
+      <strong>Обязательно</strong> первым аргументом идёт <code>request: Request</code>. Иначе slowapi не найдёт, откуда брать IP — молча пропустит лимит.
+    </div>
+    <div class="callout success">
+      Разные лимиты на разные эндпоинты: для <code>/ping</code> можно <code>100/minute</code>, для <code>/horoscope</code> — <code>10/minute</code>, потому что LLM дорогой.
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 10: Тест rate-limit -->
+<section class="slide" data-notes="Проверяем, что работает. Самый простой способ — 15 запросов в цикле через curl или httpx. Первые 10 отдадут 200, 11-й начиная отдаст 429 с заголовком Retry-After. Если у вас не срабатывает — 99% случаев это одно из двух: либо забыли app.state.limiter = limiter, либо nginx закрывает реальный IP (тогда все запросы идут с 127.0.0.1 — это к шагу X-Real-IP, который мы разберём на слайде 13).">
+  <div class="slide-num">09 · Тест</div>
+  <h2>Убеждаемся, что 11-й запрос получает 429</h2>
+  <div class="split">
+    <div>
+      <h3>Скрипт на Python для теста</h3>
+      <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import httpx, asyncio
+
+async def bomb():
+    async with httpx.AsyncClient() as c:
+        for i in range(15):
+            r = await c.get("https://твой-домен.ru/horoscope?sign=lev")
+            print(f"{i+1:02d} → {r.status_code}")
+
+asyncio.run(bomb())</div><div class="compiler-output"></div></div>
+    </div>
+    <div>
+      <h3>Ожидаемый вывод</h3>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.8; padding: 16px; background: rgba(5, 8, 15, 0.6); border-radius: 10px; border: 1px solid var(--border);">
+<span style="color: var(--success);">01 → 200</span><br>
+<span style="color: var(--success);">02 → 200</span><br>
+<span style="color: var(--success);">...</span><br>
+<span style="color: var(--success);">10 → 200</span><br>
+<span style="color: var(--danger);">11 → 429</span><br>
+<span style="color: var(--danger);">12 → 429</span><br>
+<span style="color: var(--danger);">13 → 429</span><br>
+<span style="color: var(--danger);">14 → 429</span><br>
+<span style="color: var(--danger);">15 → 429</span>
+      </div>
+      <div class="callout success" style="margin-top: 14px;">
+        Видишь 429 — значит rate-limit жив. Подожди минуту — счётчик сбросится.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 11: Структурное логирование -->
+<section class="slide" data-notes="Блок логирования. Это, наверное, самая недооцененная часть программирования у подростков. Print работает — но он захламляет, не сохраняется, без уровней. Python logging — это стандартная библиотека, знать её — обязательная гигиена. Формат: время, уровень, имя модуля, сообщение. Уровни: DEBUG (мелочь для разработки), INFO (обычная жизнь), WARNING (что-то странное), ERROR (сломалось), CRITICAL (всё плохо, сервис падает). На проде обычно включают INFO и выше — DEBUG флудит диск.">
+  <div class="slide-num">10 · Логирование</div>
+  <h2>Python <code>logging</code>: забудь про <code>print()</code></h2>
+  <div class="grid grid-2">
+    <div>
+      <h3>Почему print — зло на проде</h3>
+      <ul>
+        <li>Нет уровней: не отличишь debug от ошибки</li>
+        <li>Нет формата: просто текст, попробуй распарсь</li>
+        <li>Не ротируется, валится в stdout</li>
+        <li>Невозможно выключить без правки кода</li>
+      </ul>
+      <h3 style="margin-top: 24px;">Иерархия уровней</h3>
+      <table class="compare-table">
+        <thead><tr><th>Уровень</th><th>Когда</th></tr></thead>
+        <tbody>
+          <tr><td style="color: var(--text-dim);">DEBUG</td><td>Мелочь для разработки</td></tr>
+          <tr><td style="color: var(--cyan);">INFO</td><td>Обычная жизнь сервиса</td></tr>
+          <tr><td style="color: var(--warning);">WARNING</td><td>Странность, но не упало</td></tr>
+          <tr><td style="color: var(--danger);">ERROR</td><td>Что-то сломалось, клиенту плохо</td></tr>
+          <tr><td style="color: #DC2626;">CRITICAL</td><td>Сервис умирает прямо сейчас</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>logging_config.py</h3>
+      <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import logging
+from logging.handlers import RotatingFileHandler
+
+def setup_logging():
+    fmt = "%(asctime)s %(levelname)-8s %(name)s %(message)s"
+    formatter = logging.Formatter(fmt)
+
+    file_h = RotatingFileHandler(
+        "/var/log/vibe-api.log",
+        maxBytes=10_000_000,   # 10 MB
+        backupCount=5,
+    )
+    file_h.setFormatter(formatter)
+
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.addHandler(file_h)
+
+log = logging.getLogger("vibe")</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 12: Middleware для логирования запросов -->
+<section class="slide" data-notes="Каждый HTTP-запрос должен попадать в лог. Как это сделать красиво — middleware. Middleware — это обёртка вокруг каждого запроса: сначала выполняется код до, потом сам эндпоинт, потом код после. Мы замеряем время, ловим IP, эндпоинт, код ответа — и пишем одной строчкой в лог. Если где-то произошло исключение — логируем ERROR. Через неделю ты сможешь зайти в лог и увидеть: 'ага, вот в 3 утра кто-то 50 раз дёрнул /translate и получил 429 — видимо, снова боты'.">
+  <div class="slide-num">11 · Middleware</div>
+  <h2>Middleware, которая логирует каждый запрос</h2>
+  <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import time
+from fastapi import Request
+from logging_config import log
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.perf_counter()
+    ip = request.client.host
+    path = request.url.path
+    method = request.method
+
+    try:
+        response = await call_next(request)
+        elapsed_ms = (time.perf_counter() - start) * 1000
+        log.info(f"{ip} {method} {path} → {response.status_code} · {elapsed_ms:.0f}ms")
+        return response
+    except Exception as exc:
+        log.error(f"{ip} {method} {path} → 500 · {exc!r}")
+        raise</div><div class="compiler-output"></div></div>
+  <h3 style="margin-top: 24px;">Что получится в логе</h3>
+  <div class="log-line"><span class="ts">12:04:01</span><span class="lv info">INFO</span><span class="msg">95.2.14.7 GET /horoscope → 200 · 340ms</span></div>
+  <div class="log-line"><span class="ts">12:04:05</span><span class="lv info">INFO</span><span class="msg">95.2.14.7 GET /horoscope → 200 · 298ms</span></div>
+  <div class="log-line"><span class="ts">12:04:12</span><span class="lv warn">WARN</span><span class="msg">95.2.14.7 GET /horoscope → 429 · rate_limit_exceeded</span></div>
+  <div class="log-line"><span class="ts">12:04:18</span><span class="lv err">ERROR</span><span class="msg">83.4.1.1 POST /translate → 500 · httpx.TimeoutException</span></div>
+</section>
+
+<!-- Слайд 13: X-Real-IP за Nginx -->
+<section class="slide" data-notes="Частая ловушка новичков. Nginx стоит перед FastAPI — все запросы к приложению приходят с 127.0.0.1, то есть с самой же машины. Slowapi в этом случае будет считать, что весь интернет — это один клиент, и забанит всех после 10 запросов. Решение: в Nginx пробрасываем реальный IP в заголовок X-Real-IP, в коде учим slowapi его читать. Это три строчки кода плюс три строки конфига nginx. Это именно тот момент, где 'в теории понятно, на практике путаюсь' — обязательно показать вживую.">
+  <div class="slide-num">12 · Ловушка</div>
+  <h2>Почему за Nginx все запросы идут с <code>127.0.0.1</code></h2>
+  <div class="grid grid-2">
+    <div>
+      <h3>Проблема</h3>
+      <div class="flow-diagram" style="flex-direction: column; gap: 10px;">
+        <div class="flow-node">Клиент 95.2.14.7</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node highlight">Nginx :443</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="border-color: var(--danger); color: var(--danger);">FastAPI видит 127.0.0.1</div>
+      </div>
+      <div class="callout danger" style="margin-top: 14px;">
+        Все пользователи = один IP. Slowapi забанит всех одновременно. Это не rate-limit, это DoS на себя.
+      </div>
+    </div>
+    <div>
+      <h3>Правильный конфиг Nginx</h3>
+      <div class="code-readonly"><pre><code class="language-nginx">location / {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}</code></pre><span class="lang-tag">nginx</span></div>
+      <h3 style="margin-top: 20px;">И учим slowapi читать заголовок</h3>
+      <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def real_ip(request: Request) -&gt; str:
+    return request.headers.get(
+        "x-real-ip",
+        request.client.host,
+    )
+
+limiter = Limiter(key_func=real_ip)</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 14: Logrotate -->
+<section class="slide" data-notes="Ротация логов. Без неё файл vibe-api.log растёт бесконечно — у меня был кейс, когда на VM 20GB-диск превратился в кирпич за месяц из-за логов. Logrotate — стандартный инструмент Linux: пишешь конфиг, cron его запускает раз в сутки. Он архивирует вчерашний лог в .gz, создаёт новый пустой, отправляет сигнал приложению 'переоткрой файл'. Mission-critical опция — postrotate: без неё сервис продолжит писать в уже заархивированный файл, и ты ничего в новом не увидишь.">
+  <div class="slide-num">13 · Logrotate</div>
+  <h2>Режем логи каждый день, храним 7 дней</h2>
+  <div class="grid grid-2">
+    <div>
+      <h3>/etc/logrotate.d/vibe-api</h3>
+      <div class="code-readonly"><pre><code class="language-bash">/var/log/vibe-api.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 ubuntu ubuntu
+    postrotate
+        systemctl reload vibe-api &gt; /dev/null 2&gt;&amp;1 || true
+    endscript
+}</code></pre><span class="lang-tag">bash</span></div>
+    </div>
+    <div>
+      <h3>Что делает каждая строка</h3>
+      <ul>
+        <li><code>daily</code> — ротация раз в сутки</li>
+        <li><code>rotate 7</code> — хранить 7 архивов, потом удалять</li>
+        <li><code>compress</code> — сжимать в .gz (экономия 10×)</li>
+        <li><code>delaycompress</code> — вчерашний не жать, чтобы tail не ломался</li>
+        <li><code>missingok</code> — не падать, если файла нет</li>
+        <li><code>notifempty</code> — не ротировать пустой</li>
+        <li><code>create</code> — создать новый с правами ubuntu</li>
+        <li><code>postrotate</code> — перезагрузить сервис после</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout success" style="margin-top: 24px;">
+    Проверка вручную: <code>sudo logrotate -f /etc/logrotate.d/vibe-api</code> — принудительная ротация. Должен появиться файл <code>vibe-api.log.1</code>.
+  </div>
+</section>
+
+<!-- Слайд 15: Мониторинг VM -->
+<section class="slide" data-notes="Мониторинг. Прежде чем ставить Prometheus, Grafana и прочие взрослые штуки — научись читать три базовые команды. htop — процессы, CPU, RAM, uptime. df -h — сколько места на диске. ss -tlnp — какие порты слушаются. Это 90% админских вопросов в первом приближении. Если сервис тормозит — смотришь htop. Если upload файлов не работает — df -h. Если Nginx не запускается — ss -tlnp покажет, что кто-то другой уже занял порт 80.">
+  <div class="slide-num">14 · Мониторинг</div>
+  <h2>Три команды, которые закрывают 90% админских вопросов</h2>
+  <div class="commands-list">
+    <div class="cmd-row">
+      <div class="cmd-code">htop</div>
+      <div class="cmd-desc">Живая картина процессов. CPU, RAM, uptime. <code>F9</code> — kill, <code>F6</code> — сортировка. Твой Task Manager для Linux.</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-code">df -h</div>
+      <div class="cmd-desc">Сколько места на дисках, в читаемом виде (M/G). Если <code>/</code> &gt; 85% — пора чистить логи.</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-code">free -h</div>
+      <div class="cmd-desc">Сколько RAM занято. Если <code>available</code> близко к нулю — OOM Killer скоро убьёт процесс.</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-code">ss -tlnp</div>
+      <div class="cmd-desc">Кто какой порт слушает. Новый netstat. Увидел незнакомый LISTEN на 8000 — проверь.</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-code">journalctl -u vibe-api -f</div>
+      <div class="cmd-desc">Логи systemd-сервиса в реальном времени. <code>-n 50</code> — последние 50 строк.</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-code">tail -f /var/log/vibe-api.log</div>
+      <div class="cmd-desc">Живой tail application-лога. Параллельно с <code>journalctl</code> — видишь и systemd, и приложение.</div>
+    </div>
+    <div class="cmd-row">
+      <div class="cmd-code">uptime</div>
+      <div class="cmd-desc">Сколько VM живёт + load average. <code>0.2 0.1 0.05</code> — покой. <code>4.0 3.5 2.0</code> — перегрев.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 16: Ключевые фразы -->
+<section class="slide" data-notes="Блок цитат от преподавателя. Это не просто хлёсткие фразы — это якоря, которые ребёнок унесёт с урока. 'Админ, который не читает логи — не админ' — эта фраза запомнится сильнее, чем любое определение. Повторяй их вслух, используй как отбивки между блоками. На защите через 2 урока — один из таких афоризмов обязательно всплывёт.">
+  <div class="slide-num">15 · Философия</div>
+  <h2>Ключевые фразы преподавателя</h2>
+  <div class="grid grid-2">
+    <div class="glass-card">
+      <div class="quote">«Без rate-limit твой API — подарок скрипт-киддис.»</div>
+    </div>
+    <div class="glass-card">
+      <div class="quote">«Логи = чёрный ящик самолёта. Упало — идёшь читать, а не гадать.»</div>
+    </div>
+    <div class="glass-card">
+      <div class="quote">«Структурный лог лучше <code>print()</code> в случайных местах.»</div>
+    </div>
+    <div class="glass-card">
+      <div class="quote">«Диск в 20 GB кончается быстрее, чем кажется. Ротация — обязательна.»</div>
+    </div>
+    <div class="glass-card">
+      <div class="quote">«Мониторинг = <code>htop</code>, <code>df -h</code>, <code>free -h</code>. Этого хватит в 90% случаев.»</div>
+    </div>
+    <div class="glass-card">
+      <div class="quote">«Админ, который не читает логи — не админ.»</div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 17: Мини-проект -->
+<section class="slide" data-notes="Артефакт урока, который ребёнок получит. Это уже третий урок подряд, где коммит в репозиторий — это реальный коммерческий продукт. Файлы logging_config.py и vibe-api logrotate-конфиг — они прикольны, но главное — API теперь можно публично светить в интернете без страха. Это огромный скачок в зрелости проекта.">
+  <div class="slide-num">16 · Мини-проект</div>
+  <h2>Что лежит в репо после урока</h2>
+  <div class="grid grid-2">
+    <div class="glass-card">
+      <div class="meta-label">api/</div>
+      <ul>
+        <li><code>logging_config.py</code> — настройка Python-логгера</li>
+        <li><code>main.py</code> (обновлён) — slowapi + middleware</li>
+        <li><code>requirements.txt</code> (обновлён) — добавлен slowapi</li>
+      </ul>
+    </div>
+    <div class="glass-card">
+      <div class="meta-label">deploy/</div>
+      <ul>
+        <li><code>logrotate/vibe-api</code> — конфиг ротации</li>
+        <li><code>nginx/vibe-api.conf</code> (обновлён) — X-Real-IP</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout success" style="margin-top: 28px;">
+    <strong>Результат:</strong> API теперь можно публично светить в <code>Telegram</code> и <code>vc.ru</code> без страха счёта на 10&nbsp;000&nbsp;₽. Это называется <strong>продакшн-готовность</strong>.
+  </div>
+  <div class="badge-row" style="margin-top: 20px;">
+    <span class="tag success">rate-limit</span>
+    <span class="tag success">structured logs</span>
+    <span class="tag success">log rotation</span>
+    <span class="tag success">X-Real-IP</span>
+    <span class="tag success">prod-ready</span>
+  </div>
+</section>
+
+<!-- Слайд 18: Домашка -->
+<section class="slide" data-notes="Домашка — это нагрузочный тест собственного API. Обычно ребята делают её с удовольствием, потому что это 'что-то ломать'. Скрипт на 20 rps в течение минуты — 1200 запросов. Первые 10 каждую минуту проходят, остальные — 429. Скриншот лога с 429-ми — доказательство, что rate-limit жив. Время — 20 минут максимум, чтобы не съесть вечер.">
+  <div class="slide-num">17 · ДЗ</div>
+  <h2>Домашнее задание <span style="color: var(--text-dim); font-size: 0.55em;">(≤ 20 минут)</span></h2>
+  <div class="split">
+    <div>
+      <h3>Задача</h3>
+      <p class="lead" style="font-size: 17px;">Запустить на VM нагрузку: <strong>20 запросов в секунду в течение минуты</strong>. Прислать скриншот лога, где видны срабатывания rate-limit.</p>
+      <h3 style="margin-top: 24px;">Скрипт нагрузки</h3>
+      <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import httpx, asyncio, time
+
+async def bomb(url, rps=20, duration=60):
+    delay = 1 / rps
+    end = time.time() + duration
+    async with httpx.AsyncClient() as c:
+        while time.time() &lt; end:
+            asyncio.create_task(c.get(url))
+            await asyncio.sleep(delay)
+
+asyncio.run(bomb("https://твой-домен.ru/horoscope?sign=lev"))</div><div class="compiler-output"></div></div>
+    </div>
+    <div>
+      <h3>Что прислать</h3>
+      <ul>
+        <li>Скриншот <code>tail -n 50 /var/log/vibe-api.log</code></li>
+        <li>В логе должно быть минимум <strong>10 строк с 429</strong></li>
+        <li>Подпись: сколько у тебя получилось OK / 429 за минуту</li>
+      </ul>
+      <div class="callout warn" style="margin-top: 16px;">
+        Запускай тест из другой сети (например, с телефона через hotspot). Если запустишь прямо на VM — всё будет с 127.0.0.1, и rate-limit нечестный.
+      </div>
+      <div class="callout success" style="margin-top: 14px;">
+        Бейдж на защите: <strong>«Ограничитель»</strong> — за чистый лог с срабатываниями.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 19: Сложности и решения -->
+<section class="slide" data-notes="Три типичные грабли. Первая — X-Real-IP, мы её уже разобрали, но повторюсь: это частая ловушка. Вторая — права на файл лога. Если создать /var/log/vibe-api.log от root, а процесс работает от ubuntu — Python получит PermissionError и не напишет ничего. Лечится touch + chown. Третья — забыли app.state.limiter. Без этой строчки slowapi не подхватится, и все запросы пройдут без лимита — самое обидное, что ошибок нет, просто тихо не работает.">
+  <div class="slide-num">18 · Грабли</div>
+  <h2>Типичные сложности и лечение</h2>
+  <div class="risk-grid">
+    <div class="risk-card warn">
+      <div class="rc-title">slowapi ругается на <code>request.client.host</code></div>
+      <div class="rc-fix">За Nginx не видно реальный IP. Прописать <code>proxy_set_header X-Real-IP $remote_addr;</code> и взять его в коде (слайд 13).</div>
+    </div>
+    <div class="risk-card err">
+      <div class="rc-title">Логи не пишутся в файл</div>
+      <div class="rc-fix">Права. <code>sudo touch /var/log/vibe-api.log</code>, <code>sudo chown ubuntu /var/log/vibe-api.log</code>, рестарт сервиса.</div>
+    </div>
+    <div class="risk-card err">
+      <div class="rc-title">429 не возвращается, все запросы идут</div>
+      <div class="rc-fix">Забыл <code>app.state.limiter = limiter</code>. Классика. Пропущенная строка — пропущенный лимит.</div>
+    </div>
+    <div class="risk-card warn">
+      <div class="rc-title">logrotate не ротирует</div>
+      <div class="rc-fix">Проверь <code>sudo logrotate -d /etc/logrotate.d/vibe-api</code> — dry-run покажет, чего не хватает. Часто — прав или <code>missingok</code>.</div>
+    </div>
+    <div class="risk-card warn">
+      <div class="rc-title">После ротации в файл ничего не пишется</div>
+      <div class="rc-fix">Без <code>postrotate</code> сервис пишет в заархивированный. Надо дать сигнал — <code>systemctl reload</code>.</div>
+    </div>
+    <div class="risk-card ok">
+      <div class="rc-title">Бонус для опережающих</div>
+      <div class="rc-fix">Поставь алёрт в Telegram: <code>systemctl is-active vibe-api</code> через cron раз в минуту — упал сервис = бот шлёт в личку.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 20: Критерии успеха -->
+<section class="slide" data-notes="Жёсткие критерии оценки урока. Без домашки они не проверяются, но хотя бы первые три — на последних 5 минутах демо. Если все четыре выполнены — ставь 'зачёт'. Если три из четырёх — на дожим в начале следующего урока. Если два и меньше — значит где-то системно запутались, нужно индивидуально разбирать.">
+  <div class="slide-num">19 · Контроль</div>
+  <h2>Критерии успеха</h2>
+  <div class="grid grid-2">
+    <div class="glass-card">
+      <div class="icon-box">✓</div>
+      <h3>slowapi работает</h3>
+      <p style="color: var(--text-dim); font-size: 15px;">11-й запрос в минуту возвращает 429 с правильным заголовком <code>Retry-After</code>.</p>
+    </div>
+    <div class="glass-card">
+      <div class="icon-box">✓</div>
+      <h3>Логи пишутся</h3>
+      <p style="color: var(--text-dim); font-size: 15px;"><code>/var/log/vibe-api.log</code> содержит записи о запросах, ошибках, срабатываниях лимита.</p>
+    </div>
+    <div class="glass-card">
+      <div class="icon-box">✓</div>
+      <h3>Ротация включена</h3>
+      <p style="color: var(--text-dim); font-size: 15px;">Ручной запуск <code>logrotate -f</code> создаёт <code>.log.1</code>. Ежедневный cron работает.</p>
+    </div>
+    <div class="glass-card">
+      <div class="icon-box">✓</div>
+      <h3>Ученик читает htop</h3>
+      <p style="color: var(--text-dim); font-size: 15px;">На пальцах объясняет, что показывают <code>htop</code>, <code>df -h</code>, <code>ss -tlnp</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Слайд 21: Монетизация -->
+<section class="slide" data-notes="Блок монетизации — ключевая фишка нашего курса. Здесь мы не просто говорим 'вот такие навыки — это круто'. Мы показываем конкретную ценность в рублях. 'Защитить API от DDoS' — узкая ниша на Kwork. Конкуренция маленькая, чек приличный. За час-два работы — 3-8к. Таких заказов в месяц можно взять 2-3 и уже иметь карманные деньги. Ну и важный момент: теперь свой собственный API можно публично рекламировать — это значит, что следующий урок про README и оформление будет работать уже на готовом публичном продукте.">
+  <div class="slide-num">20 · Монетизация</div>
+  <h2><span class="gradient-text">Как зарабатывать</span> на этом навыке</h2>
+  <div class="grid grid-2">
+    <div class="glass-card">
+      <h3>Ниша на Kwork</h3>
+      <div class="monetize-stat">
+        <span class="val">3–8к ₽</span>
+        <span class="lbl">за заказ</span>
+      </div>
+      <div class="monetize-stat">
+        <span class="val">1–2 часа</span>
+        <span class="lbl">времени</span>
+      </div>
+      <p style="color: var(--text-dim); font-size: 14px; margin-top: 12px;">Типовая задача: «Защитить мой API от DDoS / оптимизировать логи / поставить rate-limit на Telegram-бота». Конкуренция ниже, чем в «сделаю сайт».</p>
+    </div>
+    <div class="glass-card">
+      <h3>Что ты уже умеешь продавать</h3>
+      <ul>
+        <li>slowapi + X-Real-IP за Nginx</li>
+        <li>Python logging + logrotate</li>
+        <li>journalctl + systemd-алёрты</li>
+        <li>Сборка «продакшн-гигиена» за час</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout" style="margin-top: 28px;">
+    <strong>Ключевой момент:</strong> теперь твой API можно светить в публичном интернете. Следующий урок — про README и оформление. Когда ты выложишь ссылку — за ней уже стоит реальный <strong>продукт</strong>, а не «студенческая поделка».
+  </div>
+  <div class="badge-row" style="margin-top: 18px;">
+    <span class="tag">Kwork</span>
+    <span class="tag">Fiverr</span>
+    <span class="tag">FL.ru</span>
+    <span class="tag violet">«Защита API от DDoS»</span>
+    <span class="tag violet">«Оптимизация логов»</span>
+  </div>
+</section>
+
+<!-- Слайд 22: Что дальше + финал -->
+<section class="slide final-slide" data-notes="Финальный слайд. Подводим итоги: API стал взрослым. На следующем уроке — оформление по-взрослому: README с бейджами, скрины, статусы uptime через uptimerobot. Это уже последние штрихи перед защитой 12-го урока. Напомни группе, что ДЗ проверяется на входе следующего урока — а те, кто пришлёт лог с 429 до вечера, получат +1 к кармическому счёту.">
+  <div class="slide-num">Конец урока 10 · Step 2</div>
+  <h1>API стал <span class="gradient-text">взрослым</span></h1>
+  <p class="lead">Rate-limit против ботов · Структурные логи · Ротация диска · Мониторинг VM. Теперь твой сервис можно безопасно светить в публичном интернете.</p>
+  <div class="grid grid-3" style="margin-top: 40px; width: 100%; max-width: 980px;">
+    <div class="glass-card" style="text-align: left;">
+      <div class="meta-label">Следующий урок</div>
+      <h3 style="font-size: 18px; margin-top: 6px;">№ 11 — README, OpenAPI, бейджи</h3>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">Оформляем по-взрослому. shields.io, uptimerobot, скриншоты Swagger в репо.</p>
+    </div>
+    <div class="glass-card" style="text-align: left;">
+      <div class="meta-label">Через 2 урока</div>
+      <h3 style="font-size: 18px; margin-top: 6px;">№ 12 — Защита модуля</h3>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">3 минуты pitch · живое демо · Q&A · бейджи. Готовь речь уже сейчас.</p>
+    </div>
+    <div class="glass-card" style="text-align: left;">
+      <div class="meta-label">Бейдж на горизонте</div>
+      <h3 style="font-size: 18px; margin-top: 6px;">«Ограничитель»</h3>
+      <p style="color: var(--text-dim); font-size: 13px; margin-top: 8px;">Присылай скриншот лога с 429 — получай.</p>
+    </div>
+  </div>
+  <div style="margin-top: 60px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-dim); letter-spacing: 2px;">
+    prod &middot; ready &middot; vibe &middot; coding
+  </div>
+</section>
+
+</div>
+
+<!-- Speaker notes overlay -->
+<div class="speaker-notes" id="speakerNotes">
+  <div class="sn-title">Speaker Notes</div>
+  <div class="sn-content" id="speakerNotesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-nginx.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const counter = document.getElementById('slideCounter');
+  const progress = document.getElementById('progressBar');
+  const notesPanel = document.getElementById('speakerNotes');
+  const notesContent = document.getElementById('speakerNotesContent');
+  const speakerIndicator = document.getElementById('speakerIndicator');
+  let current = 0;
+  let notesOn = false;
+
+  function show(i){
+    if (i < 0) i = 0;
+    if (i >= total) i = total - 1;
+    slides.forEach(s => s.classList.remove('active'));
+    slides[i].classList.add('active');
+    slides[i].scrollTop = 0;
+    current = i;
+    counter.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    progress.style.width = ((i + 1) / total * 100) + '%';
+    const notes = slides[i].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+  }
+
+  function toggleNotes(){
+    notesOn = !notesOn;
+    notesPanel.classList.toggle('visible', notesOn);
+    speakerIndicator.style.display = notesOn ? 'block' : 'none';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+      e.preventDefault(); show(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault(); show(current - 1);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); show(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); show(total - 1);
+    } else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      toggleNotes();
+    } else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

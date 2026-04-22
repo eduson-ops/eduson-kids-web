@@ -8077,3 +8077,82 @@ body:has(.lobby-v2) {
   transform: translateX(-50%);
   box-shadow: 0 4px 0 rgba(0,0,0,.15);
 }
+
+/* ── Global UI Toast ─────────────────────────────────────────────────── */
+.kb-ui-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--f-ui);
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(21,20,27,.35);
+  animation: kb-toast-in 0.22s ease-out, kb-toast-out 0.22s ease-in 2.1s forwards;
+}
+.kb-ui-toast--success { background: #1a7a4a; }
+.kb-ui-toast--error   { background: #b91c1c; }
+@keyframes kb-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes kb-toast-out {
+  to { opacity: 0; transform: translateX(-50%) translateY(12px); }
+}
+
+/* ── Achievement Unlock Toast ────────────────────────────────────────── */
+.achievement-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  background: var(--paper);
+  border: 2px solid #6B5CE7;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(21,20,27,.22);
+  z-index: 9999;
+  max-width: 320px;
+  animation: ach-in 0.3s cubic-bezier(0.34,1.56,0.64,1), ach-out 0.25s ease-in 3.1s forwards;
+}
+.achievement-toast-emoji {
+  font-size: 36px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.achievement-toast-body { flex: 1; min-width: 0; }
+.achievement-toast-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 2px;
+}
+.achievement-toast-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  font-family: var(--f-ui);
+}
+.achievement-toast-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+@keyframes ach-in {
+  from { opacity: 0; transform: translateX(40px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes ach-out {
+  to { opacity: 0; transform: translateX(40px) scale(0.95); }
+}

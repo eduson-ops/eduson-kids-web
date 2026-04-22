@@ -32,6 +32,12 @@ export type PropKind =
   | 'arch' | 'fence' | 'bench' | 'flower-pot' | 'halfpipe'
   // Special
   | 'windmill' | 'snowman' | 'satellite-dish'
+  // Food
+  | 'cake' | 'donut' | 'ice-cream'
+  // Sci-fi
+  | 'rocket' | 'robot' | 'ufo'
+  // Fantasy
+  | 'castle-tower' | 'magic-orb' | 'throne'
 
 export interface SpawnedPart {
   id: string
