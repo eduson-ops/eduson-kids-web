@@ -69,6 +69,22 @@ const CATEGORIES: Array<{ name: string; items: PaletteItem[] }> = [
       { kind: 'torch', emoji: '🔥', label: 'Факел', defaultColor: '#ff9454' },
     ],
   },
+  {
+    name: '✈️ Транспорт',
+    items: [
+      { kind: 'airplane', emoji: '✈️', label: 'Самолёт', defaultColor: '#88d4ff' },
+      { kind: 'boat', emoji: '⛵', label: 'Лодка', defaultColor: '#ff8c1a' },
+      { kind: 'train', emoji: '🚂', label: 'Поезд', defaultColor: '#e53' },
+    ],
+  },
+  {
+    name: '🛝 Площадка',
+    items: [
+      { kind: 'swing', emoji: '🪁', label: 'Качели', defaultColor: '#4c97ff' },
+      { kind: 'slide', emoji: '🛝', label: 'Горка', defaultColor: '#ff5464' },
+      { kind: 'seesaw', emoji: '⚖️', label: 'Качалка', defaultColor: '#48c774' },
+    ],
+  },
 ]
 
 export default function SpawnPalette() {
