@@ -67,10 +67,7 @@ export default function SiteEditor() {
       updateSite(site.id, { mode })
       return
     }
-    // Из Кода → предупреждение
-    if (site.mode === 'code' && (mode === 'template' || mode === 'blocks')) {
-      if (!confirm('Перейти в визуальный режим? Ручные правки HTML/CSS сохранятся, но могут быть перезаписаны при следующих изменениях.')) return
-    }
+    // Из Кода → просто переключаем (предупреждение убрано - пользователь сам решает)
     updateSite(site.id, { mode })
   }
 

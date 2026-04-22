@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
+import { useToast } from '../hooks/useToast'
 
 export default function Settings() {
   const navigate = useNavigate()
+  const { toast, show: showToast } = useToast()
   const [name, setName] = useState('')
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState('')
@@ -26,10 +28,16 @@ export default function Settings() {
     localStorage.setItem('ek_child_name', trimmed)
     setName(trimmed)
     setEditingName(false)
+    showToast('✓ Имя сохранено', 'success')
   }
 
   return (
     <PlatformShell activeKey="settings">
+      {toast && (
+        <div key={toast.key} className={`kb-ui-toast kb-ui-toast--${toast.kind}`}>
+          {toast.msg}
+        </div>
+      )}
       <section className="kb-cover kb-cover--violet" style={{ minHeight: 200 }}>
         <div className="kb-cover-meta">
           <span className="eyebrow">Аккаунт</span>

@@ -61,6 +61,7 @@ export default function ObjectScriptEditor({ target, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const wsRef = useRef<Blockly.WorkspaceSvg | null>(null)
   const [preview, setPreview] = useState<string>('')
+  const [confirmClear, setConfirmClear] = useState(false)
 
   const { title, meta } = headerTitle(target)
 
@@ -114,7 +115,6 @@ export default function ObjectScriptEditor({ target, onClose }: Props) {
   }, [target.scope === 'part' ? target.part.id : `${target.worldId}:${target.objectId}`])
 
   const clearScript = () => {
-    if (!confirm('Удалить скрипт этого объекта целиком?')) return
     saveScript(target, null)
     SFX.click()
     onClose()
@@ -131,9 +131,17 @@ export default function ObjectScriptEditor({ target, onClose }: Props) {
             </span>
           </div>
           <div className="obj-script-actions">
-            <button className="ghost" onClick={clearScript} title="Убрать скрипт с объекта">
-              🗑 Удалить
-            </button>
+            {!confirmClear ? (
+              <button className="ghost" onClick={() => setConfirmClear(true)} title="Убрать скрипт с объекта">
+                🗑 Удалить
+              </button>
+            ) : (
+              <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span style={{ fontSize: 12 }}>Удалить скрипт?</span>
+                <button className="ghost" style={{ color: '#ff5464', borderColor: '#ff5464' }} onClick={clearScript}>Да</button>
+                <button className="ghost" onClick={() => setConfirmClear(false)}>Нет</button>
+              </span>
+            )}
             <button className="kb-btn" onClick={onClose}>
               ✓ Готово
             </button>

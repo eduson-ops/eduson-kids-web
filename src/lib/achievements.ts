@@ -211,6 +211,13 @@ export const ACHIEVEMENTS: Achievement[] = [
   },
 ]
 
+// ─── Achievement unlock notification bus ─────────────
+const unlockListeners = new Set<(id: string) => void>()
+export function subscribeAchievementUnlock(fn: (id: string) => void): () => void {
+  unlockListeners.add(fn)
+  return () => unlockListeners.delete(fn)
+}
+
 // ─── Автоматическая перепроверка ────────────────────
 let recheckScheduled = false
 function scheduleRecheck() {
@@ -220,7 +227,9 @@ function scheduleRecheck() {
     recheckScheduled = false
     for (const a of ACHIEVEMENTS) {
       if (!hasAchievement(a.id) && a.check()) {
-        unlockAchievement(a.id)
+        if (unlockAchievement(a.id)) {
+          for (const fn of unlockListeners) fn(a.id)
+        }
       }
     }
   })

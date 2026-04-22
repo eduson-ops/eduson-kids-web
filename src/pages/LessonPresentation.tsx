@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getLesson, getModuleByLesson, getLesson as getL, KIND_LABEL, getLessonQuiz } from '../lib/curriculum'
 import type { Lesson, Module, QuizQuestion } from '../lib/curriculum'
@@ -390,13 +390,31 @@ export default function LessonPresentation() {
   // Reset answers when lesson changes
   useEffect(() => { setAnswers({}); setQuizSubmitted(false) }, [n])
 
-  const goNext = () => setIdx((i) => Math.min(SLIDES.length - 1, i + 1))
+  // Динамический список слайдов: базовые 9 + quiz-слайд если есть вопросы
+  const totalSlides = SLIDES.length + (quiz.length > 0 ? 1 : 0)
+  const quizIdx = SLIDES.length
+  const onQuizSlide = quiz.length > 0 && idx === quizIdx
+  const pct = ((idx + 1) / totalSlides) * 100
+
+  // Keep refs fresh so the keydown handler (registered once) sees current values.
+  const totalSlidesRef = useRef(totalSlides)
+  totalSlidesRef.current = totalSlides
+  const onQuizSlideRef = useRef(onQuizSlide)
+  onQuizSlideRef.current = onQuizSlide
+  const quizSubmittedRef = useRef(quizSubmitted)
+  quizSubmittedRef.current = quizSubmitted
+
+  const goNext = () => setIdx((i) => Math.min(totalSlides - 1, i + 1))
   const goPrev = () => setIdx((i) => Math.max(0, i - 1))
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); goNext() }
-      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); goPrev() }
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault()
+        if (onQuizSlideRef.current && !quizSubmittedRef.current) return
+        setIdx((i) => Math.min(totalSlidesRef.current - 1, i + 1))
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); setIdx((i) => Math.max(0, i - 1)) }
       if (e.key === 'Escape') navigate(`/learn/lesson/${n}`)
     }
     window.addEventListener('keydown', onKey)
@@ -413,12 +431,6 @@ export default function LessonPresentation() {
       </div>
     )
   }
-
-  // Динамический список слайдов: базовые 9 + quiz-слайд если есть вопросы
-  const totalSlides = SLIDES.length + (quiz.length > 0 ? 1 : 0)
-  const quizIdx = SLIDES.length
-  const onQuizSlide = quiz.length > 0 && idx === quizIdx
-  const pct = ((idx + 1) / totalSlides) * 100
 
   const onAnswer = (qi: number, opt: number) => {
     if (quizSubmitted) return

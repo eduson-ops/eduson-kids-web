@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Hub from './pages/Hub'
 import Login from './pages/Login'
+import AchievementToast from './components/AchievementToast'
 import './App.css'
 
 // Lazy-load heavy routes so the hub doesn't pull Three.js / Blockly on first paint.
@@ -36,6 +37,7 @@ const ROUTER_BASENAME = import.meta.env.BASE_URL.replace(/\/$/, '')
 export default function App() {
   return (
     <BrowserRouter basename={ROUTER_BASENAME}>
+      <AchievementToast />
       <Routes>
         {/* New brand front door */}
         <Route path="/" element={<Hub />} />

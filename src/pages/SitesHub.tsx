@@ -29,11 +29,13 @@ export default function SitesHub() {
     navigate(`/sites/${site.id}`)
   }
 
-  const onDelete = (id: string) => {
-    if (confirm('Удалить этот сайт? Это навсегда.')) {
-      deleteSite(id)
-      SFX.click()
-    }
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const onDelete = (id: string) => setDeleteConfirm(id)
+  const onDeleteConfirmed = () => {
+    if (!deleteConfirm) return
+    deleteSite(deleteConfirm)
+    SFX.click()
+    setDeleteConfirm(null)
   }
 
   return (
@@ -200,6 +202,34 @@ export default function SitesHub() {
           </div>
         </div>
       </section>
+
+      {/* Inline delete confirmation overlay */}
+      {deleteConfirm && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(21,20,27,.5)', zIndex: 9998,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }} onClick={() => setDeleteConfirm(null)}>
+          <div
+            className="kb-card"
+            style={{ maxWidth: 380, width: '90%', padding: '28px 32px', textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🗑</div>
+            <h3 className="h3" style={{ marginBottom: 8 }}>Удалить сайт?</h3>
+            <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginBottom: 24 }}>
+              Это навсегда. Восстановить будет нельзя.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+              <button className="kb-btn kb-btn--lg" style={{ background: '#ff5464', color: '#fff', borderColor: '#ff5464' }} onClick={onDeleteConfirmed}>
+                Удалить
+              </button>
+              <button className="kb-btn kb-btn--lg" onClick={() => setDeleteConfirm(null)}>
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PlatformShell>
   )
 }

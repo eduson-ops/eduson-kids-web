@@ -38,6 +38,7 @@ export default function Play() {
   const navigate = useNavigate()
   const game = gameId ? findGame(gameId) : undefined
   const [ready, setReady] = useState(false)
+  const [confirmReset, setConfirmReset] = useState(false)
   const [state, setState] = useState<GameState>({
     coins: 0,
     timeMs: 0,
@@ -70,9 +71,6 @@ export default function Play() {
   useEffect(() => () => setEditMode(false), [])
 
   useEffect(() => {
-    if (!localStorage.getItem('ek_child_name')) {
-      localStorage.setItem('ek_child_name', 'Гость')
-    }
     // Прогреваем Pyodide параллельно загрузке сцены — чтобы первый Run в Студии не ждал
     void warmPyodide()
     resetGame()
@@ -173,21 +171,26 @@ export default function Play() {
         <div className="edit-mode-hint">
           <strong>⚡ Режим редактирования.</strong>
           Клик по жёлтой ауре объекта → редактор блоков. <kbd>Q</kbd> — меню спавна.
-          {editsCount > 0 && (
+          {editsCount > 0 && !confirmReset && (
             <button
               className="edit-mode-exit"
               style={{ background: 'rgba(255,84,100,0.3)', borderColor: 'rgba(255,84,100,0.6)' }}
-              onClick={() => {
-                if (!gameId) return
-                if (confirm(`У тебя ${editsCount} правок в этом мире (удаления + перекраски). Вернуть мир как был?`)) {
-                  resetWorldEdits(gameId)
-                  location.reload()
-                }
-              }}
+              onClick={() => setConfirmReset(true)}
               title="Если карта кажется сломанной — это починит её"
             >
               🔄 Сбросить {editsCount} правки
             </button>
+          )}
+          {confirmReset && gameId && (
+            <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <span style={{ fontSize: 13 }}>Сбросить {editsCount} правок?</span>
+              <button
+                className="edit-mode-exit"
+                style={{ background: 'rgba(255,84,100,0.5)', borderColor: 'rgba(255,84,100,0.8)' }}
+                onClick={() => { resetWorldEdits(gameId); location.reload() }}
+              >Да</button>
+              <button className="edit-mode-exit" onClick={() => setConfirmReset(false)}>Нет</button>
+            </span>
           )}
           <button className="edit-mode-exit" onClick={() => setEditMode(false)}>
             Выйти
