@@ -87,8 +87,10 @@ export default function Studio() {
   return (
     <div className="studio-root">
       <header className="studio-header">
-        <button className="home-btn" onClick={onHome} aria-label="В лобби">
-          ←
+        <button className="home-btn" onClick={onHome} aria-label="В лобби" title="Назад в лобби">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
         </button>
         <div className="studio-brand">
           🎨 <strong>Студия</strong>

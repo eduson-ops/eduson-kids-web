@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Урок 11 — Каркас ассистента. Vibe Coding · 11–12 лет</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+
+<!-- Prism.js (one-dark-ish) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-one-dark.min.css" />
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
+<style>
+/* ============ Tokens ============ */
+:root{
+  --bg:#0B0F17;
+  --bg-2:#0E1420;
+  --bg-3:#121A2A;
+  --ink:#F1F5F9;
+  --ink-dim:#94A3B8;
+  --ink-mute:#64748B;
+  --violet:#7C3AED;
+  --cyan:#06B6D4;
+  --amber:#F59E0B;
+  --green:#10B981;
+  --red:#EF4444;
+  --line:rgba(148,163,184,.14);
+  --line-2:rgba(148,163,184,.22);
+  --glass:rgba(255,255,255,.04);
+  --glass-2:rgba(255,255,255,.06);
+  --grad: linear-gradient(135deg,#7C3AED 0%,#06B6D4 100%);
+  --grad-soft: linear-gradient(135deg,rgba(124,58,237,.18) 0%,rgba(6,182,212,.18) 100%);
+  --shadow: 0 30px 80px -20px rgba(0,0,0,.6), 0 8px 24px -12px rgba(124,58,237,.25);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;overflow:hidden;height:100%}
+body{
+  background:
+    radial-gradient(1200px 700px at 85% -10%, rgba(124,58,237,.18), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(6,182,212,.14), transparent 60%),
+    var(--bg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+code,pre,kbd{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+/* ============ Stage ============ */
+.deck{position:fixed;inset:0;overflow:hidden}
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:72px 88px 96px;
+  opacity:0;transform:translateY(14px) scale(.995);
+  transition:opacity .32s ease, transform .32s ease;
+  pointer-events:none;
+}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.leave{opacity:0;transform:translateY(-14px) scale(.995)}
+
+/* ============ Chrome ============ */
+.chrome-top{
+  position:fixed;top:0;left:0;right:0;height:3px;
+  background:rgba(255,255,255,.05);z-index:20;
+}
+.chrome-top > span{
+  display:block;height:100%;width:0;
+  background:var(--grad);
+  box-shadow:0 0 18px rgba(124,58,237,.5);
+  transition:width .35s ease;
+}
+.brand{
+  position:fixed;left:28px;top:22px;z-index:15;
+  display:flex;align-items:center;gap:10px;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);
+}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--grad);box-shadow:0 0 12px rgba(124,58,237,.7)}
+.counter{
+  position:fixed;right:28px;top:20px;z-index:15;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);
+  padding:6px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--glass);backdrop-filter:blur(10px);
+}
+.counter b{color:var(--ink)}
+.hint{
+  position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
+  z-index:15;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;
+  font-size:11px;color:var(--ink-mute);
+}
+.hint kbd{
+  font-size:11px;padding:3px 7px;border:1px solid var(--line-2);border-radius:6px;
+  background:var(--glass);color:var(--ink-dim);
+}
+.nav-arrows{
+  position:fixed;right:22px;bottom:18px;z-index:16;display:flex;gap:8px;
+}
+.nav-arrows button{
+  width:38px;height:38px;border-radius:10px;border:1px solid var(--line-2);
+  background:var(--glass);color:var(--ink);cursor:pointer;
+  display:grid;place-items:center;backdrop-filter:blur(10px);
+  transition:transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.nav-arrows button:hover{background:var(--glass-2);border-color:rgba(124,58,237,.5);transform:translateY(-1px)}
+.nav-arrows svg{width:18px;height:18px}
+
+.notes-toggle{
+  position:fixed;left:22px;bottom:18px;z-index:16;
+  border:1px solid var(--line-2);background:var(--glass);color:var(--ink-dim);
+  border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer;
+  backdrop-filter:blur(10px);
+  display:flex;align-items:center;gap:6px;
+}
+.notes-toggle:hover{color:var(--ink);border-color:rgba(6,182,212,.5)}
+.notes-toggle svg{width:14px;height:14px}
+
+/* ============ Typography ============ */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-dim);
+  padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--glass);
+  backdrop-filter:blur(8px);
+  margin-bottom:18px;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+h1{font-size:clamp(48px,6.2vw,96px);font-weight:800;letter-spacing:-.035em}
+h2{font-size:clamp(32px,3.6vw,52px)}
+h3{font-size:clamp(20px,1.8vw,26px);font-weight:600}
+p{margin:0;color:var(--ink-dim);line-height:1.55;font-size:17px}
+.gradient-text{
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.subtle-glow{text-shadow:0 0 40px rgba(124,58,237,.35), 0 0 80px rgba(6,182,212,.2)}
+
+/* ============ Pills ============ */
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:999px;
+  font-size:12px;font-weight:500;
+  border:1px solid var(--line-2);
+  background:var(--glass);color:var(--ink-dim);
+}
+.pill.violet{border-color:rgba(124,58,237,.4);color:#c4b5fd;background:rgba(124,58,237,.08)}
+.pill.cyan{border-color:rgba(6,182,212,.4);color:#67e8f9;background:rgba(6,182,212,.08)}
+.pill.amber{border-color:rgba(245,158,11,.4);color:#fcd34d;background:rgba(245,158,11,.08)}
+.pill.green{border-color:rgba(16,185,129,.4);color:#6ee7b7;background:rgba(16,185,129,.08)}
+
+/* ============ Cards ============ */
+.card{
+  background:var(--glass);
+  border:1px solid var(--line);
+  border-radius:18px;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-shadow:var(--shadow);
+}
+.card-pad{padding:26px 28px}
+
+/* ============ Cover ============ */
+.cover{justify-content:center;align-items:flex-start}
+.cover .num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;color:var(--ink-dim);letter-spacing:.2em;margin-bottom:18px;
+}
+.cover h1{max-width:14ch}
+.cover .sub{margin-top:22px;font-size:20px;color:var(--ink-dim);max-width:70ch}
+.cover .meta{display:flex;gap:10px;margin-top:40px;flex-wrap:wrap}
+.cover .orb{
+  position:absolute;width:520px;height:520px;border-radius:50%;
+  background:var(--grad);opacity:.20;filter:blur(90px);
+  right:-140px;top:-140px;pointer-events:none;
+}
+.cover .orb.alt{
+  right:auto;left:-160px;top:auto;bottom:-220px;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));opacity:.14;width:460px;height:460px;
+}
+.cover .grid-lines{
+  position:absolute;inset:0;pointer-events:none;opacity:.3;
+  background-image:
+    linear-gradient(to right, rgba(148,163,184,.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148,163,184,.05) 1px, transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);
+}
+
+/* ============ Layouts ============ */
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center}
+.two.rev{grid-template-columns:.9fr 1.1fr}
+.stack > * + *{margin-top:14px}
+.list-checks{display:grid;gap:12px;margin-top:24px}
+.list-checks li{
+  list-style:none;display:flex;align-items:flex-start;gap:14px;
+  padding:14px 18px;border-radius:14px;background:var(--glass);border:1px solid var(--line);
+  font-size:16px;color:var(--ink);
+}
+.list-checks .i{
+  flex:0 0 28px;height:28px;border-radius:8px;
+  display:grid;place-items:center;
+  background:var(--grad-soft);border:1px solid rgba(124,58,237,.35);
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:#c4b5fd;
+  font-weight:600;
+}
+
+/* ============ Code ============ */
+.code-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line-2);background:#0A0E17}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--line);
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);
+}
+.code-head .lights{display:flex;gap:6px}
+.code-head .lights span{width:10px;height:10px;border-radius:50%;background:#2a3142}
+.code-head .lights span:nth-child(1){background:#ff5f57}
+.code-head .lights span:nth-child(2){background:#febc2e}
+.code-head .lights span:nth-child(3){background:#28c840}
+.code-head .file{display:flex;align-items:center;gap:8px}
+.code-head .copy{
+  background:transparent;border:1px solid var(--line-2);color:var(--ink-dim);
+  font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 9px;border-radius:6px;
+  cursor:pointer;transition:all .15s ease;
+}
+.code-head .copy:hover{color:var(--ink);border-color:var(--cyan)}
+.code-wrap pre{margin:0;padding:22px 24px;font-size:14.5px;line-height:1.65;background:transparent!important;max-height:52vh;overflow:auto}
+.code-wrap pre code{font-size:14.5px!important}
+.caret{display:inline-block;width:8px;height:1.1em;background:var(--cyan);vertical-align:text-bottom;animation:blink 1s steps(2) infinite;margin-left:2px;border-radius:1px}
+@keyframes blink{50%{opacity:0}}
+
+/* ============ Diagram / arch ============ */
+.arch{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px}
+.arch .node{
+  position:relative;
+  padding:22px;border-radius:16px;border:1px solid var(--line-2);
+  background:linear-gradient(180deg,var(--glass-2),var(--glass));
+  backdrop-filter:blur(14px);
+}
+.arch .node h4{margin:0 0 6px;font-size:16px;font-weight:600;color:var(--ink)}
+.arch .node .file{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);margin-bottom:10px}
+.arch .node p{font-size:13px;color:var(--ink-dim);line-height:1.5}
+.arch .node .icon{
+  width:38px;height:38px;border-radius:10px;display:grid;place-items:center;margin-bottom:12px;
+  background:var(--grad-soft);border:1px solid rgba(124,58,237,.35);color:#c4b5fd;
+}
+.arch .node .icon svg{width:20px;height:20px}
+
+/* Folder tree */
+.tree{
+  font-family:'JetBrains Mono',monospace;font-size:15px;line-height:1.9;
+  padding:26px 30px;border-radius:16px;background:#0A0E17;border:1px solid var(--line-2);
+  color:var(--ink);
+}
+.tree .fld{color:#c4b5fd}
+.tree .fl{color:var(--ink)}
+.tree .ext{color:var(--ink-dim)}
+.tree .cmt{color:var(--ink-mute);margin-left:12px}
+
+/* ============ Step ============ */
+.step-head{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:6px}
+.step-tag{
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;color:var(--cyan);
+  padding:6px 10px;border:1px solid rgba(6,182,212,.3);border-radius:999px;background:rgba(6,182,212,.07);
+}
+.step-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-mute)}
+.details{
+  margin-top:18px;padding:14px 18px;border-radius:12px;
+  background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);
+}
+.details summary{cursor:pointer;color:#fcd34d;font-weight:500;font-size:14px;list-style:none;display:flex;align-items:center;gap:8px}
+.details summary::-webkit-details-marker{display:none}
+.details summary:before{content:'?';width:20px;height:20px;border-radius:50%;background:var(--amber);color:#0B0F17;display:grid;place-items:center;font-weight:700;font-size:12px;font-family:'JetBrains Mono',monospace}
+.details[open] summary:before{content:'!'}
+.details .body{margin-top:10px;font-size:14px;color:var(--ink-dim);line-height:1.6}
+.details .body code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:4px;color:#fcd34d;font-size:13px}
+
+/* ============ HW / result card ============ */
+.hero-card{
+  display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:flex-start;
+  padding:30px;border-radius:20px;
+  background:
+    linear-gradient(135deg, rgba(124,58,237,.12), rgba(6,182,212,.08)),
+    var(--glass);
+  border:1px solid rgba(124,58,237,.3);
+  backdrop-filter:blur(18px);
+  box-shadow:var(--shadow);
+}
+.hero-card .badge{
+  width:56px;height:56px;border-radius:14px;display:grid;place-items:center;
+  background:var(--grad);color:#fff;box-shadow:0 10px 30px -10px rgba(124,58,237,.6);
+}
+.hero-card .badge svg{width:26px;height:26px}
+.hero-card h3{margin-bottom:8px}
+.hero-card p{color:var(--ink-dim);font-size:16px}
+
+/* ============ Speaker notes ============ */
+.notes{
+  position:fixed;left:24px;right:24px;bottom:64px;z-index:18;
+  max-height:40vh;overflow:auto;
+  padding:18px 22px;border-radius:14px;
+  background:rgba(11,15,23,.92);backdrop-filter:blur(20px);
+  border:1px solid rgba(6,182,212,.35);
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  display:none;
+  font-size:14px;color:var(--ink-dim);line-height:1.6;
+}
+.notes.on{display:block;animation:fadeUp .25s ease}
+.notes h5{margin:0 0 8px;font-size:12px;color:var(--cyan);letter-spacing:.16em;text-transform:uppercase;font-weight:600}
+.notes ul{margin:0;padding-left:18px}
+.notes li+li{margin-top:6px}
+.notes code{background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;color:#fcd34d;font-family:'JetBrains Mono',monospace;font-size:12.5px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ============ Overview ============ */
+.overview{
+  position:fixed;inset:0;z-index:50;background:rgba(11,15,23,.96);backdrop-filter:blur(16px);
+  display:none;padding:56px 48px;overflow:auto;
+}
+.overview.on{display:block;animation:fadeUp .25s ease}
+.overview h3{margin-bottom:18px;color:var(--ink-dim);font-weight:500;font-size:14px;letter-spacing:.14em;text-transform:uppercase}
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.ov-card{
+  border:1px solid var(--line-2);border-radius:12px;background:var(--glass);padding:14px;
+  cursor:pointer;transition:all .15s ease;position:relative;
+  min-height:110px;display:flex;flex-direction:column;justify-content:space-between;
+}
+.ov-card:hover{border-color:var(--cyan);transform:translateY(-2px)}
+.ov-card .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)}
+.ov-card .t{font-size:14px;color:var(--ink);margin-top:8px;font-weight:500;line-height:1.35}
+.ov-card.active{border-color:var(--violet);background:rgba(124,58,237,.1)}
+
+/* ============ Accent shapes ============ */
+.float-orb{
+  position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;
+}
+.float-orb.a{background:var(--violet);opacity:.14;width:360px;height:360px;right:-80px;bottom:-80px}
+.float-orb.b{background:var(--cyan);opacity:.10;width:300px;height:300px;left:-60px;top:-60px}
+
+/* ============ Finale ============ */
+.finale{justify-content:center;align-items:center;text-align:center}
+.finale h1{font-size:clamp(56px,6.8vw,104px);max-width:20ch;margin:0 auto}
+.finale .motto{margin-top:26px;font-size:22px;color:var(--ink-dim);max-width:60ch}
+.finale .chip-row{display:flex;gap:10px;margin-top:36px;justify-content:center;flex-wrap:wrap}
+.qr{
+  margin-top:32px;width:120px;height:120px;border-radius:16px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(124,58,237,.6), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(6,182,212,.6), transparent 50%),
+    repeating-conic-gradient(#F1F5F9 0 25%, #0B0F17 0 50%);
+  background-size:cover, cover, 12px 12px;
+  border:3px solid #F1F5F9;
+  margin-left:auto;margin-right:auto;
+  opacity:.9;
+}
+
+/* ============ Misc ============ */
+.kbd-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.kbd-row kbd{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  padding:6px 10px;border:1px solid var(--line-2);border-radius:8px;
+  background:var(--glass);color:var(--ink);
+}
+.muted{color:var(--ink-mute)}
+.divider{height:1px;background:var(--line);margin:24px 0}
+
+/* responsive */
+@media (max-width:900px){
+  .slide{padding:60px 32px 92px}
+  .two,.two.rev{grid-template-columns:1fr}
+  .arch{grid-template-columns:1fr}
+  h1{font-size:44px}
+  h2{font-size:30px}
+}
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+
+<body>
+
+<!-- Top progress -->
+<div class="chrome-top"><span id="progress"></span></div>
+
+<!-- Brand -->
+<div class="brand">
+  <span class="dot"></span>
+  Vibe Coding · Step 1 · 11–12 лет
+</div>
+
+<!-- Counter -->
+<div class="counter"><b id="cur">01</b> / <span id="tot">00</span></div>
+
+<!-- Hint -->
+<div class="hint">
+  <span><kbd>←</kbd><kbd>→</kbd> навигация</span>
+  <span><kbd>Space</kbd> далее</span>
+  <span><kbd>Esc</kbd> обзор</span>
+  <span><kbd>F</kbd> fullscreen</span>
+  <span><kbd>N</kbd> заметки</span>
+</div>
+
+<!-- Notes toggle -->
+<button class="notes-toggle" id="notesBtn" aria-label="Notes">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+  Notes
+</button>
+
+<!-- Nav arrows -->
+<div class="nav-arrows">
+  <button id="prevBtn" aria-label="Prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+  <button id="nextBtn" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes"></div>
+
+<!-- Overview -->
+<div class="overview" id="overview">
+  <h3>Обзор слайдов — нажми чтобы перейти</h3>
+  <div class="ov-grid" id="ovGrid"></div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1. COVER -->
+  <section class="slide cover" data-notes="Приветствие: 'Сегодня строим большой проект. Как дом — сначала фундамент, потом стены.' | Цель занятия: заложить структуру финального модульного проекта Ассистент-болталка.">
+    <div class="grid-lines"></div>
+    <div class="orb"></div>
+    <div class="orb alt"></div>
+    <div class="num">УРОК 11 · МОДУЛЬ M-1 · НЕДЕЛЯ 11</div>
+    <h1 class="subtle-glow">Сборка <span class="gradient-text">«Ассистента‑болталки»</span>. Часть 1.</h1>
+    <p class="sub">Как разложить проект по файлам, собрать каркас и заставить <code style="color:#fcd34d">main.py</code> дирижировать всеми модулями.</p>
+    <div class="meta">
+      <span class="pill violet">Vibe Coding Course</span>
+      <span class="pill cyan">Возраст 11–12</span>
+      <span class="pill amber">60 минут</span>
+      <span class="pill">Python · GigaChat API</span>
+    </div>
+  </section>
+
+  <!-- 2. PLAN -->
+  <section class="slide" data-notes="Показать чеклист. Сказать: 'сегодня начинаем большой проект. За 2 урока соберём твоего первого ассистента.'">
+    <div class="float-orb a"></div>
+    <span class="eyebrow"><span class="dot"></span> План урока · 60 мин</span>
+    <h2>Что сделаем за <span class="gradient-text">один час</span></h2>
+    <ul class="list-checks">
+      <li><span class="i">01</span><div><b>Разбор ДЗ</b> из урока 10 — три персонажа на разных температурах. <span class="muted">· 5 мин</span></div></li>
+      <li><span class="i">02</span><div><b>Теория:</b> архитектура модульного проекта. Метафора «кухня». <span class="muted">· 10 мин</span></div></li>
+      <li><span class="i">03</span><div><b>Создаём структуру</b> папки <code style="color:#67e8f9">assistant/</code> из 5 файлов. <span class="muted">· 8 мин</span></div></li>
+      <li><span class="i">04</span><div><b>Пишем модули</b> <code style="color:#67e8f9">gigachat_client.py</code> и <code style="color:#67e8f9">storage.py</code>. <span class="muted">· 27 мин</span></div></li>
+      <li><span class="i">05</span><div><b>Собираем</b> <code style="color:#67e8f9">main.py</code> — точку входа, запускаем, проверяем. <span class="muted">· 10 мин</span></div></li>
+      <li><span class="i">06</span><div><b>Рефлексия</b> и ДЗ. <span class="muted">· 5 мин</span></div></li>
+    </ul>
+  </section>
+
+  <!-- 3. HOOK -->
+  <section class="slide" data-notes="Эмоциональный крючок. Сравни хаос в одном файле и порядок из нескольких. Сказать: 'большой проект — это как дом. Ты же не готовишь в спальне?'">
+    <div class="float-orb a"></div>
+    <div class="float-orb b"></div>
+    <span class="eyebrow"><span class="dot"></span> Hook</span>
+    <h1 style="max-width:18ch">Что если <span class="gradient-text">весь твой код</span> умещается в <i>одном</i> файле?</h1>
+    <p class="sub" style="margin-top:24px;max-width:66ch">Он работает — до 50 строк. Потом ты теряешься в собственной программе. Сегодня ты узнаешь приём, которым пользуются настоящие разработчики: <b style="color:#F1F5F9">разбиение по ответственности</b>.</p>
+    <div class="meta" style="margin-top:36px">
+      <span class="pill violet">Архитектура</span>
+      <span class="pill cyan">Модули</span>
+      <span class="pill amber">Импорт своего</span>
+    </div>
+  </section>
+
+  <!-- 4. THEORY: метафора кухни -->
+  <section class="slide" data-notes="Метафора: 'Большой проект — как кухня. Не всё на одном столе. Холодильник (клиент GigaChat), кладовка (файл истории), плита (главная программа). Каждый за своё.'">
+    <span class="eyebrow"><span class="dot"></span> Теория · метафора</span>
+    <h2>Проект — это <span class="gradient-text">кухня</span>. Каждый файл за своё.</h2>
+    <div class="arch">
+      <div class="node">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="5" y1="10" x2="19" y2="10"/></svg></div>
+        <h4>Холодильник</h4>
+        <div class="file">gigachat_client.py</div>
+        <p>Говорит с нейросетью. Берёт вопрос → возвращает ответ.</p>
+      </div>
+      <div class="node">
+        <div class="icon" style="background:rgba(6,182,212,.12);border-color:rgba(6,182,212,.35);color:#67e8f9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v14H3z"/><path d="M3 7V4h18v3"/><line x1="9" y1="11" x2="15" y2="11"/></svg></div>
+        <h4>Кладовка</h4>
+        <div class="file">storage.py</div>
+        <p>Хранит историю диалогов в <code>history.json</code>. Сохраняет и читает.</p>
+      </div>
+      <div class="node">
+        <div class="icon" style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35);color:#fcd34d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <h4>Плита</h4>
+        <div class="file">main.py</div>
+        <p>Главный: берёт вопрос у пользователя, командует другими, выводит ответ.</p>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:26px;font-size:14px">Словарь: <b style="color:#F1F5F9">модуль проекта</b> · <b style="color:#F1F5F9">импорт своего</b> · <b style="color:#F1F5F9">архитектура</b> · <b style="color:#F1F5F9">ответственность файла</b> · <b style="color:#F1F5F9">точка входа</b>.</p>
+  </section>
+
+  <!-- 5. THEORY: структура папки -->
+  <section class="slide" data-notes="Показать структуру как она будет выглядеть в VS Code. Объяснить: .env - секреты, history.json создастся сам.">
+    <span class="eyebrow"><span class="dot"></span> Теория · структура</span>
+    <div class="two">
+      <div>
+        <h2>Один <span class="gradient-text">ассистент</span> — <br/>пять файлов.</h2>
+        <p style="margin-top:20px">Папка <code style="color:#67e8f9">assistant/</code> — это контейнер. Внутри живут три питоновских модуля и два файла данных.</p>
+        <div class="stack" style="margin-top:22px">
+          <div><span class="pill violet">.py</span> <span class="muted">— код, исполняется</span></div>
+          <div><span class="pill amber">.env</span> <span class="muted">— секреты (токены). В GitHub НЕ коммитим.</span></div>
+          <div><span class="pill cyan">.json</span> <span class="muted">— данные. Появится сам при первом сохранении.</span></div>
+        </div>
+      </div>
+      <div class="tree">
+<span class="fld">assistant/</span>
+  <span class="fl">main.py</span>              <span class="cmt"># точка входа</span>
+  <span class="fl">gigachat_client.py</span>  <span class="cmt"># запрос к нейросети</span>
+  <span class="fl">storage.py</span>          <span class="cmt"># сохранение истории</span>
+  <span class="ext">.env</span>                <span class="cmt"># ключ API (секрет)</span>
+  <span class="ext">history.json</span>        <span class="cmt"># появится сам</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. THEORY: поток данных -->
+  <section class="slide" data-notes="Провести стрелкой поток: пользователь → main → client → GigaChat → main → storage → JSON. Спросить: 'кто с кем говорит?'">
+    <span class="eyebrow"><span class="dot"></span> Теория · поток данных</span>
+    <h2>Как один вопрос <span class="gradient-text">путешествует</span> по проекту</h2>
+    <div class="card card-pad" style="margin-top:28px">
+      <svg viewBox="0 0 1100 220" width="100%" style="display:block">
+        <defs>
+          <linearGradient id="gr1" x1="0" x2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#06B6D4"/></linearGradient>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#06B6D4"/></marker>
+        </defs>
+        <!-- user -->
+        <g transform="translate(20,70)">
+          <rect width="170" height="80" rx="14" fill="rgba(124,58,237,.1)" stroke="rgba(124,58,237,.5)"/>
+          <text x="85" y="36" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-weight="600" font-size="16">Пользователь</text>
+          <text x="85" y="58" text-anchor="middle" fill="#94A3B8" font-family="JetBrains Mono" font-size="12">ask_user()</text>
+        </g>
+        <!-- main -->
+        <g transform="translate(240,50)">
+          <rect width="200" height="120" rx="14" fill="url(#gr1)" opacity=".22" stroke="rgba(124,58,237,.7)"/>
+          <text x="100" y="46" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-weight="700" font-size="18">main.py</text>
+          <text x="100" y="70" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono" font-size="11">точка входа</text>
+          <text x="100" y="92" text-anchor="middle" fill="#94A3B8" font-family="Inter" font-size="12">дирижёр</text>
+        </g>
+        <!-- client -->
+        <g transform="translate(500,20)">
+          <rect width="240" height="80" rx="14" fill="rgba(6,182,212,.1)" stroke="rgba(6,182,212,.5)"/>
+          <text x="120" y="36" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-weight="600" font-size="15">gigachat_client.py</text>
+          <text x="120" y="58" text-anchor="middle" fill="#67e8f9" font-family="JetBrains Mono" font-size="12">ask(question)</text>
+        </g>
+        <!-- storage -->
+        <g transform="translate(500,120)">
+          <rect width="240" height="80" rx="14" fill="rgba(245,158,11,.1)" stroke="rgba(245,158,11,.5)"/>
+          <text x="120" y="36" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-weight="600" font-size="15">storage.py</text>
+          <text x="120" y="58" text-anchor="middle" fill="#fcd34d" font-family="JetBrains Mono" font-size="12">save(entry)</text>
+        </g>
+        <!-- giga -->
+        <g transform="translate(800,20)">
+          <rect width="270" height="80" rx="14" fill="rgba(16,185,129,.1)" stroke="rgba(16,185,129,.5)"/>
+          <text x="135" y="36" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-weight="600" font-size="16">GigaChat API</text>
+          <text x="135" y="58" text-anchor="middle" fill="#6ee7b7" font-family="JetBrains Mono" font-size="12">облако Сбера</text>
+        </g>
+        <!-- json -->
+        <g transform="translate(800,120)">
+          <rect width="270" height="80" rx="14" fill="rgba(124,58,237,.08)" stroke="rgba(124,58,237,.4)"/>
+          <text x="135" y="36" text-anchor="middle" fill="#F1F5F9" font-family="Inter" font-weight="600" font-size="16">history.json</text>
+          <text x="135" y="58" text-anchor="middle" fill="#c4b5fd" font-family="JetBrains Mono" font-size="12">{"q":...,"a":...}</text>
+        </g>
+        <!-- arrows -->
+        <path d="M190,110 L240,110" stroke="#06B6D4" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+        <path d="M440,90 L500,60" stroke="#06B6D4" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+        <path d="M440,130 L500,160" stroke="#06B6D4" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+        <path d="M740,60 L800,60" stroke="#06B6D4" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+        <path d="M740,160 L800,160" stroke="#06B6D4" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 7. DEMO CODE: gigachat_client -->
+  <section class="slide" data-notes="Показать что client — обёртка. Берём из урока 9/10. Важно: функция ask возвращает строку, всё остальное скрыто.">
+    <span class="eyebrow"><span class="dot"></span> Демо · код</span>
+    <h2><span class="gradient-text">gigachat_client.py</span> — разговорчивый холодильник</h2>
+    <div class="code-wrap" style="margin-top:20px">
+      <div class="code-head">
+        <div class="file">
+          <div class="lights"><span></span><span></span><span></span></div>
+          <span style="margin-left:12px">assistant/gigachat_client.py</span>
+        </div>
+        <button class="copy" data-copy>copy</button>
+      </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false"># gigachat_client.py — общается с нейросетью
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()  # подтягиваем .env в окружение
+TOKEN = os.getenv("GIGACHAT_TOKEN")
+URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+
+def ask(question: str) -&gt; str:
+    """Отправляет вопрос GigaChat и возвращает ответ строкой."""
+    headers = {"Authorization": f"Bearer {TOKEN}"}
+    data = {
+        "model": "GigaChat",
+        "messages": [{"role": "user", "content": question}],
+        "temperature": 0.7,
+    }
+    r = requests.post(URL, json=data, headers=headers, verify=False)
+    return r.json()["choices"][0]["message"]["content"]</div><div class="compiler-output"></div></div>
+    </div>
+    <p class="muted" style="margin-top:14px;font-size:13px">Снаружи видна только <code style="color:#fcd34d">ask()</code>. Всё остальное — внутренние детали. Это и есть <b style="color:#F1F5F9">инкапсуляция</b>.</p>
+  </section>
+
+  <!-- 8. DEMO CODE: storage -->
+  <section class="slide" data-notes="storage.py работает с JSON. save — дописывает, load_all — читает все записи. history.json хранит список словарей.">
+    <span class="eyebrow"><span class="dot"></span> Демо · код</span>
+    <h2><span class="gradient-text">storage.py</span> — аккуратная кладовка</h2>
+    <div class="code-wrap" style="margin-top:20px">
+      <div class="code-head">
+        <div class="file">
+          <div class="lights"><span></span><span></span><span></span></div>
+          <span style="margin-left:12px">assistant/storage.py</span>
+        </div>
+        <button class="copy" data-copy>copy</button>
+      </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false"># storage.py — хранит историю диалогов в history.json
+import json
+from pathlib import Path
+
+FILE = Path("history.json")
+
+def load_all() -&gt; list:
+    """Возвращает список всех записей. Если файла нет — пустой список."""
+    if not FILE.exists():
+        return []
+    return json.loads(FILE.read_text(encoding="utf-8"))
+
+def save(entry: dict) -&gt; None:
+    """Добавляет одну запись {"q":..., "a":..., "time":...} в историю."""
+    data = load_all()
+    data.append(entry)
+    FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2),
+                    encoding="utf-8")</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- 9. DEMO CODE: main.py -->
+  <section class="slide" data-notes="main.py — точка входа. Обрати внимание: import from storage и from gigachat_client. Это наши модули, а не pip-пакеты.">
+    <span class="eyebrow"><span class="dot"></span> Демо · код</span>
+    <h2><span class="gradient-text">main.py</span> — дирижёр оркестра</h2>
+    <div class="code-wrap" style="margin-top:20px">
+      <div class="code-head">
+        <div class="file">
+          <div class="lights"><span></span><span></span><span></span></div>
+          <span style="margin-left:12px">assistant/main.py</span>
+        </div>
+        <button class="copy" data-copy>copy</button>
+      </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false"># main.py — точка входа проекта
+from datetime import datetime
+from gigachat_client import ask       # наш модуль
+from storage import save              # наш модуль
+
+def ask_user() -&gt; str:
+    return input("Твой вопрос: ")
+
+def main():
+    question = ask_user()
+    answer = ask(question)
+    print("Ассистент:", answer)
+    save({
+        "q": question,
+        "a": answer,
+        "time": datetime.now().isoformat(timespec="seconds"),
+    })
+
+if __name__ == "__main__":
+    main()</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- 10. STEP 1/5 — создать структуру -->
+  <section class="slide" data-notes="Задание 1 (8 мин): создание структуры. Пусть ребёнок создаст папку руками через VS Code. ПКМ → new file.">
+    <div class="float-orb b"></div>
+    <div class="step-head">
+      <span class="step-tag">ШАГ 1 / 5</span>
+      <span class="step-time">~ 8 мин</span>
+    </div>
+    <h2>Создай <span class="gradient-text">каркас</span> в VS Code</h2>
+    <p style="margin-top:12px">Открой VS Code → <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>O</kbd> → выбери папку проекта. Создай структуру руками: ПКМ по проводнику → <b>New Folder</b>, потом <b>New File</b>.</p>
+    <div class="two" style="margin-top:22px">
+      <div class="tree">
+<span class="fld">my_project/</span>
+  <span class="fld">assistant/</span>
+    <span class="fl">main.py</span>
+    <span class="fl">gigachat_client.py</span>
+    <span class="fl">storage.py</span>
+    <span class="ext">.env</span>
+    <span class="cmt"># history.json не создавай руками!</span>
+      </div>
+      <div>
+        <div class="hero-card" style="padding:22px">
+          <div class="badge" style="background:rgba(245,158,11,.2);color:#fcd34d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg></div>
+          <div>
+            <h3>Правило</h3>
+            <p><code style="color:#fcd34d">history.json</code> создастся сам при первом сохранении. Если создать пустой — получишь ошибку <code style="color:#fcd34d">JSONDecodeError</code>.</p>
+          </div>
+        </div>
+        <details class="details">
+          <summary>Если застрял — подсказка</summary>
+          <div class="body">В терминале VS Code: <code>mkdir assistant && cd assistant</code>, потом <code>type nul &gt; main.py</code> (Windows) или <code>touch main.py</code> (Mac/Linux).</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. STEP 2/5 — .env -->
+  <section class="slide" data-notes="Пока ребёнок создаёт .env, напомни: не коммитим секреты. В .gitignore добавим на следующем уроке.">
+    <div class="step-head">
+      <span class="step-tag">ШАГ 2 / 5</span>
+      <span class="step-time">~ 2 мин</span>
+    </div>
+    <h2>Положи <span class="gradient-text">секрет</span> в <code style="color:#67e8f9;font-size:.8em">.env</code></h2>
+    <p style="margin-top:12px">Открой файл <code style="color:#fcd34d">.env</code> и добавь одну строку — свой токен GigaChat из урока 9. Без кавычек, без пробелов.</p>
+    <div class="code-wrap" style="margin-top:22px">
+      <div class="code-head">
+        <div class="file">
+          <div class="lights"><span></span><span></span><span></span></div>
+          <span style="margin-left:12px">assistant/.env</span>
+        </div>
+        <button class="copy" data-copy>copy</button>
+      </div>
+<div class="code-readonly"><pre><code class="language-bash">GIGACHAT_TOKEN=eyJhbGciOi...твой_токен_сюда...xyz</code></pre><span class="lang-tag">bash</span></div>
+    </div>
+    <details class="details">
+      <summary>Если застрял — подсказка</summary>
+      <div class="body">Токен получал в уроке 9 через Сбер ID. Если срок действия истёк — перегенерируй. Не ставь <code>=</code> с пробелами.</div>
+    </details>
+  </section>
+
+  <!-- 12. STEP 3/5 — gigachat_client -->
+  <section class="slide" data-notes="Задание 2 (12 мин). Скопируй из урока 9/10 и причеши. Функция ask принимает строку, отдаёт строку.">
+    <div class="step-head">
+      <span class="step-tag">ШАГ 3 / 5</span>
+      <span class="step-time">~ 12 мин</span>
+    </div>
+    <h2>Напиши <span class="gradient-text">gigachat_client.py</span></h2>
+    <p style="margin-top:12px">Функция одна: <code style="color:#fcd34d">def ask(question: str) -> str</code>. Берёт вопрос, возвращает ответ строкой. Без <code>print</code> внутри — модуль не должен шуметь.</p>
+    <div class="code-wrap" style="margin-top:20px">
+      <div class="code-head">
+        <div class="file">
+          <div class="lights"><span></span><span></span><span></span></div>
+          <span style="margin-left:12px">assistant/gigachat_client.py</span>
+        </div>
+        <button class="copy" data-copy>copy</button>
+      </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import os, requests
+from dotenv import load_dotenv
+
+load_dotenv()
+TOKEN = os.getenv("GIGACHAT_TOKEN")
+URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
+
+def ask(question: str) -&gt; str:
+    headers = {"Authorization": f"Bearer {TOKEN}"}
+    data = {"model": "GigaChat",
+            "messages": [{"role": "user", "content": question}],
+            "temperature": 0.7}
+    r = requests.post(URL, json=data, headers=headers, verify=False)
+    return r.json()["choices"][0]["message"]["content"]</div><div class="compiler-output"></div></div>
+    </div>
+    <details class="details">
+      <summary>Если застрял — подсказка</summary>
+      <div class="body">Нет <code>requests</code>? В терминале: <code>pip install requests python-dotenv</code>. Функция не видит токен? Проверь, что <code>.env</code> в той же папке, где запускаешь.</div>
+    </details>
+  </section>
+
+  <!-- 13. STEP 4/5 — storage -->
+  <section class="slide" data-notes="Задание 3 (15 мин). save и load_all. history.json = список словарей.">
+    <div class="float-orb a"></div>
+    <div class="step-head">
+      <span class="step-tag">ШАГ 4 / 5</span>
+      <span class="step-time">~ 15 мин</span>
+    </div>
+    <h2>Напиши <span class="gradient-text">storage.py</span></h2>
+    <p style="margin-top:12px">Две функции: <code style="color:#fcd34d">save(entry: dict)</code> — добавить запись, <code style="color:#fcd34d">load_all() -> list</code> — прочитать все. Хранит в <code style="color:#67e8f9">history.json</code>.</p>
+    <div class="code-wrap" style="margin-top:18px">
+      <div class="code-head">
+        <div class="file">
+          <div class="lights"><span></span><span></span><span></span></div>
+          <span style="margin-left:12px">assistant/storage.py</span>
+        </div>
+        <button class="copy" data-copy>copy</button>
+      </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import json
+from pathlib import Path
+
+FILE = Path("history.json")
+
+def load_all() -&gt; list:
+    if not FILE.exists():
+        return []
+    return json.loads(FILE.read_text(encoding="utf-8"))
+
+def save(entry: dict) -&gt; None:
+    data = load_all()
+    data.append(entry)
+    FILE.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )</div><div class="compiler-output"></div></div>
+    </div>
+    <details class="details">
+      <summary>Если застрял — подсказка</summary>
+      <div class="body">Файл пропадает? Ты открыл его в режиме <code>"w"</code> — он перезаписывает. Наш код использует <code>write_text</code> после <code>load_all</code>, так что записи накапливаются.</div>
+    </details>
+  </section>
+
+  <!-- 14. STEP 5/5 — main.py -->
+  <section class="slide" data-notes="Финальный шаг. Собираем main.py, импортируем оба модуля. Запусти: python main.py. Важно: запуск из папки assistant.">
+    <div class="step-head">
+      <span class="step-tag">ШАГ 5 / 5</span>
+      <span class="step-time">~ 10 мин</span>
+    </div>
+    <h2>Собери <span class="gradient-text">main.py</span> и запусти</h2>
+    <div class="two">
+      <div>
+        <p>Точка входа импортирует обе твои функции — <code style="color:#fcd34d">ask</code> и <code style="color:#fcd34d">save</code>. Спрашивает пользователя, получает ответ, печатает, сохраняет.</p>
+        <div class="code-wrap" style="margin-top:16px">
+          <div class="code-head">
+            <div class="file">
+              <div class="lights"><span></span><span></span><span></span></div>
+              <span style="margin-left:12px">assistant/main.py</span>
+            </div>
+            <button class="copy" data-copy>copy</button>
+          </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">from datetime import datetime
+from gigachat_client import ask
+from storage import save
+
+def ask_user() -&gt; str:
+    return input("Твой вопрос: ")
+
+def main():
+    q = ask_user()
+    a = ask(q)
+    print("Ассистент:", a)
+    save({"q": q, "a": a,
+          "time": datetime.now().isoformat(timespec="seconds")})
+
+if __name__ == "__main__":
+    main()</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="code-wrap">
+          <div class="code-head">
+            <div class="file">
+              <div class="lights"><span></span><span></span><span></span></div>
+              <span style="margin-left:12px">Terminal · PowerShell</span>
+            </div>
+          </div>
+<div class="code-readonly"><pre><code class="language-bash">PS&gt; cd assistant
+PS&gt; python main.py
+Твой вопрос: Привет! Кто ты?
+Ассистент: Я GigaChat, рад помочь...<span class="caret"></span></code></pre><span class="lang-tag">bash</span></div>
+        </div>
+        <details class="details">
+          <summary>Если застрял — подсказка</summary>
+          <div class="body"><code>ModuleNotFoundError: gigachat_client</code>? Значит ты запускаешь не из папки <code>assistant</code>. В терминале: <code>cd assistant</code>, потом <code>python main.py</code>.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. MINI PROJECT -->
+  <section class="slide" data-notes="Мини-проект. Ученик показывает структуру + один запуск. Спроси: 'почему 3 файла, а не один?'">
+    <span class="eyebrow"><span class="dot"></span> Мини‑проект · «Каркас ассистента»</span>
+    <h2>Что должно <span class="gradient-text">получиться</span></h2>
+    <div class="hero-card" style="margin-top:22px">
+      <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>
+        <h3>Работающая заготовка проекта</h3>
+        <p>Один вопрос проходит путь <b style="color:#F1F5F9">main → gigachat → storage</b>. В папке появился новый файл <code style="color:#fcd34d">history.json</code> с одной записью.</p>
+      </div>
+    </div>
+    <div class="card card-pad" style="margin-top:18px">
+      <h3 style="font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:12px">history.json — как выглядит</h3>
+      <div class="code-wrap">
+        <div class="code-head"><div class="file"><div class="lights"><span></span><span></span><span></span></div><span style="margin-left:12px">history.json</span></div></div>
+<pre style="max-height:30vh"><code class="language-json">[
+  {
+    "q": "Привет! Кто ты?",
+    "a": "Я GigaChat, рад помочь с вопросами по программированию...",
+    "time": "2026-04-20T18:42:11"
+  }
+]</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16. CHECKLIST -->
+  <section class="slide" data-notes="Похвала: 'Ты создал первый многофайловый проект — это уровень реального программиста'. Пусть отметит каждый пункт вслух.">
+    <span class="eyebrow"><span class="dot"></span> Чеклист · что получилось</span>
+    <h2>Проверь себя — все ли <span class="gradient-text">галочки</span>?</h2>
+    <ul class="list-checks" style="margin-top:28px">
+      <li><span class="i" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#6ee7b7">OK</span><div><b>Структура из 3 файлов создана</b> — <code>main.py</code>, <code>gigachat_client.py</code>, <code>storage.py</code>.</div></li>
+      <li><span class="i" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#6ee7b7">OK</span><div><b><code>main.py</code> импортирует функции</b> из двух других модулей через <code>from … import …</code>.</div></li>
+      <li><span class="i" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#6ee7b7">OK</span><div><b>Один запуск проходит без ошибок</b> — в консоли появился ответ от GigaChat.</div></li>
+      <li><span class="i" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#6ee7b7">OK</span><div><b>Ты можешь объяснить роль каждого файла</b> своими словами.</div></li>
+      <li><span class="i" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#6ee7b7">OK</span><div><b>В папке появился <code>history.json</code></b> — с хотя бы одной записью внутри.</div></li>
+    </ul>
+  </section>
+
+  <!-- 17. TROUBLES -->
+  <section class="slide" data-notes="Типичные сложности и решения. Пройти по каждой, спросить встречался ли.">
+    <div class="float-orb b"></div>
+    <span class="eyebrow"><span class="dot"></span> Если что-то пошло не так</span>
+    <h2>Типичные <span class="gradient-text">сложности</span> и как их победить</h2>
+    <div class="arch" style="grid-template-columns:repeat(2,1fr);margin-top:20px">
+      <div class="node">
+        <div class="icon" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <h4>ModuleNotFoundError</h4>
+        <p><code>gigachat_client</code> не находится. Ты запускаешь не из папки проекта. Делай <code>cd assistant</code>, потом <code>python main.py</code>.</p>
+      </div>
+      <div class="node">
+        <div class="icon" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/></svg></div>
+        <h4>Циклические импорты</h4>
+        <p>Редко, но бывает. Правило: если <b>A</b> импортит <b>B</b> — <b>B</b> не должен импортить <b>A</b>.</p>
+      </div>
+      <div class="node">
+        <div class="icon" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h4><code>.env</code> не видно</h4>
+        <p>Не установлен <code>python-dotenv</code>, или забыл <code>load_dotenv()</code> в начале файла.</p>
+      </div>
+      <div class="node">
+        <div class="icon" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <h4><code>history.json</code> не растёт</h4>
+        <p>Проверь режим открытия. <code>"w"</code> перезаписывает, мы используем <code>load → append → write</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18. BONUS -->
+  <section class="slide" data-notes="Бонус для опережающих: цветной вывод через rich. Не обязательно, но красиво.">
+    <span class="eyebrow"><span class="dot"></span> Бонус · для опережающих</span>
+    <h2>Добавь <span class="gradient-text">цвет</span> в консоль</h2>
+    <div class="two">
+      <div>
+        <p>Библиотека <code style="color:#fcd34d">rich</code> превращает скучный белый текст в цветной и стильный. Установи и замени <code>print</code> на <code>rich.print</code>.</p>
+        <div class="kbd-row"><kbd>pip install rich</kbd></div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-head"><div class="file"><div class="lights"><span></span><span></span><span></span></div><span style="margin-left:12px">main.py · с rich</span></div><button class="copy" data-copy>copy</button></div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">from rich import print
+
+print("[bold cyan]Ассистент:[/] ", end="")
+print(f"[green]{answer}[/]")
+print(f"[dim]сохранено {datetime.now():%H:%M:%S}[/]")</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19. HOMEWORK -->
+  <section class="slide" data-notes="ДЗ. Добавить count() в storage, вызвать в main. Срок — до урока 12. Формат: файл + скрин.">
+    <div class="float-orb a"></div>
+    <span class="eyebrow"><span class="dot"></span> Домашнее задание · ≤ 20 мин</span>
+    <h2>Счётчик <span class="gradient-text">истории</span></h2>
+    <div class="hero-card" style="margin-top:22px">
+      <div class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+      <div>
+        <h3>Задача</h3>
+        <p>Добавь в <code style="color:#fcd34d">storage.py</code> функцию <code style="color:#fcd34d">def count() -&gt; int</code> — сколько записей в <code>history.json</code>. В <code>main.py</code> вызови её <b>в начале</b> и выведи: <i>«В истории пока N записей»</i>.</p>
+      </div>
+    </div>
+    <div class="two" style="margin-top:18px">
+      <div class="code-wrap">
+        <div class="code-head"><div class="file"><div class="lights"><span></span><span></span><span></span></div><span style="margin-left:12px">storage.py · добавить</span></div></div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def count() -&gt; int:
+    return len(load_all())</div><div class="compiler-output"></div></div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-head"><div class="file"><div class="lights"><span></span><span></span><span></span></div><span style="margin-left:12px">main.py · до ask_user()</span></div></div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">from storage import save, count
+
+n = count()
+print(f"В истории пока {n} записей")</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+    <div class="meta" style="display:flex;gap:10px;margin-top:20px">
+      <span class="pill amber">Формат: файл + скрин</span>
+      <span class="pill cyan">Срок: до урока 12</span>
+      <span class="pill violet">Уровень: easy</span>
+    </div>
+  </section>
+
+  <!-- 20. REFLECTION -->
+  <section class="slide" data-notes="Закрытие: 'На следующем уроке финал: ассистент спросит 3 вопроса, сохранит, перескажет через GigaChat'. Вопросы для рефлексии.">
+    <span class="eyebrow"><span class="dot"></span> Рефлексия</span>
+    <h2>Два вопроса на <span class="gradient-text">подумать</span></h2>
+    <div class="arch" style="grid-template-columns:1fr 1fr;margin-top:28px">
+      <div class="node" style="padding:28px">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h4 style="font-size:20px">Зачем три файла?</h4>
+        <p style="font-size:15px">Зачем разделять код на 3 файла, а не писать всё в одном? Приведи два аргумента.</p>
+      </div>
+      <div class="node" style="padding:28px">
+        <div class="icon" style="background:rgba(6,182,212,.12);border-color:rgba(6,182,212,.35);color:#67e8f9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <h4 style="font-size:20px">Как импортировать своё?</h4>
+        <p style="font-size:15px">Как подключить функцию из соседнего файла? Напиши строку <code>from … import …</code>.</p>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:28px;font-size:15px;text-align:center">Следующий урок: финал проекта — ассистент задаёт <b style="color:#F1F5F9">3 вопроса</b>, сохраняет, <b style="color:#F1F5F9">пересказывает диалог</b> через GigaChat.</p>
+  </section>
+
+  <!-- 21. FINALE -->
+  <section class="slide finale" data-notes="Последний слайд. Финальная мотивация. QR-ссылка на чат курса.">
+    <div class="float-orb a"></div>
+    <div class="float-orb b"></div>
+    <span class="eyebrow" style="margin:0 auto 18px"><span class="dot"></span> Урок 11 · завершён</span>
+    <h1 class="subtle-glow">Ты сделал <span class="gradient-text">каркас</span>,<br/>осталось <span class="gradient-text">оживить</span>.</h1>
+    <p class="motto">На следующем уроке — твой ассистент заговорит. Сейчас — отдохни и выпей чаю. Ты сегодня настоящий архитектор.</p>
+    <div class="chip-row">
+      <span class="pill violet">Урок 12 · Защита проекта</span>
+      <span class="pill cyan">Chat: t.me/vibe_coding_course</span>
+    </div>
+    <div class="qr" aria-hidden="true"></div>
+    <p class="muted" style="margin-top:14px;font-size:13px">Сомневаешься — пиши в чат. Зависает — пришли скрин ошибки.</p>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const tot = slides.length;
+  const cur = document.getElementById('cur');
+  const totEl = document.getElementById('tot');
+  const progress = document.getElementById('progress');
+  const notes = document.getElementById('notes');
+  const notesBtn = document.getElementById('notesBtn');
+  const overview = document.getElementById('overview');
+  const ovGrid = document.getElementById('ovGrid');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let idx = 0, notesOn = false;
+
+  totEl.textContent = String(tot).padStart(2,'0');
+
+  // Build overview
+  slides.forEach((s,i)=>{
+    const h = s.querySelector('h1,h2');
+    const title = h ? h.textContent.replace(/\s+/g,' ').trim() : ('Слайд ' + (i+1));
+    const el = document.createElement('div');
+    el.className = 'ov-card';
+    el.innerHTML = '<div class="n">'+String(i+1).padStart(2,'0')+' / '+String(tot).padStart(2,'0')+'</div><div class="t">'+title+'</div>';
+    el.addEventListener('click', ()=>{ go(i); overview.classList.remove('on'); });
+    ovGrid.appendChild(el);
+  });
+
+  function render(){
+    slides.forEach((s,i)=>{
+      s.classList.toggle('active', i===idx);
+      s.classList.toggle('leave', i<idx);
+    });
+    cur.textContent = String(idx+1).padStart(2,'0');
+    progress.style.width = ((idx+1)/tot*100) + '%';
+    // notes
+    const n = slides[idx].getAttribute('data-notes') || '';
+    const items = n.split('|').map(s=>s.trim()).filter(Boolean);
+    notes.innerHTML = '<h5>Speaker notes · слайд '+(idx+1)+'</h5><ul>'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+    // overview active
+    Array.from(ovGrid.children).forEach((c,i)=>c.classList.toggle('active', i===idx));
+    // highlight code in active slide
+    if(window.Prism){ Prism.highlightAllUnder(slides[idx]); }
+  }
+  function go(i){ idx = Math.max(0, Math.min(tot-1, i)); render(); }
+  function next(){ go(idx+1); }
+  function prev(){ go(idx-1); }
+
+  document.addEventListener('keydown', (e)=>{
+    if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+    if(e.key==='ArrowRight' || e.key==='PageDown' || e.key===' '){ e.preventDefault(); next(); }
+    else if(e.key==='ArrowLeft' || e.key==='PageUp'){ e.preventDefault(); prev(); }
+    else if(e.key==='Home'){ go(0); }
+    else if(e.key==='End'){ go(tot-1); }
+    else if(e.key==='Escape'){ overview.classList.toggle('on'); }
+    else if(e.key==='f' || e.key==='F'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+    else if(e.key==='n' || e.key==='N' || e.key==='т' || e.key==='Т'){
+      notesOn = !notesOn;
+      notes.classList.toggle('on', notesOn);
+    }
+  });
+
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+  notesBtn.addEventListener('click', ()=>{
+    notesOn = !notesOn; notes.classList.toggle('on', notesOn);
+  });
+
+  // swipe
+  let touchX=null;
+  document.addEventListener('touchstart', e=>{ touchX = e.changedTouches[0].clientX; },{passive:true});
+  document.addEventListener('touchend', e=>{
+    if(touchX===null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx)>60){ dx<0?next():prev(); }
+    touchX=null;
+  },{passive:true});
+
+  // copy buttons
+  document.addEventListener('click', (e)=>{
+    const b = e.target.closest('[data-copy]');
+    if(!b) return;
+    const code = b.closest('.code-wrap').querySelector('pre code');
+    navigator.clipboard?.writeText(code.innerText).then(()=>{
+      const prev = b.textContent; b.textContent = 'copied!'; b.style.color = '#6ee7b7';
+      setTimeout(()=>{ b.textContent = prev; b.style.color=''; }, 1400);
+    });
+  });
+
+  // URL hash restore
+  const hash = parseInt(location.hash.slice(1),10);
+  if(!isNaN(hash) && hash>=1 && hash<=tot) idx = hash-1;
+  window.addEventListener('hashchange', ()=>{
+    const h = parseInt(location.hash.slice(1),10);
+    if(!isNaN(h)) go(h-1);
+  });
+
+  render();
+  // keep hash in sync
+  const obs = ()=>{ history.replaceState(null,'','#'+(idx+1)); };
+  document.addEventListener('keyup', obs);
+  prevBtn.addEventListener('click', obs); nextBtn.addEventListener('click', obs);
+
+  // re-highlight after Prism loads
+  const waitPrism = setInterval(()=>{
+    if(window.Prism){ clearInterval(waitPrism); Prism.highlightAll(); render(); }
+  }, 80);
+})();
+</script>
+
+</body>
+</html>

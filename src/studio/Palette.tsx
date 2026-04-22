@@ -3,6 +3,7 @@ import {
   setPlacingColor,
   setPlacingType,
   setTool,
+  updatePart,
   type EditorState,
 } from './editorState'
 
@@ -15,10 +16,14 @@ const PART_TYPES: Array<{
   label: string
   emoji: string
 }> = [
-  { type: 'cube', label: 'Блок', emoji: '🟦' },
-  { type: 'coin', label: 'Монетка', emoji: '💰' },
-  { type: 'finish', label: 'Финиш', emoji: '🏁' },
-  { type: 'spawn', label: 'Спавн', emoji: '📍' },
+  { type: 'cube',   label: 'Блок',    emoji: '🟦' },
+  { type: 'wall',   label: 'Стена',   emoji: '🧱' },
+  { type: 'floor',  label: 'Пол',     emoji: '⬛' },
+  { type: 'ramp',   label: 'Рампа',   emoji: '📐' },
+  { type: 'roof',   label: 'Крыша',   emoji: '🔺' },
+  { type: 'coin',   label: 'Монетка', emoji: '💰' },
+  { type: 'finish', label: 'Финиш',   emoji: '🏁' },
+  { type: 'spawn',  label: 'Спавн',   emoji: '📍' },
 ]
 
 export default function Palette({ state }: Props) {
@@ -63,27 +68,44 @@ export default function Palette({ state }: Props) {
         </div>
       </section>
 
-      <section>
-        <h4>Цвет</h4>
-        <div className="color-palette">
-          {PALETTE_COLORS.map((c) => (
-            <button
-              key={c}
-              className={`palette-swatch ${state.placingColor === c ? 'active' : ''}`}
-              style={{ background: c }}
-              onClick={() => setPlacingColor(c)}
-              aria-label={c}
-            />
-          ))}
-          <label className="palette-custom">
-            <input
-              type="color"
-              value={state.placingColor}
-              onChange={(e) => setPlacingColor(e.target.value)}
-            />
-          </label>
-        </div>
-      </section>
+      {(() => {
+        const selected = state.parts.find((p) => p.id === state.selectedId) ?? null
+        const activeColor = selected ? selected.color : state.placingColor
+        const setColor = (c: string) => {
+          if (selected) {
+            updatePart(selected.id, { color: c })
+          }
+          setPlacingColor(c)
+        }
+        return (
+          <section>
+            <div className="palette-color-head">
+              <h4>Цвет</h4>
+              <span className="palette-color-ctx">
+                {selected ? `объект «${selected.name}»` : 'нового блока'}
+              </span>
+            </div>
+            <div className="color-palette">
+              {PALETTE_COLORS.map((c) => (
+                <button
+                  key={c}
+                  className={`palette-swatch ${activeColor === c ? 'active' : ''}`}
+                  style={{ background: c }}
+                  onClick={() => setColor(c)}
+                  aria-label={c}
+                />
+              ))}
+              <label className="palette-custom">
+                <input
+                  type="color"
+                  value={activeColor}
+                  onChange={(e) => setColor(e.target.value)}
+                />
+              </label>
+            </div>
+          </section>
+        )
+      })()}
 
       <section className="hint-section">
         <h4>Как играть</h4>
@@ -93,6 +115,7 @@ export default function Palette({ state }: Props) {
           <li><kbd>Del</kbd> удалить выбранное</li>
           <li><kbd>Ctrl+D</kbd> дублировать</li>
           <li>ПКМ — крутить камеру</li>
+          <li>⊙ колесо — зум камеры</li>
         </ul>
       </section>
     </aside>

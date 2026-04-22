@@ -13,6 +13,7 @@
  */
 
 import { PUBLIC_BASE } from './publicPath'
+import { INGESTED_COURSES as RAW_INGESTED_COURSES } from './courses.generated'
 
 /** MCQ-вопрос для квиза в конце презентации урока. */
 export interface QuizQuestion {
@@ -48,6 +49,15 @@ export interface Lesson {
    * generateFallbackQuiz(lesson) соберёт базовый квиз из terms.
    */
   quiz?: QuizQuestion[]
+  // ── Extended content (из ingested курсов; markdown-text) ──
+  /** Цель занятия (markdown) */
+  goal?: string
+  /** Образовательные результаты (markdown: bullets) */
+  outcomes?: string
+  /** Мини-проект урока (markdown) */
+  miniProject?: string
+  /** Домашнее задание (markdown) */
+  homework?: string
 }
 
 export interface Module {
@@ -63,6 +73,27 @@ export interface Module {
   }
   ageAnchor: string         // "9-11" / "11-14" etc
   lessons: Lesson[]
+}
+
+/**
+ * Course — верхний уровень LXP иерархии.
+ * Одна платформа может содержать несколько курсов (KubiK / Python+AI / Vibe Coding …).
+ * У каждого курса — свой набор модулей, возраст, формат, домен, методический документ.
+ */
+export interface Course {
+  slug: string              // URL-id курса: 'kubik' / 'python-ai' / 'vibe-coding-step1'
+  title: string
+  subtitle: string          // одна строка для карточки
+  emoji: string
+  accent: string            // брендинг
+  ageRange: string          // "9-15" / "8-14" / "11-12"
+  lessonDurationMin: number // 45 / 60
+  totalLessons: number      // 48 обычно
+  modules: Module[]
+  /** Полный путь на программу/методичку (md/html) если есть */
+  programFile?: string
+  /** Источник: наш in-repo курс или ingested из products/ */
+  source: 'builtin' | 'ingested'
 }
 
 // ─── M1 · Первые шаги в KubiK ──────────────────────────────────
@@ -819,4 +850,64 @@ export const KIND_COLOR: Record<Lesson['kind'], string> = {
   practice: '#9FE8C7',
   project: '#FFD43C',
   defense: '#FFB4C8',
+}
+
+// ═══════════════════════════════════════════════════════════
+// Multi-course registry — LXP уровень
+// ═══════════════════════════════════════════════════════════
+
+/** Основной built-in курс KubiK (3D + блочное программирование) */
+export const KUBIK_COURSE: Course = {
+  slug: 'kubik',
+  title: 'KubiK · 3D Программирование',
+  subtitle: '48 блочных уроков с переходом на Python: создаём 3D-миры и игры',
+  emoji: '🧱',
+  accent: '#6B5CE7',
+  ageRange: '9-15',
+  lessonDurationMin: 45,
+  totalLessons: 48,
+  modules: MODULES,
+  source: 'builtin',
+}
+
+/**
+ * Ingested-курсы сгенерированы из `products/` и имеют абсолютные пути вида
+ * `/courses/python-ai/lesson_01.html`. На GitHub Pages реальный корень —
+ * `/eduson-kids-web/`, поэтому префиксим PUBLIC_BASE при импорте. Генератор
+ * (`scripts/ingest-courses.mjs`) остаётся naïve — единая нормализация здесь.
+ */
+function prefixPublicPath(p: string | undefined): string | undefined {
+  if (!p) return p
+  if (/^https?:\/\//.test(p)) return p
+  if (PUBLIC_BASE && p.startsWith(PUBLIC_BASE + '/')) return p
+  if (p.startsWith('/')) return PUBLIC_BASE + p
+  return p
+}
+
+const INGESTED_COURSES: Course[] = RAW_INGESTED_COURSES.map((c) => ({
+  ...c,
+  programFile: prefixPublicPath(c.programFile),
+  modules: c.modules.map((m) => ({
+    ...m,
+    lessons: m.lessons.map((l) => ({
+      ...l,
+      htmlFile: prefixPublicPath(l.htmlFile),
+      guideFile: prefixPublicPath(l.guideFile),
+    })),
+  })),
+}))
+
+/** Все курсы платформы — builtin + ingested из products/ */
+export const COURSES: Course[] = [KUBIK_COURSE, ...INGESTED_COURSES]
+
+export function getCourse(slug: string): Course | undefined {
+  return COURSES.find((c) => c.slug === slug)
+}
+
+/**
+ * Получить все уроки курса плоским списком.
+ * По умолчанию — KubiK (для обратной совместимости со старыми страницами).
+ */
+export function getAllLessonsOf(course: Course = KUBIK_COURSE): Lesson[] {
+  return course.modules.flatMap((m) => m.lessons)
 }

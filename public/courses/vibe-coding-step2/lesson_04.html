@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 4 — FastAPI + GigaChat + YandexGPT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg2:#121826;
+    --surface:rgba(255,255,255,0.04);
+    --surface2:rgba(255,255,255,0.08);
+    --border:rgba(255,255,255,0.10);
+    --text:#E6EDF6;
+    --muted:#8A96AB;
+    --accent:#7C3AED;
+    --accent2:#06B6D4;
+    --success:#10B981;
+    --warning:#F59E0B;
+    --danger:#EF4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    background:
+      radial-gradient(1100px 700px at 85% -10%, rgba(124,58,237,0.22), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(6,182,212,0.18), transparent 55%),
+      linear-gradient(180deg,#0B0F17 0%,#0A0D14 100%);
+  }
+  code,pre{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+  /* Progress */
+  .progress{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.04);z-index:100}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .4s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 12px rgba(124,58,237,.6)}
+
+  /* Topbar */
+  .topbar{position:fixed;top:16px;left:24px;right:24px;display:flex;justify-content:space-between;align-items:center;z-index:50;pointer-events:none}
+  .brand{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 14px var(--accent)}
+  .counter{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:6px 12px;border-radius:999px;backdrop-filter:blur(10px)}
+
+  /* Slides */
+  .deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+  .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:72px 80px 88px;opacity:0;transform:translateX(40px) scale(.985);transition:opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1);pointer-events:none;overflow-y:auto}
+  .slide.active{opacity:1;transform:translateX(0) scale(1);pointer-events:auto}
+  .slide.prev{transform:translateX(-40px) scale(.985)}
+  .wrap{width:100%;max-width:1280px;margin:0 auto}
+
+  /* Glass card */
+  .glass{background:var(--surface);border:1px solid var(--border);border-radius:20px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:28px}
+  .glass-strong{background:linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.14);border-radius:24px;backdrop-filter:blur(24px);padding:32px;box-shadow:0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05)}
+
+  /* Typography */
+  h1,h2,h3{font-weight:800;letter-spacing:-.02em;line-height:1.08}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:20px}
+  .eyebrow::before{content:"";width:28px;height:1px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .title-xl{font-size:clamp(40px,6vw,84px);line-height:1.02;letter-spacing:-.03em}
+  .title-lg{font-size:clamp(32px,4.6vw,58px)}
+  .title-md{font-size:clamp(24px,3vw,38px);margin-bottom:22px}
+  .lead{font-size:clamp(16px,1.3vw,20px);color:var(--muted);line-height:1.6;max-width:900px}
+  .gradient{background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* Utility grids */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  @media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+  .stat{padding:22px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
+  .stat .num{font-family:'JetBrains Mono',monospace;font-size:clamp(28px,3.4vw,44px);font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:-.02em}
+  .stat .lbl{font-size:13px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.1em}
+
+  /* Chips / badges */
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--surface);border:1px solid var(--border);border-radius:999px;font-size:13px;color:var(--muted);font-weight:500}
+  .chip.accent{background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(6,182,212,.18));border-color:rgba(124,58,237,.4);color:var(--text)}
+  .chip-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+
+  /* Code block */
+  pre[class*="language-"]{background:#0A0D14 !important;border:1px solid var(--border);border-radius:14px;padding:22px 24px !important;font-size:14px !important;line-height:1.65 !important;overflow:auto;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+  code[class*="language-"]{font-size:14px !important}
+  .codewrap{position:relative}
+  .codewrap::before{content:attr(data-lang);position:absolute;top:10px;right:16px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);background:rgba(0,0,0,.4);padding:4px 8px;border-radius:6px;z-index:2}
+
+  /* Lists */
+  .ul-check li,.ul-bullet li{list-style:none;padding:12px 0 12px 34px;position:relative;font-size:16px;line-height:1.55;border-bottom:1px dashed rgba(255,255,255,.06)}
+  .ul-check li:last-child,.ul-bullet li:last-child{border-bottom:none}
+  .ul-check li::before{content:"";position:absolute;left:0;top:16px;width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(124,58,237,.4)}
+  .ul-check li::after{content:"";position:absolute;left:6px;top:21px;width:8px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg)}
+  .ul-bullet li::before{content:"";position:absolute;left:6px;top:20px;width:8px;height:8px;border-radius:50%;background:var(--accent2);box-shadow:0 0 10px var(--accent2)}
+
+  /* Timeline */
+  .timeline{display:flex;flex-direction:column;gap:12px}
+  .tl-row{display:grid;grid-template-columns:100px 1fr;gap:18px;align-items:center;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;transition:all .25s}
+  .tl-row:hover{border-color:rgba(124,58,237,.35);background:var(--surface2);transform:translateX(4px)}
+  .tl-time{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--accent2);font-weight:700}
+  .tl-text{font-size:15px;color:var(--text);line-height:1.45}
+
+  /* Quote */
+  .quote{padding:24px 28px;border-left:3px solid var(--accent);background:linear-gradient(90deg,rgba(124,58,237,.10),transparent);border-radius:0 14px 14px 0;font-size:17px;line-height:1.55;color:var(--text);font-style:italic;position:relative}
+  .quote::before{content:"«";position:absolute;top:-8px;left:10px;font-size:56px;line-height:1;color:var(--accent);opacity:.4;font-family:'Inter',serif}
+
+  /* Callouts */
+  .callout{display:grid;grid-template-columns:50px 1fr;gap:16px;padding:18px 20px;border-radius:14px;border:1px solid;background:var(--surface)}
+  .callout-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace}
+  .callout.warn{border-color:rgba(245,158,11,.35);background:linear-gradient(180deg,rgba(245,158,11,.08),transparent)}
+  .callout.warn .callout-ico{background:rgba(245,158,11,.18);color:var(--warning)}
+  .callout.danger{border-color:rgba(239,68,68,.35);background:linear-gradient(180deg,rgba(239,68,68,.08),transparent)}
+  .callout.danger .callout-ico{background:rgba(239,68,68,.18);color:var(--danger)}
+  .callout.ok{border-color:rgba(16,185,129,.35);background:linear-gradient(180deg,rgba(16,185,129,.08),transparent)}
+  .callout.ok .callout-ico{background:rgba(16,185,129,.18);color:var(--success)}
+  .callout.info{border-color:rgba(6,182,212,.35);background:linear-gradient(180deg,rgba(6,182,212,.08),transparent)}
+  .callout.info .callout-ico{background:rgba(6,182,212,.18);color:var(--accent2)}
+  .callout h4{font-size:16px;margin-bottom:4px;font-weight:700}
+  .callout p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  /* Speaker notes */
+  .notes{position:fixed;inset:auto 24px 24px 24px;max-height:42vh;background:rgba(11,15,23,.96);border:1px solid var(--border);border-radius:18px;padding:24px 28px;backdrop-filter:blur(24px);box-shadow:0 30px 80px rgba(0,0,0,.6);z-index:200;transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);overflow:auto}
+  .notes.show{transform:translateY(0)}
+  .notes h5{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent2);margin-bottom:12px;font-weight:700}
+  .notes p{font-size:14px;line-height:1.6;color:#CBD5E1}
+  .notes ul{margin-top:8px;padding-left:20px}
+  .notes li{font-size:14px;line-height:1.55;color:#CBD5E1;margin-bottom:6px}
+
+  /* Hints bottom */
+  .hints{position:fixed;bottom:16px;left:24px;display:flex;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);z-index:50}
+  .hints kbd{background:var(--surface);border:1px solid var(--border);padding:3px 7px;border-radius:5px;color:var(--text)}
+
+  /* Cover hero */
+  .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;width:100%}
+  @media(max-width:900px){.hero{grid-template-columns:1fr}}
+  .hero-card{position:relative;aspect-ratio:1/1;max-width:460px;margin-left:auto;border-radius:26px;padding:28px;background:linear-gradient(135deg,rgba(124,58,237,.25),rgba(6,182,212,.15));border:1px solid rgba(124,58,237,.35);backdrop-filter:blur(24px);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+  .hero-card::before{content:"";position:absolute;inset:0;background:radial-gradient(700px 500px at 70% 20%,rgba(124,58,237,.45),transparent 55%);pointer-events:none}
+  .hero-card::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 400px at 20% 90%,rgba(6,182,212,.35),transparent 55%);pointer-events:none}
+  .hero-num{font-family:'JetBrains Mono',monospace;font-weight:900;font-size:clamp(100px,13vw,180px);line-height:1;letter-spacing:-.06em;background:linear-gradient(135deg,#fff 0%, rgba(255,255,255,.25) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;position:relative;z-index:1}
+  .hero-tag{position:relative;z-index:1;display:flex;flex-direction:column;gap:6px;font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.85)}
+  .hero-tag span:first-child{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+
+  /* Diagram blocks */
+  .diag{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:center;margin-top:18px}
+  .diag-box{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;text-align:center}
+  .diag-box .t{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .diag-box .n{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--text)}
+  .diag-arrow{font-family:'JetBrains Mono',monospace;font-size:22px;color:var(--accent);font-weight:700}
+  @media(max-width:900px){.diag{grid-template-columns:1fr}.diag-arrow{transform:rotate(90deg);justify-self:center}}
+
+  /* Compare table */
+  .compare{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-top:12px}
+  .compare th,.compare td{padding:14px 18px;text-align:left;font-size:14px;border-bottom:1px solid var(--border)}
+  .compare th{background:rgba(255,255,255,.04);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+  .compare tr:last-child td{border-bottom:none}
+  .compare td:first-child{font-weight:600;color:var(--text)}
+  .compare code{background:rgba(124,58,237,.12);padding:2px 7px;border-radius:5px;font-size:13px;color:#C4B5FD}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:4px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(124,58,237,.4)}
+
+  /* Final slide */
+  .final-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .final-block{padding:24px;border-radius:18px;background:var(--surface);border:1px solid var(--border)}
+  .final-block h4{font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent2);margin-bottom:14px;font-weight:700}
+
+  /* Badge highlight */
+  .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px 10px;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.3);border-radius:6px;color:#67E8F9}
+  .tag.v{background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.3);color:#C4B5FD}
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="topbar">
+  <div class="brand"><div class="dot"></div>Step 2 · AI-OKK · 13–15</div>
+  <div class="counter"><span id="cur">1</span> / <span id="tot">22</span></div>
+</div>
+
+<div class="deck" id="deck">
+
+<!-- ================= SLIDE 1 — COVER ================= -->
+<section class="slide" data-notes="<b>Открытие.</b> Сегодня твой сервер станет реально умным. Мы прикрутим к нему GigaChat и YandexGPT — две русские LLM. Урок технически плотный, будем работать с OAuth, токенами, .env. Главное правило дня: ключи не коммитим. Никогда. Вообще. Если ключ случайно ушёл в Git — 5 минут и китайские боты уже его крутят.">
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Модуль 1 · Неделя 4 · 60 минут</div>
+        <h1 class="title-xl">Твой сервер<br><span class="gradient">становится умным</span></h1>
+        <p class="lead" style="margin-top:22px">Интеграция FastAPI с GigaChat и YandexGPT. Поднимаем два боевых AI-эндпоинта: <code style="background:rgba(124,58,237,.15);padding:2px 8px;border-radius:6px;color:#C4B5FD">/translate</code> и <code style="background:rgba(6,182,212,.15);padding:2px 8px;border-radius:6px;color:#67E8F9">/summarize</code>. Учимся прятать ключи в <code style="background:rgba(16,185,129,.15);padding:2px 8px;border-radius:6px;color:#6EE7B7">.env</code> и не коммитить их в Git.</p>
+        <div class="chip-row">
+          <span class="chip accent">FastAPI + httpx</span>
+          <span class="chip">GigaChat API</span>
+          <span class="chip">YandexGPT API</span>
+          <span class="chip">OAuth 2.0</span>
+          <span class="chip">.env + dotenv</span>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-tag"><span>Урок</span><span>lesson_04.py</span></div>
+        <div class="hero-num">04</div>
+        <div class="hero-tag" style="text-align:right;align-items:flex-end"><span>До прод-деплоя</span><span>осталось 8 уроков</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 2 — WHY ================= -->
+<section class="slide" data-notes="<b>Зачем этот урок.</b> На уроке 3 мы сделали сервер, который умеет отдавать случайное число. Это полезно ровно ни для чего. Сегодня прикручиваем LLM — и твой сервер превращается в реальный продукт, за который люди платят деньги. Переводчик и саммаризатор — два самых денежных эндпоинта на рынке фриланса прямо сейчас. На Kwork объявления вида «интегрирую GigaChat» стоят 5000 ₽. Ты сегодня научишься делать эту работу за 3 часа.">
+  <div class="wrap">
+    <div class="eyebrow">Зачем сегодня</div>
+    <h2 class="title-lg">От «hello world» — к <span class="gradient">полезному API</span></h2>
+    <div class="grid-3" style="margin-top:36px">
+      <div class="stat">
+        <div class="num">2</div>
+        <div class="lbl">AI-эндпоинта</div>
+        <p style="font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5"><code>/translate</code> через YandexGPT и <code>/summarize</code> через GigaChat. Две разные LLM — один сервер.</p>
+      </div>
+      <div class="stat">
+        <div class="num">25<span style="font-size:.5em">мин</span></div>
+        <div class="lbl">жизнь токена</div>
+        <p style="font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5">OAuth-токен GigaChat живёт 30 минут. Мы закэшируем на 25 — обновлять заранее, не ждать фейла.</p>
+      </div>
+      <div class="stat">
+        <div class="num">0</div>
+        <div class="lbl">ключей в Git</div>
+        <p style="font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5">Правило железное. Ключ ушёл в коммит — считай, что его украли. Боты сканируют GitHub онлайн.</p>
+      </div>
+    </div>
+    <div class="chip-row" style="margin-top:30px">
+      <span class="chip accent">После урока сможешь зарабатывать</span>
+      <span class="chip">от 5000 ₽ за интеграцию на Kwork</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 3 — GOALS ================= -->
+<section class="slide" data-notes="<b>Цели и результаты.</b> Проговори, что именно ученик будет уметь к концу урока. Знает — теория про OAuth и .env. Понимает — что LLM это просто HTTP. Умеет — оформлять API-ключи и класть их в .env. Владеет — обработкой ошибок LLM. Последний пункт критичный — именно он отличает проф от студента.">
+  <div class="wrap">
+    <div class="eyebrow">Цели урока</div>
+    <h2 class="title-lg">Что ты <span class="gradient">вынесешь</span> из 60 минут</h2>
+    <div class="grid-2" style="margin-top:28px">
+      <div class="glass">
+        <div class="tag-row"><span class="tag v">Знает</span></div>
+        <h3 class="title-md" style="margin-top:14px;font-size:22px">Теория</h3>
+        <ul class="ul-check">
+          <li>Что такое <b>OAuth 2.0 Bearer-токен</b> и зачем он нужен</li>
+          <li>Что такое файл <b>.env</b> и почему его не коммитят</li>
+          <li>Почему публичные ключи в репо = мгновенная компрометация</li>
+        </ul>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag">Понимает</span></div>
+        <h3 class="title-md" style="margin-top:14px;font-size:22px">Принцип</h3>
+        <ul class="ul-check">
+          <li>LLM-вызов из сервера — это <b>обычный HTTP-запрос</b>, не магия</li>
+          <li>Разные провайдеры = разные форматы, но логика одна</li>
+          <li>Температура, prompt, system-роль — рычаги управления ответом</li>
+        </ul>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag v">Умеет</span></div>
+        <h3 class="title-md" style="margin-top:14px;font-size:22px">Навык</h3>
+        <ul class="ul-check">
+          <li>Получить токен <b>GigaChat</b> и <b>Yandex Cloud</b></li>
+          <li>Сохранить в <code>.env</code>, подтянуть через <code>python-dotenv</code></li>
+          <li>Собрать рабочий async-запрос через <code>httpx</code></li>
+        </ul>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag">Владеет</span></div>
+        <h3 class="title-md" style="margin-top:14px;font-size:22px">Мастерство</h3>
+        <ul class="ul-check">
+          <li>Обработка <b>401</b> (токен протух) — регенерим и повторяем</li>
+          <li>Обработка <b>429</b> (лимит) — возвращаем пользователю <b>503</b></li>
+          <li>Обработка пустого ответа — fallback-сообщение</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 4 — STACK ================= -->
+<section class="slide" data-notes="<b>Стек.</b> Быстро пройди по инструментам. FastAPI ты уже знаешь. httpx — это async-brother requests, мы идём в асинхронный мир, потому что ждать LLM по 2–3 секунды синхронно — убивать производительность. dotenv — 4 строки кода, читает .env. GigaChat и YandexGPT — две русские LLM, обе с русскоязычным фокусом. Sber ID и Yandex Cloud — аккаунты, обе регистрации через Госуслуги. Именно поэтому родительский аккаунт нужен заранее.">
+  <div class="wrap">
+    <div class="eyebrow">Инструменты</div>
+    <h2 class="title-lg">Стек <span class="gradient">сегодняшнего урока</span></h2>
+    <div class="grid-3" style="margin-top:30px">
+      <div class="glass">
+        <div class="tag-row"><span class="tag v">Код</span></div>
+        <h3 style="font-size:20px;margin:12px 0 10px">FastAPI</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55">Веб-фреймворк. Ты его уже держал в руках на уроке 3. Сегодня добавим два новых эндпоинта.</p>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag v">Код</span></div>
+        <h3 style="font-size:20px;margin:12px 0 10px">httpx</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55">Async HTTP-клиент. Брат <code>requests</code>, но для асинхронного мира. Нужен, чтобы LLM-запрос не блокировал сервер.</p>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag v">Код</span></div>
+        <h3 style="font-size:20px;margin:12px 0 10px">python-dotenv</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55">Читает файл <code>.env</code> в переменные окружения. 4 строки кода, зато ключи не торчат в исходниках.</p>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag">LLM</span></div>
+        <h3 style="font-size:20px;margin:12px 0 10px">GigaChat API</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55">Модель от Сбера. Быстрая, сильная в техтекстах. OAuth 2.0 + Bearer. Токен на 30 минут.</p>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag">LLM</span></div>
+        <h3 style="font-size:20px;margin:12px 0 10px">YandexGPT API</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55">Модель от Яндекса. Часто лучше русский стиль. Статический API-ключ, передаём как заголовок.</p>
+      </div>
+      <div class="glass">
+        <div class="tag-row"><span class="tag">Аккаунт</span></div>
+        <h3 style="font-size:20px;margin:12px 0 10px">Sber ID + Yandex Cloud</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55">Оба — с родителями, заранее. СМС-коды, скан паспорта. На уроке не успеем регистрироваться.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 5 — MENTAL MODEL ================= -->
+<section class="slide" data-notes="<b>Ментальная модель.</b> Самое важное слайд. LLM ≠ магия. LLM = сервер, который принимает JSON с твоим вопросом и возвращает JSON с ответом. Точно как API погоды. Просто внутри у него нейросеть. Но интерфейс — обычный HTTP. Когда ты это поймёшь — весь AI-hype для тебя станет скучной инженерной работой. И это хорошо — скучную работу люди платят стабильно.">
+  <div class="wrap">
+    <div class="eyebrow">Ментальная модель</div>
+    <h2 class="title-lg">LLM — это просто <span class="gradient">HTTP-сервер</span></h2>
+    <p class="lead" style="margin-top:14px">Не магия, не инопланетяне. Ты отправляешь JSON, тебе возвращают JSON. Как и у любого API, который ты уже трогал в Bruno на уроке 2.</p>
+    <div class="diag">
+      <div class="diag-box"><div class="t">Твой сервер</div><div class="n">FastAPI</div></div>
+      <div class="diag-arrow">→</div>
+      <div class="diag-box"><div class="t">HTTP-запрос</div><div class="n">POST /chat/completions</div></div>
+      <div class="diag-arrow">→</div>
+      <div class="diag-box"><div class="t">LLM</div><div class="n">GigaChat / YandexGPT</div></div>
+    </div>
+    <div class="diag" style="margin-top:12px">
+      <div class="diag-box"><div class="t">Пользователь</div><div class="n">получает ответ</div></div>
+      <div class="diag-arrow">←</div>
+      <div class="diag-box"><div class="t">JSON-ответ</div><div class="n">{ "answer": "..." }</div></div>
+      <div class="diag-arrow">←</div>
+      <div class="diag-box"><div class="t">LLM</div><div class="n">сгенерировала текст</div></div>
+    </div>
+    <div class="callout info" style="margin-top:26px">
+      <div class="callout-ico">i</div>
+      <div>
+        <h4>Инсайт</h4>
+        <p>Весь AI-hype 2025 года на техническом уровне сводится к одному: «отправь JSON, получи JSON». Остальное — маркетинг.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 6 — OAUTH ================= -->
+<section class="slide" data-notes="<b>OAuth 2.0.</b> Объясни метафорой: OAuth — это пропуск в здание. Приходишь с паспортом (client_id + client_secret), тебе дают временный бейдж (Bearer-токен). Дальше ходишь по этажам с бейджем. Бейдж через 30 минут перестаёт работать — идёшь за новым. Зачем так? Потому что если украдут бейдж — украдут максимум на 30 минут, а не навсегда. Это security best practice.">
+  <div class="wrap">
+    <div class="eyebrow">Теория · 10 минут</div>
+    <h2 class="title-lg">OAuth 2.0 — <span class="gradient">пропуск в здание</span></h2>
+    <div class="grid-2" style="margin-top:24px">
+      <div>
+        <div class="glass" style="margin-bottom:16px">
+          <h3 style="font-size:18px;margin-bottom:8px">1. Ты показываешь паспорт</h3>
+          <p style="font-size:14px;color:var(--muted);line-height:1.55">Отправляешь <code>client_id</code> и <code>client_secret</code> в <code>/oauth</code>. Это Basic Auth.</p>
+        </div>
+        <div class="glass" style="margin-bottom:16px">
+          <h3 style="font-size:18px;margin-bottom:8px">2. Тебе дают бейдж</h3>
+          <p style="font-size:14px;color:var(--muted);line-height:1.55">В ответ — <code>access_token</code>. Это Bearer-токен, который живёт 30 минут.</p>
+        </div>
+        <div class="glass">
+          <h3 style="font-size:18px;margin-bottom:8px">3. Ходишь по этажам</h3>
+          <p style="font-size:14px;color:var(--muted);line-height:1.55">В каждый запрос кладёшь заголовок <code>Authorization: Bearer &lt;token&gt;</code>. GigaChat пускает.</p>
+        </div>
+      </div>
+      <div class="codewrap" data-lang="bash">
+<div class="code-readonly"><pre><code class="language-bash"># Шаг 1: получить токен
+curl -X POST "https://ngw.devices.sberbank.ru:9443/api/v2/oauth" \
+  -H "Authorization: Basic $BASE64_ID_SECRET" \
+  -H "RqUID: $UUID_V4" \
+  -d "scope=GIGACHAT_API_PERS"
+
+# Ответ:
+# { "access_token": "eyJhbGc...", "expires_at": 1745193600000 }
+
+# Шаг 2: идём с токеном в /chat/completions
+curl -X POST "https://gigachat.devices.sberbank.ru/api/v1/chat/completions" \
+  -H "Authorization: Bearer eyJhbGc..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"GigaChat","messages":[...]}'</code></pre><span class="lang-tag">bash</span></div>
+      </div>
+    </div>
+    <div class="callout warn" style="margin-top:18px">
+      <div class="callout-ico">!</div>
+      <div>
+        <h4>Почему токен, а не пароль напрямую?</h4>
+        <p>Украдут токен — потеряешь максимум 30 минут. Украдут <code>client_secret</code> — пиши в Сбер, восстанавливай неделю. Поэтому Сбер разработал для нас это разделение.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 7 — .ENV ================= -->
+<section class="slide" data-notes="<b>.env.</b> Главный урок гигиены. Ключи никогда не попадают в код. Они живут в файле .env, который в .gitignore. В коде только os.getenv('KEY'). Если ты этого не соблюдаешь — считай, что ключи уже украдены. Боты мониторят GitHub в реальном времени: коммит попал — через 3 минуты по нему уже пройдутся парсеры. Я не шучу. Есть статистика: средний ключ в публичном репо живёт меньше часа до первого абьюза.">
+  <div class="wrap">
+    <div class="eyebrow">Security 101</div>
+    <h2 class="title-lg">Файл <code class="gradient" style="font-family:'JetBrains Mono',monospace">.env</code> — ключи <span class="gradient">живут тут</span></h2>
+    <div class="grid-2" style="margin-top:24px">
+      <div class="codewrap" data-lang=".env">
+<div class="code-readonly"><pre><code class="language-bash"># .env — НИКОГДА не коммитим
+GIGACHAT_CLIENT_ID=0196cafe-1234-babe-1337-deadbeef2024
+GIGACHAT_CLIENT_SECRET=ZmFrZV9zZWNyZXRfdG9rZW4=
+YANDEX_API_KEY=AQVN1q2w3e4r5t6y7u8i9o0p
+YANDEX_FOLDER_ID=b1gx1xxxyyyzzz</code></pre><span class="lang-tag">bash</span></div>
+      </div>
+      <div class="codewrap" data-lang=".env.example">
+<div class="code-readonly"><pre><code class="language-bash"># .env.example — коммитим ОБЯЗАТЕЛЬНО
+# Пустые значения = шаблон для других
+GIGACHAT_CLIENT_ID=
+GIGACHAT_CLIENT_SECRET=
+YANDEX_API_KEY=
+YANDEX_FOLDER_ID=</code></pre><span class="lang-tag">bash</span></div>
+      </div>
+    </div>
+    <div class="codewrap" data-lang=".gitignore" style="margin-top:18px">
+<div class="code-readonly"><pre><code class="language-bash"># .gitignore — добавляем первой строкой
+.env
+__pycache__/
+*.pyc</code></pre><span class="lang-tag">bash</span></div>
+    </div>
+    <div class="callout danger" style="margin-top:20px">
+      <div class="callout-ico">×</div>
+      <div>
+        <h4>Если случайно закоммитил .env</h4>
+        <p>1. <b>Сразу</b> идёшь в кабинет Sber и Yandex — отзываешь ключи. 2. Генеришь новые. 3. Чистишь Git-историю через <code>git filter-repo</code>. Без пункта 1 пункты 2–3 бесполезны.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 8 — DOTENV ================= -->
+<section class="slide" data-notes="<b>python-dotenv.</b> Покажи в редакторе. Четыре строки — и вся магия работает. load_dotenv() читает .env в environment. os.getenv('KEY') достаёт значение. Если ключа нет — возвращает None, и сервер при старте упадёт. Это хорошо: fail fast. Лучше упасть на старте, чем выяснять в продакшене, что ключ не подхватился.">
+  <div class="wrap">
+    <div class="eyebrow">Код</div>
+    <h2 class="title-lg">Подключаем <span class="gradient">python-dotenv</span></h2>
+    <p class="lead" style="margin-top:10px">4 строки — и твои ключи в Python. Причём из файла, который не в Git.</p>
+    <div class="codewrap" data-lang="main.py" style="margin-top:22px">
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import os
+from dotenv import load_dotenv
+
+load_dotenv()  # читает .env из корня проекта
+
+GIGACHAT_CLIENT_ID = os.getenv("GIGACHAT_CLIENT_ID")
+GIGACHAT_CLIENT_SECRET = os.getenv("GIGACHAT_CLIENT_SECRET")
+YANDEX_API_KEY = os.getenv("YANDEX_API_KEY")
+YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID")
+
+# Fail fast: если ключа нет — падаем при старте
+if not all([GIGACHAT_CLIENT_ID, GIGACHAT_CLIENT_SECRET, YANDEX_API_KEY, YANDEX_FOLDER_ID]):
+    raise RuntimeError("Не все ключи заданы. Проверь .env")</div><div class="compiler-output"></div></div>
+    </div>
+    <div class="callout ok" style="margin-top:18px">
+      <div class="callout-ico">✓</div>
+      <div>
+        <h4>Fail fast — принцип хорошего сервера</h4>
+        <p>Лучше упасть при старте с понятной ошибкой, чем потом ловить 500-ки в проде и гадать, почему LLM не отвечает. Ключа нет — падаем. Всё просто.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 9 — TOKEN CACHING ================= -->
+<section class="slide" data-notes="<b>Кэш токена.</b> Критично. Без кэша ты на каждый запрос ходишь за токеном — и это 1) медленно (+500мс к каждому запросу), 2) упираешься в rate-limit на /oauth. С кэшем: при старте получаем токен, запоминаем expires_at, если истёк — регеним, иначе переиспользуем. 25 минут вместо 30 — потому что чуть-чуть запаса, чтобы не словить 401 ровно на границе.">
+  <div class="wrap">
+    <div class="eyebrow">Паттерн: кэш токена</div>
+    <h2 class="title-lg">Токен <span class="gradient">живёт 30 минут</span> — кэшируем</h2>
+    <div class="codewrap" data-lang="gigachat.py" style="margin-top:20px">
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import time
+import httpx
+import uuid
+import base64
+
+_token_cache = {"value": None, "expires_at": 0}
+
+async def get_gigachat_token() -&gt; str:
+    now = time.time()
+    # Если токен ещё жив — переиспользуем
+    if _token_cache["value"] and _token_cache["expires_at"] &gt; now + 60:
+        return _token_cache["value"]
+
+    # Иначе — запрашиваем новый
+    auth = base64.b64encode(
+        f"{GIGACHAT_CLIENT_ID}:{GIGACHAT_CLIENT_SECRET}".encode()
+    ).decode()
+
+    async with httpx.AsyncClient(verify=False) as client:
+        r = await client.post(
+            "https://ngw.devices.sberbank.ru:9443/api/v2/oauth",
+            headers={
+                "Authorization": f"Basic {auth}",
+                "RqUID": str(uuid.uuid4()),
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data={"scope": "GIGACHAT_API_PERS"},
+        )
+        r.raise_for_status()
+        data = r.json()
+
+    _token_cache["value"] = data["access_token"]
+    # Кэшируем на 25 минут (токен живёт 30, запас 5)
+    _token_cache["expires_at"] = now + 25 * 60
+    return _token_cache["value"]</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 10 — TRANSLATE ================= -->
+<section class="slide" data-notes="<b>/translate.</b> Первый боевой эндпоинт. YandexGPT переводчик. Обрати внимание: system-сообщение задаёт роль («ты переводчик»), user-сообщение — это что переводить. Температура 0.2 — для переводов низкая, потому что нам не нужна творческая интерпретация, нам нужна точность. Это важный приём: разным задачам — разная температура.">
+  <div class="wrap">
+    <div class="eyebrow">Эндпоинт 1</div>
+    <h2 class="title-lg"><code class="gradient" style="font-family:'JetBrains Mono',monospace">/translate</code> — переводчик на YandexGPT</h2>
+    <div class="codewrap" data-lang="main.py" style="margin-top:18px">
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">from pydantic import BaseModel
+from fastapi import HTTPException
+
+class TranslateRequest(BaseModel):
+    text: str
+    target: str  # "en", "fr", "de", ...
+
+@app.post("/translate")
+async def translate(req: TranslateRequest):
+    system_prompt = f"Ты профессиональный переводчик. Переведи текст на язык: {req.target}. Верни ТОЛЬКО перевод, без пояснений."
+
+    payload = {
+        "modelUri": f"gpt://{YANDEX_FOLDER_ID}/yandexgpt-lite/latest",
+        "completionOptions": {"temperature": 0.2, "maxTokens": 1000},
+        "messages": [
+            {"role": "system", "text": system_prompt},
+            {"role": "user", "text": req.text},
+        ],
+    }
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        r = await client.post(
+            "https://llm.api.cloud.yandex.net/foundationModels/v1/completion",
+            headers={"Authorization": f"Api-Key {YANDEX_API_KEY}"},
+            json=payload,
+        )
+    if r.status_code == 429:
+        raise HTTPException(503, "Переводчик занят, попробуй через минуту")
+    r.raise_for_status()
+    answer = r.json()["result"]["alternatives"][0]["message"]["text"]
+    return {"translated": answer}</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 11 — SUMMARIZE ================= -->
+<section class="slide" data-notes="<b>/summarize.</b> Второй эндпоинт — саммаризатор на GigaChat. Здесь температура 0.3 — чуть выше, чем у перевода, чтобы саммари звучало живо, но не ударялось в выдумку. Обрати внимание: мы дёргаем await get_gigachat_token() на каждый запрос, но внутри функции стоит кэш — так что реальный HTTP к /oauth будет раз в 25 минут, а не каждый раз.">
+  <div class="wrap">
+    <div class="eyebrow">Эндпоинт 2</div>
+    <h2 class="title-lg"><code class="gradient" style="font-family:'JetBrains Mono',monospace">/summarize</code> — саммари на GigaChat</h2>
+    <div class="codewrap" data-lang="main.py" style="margin-top:18px">
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class SummarizeRequest(BaseModel):
+    url_or_text: str
+
+@app.post("/summarize")
+async def summarize(req: SummarizeRequest):
+    token = await get_gigachat_token()  # кэш внутри
+
+    payload = {
+        "model": "GigaChat",
+        "temperature": 0.3,
+        "messages": [
+            {"role": "system",
+             "content": "Ты — саммаризатор. Сделай краткое саммари в РОВНО 3 предложениях. Ничего лишнего."},
+            {"role": "user", "content": req.url_or_text},
+        ],
+    }
+    async with httpx.AsyncClient(verify=False, timeout=60.0) as client:
+        r = await client.post(
+            "https://gigachat.devices.sberbank.ru/api/v1/chat/completions",
+            headers={"Authorization": f"Bearer {token}"},
+            json=payload,
+        )
+    if r.status_code == 429:
+        raise HTTPException(503, "GigaChat занят, попробуй позже")
+    if r.status_code == 401:
+        _token_cache["value"] = None  # сбросим кэш, следующий запрос обновит
+        raise HTTPException(503, "Токен протух, попробуй ещё раз")
+    r.raise_for_status()
+    answer = r.json()["choices"][0]["message"]["content"]
+    return {"summary": answer}</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 12 — TEMPERATURE ================= -->
+<section class="slide" data-notes="<b>Температура.</b> Главный рычаг управления LLM. 0.0–0.3 — детерминированные задачи: перевод, извлечение фактов, ответы «да/нет». 0.4–0.7 — разговоры, помощники, обычные ответы. 0.8–1.0 — креатив: стихи, рекламные слоганы, брейншторм. Запомни правило: чем объективнее задача — тем ниже температура. Чем субъективнее — тем выше. Это простое эвристическое правило экономит часы отладки промптов.">
+  <div class="wrap">
+    <div class="eyebrow">Рычаг управления</div>
+    <h2 class="title-lg">Температура — <span class="gradient">регулятор креатива</span></h2>
+    <p class="lead" style="margin-top:10px">Один параметр, который меняет характер ответа полностью. Запомни таблицу — сэкономишь часы отладки промптов.</p>
+    <table class="compare" style="margin-top:22px">
+      <thead><tr><th>Задача</th><th>Температура</th><th>Пример</th></tr></thead>
+      <tbody>
+        <tr><td>Перевод, факты</td><td><code>0.0 – 0.2</code></td><td>Точность важнее вариативности</td></tr>
+        <tr><td>Саммари, резюме</td><td><code>0.2 – 0.4</code></td><td>Чуть «оживить», но не выдумать</td></tr>
+        <tr><td>Чат-ассистент</td><td><code>0.5 – 0.7</code></td><td>Естественная беседа</td></tr>
+        <tr><td>Слоган, сторителлинг</td><td><code>0.7 – 0.9</code></td><td>Нужны неожиданные повороты</td></tr>
+        <tr><td>Поэзия, брейншторм</td><td><code>0.9 – 1.0</code></td><td>Чистый креатив, максимум случайности</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info" style="margin-top:22px">
+      <div class="callout-ico">T</div>
+      <div>
+        <h4>Правило большого пальца</h4>
+        <p>Чем <b>объективнее</b> задача — тем <b>ниже</b> температура. Чем <b>субъективнее</b> — тем <b>выше</b>. Не нужно знать теорию вероятностей — достаточно помнить это.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 13 — ERRORS ================= -->
+<section class="slide" data-notes="<b>Обработка ошибок.</b> Без этого слайда нельзя отдать сервер людям. Сценариев 4: токен протух (401), лимит (429), таймаут, пустой ответ. На каждый — понятный HTTP-код и человечное сообщение. 503 Service Unavailable — универсальный ответ «с нашей стороны проблема, попробуй позже». Никогда не возвращай 500 пользователю — это стыдно. 500 = внутренняя ошибка, о которой мы не подумали.">
+  <div class="wrap">
+    <div class="eyebrow">Надёжность</div>
+    <h2 class="title-lg">Четыре сценария <span class="gradient">«что может пойти не так»</span></h2>
+    <div class="grid-2" style="margin-top:24px">
+      <div class="callout danger">
+        <div class="callout-ico">401</div>
+        <div>
+          <h4>Токен протух</h4>
+          <p>GigaChat вернул 401. Сбрасываем кэш, следующий вызов регенерит токен. Пользователю — 503 и просьба повторить.</p>
+        </div>
+      </div>
+      <div class="callout warn">
+        <div class="callout-ico">429</div>
+        <div>
+          <h4>Rate limit</h4>
+          <p>LLM исчерпала лимит. Возвращаем 503 с сообщением «сервис занят, попробуй через минуту». Не пытайся retry в цикле.</p>
+        </div>
+      </div>
+      <div class="callout info">
+        <div class="callout-ico">⏱</div>
+        <div>
+          <h4>Таймаут</h4>
+          <p>LLM думает больше 60 секунд. <code>httpx.AsyncClient(timeout=60.0)</code> — и ловим <code>httpx.ReadTimeout</code>. Пользователю — 503.</p>
+        </div>
+      </div>
+      <div class="callout ok">
+        <div class="callout-ico">∅</div>
+        <div>
+          <h4>Пустой ответ</h4>
+          <p>LLM вернула <code>content: ""</code>. Проверяем длину, если пусто — fallback-сообщение «не удалось сгенерировать ответ».</p>
+        </div>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:24px">Обработка ошибок — это не «лишнее», это то, что отличает прод от студенческой поделки.</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 14 — TIMELINE ================= -->
+<section class="slide" data-notes="<b>Поминутный план.</b> 60 минут плотные. 5 минут на разбор ДЗ. 10 на теорию OAuth. 30 на практику — это основное. 10 на проект + коммит + проверка. 5 на демо в чате. Держи темп: первые 15 минут — тихо, потом 30 минут активного кода, последние 15 — шумно и весело.">
+  <div class="wrap">
+    <div class="eyebrow">Тайминг · 60 минут</div>
+    <h2 class="title-lg">Поминутный <span class="gradient">план</span></h2>
+    <div class="timeline" style="margin-top:24px">
+      <div class="tl-row"><div class="tl-time">0 – 5</div><div class="tl-text"><b>Разбор ДЗ.</b> У кого запустился <code>/random_number</code> — бейдж <b>«Рандомайзер»</b>.</div></div>
+      <div class="tl-row"><div class="tl-time">5 – 15</div><div class="tl-text"><b>Теория-демо.</b> Препод показывает OAuth-поток: <code>POST /oauth</code> → <code>access_token</code> → <code>Bearer</code> в следующем запросе. «Токен живёт 30 минут — это нормально».</div></div>
+      <div class="tl-row"><div class="tl-time">15 – 45</div><div class="tl-text"><b>Практика (30 минут кодинга).</b> Установка пакетов, <code>.env</code>, <code>.gitignore</code>, <code>get_gigachat_token()</code>, <code>/translate</code>, <code>/summarize</code>, обработка ошибок.</div></div>
+      <div class="tl-row"><div class="tl-time">45 – 55</div><div class="tl-text"><b>Проект.</b> Коммит <code>.env.example</code> (с пустыми значениями). Коммит кода. <b>Проверка</b> в <code>git log</code>, что <code>.env</code> точно не ушёл.</div></div>
+      <div class="tl-row"><div class="tl-time">55 – 60</div><div class="tl-text"><b>Демо.</b> Каждый скидывает в общий чат curl-запрос к своему <code>/translate</code> и скрин ответа.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 15 — LIVE DEMO ================= -->
+<section class="slide" data-notes="<b>Демо курла.</b> Покажи прямо в терминале: поднимаем сервер uvicorn main:app --reload, второй терминал — curl. Переводим что-нибудь бытовое: «Как мне попасть в библиотеку?» — на английский. Потом саммари новости. Важно: запускай локально, но с прод-структурой. Уже на этом уроке код должен быть таким, чтобы завтра его деплоить на VM без переписывания.">
+  <div class="wrap">
+    <div class="eyebrow">Live-demo · шпаргалка</div>
+    <h2 class="title-lg">Проверяем <span class="gradient">через curl</span></h2>
+    <div class="grid-2" style="margin-top:22px">
+      <div class="codewrap" data-lang="terminal 1">
+<div class="code-readonly"><pre><code class="language-bash"># Установка
+pip install fastapi uvicorn httpx python-dotenv
+
+# Запуск сервера
+uvicorn main:app --reload
+
+# Uvicorn running on http://127.0.0.1:8000
+# Reload enabled ✓</code></pre><span class="lang-tag">bash</span></div>
+      </div>
+      <div class="codewrap" data-lang="terminal 2">
+<div class="code-readonly"><pre><code class="language-bash"># Тестируем /translate
+curl -X POST http://127.0.0.1:8000/translate \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Привет, как дела?", "target": "en"}'
+
+# { "translated": "Hi, how are you?" }
+
+# Тестируем /summarize
+curl -X POST http://127.0.0.1:8000/summarize \
+  -H "Content-Type: application/json" \
+  -d '{"url_or_text": "Длинный текст новости..."}'
+
+# { "summary": "Три предложения саммари." }</code></pre><span class="lang-tag">bash</span></div>
+      </div>
+    </div>
+    <div class="callout ok" style="margin-top:22px">
+      <div class="callout-ico">✓</div>
+      <div>
+        <h4>Получил JSON-ответ — урок пройден</h4>
+        <p>Скидывай curl-запрос и скрин ответа в общий чат. Препод проверит формат и даст бейдж <b>«AI-инженер»</b>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 16 — COACH QUOTES ================= -->
+<section class="slide" data-notes="<b>Ключевые фразы.</b> Это не «цитаты урока», это boilerplate-выражения, которые надо вкрутить в лексикон ученика. Каждая решает проблему: «ключ в .env» — гигиена. «отзывай сразу» — кризис-менеджмент. «0.2 для фактов» — эвристика. Пробрось их через слайд и в обсуждения. Через 4 урока ученик будет сам так говорить — и это главное.">
+  <div class="wrap">
+    <div class="eyebrow">Ключевые фразы преподавателя</div>
+    <h2 class="title-lg">Фразы, которые <span class="gradient">надо запомнить</span></h2>
+    <div class="grid-2" style="margin-top:26px">
+      <div class="quote">Ключ в <code>.env</code> = ключ от квартиры. Потерял — тебе придётся его отзывать.</div>
+      <div class="quote">Если коммитнул ключ в публичный репо — отзывай его <b>сразу</b>, боты мониторят GitHub в реальном времени.</div>
+      <div class="quote">OAuth — это просто: ты даёшь логин и пароль один раз, тебе дают токен, дальше ходишь с токеном.</div>
+      <div class="quote">GigaChat быстрее, YandexGPT иногда лучше пишет по-русски. Пробуй оба, сравнивай.</div>
+      <div class="quote">Температура <b>0.2</b> — для переводов и фактов. <b>0.9</b> — для творческих задач. Запомни.</div>
+      <div class="quote">Обработка ошибок — не «лишнее», это то, что отличает прод от студенческой поделки.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 17 — HOMEWORK ================= -->
+<section class="slide" data-notes="<b>ДЗ.</b> Параметр tone. Задача специально короткая — 20 минут. Цель: научиться менять системный промпт в зависимости от входа. Это базовая техника prompt-инжиниринга. Кто сделает хорошо — запустит на следующем уроке параллельный /compare (бонус). Важно: ДЗ маленькое, но с закоммиченным результатом. Никакого «я дома сделал, но не закоммитил» — не считается.">
+  <div class="wrap">
+    <div class="eyebrow">Домашка · 20 минут</div>
+    <h2 class="title-lg">Добавить параметр <code class="gradient" style="font-family:'JetBrains Mono',monospace">tone</code></h2>
+    <p class="lead" style="margin-top:10px">В <code>/translate</code> добавь параметр <code>tone: Literal["official","casual"]</code>. Если <code>official</code> — системный промпт «переведи деловым языком». Если <code>casual</code> — «переведи разговорным стилем, можно со сленгом».</p>
+    <div class="codewrap" data-lang="main.py" style="margin-top:20px">
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">from typing import Literal
+
+class TranslateRequest(BaseModel):
+    text: str
+    target: str
+    tone: Literal["official", "casual"] = "official"
+
+# В обработчике:
+if req.tone == "casual":
+    system_prompt = f"Ты молодой переводчик. Переведи на {req.target} " \
+                    f"разговорным языком, можно сленг. Только перевод."
+else:
+    system_prompt = f"Ты корпоративный переводчик. Переведи на {req.target} " \
+                    f"в деловом стиле. Только перевод."</div><div class="compiler-output"></div></div>
+    </div>
+    <div class="callout warn" style="margin-top:20px">
+      <div class="callout-ico">git</div>
+      <div>
+        <h4>Обязательно закоммитить</h4>
+        <p>Коммит с сообщением <code>feat(translate): add tone parameter</code>. Не в Git = не сделал.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 18 — TROUBLESHOOT ================= -->
+<section class="slide" data-notes="<b>Сложности.</b> Прогоняй быстро. Три частые беды: GigaChat 401 — проверяй scope. YandexGPT «модель не найдена» — формат modelUri. Закоммичен .env — паника-план в 3 пункта. Добей слайд: «если что-то из этого случилось — сразу в общий чат с вопросом, не сиди молча».">
+  <div class="wrap">
+    <div class="eyebrow">Типичные грабли</div>
+    <h2 class="title-lg">Сложности и <span class="gradient">решения</span></h2>
+    <div class="grid-3" style="margin-top:26px">
+      <div class="glass">
+        <div class="chip" style="background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3);color:#FCA5A5">GigaChat 401</div>
+        <h3 style="font-size:18px;margin:12px 0 10px">«Unauthorized»</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:10px">Скорее всего, не тот <code>scope</code>.</p>
+        <p style="font-size:14px;color:var(--text);line-height:1.55"><b>Fix:</b> используй <code>GIGACHAT_API_PERS</code> для персонального аккаунта.</p>
+      </div>
+      <div class="glass">
+        <div class="chip" style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3);color:#FCD34D">YandexGPT 404</div>
+        <h3 style="font-size:18px;margin:12px 0 10px">«Модель не найдена»</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:10px">Неправильный формат URI.</p>
+        <p style="font-size:14px;color:var(--text);line-height:1.55"><b>Fix:</b> <code>gpt://&lt;folder_id&gt;/yandexgpt-lite/latest</code> — с двумя слешами, строго.</p>
+      </div>
+      <div class="glass">
+        <div class="chip" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#FCA5A5">.env в Git</div>
+        <h3 style="font-size:18px;margin:12px 0 10px">Уже случилось</h3>
+        <p style="font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:10px">1. Отозвать ключи в кабинетах Sber и Yandex.</p>
+        <p style="font-size:14px;color:var(--text);line-height:1.55"><b>Fix:</b> 2. Сгенерить новые. 3. <code>git filter-repo --path .env --invert-paths</code>.</p>
+      </div>
+    </div>
+    <div class="callout info" style="margin-top:22px">
+      <div class="callout-ico">?</div>
+      <div>
+        <h4>Если что-то сломалось — сразу в чат</h4>
+        <p>Не сиди молча 10 минут. Скрин ошибки + 2 строки контекста → препод или одногруппник ответит за 30 секунд.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 19 — BONUS ================= -->
+<section class="slide" data-notes="<b>Бонус.</b> Параллельный /compare через asyncio.gather. Это уже уровень продвинутый: одновременно зовём обе LLM, смотрим, какая быстрее и какая лучше ответила. Техника важная — в реальных приложениях часто делают fallback «если одна не ответила — используй другую». Кто сделает бонус — получит бейдж «Async-чемпион».">
+  <div class="wrap">
+    <div class="eyebrow">Бонус · для опережающих</div>
+    <h2 class="title-lg"><code class="gradient" style="font-family:'JetBrains Mono',monospace">/compare</code> — обе модели параллельно</h2>
+    <p class="lead" style="margin-top:10px">Зовём GigaChat и YandexGPT одновременно через <code>asyncio.gather</code>. Возвращаем оба ответа рядом — пользователь выбирает, какой лучше.</p>
+    <div class="codewrap" data-lang="main.py" style="margin-top:20px">
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import asyncio
+
+async def call_gigachat(text: str) -&gt; str:
+    token = await get_gigachat_token()
+    # ... запрос к GigaChat
+    return giga_answer
+
+async def call_yandexgpt(text: str) -&gt; str:
+    # ... запрос к YandexGPT
+    return yandex_answer
+
+@app.post("/compare")
+async def compare(req: SummarizeRequest):
+    # Параллельный запуск, ждём оба ответа одновременно
+    giga, yandex = await asyncio.gather(
+        call_gigachat(req.url_or_text),
+        call_yandexgpt(req.url_or_text),
+        return_exceptions=True,  # если одна упадёт — не тащим за собой вторую
+    )
+    return {
+        "gigachat": str(giga),
+        "yandexgpt": str(yandex),
+    }</div><div class="compiler-output"></div></div>
+    </div>
+    <div class="callout ok" style="margin-top:18px">
+      <div class="callout-ico">🏆</div>
+      <div>
+        <h4>Бейдж «Async-чемпион»</h4>
+        <p>Кто сделает <code>/compare</code> работающим — получит бейдж и заявит о себе как о кандидате на продвинутый трек.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 20 — MONETIZATION ================= -->
+<section class="slide" data-notes="<b>Монетизация.</b> Давай мотивируем. Интеграция GigaChat в чужой сайт на Kwork — 5000 ₽ за работу. Реальная работа — 3–4 часа. Ты сегодня научился это делать. В Модуле 4 мы научимся ещё и продавать — писать объявления, вести переписку с клиентом, выставлять счёт. Сложи два умения — и у тебя в 14–15 лет реальный доход.">
+  <div class="wrap">
+    <div class="eyebrow">Рынок · заработок</div>
+    <h2 class="title-lg">Это уже <span class="gradient">рабочий навык</span></h2>
+    <div class="grid-3" style="margin-top:28px">
+      <div class="stat">
+        <div class="num">5 000<span style="font-size:.5em">₽</span></div>
+        <div class="lbl">типичный заказ на Kwork</div>
+        <p style="font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5">«Интегрирую GigaChat в ваш сайт / 1С / Битрикс24» — стандартное объявление.</p>
+      </div>
+      <div class="stat">
+        <div class="num">3 – 4<span style="font-size:.5em"> ч</span></div>
+        <div class="lbl">время работы</div>
+        <p style="font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5">С учётом того, что ты уже умеешь делать. Остальное — созвон + отладка.</p>
+      </div>
+      <div class="stat">
+        <div class="num">M4</div>
+        <div class="lbl">продавать научим позже</div>
+        <p style="font-size:14px;color:var(--muted);margin-top:10px;line-height:1.5">В Модуле 4: писать объявления, вести клиента, выставлять счёт. Пока — учись делать.</p>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:28px">Ты уже умеешь это делать. Осталось научиться продавать — до этого мы дойдём в Модуле 4.</div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 21 — SUCCESS CRITERIA ================= -->
+<section class="slide" data-notes="<b>Критерии.</b> Это чеклист препода для оценки. Если все 4 пункта — ученик на уроке сделал максимум. Если 3 из 4 — норм, ДЗ добьёт. Если 2 — надо индивидуально разбирать. Если меньше — у нас проблема с предварительной подготовкой аккаунтов. Обычно fail происходит именно на уровне «родители не успели оформить Yandex Cloud».">
+  <div class="wrap">
+    <div class="eyebrow">Критерии успеха</div>
+    <h2 class="title-lg">Урок засчитан, если…</h2>
+    <div class="grid-2" style="margin-top:28px">
+      <div class="glass-strong">
+        <ul class="ul-check">
+          <li><b>/translate</b> возвращает осмысленный перевод</li>
+          <li><b>/summarize</b> возвращает саммари в 3 предложениях</li>
+          <li><b>.env не в репо</b>, <b>.env.example — в репо</b></li>
+          <li>Токен GigaChat <b>кэшируется</b>, не запрашивается каждый раз</li>
+        </ul>
+      </div>
+      <div class="glass-strong">
+        <h3 style="font-size:22px;margin-bottom:14px">Бейджи урока</h3>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:12px;border:1px solid var(--border)">
+            <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800">AI</div>
+            <div><div style="font-weight:700">AI-инженер</div><div style="font-size:13px;color:var(--muted)">Запустил оба эндпоинта</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:12px;border:1px solid var(--border)">
+            <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#10B981,#06B6D4);display:flex;align-items:center;justify-content:center;font-weight:800">🔒</div>
+            <div><div style="font-weight:700">Security-аккуратист</div><div style="font-size:13px;color:var(--muted)">.env точно не в Git</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border-radius:12px;border:1px solid var(--border)">
+            <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#F59E0B,#EF4444);display:flex;align-items:center;justify-content:center;font-weight:800">⚡</div>
+            <div><div style="font-weight:700">Async-чемпион</div><div style="font-size:13px;color:var(--muted)">Сделал бонус с /compare</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 22 — NEXT ================= -->
+<section class="slide" data-notes="<b>Финал и мостик.</b> Твой сервер сегодня стал умным. Но он запущен локально — на твоём компе. Завтра (урок 5) мы его выложим на удалённую виртуальную машину: научимся SSH, zcopy, первая публикация. После урока 5 ты сможешь дать ссылку другу, и он будет пользоваться твоим AI-сервером даже когда твой комп выключен. Это и называется «переход от студента к разработчику».">
+  <div class="wrap" style="text-align:center">
+    <div class="eyebrow" style="justify-content:center;display:inline-flex">Урок 04 · завершён</div>
+    <h1 class="title-xl" style="margin:10px auto 20px">Твой сервер —<br><span class="gradient">стал умным</span></h1>
+    <p class="lead" style="margin:0 auto 40px">Два боевых AI-эндпоинта, защищённые ключи, профессиональная обработка ошибок. Для 14 лет — это уровень middle.</p>
+    <div class="final-grid" style="max-width:900px;margin:0 auto">
+      <div class="final-block">
+        <h4>Сегодня</h4>
+        <ul class="ul-bullet">
+          <li>OAuth 2.0 + Bearer-токены</li>
+          <li>.env + python-dotenv</li>
+          <li>/translate + /summarize</li>
+          <li>Кэш токена + обработка ошибок</li>
+        </ul>
+      </div>
+      <div class="final-block">
+        <h4>Дальше · урок 05</h4>
+        <ul class="ul-bullet">
+          <li>Удалённая виртуальная машина</li>
+          <li>SSH, rsync, первый деплой</li>
+          <li>Сервер работает, когда ноут выключен</li>
+          <li>Превращаемся из студента в разработчика</li>
+        </ul>
+      </div>
+    </div>
+    <div class="chip-row" style="justify-content:center;margin-top:36px">
+      <span class="chip accent">N — speaker notes</span>
+      <span class="chip">← → навигация</span>
+      <span class="chip">F — fullscreen</span>
+    </div>
+  </div>
+</section>
+
+</div> <!-- /deck -->
+
+<div class="notes" id="notes">
+  <h5>Speaker Notes · нажми N чтобы скрыть</h5>
+  <div id="notesContent"></div>
+</div>
+
+<div class="hints"><kbd>←</kbd><kbd>→</kbd><kbd>Space</kbd><kbd>N</kbd><kbd>F</kbd><kbd>Esc</kbd></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  const progress = document.getElementById('progressBar');
+  const curEl = document.getElementById('cur');
+  const totEl = document.getElementById('tot');
+  const notes = document.getElementById('notes');
+  const notesContent = document.getElementById('notesContent');
+
+  totEl.textContent = total;
+  let idx = 0;
+  let notesOpen = false;
+
+  function render(){
+    slides.forEach((s,i)=>{
+      s.classList.remove('active','prev');
+      if(i===idx) s.classList.add('active');
+      else if(i<idx) s.classList.add('prev');
+    });
+    curEl.textContent = idx+1;
+    progress.style.width = (((idx+1)/total)*100) + '%';
+    const n = slides[idx].getAttribute('data-notes') || '';
+    notesContent.innerHTML = n || '<p>Заметок для этого слайда нет.</p>';
+  }
+
+  function go(n){
+    idx = Math.max(0, Math.min(total-1, n));
+    render();
+  }
+  function next(){ if(idx<total-1) go(idx+1); }
+  function prev(){ if(idx>0) go(idx-1); }
+  function toggleNotes(){ notesOpen = !notesOpen; notes.classList.toggle('show', notesOpen); }
+  function toggleFull(){
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  }
+
+  document.addEventListener('keydown', e=>{
+    if(e.target.matches('input,textarea')) return;
+    switch(e.key){
+      case 'ArrowRight':
+      case ' ':
+      case 'PageDown':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(total-1); break;
+      case 'Escape':
+        if(notesOpen){ toggleNotes(); }
+        else if(document.fullscreenElement){ document.exitFullscreen().catch(()=>{}); }
+        break;
+      case 'f':
+      case 'F':
+        e.preventDefault(); toggleFull(); break;
+      case 'n':
+      case 'N':
+        e.preventDefault(); toggleNotes(); break;
+    }
+  });
+
+  // Swipe on touch
+  let touchX = null;
+  document.addEventListener('touchstart', e=>{ touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e=>{
+    if(touchX===null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx) > 50){ dx < 0 ? next() : prev(); }
+    touchX = null;
+  });
+
+  // Click navigation: left half prev, right half next
+  document.querySelector('.deck').addEventListener('click', e=>{
+    if(e.target.closest('a,button,pre,code,.notes')) return;
+    const w = window.innerWidth;
+    if(e.clientX < w*0.35) prev();
+    else if(e.clientX > w*0.65) next();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

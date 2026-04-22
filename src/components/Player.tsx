@@ -7,7 +7,6 @@ import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
 import AvatarModel from './AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from './PlayerCharacter'
-import FloatingLabel from './FloatingLabel'
 import { SFX } from '../lib/audio'
 
 type Controls = {
@@ -331,7 +330,6 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
         ) : (
           <AvatarModel ref={visual} avatar={avatar} />
         )}
-        <FloatingLabel />
       </group>
     </RigidBody>
   )

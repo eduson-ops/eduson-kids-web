@@ -9,6 +9,10 @@ import {
   getModule,
   KIND_LABEL,
   KIND_COLOR,
+  COURSES,
+  getCourse,
+  KUBIK_COURSE,
+  type Course,
   type Lesson,
   type Module,
 } from '../lib/curriculum'
@@ -34,40 +38,179 @@ export default function Learn() {
   const [, force] = useState(0)
   useEffect(() => subscribeProgress(() => force((x) => x + 1)), [])
 
-  // Новые роуты /learn/module/:moduleN и /learn/lesson/:lessonN
+  // ─── Новые multi-course роуты ───
+  if (params.courseSlug) {
+    const course = getCourse(params.courseSlug)
+    if (!course) return <NotFound />
+    if (params.lessonN) {
+      const n = Number(params.lessonN) || 1
+      const lesson = course.modules.flatMap((m) => m.lessons).find((l) => l.n === n)
+      const m = course.modules.find((m) => m.lessons.some((l) => l.n === n))
+      return lesson && m ? <LessonPage lesson={lesson} m={m} course={course} /> : <NotFound />
+    }
+    if (params.moduleN) {
+      const n = Number(params.moduleN) || 1
+      const m = course.modules.find((mm) => mm.n === n)
+      return m ? <ModulePage m={m} course={course} /> : <NotFound />
+    }
+    return <CourseCatalogPage course={course} />
+  }
+
+  // ─── Legacy роуты (KubiK only) ───
   if (params.moduleN) {
     const n = Number(params.moduleN) || 1
     const m = getModule(n)
-    return m ? <ModulePage m={m} /> : <NotFound />
+    return m ? <ModulePage m={m} course={KUBIK_COURSE} /> : <NotFound />
   }
   if (params.lessonN) {
     const n = Number(params.lessonN) || 1
     const lesson = getLesson(n)
     const m = getModuleByLesson(n)
-    return lesson && m ? <LessonPage lesson={lesson} m={m} /> : <NotFound />
+    return lesson && m ? <LessonPage lesson={lesson} m={m} course={KUBIK_COURSE} /> : <NotFound />
   }
-
-  // Legacy /learn/:moduleOrLesson
   const mol = params.moduleOrLesson
   if (mol?.startsWith('module')) {
     const n = Number(mol.replace('module', '').replace('/', '')) || 1
     const m = getModule(n)
-    return m ? <ModulePage m={m} /> : <NotFound />
+    return m ? <ModulePage m={m} course={KUBIK_COURSE} /> : <NotFound />
   }
   const asNum = Number(mol)
   if (asNum && asNum >= 1 && asNum <= 48) {
     const lesson = getLesson(asNum)
     const m = getModuleByLesson(asNum)
-    return lesson && m ? <LessonPage lesson={lesson} m={m} /> : <NotFound />
+    return lesson && m ? <LessonPage lesson={lesson} m={m} course={KUBIK_COURSE} /> : <NotFound />
   }
 
-  return <CatalogPage />
+  // Корень /learn → каталог всех курсов
+  return <CoursesCatalog />
+}
+
+// ─────────────────────────────────────────────────────────
+// Страница 0 · Каталог курсов (LXP верхний уровень)
+// ─────────────────────────────────────────────────────────
+function CoursesCatalog() {
+  return (
+    <PlatformShell activeKey="learn">
+      <header style={{ marginBottom: 32 }}>
+        <span className="eyebrow">Академия Эдюсон · Kids</span>
+        <h1 className="h1" style={{ marginTop: 10 }}>Курсы программирования</h1>
+        <p style={{ fontSize: 17, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 720, lineHeight: 1.55 }}>
+          Выбери трек по возрасту и формату. Каждый курс — годовая программа
+          с поурочными планами, проектами и защитой финального продукта.
+        </p>
+      </header>
+
+      <div className="curric-modules">
+        {COURSES.map((c) => {
+          const totalLessons = c.modules.reduce((s, m) => s + m.lessons.length, 0)
+          return (
+            <Link
+              key={c.slug}
+              to={`/learn/course/${c.slug}`}
+              className="curric-module"
+              style={{ '--accent': c.accent } as React.CSSProperties}
+            >
+              <div className="curric-module-head">
+                <span className="curric-module-emoji">{c.emoji}</span>
+                <div className="curric-module-meta">
+                  <span className="eyebrow">Возраст {c.ageRange} · {c.lessonDurationMin} мин</span>
+                  <h3 className="curric-module-title">{c.title}</h3>
+                </div>
+              </div>
+              <p className="curric-module-story">{c.subtitle}</p>
+              <div className="curric-module-progress">
+                <small>
+                  {c.modules.length} модулей · {totalLessons} уроков
+                  {c.source === 'ingested' && ' · импорт'}
+                </small>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </PlatformShell>
+  )
+}
+
+// Страница 1 конкретного курса — каталог 8 модулей
+function CourseCatalogPage({ course }: { course: Course }) {
+  const totalDone = course.slug === 'kubik' ? countDone() : 0
+  const lessons = course.modules.flatMap((m) => m.lessons)
+  const totalLessons = lessons.length
+
+  return (
+    <PlatformShell activeKey="learn">
+      <Link to="/learn" className="kb-shell-nav-link" style={{ display: 'inline-block', marginBottom: 16 }}>
+        ← Все курсы
+      </Link>
+      <header style={{ marginBottom: 32 }}>
+        <span className="eyebrow">{course.emoji} Курс · возраст {course.ageRange}</span>
+        <h1 className="h1" style={{ marginTop: 10 }}>{course.title}</h1>
+        <p style={{ fontSize: 17, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 720, lineHeight: 1.55 }}>
+          {course.subtitle}
+        </p>
+      </header>
+
+      <div className="curric-summary">
+        <div className="curric-summary-stats">
+          <div>
+            <div className="eyebrow">Уроков</div>
+            <div className="curric-summary-big">{totalLessons}</div>
+          </div>
+          <div>
+            <div className="eyebrow">Модулей</div>
+            <div className="curric-summary-big">{course.modules.length}</div>
+          </div>
+          <div>
+            <div className="eyebrow">Прошёл</div>
+            <div className="curric-summary-big">{totalDone} / {totalLessons}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="curric-modules">
+        {course.modules.map((m) => {
+          const lessonNums = m.lessons.map((l) => l.n)
+          const done = course.slug === 'kubik' ? countDoneInModule(m.n, lessonNums) : 0
+          const pct = (done / m.lessons.length) * 100
+          return (
+            <Link
+              key={m.n}
+              to={`/learn/course/${course.slug}/module/${m.n}`}
+              className="curric-module"
+              style={{ '--accent': m.accent } as React.CSSProperties}
+            >
+              <div className="curric-module-head">
+                <span className="curric-module-emoji">{m.emoji}</span>
+                <div className="curric-module-meta">
+                  <span className="eyebrow">Модуль {m.n} · {m.ageAnchor}</span>
+                  <h3 className="curric-module-title">{m.title}</h3>
+                </div>
+              </div>
+              <p className="curric-module-story">{m.story}</p>
+              <div className="curric-module-capstone">
+                <span className="eyebrow">Капстон</span>
+                <strong>{m.capstone.name}</strong> · {m.capstone.genre}
+              </div>
+              <div className="curric-module-progress">
+                <div className="kb-progress">
+                  <div className="kb-progress-bar" style={{ width: `${pct}%`, background: m.accent }} />
+                </div>
+                <small>{done} / {m.lessons.length} уроков</small>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </PlatformShell>
+  )
 }
 
 // ─────────────────────────────────────────────────────────
 // Страница 1 · Каталог 8 модулей
 // ─────────────────────────────────────────────────────────
-function CatalogPage() {
+// @ts-expect-error — legacy KubiK catalog page, оставлена как fallback для /learn (пока не разрабатывали полностью).
+function _CatalogPage() {
   const totalDone = countDone()
   const currentN = getCurrentLesson(ALL_LESSONS.map((l) => l.n))
   const currentLesson = getLesson(currentN)
@@ -154,13 +297,14 @@ function CatalogPage() {
 // ─────────────────────────────────────────────────────────
 // Страница 2 · Детали модуля (6 уроков)
 // ─────────────────────────────────────────────────────────
-function ModulePage({ m }: { m: Module }) {
-  const done = countDoneInModule(m.n, m.lessons.map((l) => l.n))
+function ModulePage({ m, course }: { m: Module; course: Course }) {
+  const done = course.slug === 'kubik' ? countDoneInModule(m.n, m.lessons.map((l) => l.n)) : 0
+  const parentUrl = course.slug === 'kubik' ? '/learn' : `/learn/course/${course.slug}`
 
   return (
     <PlatformShell activeKey="learn">
-      <Link to="/learn" className="kb-shell-nav-link" style={{ display: 'inline-block', marginBottom: 16 }}>
-        ← Все модули
+      <Link to={parentUrl} className="kb-shell-nav-link" style={{ display: 'inline-block', marginBottom: 16 }}>
+        ← Все модули {course.slug === 'kubik' ? '' : `· ${course.title}`}
       </Link>
       <header className="curric-module-hero" style={{ '--accent': m.accent } as React.CSSProperties}>
         <div>
@@ -191,10 +335,13 @@ function ModulePage({ m }: { m: Module }) {
           const isDone = isLessonDone(l.n)
           const unlocked = true
 
+          const lessonHref = course.slug === 'kubik'
+            ? `/learn/lesson/${l.n}`
+            : `/learn/course/${course.slug}/lesson/${l.n}`
           return (
             <Link
               key={l.n}
-              to={unlocked ? `/learn/lesson/${l.n}` : '#'}
+              to={unlocked ? lessonHref : '#'}
               className={`curric-lesson-card ${!unlocked ? 'locked' : ''} ${isDone ? 'done' : ''}`}
               style={{ '--accent': KIND_COLOR[l.kind] } as React.CSSProperties}
             >
@@ -223,15 +370,21 @@ function ModulePage({ m }: { m: Module }) {
 // ─────────────────────────────────────────────────────────
 // Страница 3 · Деталь конкретного урока
 // ─────────────────────────────────────────────────────────
-function LessonPage({ lesson, m }: { lesson: Lesson; m: Module }) {
-  const isDone = isLessonDone(lesson.n)
-  const nextLesson = getLesson(lesson.n + 1)
-  const prevLesson = getLesson(lesson.n - 1)
+function LessonPage({ lesson, m, course }: { lesson: Lesson; m: Module; course: Course }) {
+  const isDone = course.slug === 'kubik' ? isLessonDone(lesson.n) : false
+  // Для мульти-курсов next/prev берём из course.modules, не глобального KubiK getLesson
+  const flat = course.modules.flatMap((mm) => mm.lessons)
+  const idx = flat.findIndex((l) => l.n === lesson.n)
+  const nextLesson = idx >= 0 ? flat[idx + 1] : undefined
+  const prevLesson = idx >= 0 ? flat[idx - 1] : undefined
+  const moduleHref = course.slug === 'kubik'
+    ? `/learn/module/${m.n}`
+    : `/learn/course/${course.slug}/module/${m.n}`
 
   return (
     <PlatformShell activeKey="learn">
       <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
-        <Link to={`/learn/module/${m.n}`} className="kb-shell-nav-link">
+        <Link to={moduleHref} className="kb-shell-nav-link">
           ← Модуль {m.n}: {m.title}
         </Link>
         <span style={{ color: 'var(--ink-soft)', fontSize: 13 }}>·</span>
@@ -246,28 +399,31 @@ function LessonPage({ lesson, m }: { lesson: Lesson; m: Module }) {
       <div className="curric-lesson-grid">
         {/* Основная колонка */}
         <section>
-          {/* Presentation + Studio CTA — всегда доступно (auto-generated для L7-L48) */}
+          {/* Presentation + Studio CTA */}
           <div className="kb-card kb-card--feature" style={{ marginBottom: 18 }}>
-            <div className="eyebrow">Интерактивная презентация · 9 слайдов</div>
+            <div className="eyebrow">Интерактивная презентация</div>
             <h3 className="h3" style={{ margin: '8px 0 14px' }}>Запустить урок на экране</h3>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <Link to={`/learn/lesson/${lesson.n}/present`} className="kb-btn kb-btn--lg">
-                ▶ Открыть презентацию
-              </Link>
+              {course.slug === 'kubik' && (
+                <Link to={`/learn/lesson/${lesson.n}/present`} className="kb-btn kb-btn--lg">
+                  ▶ Открыть презентацию
+                </Link>
+              )}
               {lesson.htmlFile && (
                 <a
                   href={lesson.htmlFile}
                   target="_blank"
                   rel="noopener"
-                  className="kb-btn kb-btn--secondary"
-                  title="Старая HTML-версия (L1-L6)"
+                  className="kb-btn kb-btn--lg"
                 >
-                  📄 Классическая версия
+                  ▶ Презентация урока
                 </a>
               )}
-              <Link to="/studio" className="kb-btn kb-btn--secondary">
-                🧱 Открыть Студию
-              </Link>
+              {course.slug === 'kubik' && (
+                <Link to="/studio" className="kb-btn kb-btn--secondary">
+                  🧱 Открыть Студию
+                </Link>
+              )}
               {lesson.guideFile && (
                 <a
                   href={lesson.guideFile}
@@ -280,6 +436,32 @@ function LessonPage({ lesson, m }: { lesson: Lesson; m: Module }) {
               )}
             </div>
           </div>
+
+          {/* Ingested-content: Цель, Образовательные результаты, Мини-проект, ДЗ */}
+          {lesson.goal && (
+            <div className="kb-card" style={{ marginBottom: 18 }}>
+              <div className="eyebrow">Цель занятия</div>
+              <p style={{ margin: '6px 0 0', lineHeight: 1.55 }}>{lesson.goal}</p>
+            </div>
+          )}
+          {lesson.outcomes && (
+            <div className="kb-card" style={{ marginBottom: 18 }}>
+              <div className="eyebrow">Образовательные результаты</div>
+              <pre className="curric-lesson-md">{lesson.outcomes}</pre>
+            </div>
+          )}
+          {lesson.miniProject && (
+            <div className="kb-card" style={{ marginBottom: 18, borderLeft: `4px solid ${m.accent}` }}>
+              <div className="eyebrow">Мини-проект урока</div>
+              <pre className="curric-lesson-md">{lesson.miniProject}</pre>
+            </div>
+          )}
+          {lesson.homework && (
+            <div className="kb-card" style={{ marginBottom: 18 }}>
+              <div className="eyebrow">Домашнее задание</div>
+              <pre className="curric-lesson-md">{lesson.homework}</pre>
+            </div>
+          )}
 
           {/* Новые термины */}
           {lesson.terms.length > 0 && (
@@ -330,7 +512,7 @@ function LessonPage({ lesson, m }: { lesson: Lesson; m: Module }) {
 
           {/* Действия */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 24 }}>
-            {!isDone ? (
+            {course.slug === 'kubik' && (!isDone ? (
               <button className="kb-btn kb-btn--lg" onClick={() => markLessonDone(lesson.n)}>
                 ✓ Отметить пройденным
               </button>
@@ -338,9 +520,12 @@ function LessonPage({ lesson, m }: { lesson: Lesson; m: Module }) {
               <button className="kb-btn kb-btn--secondary" onClick={() => unmarkLesson(lesson.n)}>
                 ↺ Снять отметку
               </button>
-            )}
+            ))}
             {nextLesson && (
-              <Link to={`/learn/lesson/${nextLesson.n}`} className="kb-btn kb-btn--secondary kb-btn--lg">
+              <Link
+                to={course.slug === 'kubik' ? `/learn/lesson/${nextLesson.n}` : `/learn/course/${course.slug}/lesson/${nextLesson.n}`}
+                className="kb-btn kb-btn--secondary kb-btn--lg"
+              >
                 Урок {nextLesson.n}: {nextLesson.title} →
               </Link>
             )}
@@ -363,21 +548,31 @@ function LessonPage({ lesson, m }: { lesson: Lesson; m: Module }) {
 
           <nav className="kb-card" style={{ marginTop: 14 }}>
             <div className="eyebrow">Навигация</div>
-            {prevLesson && prevLesson.moduleN === lesson.moduleN && (
-              <Link to={`/learn/lesson/${prevLesson.n}`} className="curric-side-nav">
-                ← L{prevLesson.n}: {prevLesson.title}
-              </Link>
-            )}
-            {nextLesson && nextLesson.moduleN === lesson.moduleN && (
-              <Link to={`/learn/lesson/${nextLesson.n}`} className="curric-side-nav">
-                L{nextLesson.n}: {nextLesson.title} →
-              </Link>
-            )}
-            {nextLesson && nextLesson.moduleN !== lesson.moduleN && (
-              <Link to={`/learn/module/${nextLesson.moduleN}`} className="curric-side-nav">
-                Следующий модуль: M{nextLesson.moduleN} →
-              </Link>
-            )}
+            {(() => {
+              const mkLesson = (n: number) =>
+                course.slug === 'kubik' ? `/learn/lesson/${n}` : `/learn/course/${course.slug}/lesson/${n}`
+              const mkModule = (n: number) =>
+                course.slug === 'kubik' ? `/learn/module/${n}` : `/learn/course/${course.slug}/module/${n}`
+              return (
+                <>
+                  {prevLesson && prevLesson.moduleN === lesson.moduleN && (
+                    <Link to={mkLesson(prevLesson.n)} className="curric-side-nav">
+                      ← L{prevLesson.n}: {prevLesson.title}
+                    </Link>
+                  )}
+                  {nextLesson && nextLesson.moduleN === lesson.moduleN && (
+                    <Link to={mkLesson(nextLesson.n)} className="curric-side-nav">
+                      L{nextLesson.n}: {nextLesson.title} →
+                    </Link>
+                  )}
+                  {nextLesson && nextLesson.moduleN !== lesson.moduleN && (
+                    <Link to={mkModule(nextLesson.moduleN)} className="curric-side-nav">
+                      Следующий модуль: M{nextLesson.moduleN} →
+                    </Link>
+                  )}
+                </>
+              )
+            })()}
           </nav>
 
           <div className="kb-card" style={{ marginTop: 14, background: `${m.accent}15` }}>

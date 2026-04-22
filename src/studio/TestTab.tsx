@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { KeyboardControls, OrbitControls } from '@react-three/drei'
+import { KeyboardControls } from '@react-three/drei'
 import { Physics, RigidBody } from '@react-three/rapier'
 import { useEffect, useMemo, useRef } from 'react'
 import GradientSky from '../components/GradientSky'
@@ -7,6 +7,11 @@ import Sun from '../components/Sun'
 import Player from '../components/Player'
 import VoxelClouds from '../components/VoxelClouds'
 import LiveOverlay from '../components/LiveOverlay'
+import CoinHud from '../components/CoinHud'
+import CameraController from '../components/CameraController'
+import BuildModeController, { PieceGeometry } from '../components/BuildModeController'
+import BuildModeHud from '../components/BuildModeHud'
+import type { BuildPieceKind } from '../lib/buildModeState'
 import { loadAvatar } from '../lib/avatars'
 import {
   addPart,
@@ -23,6 +28,15 @@ import { addCoin, setScore, playerSay } from '../lib/gameState'
 import type { WorldCommand } from '../lib/python-world-runtime'
 import { runPython } from '../lib/pyodide-executor'
 import { wrapObjectPython } from '../lib/objectBlocks'
+
+/** PartGeometry — рендер корректной геометрии по type (coin/wall/floor/ramp/roof/cube). */
+function PartGeometry({ type }: { type: PartObject['type'] }) {
+  if (type === 'coin') return <cylinderGeometry args={[0.35, 0.35, 0.08, 16]} />
+  if (type === 'wall' || type === 'floor' || type === 'ramp' || type === 'roof') {
+    return <PieceGeometry kind={type as BuildPieceKind} />
+  }
+  return <boxGeometry args={[1, 1, 1]} />
+}
 
 const KEYS = [
   { name: 'forward', keys: ['KeyW', 'ArrowUp'] },
@@ -52,9 +66,11 @@ function materialProps(m: MaterialType) {
 function StaticPart({
   p,
   onTouch,
+  onClick,
 }: {
   p: PartObject
   onTouch?: (id: string) => void
+  onClick?: (id: string) => void
 }) {
   const mp = materialProps(p.material)
   const isEmissive = p.type === 'coin' || p.type === 'finish' || p.material === 'neon'
@@ -76,12 +92,20 @@ function StaticPart({
           : undefined
       }
     >
-      <mesh scale={p.scale} castShadow receiveShadow>
-        {p.type === 'coin' ? (
-          <cylinderGeometry args={[0.35, 0.35, 0.08, 16]} />
-        ) : (
-          <boxGeometry args={[1, 1, 1]} />
-        )}
+      <mesh
+        scale={p.scale}
+        castShadow
+        receiveShadow
+        onClick={
+          hasScript && onClick
+            ? (e) => {
+                e.stopPropagation()
+                onClick(p.id)
+              }
+            : undefined
+        }
+      >
+        <PartGeometry type={p.type} />
         <meshStandardMaterial
           color={p.color}
           roughness={mp.roughness}
@@ -193,6 +217,38 @@ export default function TestTab({ state }: { state: EditorState }) {
     void runObjectHandler(partId, 'on_touch')
   }
 
+  // Click события на объекты — ловим mesh.onClick в StaticPart
+  const onPartClicked = (partId: string) => {
+    void runObjectHandler(partId, 'on_click')
+  }
+
+  // Key events — глобальный keydown раздаёт on_key_<Code> всем объектам,
+  // которые определили такой handler
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const handler = `on_key_${e.code}`
+      for (const p of stateRef.current.parts) {
+        if (p.scripts?.python && p.scripts.python.includes(`def ${handler}`)) {
+          void runObjectHandler(p.id, handler)
+        }
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // stop_all — обрубаем tick-интервалы и команды, которые ещё в очереди
+  useEffect(() => {
+    const onStopAll = () => {
+      tickIntervalsRef.current.forEach((id) => window.clearInterval(id))
+      tickIntervalsRef.current = []
+      isExecutingRef.current = false
+    }
+    window.addEventListener('ek:stop-all', onStopAll)
+    return () => window.removeEventListener('ek:stop-all', onStopAll)
+  }, [])
+
   // Broadcasts — перехват obj_broadcast и дёрганье всех on_<name> у всех частей
   const runBroadcast = async (name: string) => {
     const handler = `on_${name.replace(/[^a-zA-Z_а-яА-Я0-9]/g, '_')}`
@@ -259,17 +315,20 @@ export default function TestTab({ state }: { state: EditorState }) {
 
           <Physics gravity={[0, -30, 0]}>
             {state.parts.map((p) => (
-              <StaticPart key={p.id} p={p} onTouch={onPartTouched} />
+              <StaticPart key={p.id} p={p} onTouch={onPartTouched} onClick={onPartClicked} />
             ))}
             <Player avatar={avatar} startPos={spawnPos} />
           </Physics>
 
-          <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2 - 0.05} />
+          <CameraController />
+          <BuildModeController />
         </Canvas>
       </KeyboardControls>
       <div className="test-help">
-        <strong>WASD</strong> — ходить · <strong>Space</strong> — прыжок · клик — захват мыши
+        <strong>WASD</strong> — ходить · <strong>Space</strong> — прыжок · <strong>B</strong> — стройка · клик — захват мыши
       </div>
+      <CoinHud />
+      <BuildModeHud />
       <LiveOverlay />
     </div>
   )
@@ -384,6 +443,51 @@ async function executeCmd(
     }
     case 'obj_broadcast': {
       onBroadcast(cmd.name)
+      break
+    }
+    case 'obj_set_position': {
+      updatePart(cmd.target, { position: [cmd.x, cmd.y, cmd.z] })
+      break
+    }
+    case 'obj_glide_to': {
+      const p = stateRef.current.parts.find((x) => x.id === cmd.target)
+      if (!p) break
+      const from: [number, number, number] = [p.position[0], p.position[1], p.position[2]]
+      const to: [number, number, number] = [cmd.x, cmd.y, cmd.z]
+      const frames = Math.max(1, Math.round(cmd.seconds * 30))
+      for (let i = 1; i <= frames; i++) {
+        const t = i / frames
+        updatePart(cmd.target, {
+          position: [
+            from[0] + (to[0] - from[0]) * t,
+            from[1] + (to[1] - from[1]) * t,
+            from[2] + (to[2] - from[2]) * t,
+          ],
+        })
+        await delay(Math.round(1000 / 30))
+      }
+      break
+    }
+    case 'obj_change_size': {
+      const p = stateRef.current.parts.find((x) => x.id === cmd.target)
+      if (!p) break
+      const s = Math.max(0.1, Math.min(10, p.scale[0] + cmd.delta))
+      updatePart(cmd.target, { scale: [s, s, s] })
+      break
+    }
+    case 'obj_flash': {
+      const p = stateRef.current.parts.find((x) => x.id === cmd.target)
+      if (!p) break
+      const prev = p.color
+      const flashColor = COLOR_MAP[cmd.color] ?? cmd.color
+      updatePart(cmd.target, { color: flashColor })
+      await delay(Math.round(cmd.seconds * 1000))
+      const still = stateRef.current.parts.find((x) => x.id === cmd.target)
+      if (still) updatePart(cmd.target, { color: prev })
+      break
+    }
+    case 'stop_all': {
+      window.dispatchEvent(new CustomEvent('ek:stop-all'))
       break
     }
 

@@ -16,6 +16,7 @@ const SiteEditor = lazy(() => import('./pages/SiteEditor'))
 const Parent = lazy(() => import('./pages/Parent'))
 const StudentPortfolio = lazy(() => import('./pages/StudentPortfolio'))
 const SharedSite = lazy(() => import('./pages/SharedSite'))
+const VkCallback = lazy(() => import('./pages/VkCallback'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -70,12 +71,48 @@ export default function App() {
             </Suspense>
           }
         />
-        {/* Backward-compat: старый /learn/:id */}
+        {/* Multi-course routes (LXP) */}
+        <Route
+          path="/learn/course/:courseSlug"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю курс…" />}>
+              <Learn />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/learn/course/:courseSlug/module/:moduleN"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю модуль…" />}>
+              <Learn />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/learn/course/:courseSlug/lesson/:lessonN"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю урок…" />}>
+              <Learn />
+            </Suspense>
+          }
+        />
+
+        {/* Backward-compat: старый /learn/:id (KubiK only) */}
         <Route
           path="/learn/:moduleOrLesson"
           element={
             <Suspense fallback={<RouteLoader label="Открываю…" />}>
               <Learn />
+            </Suspense>
+          }
+        />
+
+        {/* VK OAuth callback */}
+        <Route
+          path="/auth/vk/callback"
+          element={
+            <Suspense fallback={<RouteLoader label="Входим через VK…" />}>
+              <VkCallback />
             </Suspense>
           }
         />

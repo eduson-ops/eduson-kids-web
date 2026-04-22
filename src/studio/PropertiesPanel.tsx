@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { EditorState, MaterialType } from './editorState'
 import {
-  PALETTE_COLORS,
   SCENE_PRESETS,
   deletePart,
   duplicatePart,
@@ -120,27 +119,6 @@ export default function PropertiesPanel({ state }: Props) {
                   />
                 </label>
               ))}
-            </div>
-          </section>
-
-          <section>
-            <h4>Цвет</h4>
-            <div className="color-palette sm">
-              {PALETTE_COLORS.map((c) => (
-                <button
-                  key={c}
-                  className={`palette-swatch ${selected.color === c ? 'active' : ''}`}
-                  style={{ background: c }}
-                  onClick={() => updatePart(selected.id, { color: c })}
-                />
-              ))}
-              <label className="palette-custom">
-                <input
-                  type="color"
-                  value={selected.color}
-                  onChange={(e) => updatePart(selected.id, { color: e.target.value })}
-                />
-              </label>
             </div>
           </section>
 

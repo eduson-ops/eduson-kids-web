@@ -3,7 +3,7 @@
 
 import { nanoid } from 'nanoid'
 
-export type PartType = 'cube' | 'coin' | 'spawn' | 'finish'
+export type PartType = 'cube' | 'coin' | 'spawn' | 'finish' | 'wall' | 'floor' | 'ramp' | 'roof'
 export type MaterialType = 'plastic' | 'metal' | 'wood' | 'grass' | 'stone' | 'neon'
 
 /**

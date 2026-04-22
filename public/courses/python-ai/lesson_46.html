@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 46 — Итоговый проект, часть 2 (мясо механик)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --red: #EF4444;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 60px 76px 90px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .badge--purple { color: #C4B5FD; }
+  .badge--purple .dot { background: #A78BFA; box-shadow: 0 0 10px #A78BFA; }
+  .badge--pink { color: #F9A8D4; }
+  .badge--pink .dot { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .badge--yellow { color: #FDE68A; }
+  .badge--yellow .dot { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+  .badge--green { color: #86EFAC; }
+  .badge--green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .badge--red { color: #FCA5A5; }
+  .badge--red .dot { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+  h1 {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 16px 0;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 60%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  h2 .grad {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h3 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+  p, li { font-size: 19px; line-height: 1.55; color: #CBD1DE; }
+  .muted { color: var(--muted); }
+  .big { font-size: 23px; }
+
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide .meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .title-slide .subtitle {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 820px;
+    margin-top: 8px;
+  }
+  .title-slide .foot {
+    display: flex; gap: 32px; margin-top: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .title-slide .foot b { color: var(--text); }
+
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 24px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.45); transform: translateY(-3px); }
+  .card .ico {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.25));
+    border: 1px solid var(--border);
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .card--purple { background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(124,58,237,0.03)); border-color: rgba(124,58,237,0.35); }
+  .card--cyan { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(6,182,212,0.03)); border-color: rgba(6,182,212,0.35); }
+  .card--pink { background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(236,72,153,0.03)); border-color: rgba(236,72,153,0.35); }
+  .card--yellow { background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.35); }
+  .card--green { background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.03)); border-color: rgba(16,185,129,0.35); }
+  .card--red { background: linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.03)); border-color: rgba(239,68,68,0.35); }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 10px 0 10px 34px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .check-list li::before {
+    content: '✓';
+    position: absolute; left: 0; top: 10px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .num-list { list-style: none; padding: 0; counter-reset: step; }
+  .num-list li {
+    padding: 12px 0 12px 52px;
+    position: relative;
+    counter-increment: step;
+    border-bottom: 1px dashed var(--border);
+  }
+  .num-list li:last-child { border-bottom: 0; }
+  .num-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: grid; place-items: center;
+  }
+
+  pre[class*="language-"] {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0A0E18 !important;
+    font-size: 14px;
+    padding: 18px 22px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #A5F3FC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88em;
+  }
+  .code-window {
+    background: #0A0E18;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .code-window__bar {
+    background: rgba(255,255,255,0.04);
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-window__bar .dots { display: flex; gap: 6px; margin-right: 10px; }
+  .code-window__bar .dots span {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #3b3f4a;
+  }
+  .code-window__bar .dots span:nth-child(1) { background: #ff5f56; }
+  .code-window__bar .dots span:nth-child(2) { background: #ffbd2e; }
+  .code-window__bar .dots span:nth-child(3) { background: #27c93f; }
+  .code-window pre[class*="language-"] {
+    margin: 0; border: 0; border-radius: 0; box-shadow: none;
+  }
+
+  .kbd {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.85em;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(6,182,212,0.12);
+    color: #67E8F9;
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 2px;
+  }
+  .tag--purple { background: rgba(124,58,237,0.16); color: #C4B5FD; border-color: rgba(124,58,237,0.35); }
+  .tag--pink { background: rgba(236,72,153,0.16); color: #F9A8D4; border-color: rgba(236,72,153,0.35); }
+  .tag--yellow { background: rgba(245,197,24,0.16); color: #FDE68A; border-color: rgba(245,197,24,0.35); }
+  .tag--green { background: rgba(16,185,129,0.16); color: #86EFAC; border-color: rgba(16,185,129,0.35); }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-row:last-child { border-bottom: 0; }
+  .plan-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 15px;
+    padding-top: 2px;
+  }
+  .plan-row .tl { font-weight: 600; margin-bottom: 4px; font-size: 17px; }
+  .plan-row .dc { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .quote {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 16px 22px;
+    border-left: 3px solid var(--purple);
+    background: var(--glass);
+    border-radius: 0 16px 16px 0;
+    color: #E6E8EC;
+  }
+  .quote small {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .warn {
+    background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .warn .i { font-size: 22px; color: var(--yellow); }
+  .warn .t { color: #FDE68A; font-weight: 600; margin-bottom: 3px; }
+  .warn .d { color: #CBD1DE; font-size: 15px; }
+
+  .kw { color: var(--cyan); font-weight: 600; }
+  .kw--purple { color: #C4B5FD; }
+  .kw--pink { color: #F9A8D4; }
+  .kw--yellow { color: var(--yellow); }
+  .kw--green { color: #86EFAC; }
+
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .flow .arr {
+    color: var(--cyan);
+    font-size: 22px;
+  }
+
+  .final-center { align-items: center; justify-content: center; text-align: center; }
+  .final-center h1 { font-size: 84px; }
+
+  .notes-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    padding: 18px 40px;
+    max-height: 40vh;
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform .4s ease;
+    z-index: 50;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #CBD1DE;
+  }
+  .notes-panel.open { transform: translateY(0); }
+  .notes-panel h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .title-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+  .two-col--code { grid-template-columns: 1fr 1.1fr; }
+
+  .center { text-align: center; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+  .mt-10 { margin-top: 10px; }
+
+  .stage-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .stage-pill b { color: #E6E8EC; }
+
+  .badge-final {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));
+    border: 1px solid rgba(124,58,237,0.45);
+    border-radius: 999px;
+    padding: 6px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #E6E8EC;
+    font-weight: 700;
+  }
+
+  /* Roadmap / timeline */
+  .timeline {
+    position: relative;
+    padding-left: 28px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px; top: 8px; bottom: 8px;
+    width: 2px;
+    background: linear-gradient(180deg, #7C3AED, #06B6D4);
+    opacity: .5;
+  }
+  .timeline .tl-item {
+    position: relative;
+    padding: 10px 0 10px 4px;
+  }
+  .timeline .tl-item::before {
+    content: '';
+    position: absolute;
+    left: -22px; top: 18px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #0B0F17;
+    border: 2px solid var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .timeline .tl-item.done::before { background: var(--green); border-color: var(--green); box-shadow: 0 0 10px var(--green); }
+  .timeline .tl-item.now::before { background: var(--purple); border-color: var(--purple); box-shadow: 0 0 14px var(--purple); }
+
+  /* Debug chat mock */
+  .chat {
+    background: #0A0E18;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    max-width: 88%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .msg--user {
+    align-self: flex-end;
+    background: rgba(124,58,237,0.18);
+    border: 1px solid rgba(124,58,237,0.35);
+    color: #E6E8EC;
+    border-bottom-right-radius: 4px;
+  }
+  .msg--ai {
+    align-self: flex-start;
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.3);
+    color: #CBD1DE;
+    border-bottom-left-radius: 4px;
+  }
+  .msg b { color: #FDE68A; }
+
+  /* Priority rows */
+  .prio {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+  }
+  .prio .pn {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 18px;
+    color: white;
+  }
+  .prio--1 .pn { background: linear-gradient(135deg, #7C3AED, #A78BFA); }
+  .prio--2 .pn { background: linear-gradient(135deg, #06B6D4, #67E8F9); }
+  .prio--3 .pn { background: linear-gradient(135deg, #EC4899, #F9A8D4); }
+  .prio .pt { font-weight: 600; font-size: 17px; }
+  .prio .pd { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .prio .pm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-size: 13px;
+  }
+
+  /* Stat row */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    text-align: center;
+  }
+  .stat .n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .stat .l {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  /* Comparison card */
+  .vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 18px;
+    align-items: stretch;
+  }
+  .vs .mid {
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  @media (max-width: 1100px) {
+    .slide { padding: 40px 40px 90px; }
+    h1 { font-size: 48px; }
+    h2 { font-size: 30px; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .vs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: Title -->
+  <section class="slide title-slide active" data-notes="Второе из четырёх занятий финального проекта. На 45-м ребёнок выбрал тему и написал скелет — окно открывается, есть главный объект. Сегодня — «мясо»: механики, которые делают проект играбельным. К концу урока у ребёнка должна быть версия, в которую можно играть минуту подряд: есть цель, есть процесс, есть конец. Украшательства — на уроке 47. ИИ сегодня уже не «дай идею», а «почему не работает» — впервые используем его как дебаггера на своём коде.">
+    <div class="title-num">УРОК 46 · ФИНАЛЬНЫЙ ПРОЕКТ · НЕДЕЛЯ 23 · 60 МИНУТ</div>
+    <div class="meta">
+      <div class="badge badge--purple"><span class="dot"></span>Итоговый проект · ч.2</div>
+      <div class="badge badge--pink"><span class="dot"></span>8–14 лет</div>
+      <div class="badge badge--yellow"><span class="dot"></span>Мясо механик</div>
+    </div>
+    <h1>
+      Итоговый <span class="grad">проект</span><br/>
+      ч.2 — делаем мясо
+    </h1>
+    <p class="subtitle">Сегодня скелет обрастает механиками. К концу урока в твою игру можно играть 1 минуту подряд: есть цель, есть процесс, есть конец. ИИ — больше не советчик, а дебаггер.</p>
+    <div class="foot">
+      <div><b>PyGame Zero</b> мясо</div>
+      <div><b>YandexGPT</b> дебаггер</div>
+      <div><b>Kandinsky</b> графика</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Где мы -->
+  <section class="slide" data-notes="Показываю карту четырёх уроков финала. 45 уже позади — скелет. Сегодня 46 — механики. 47 — полировка и защита. 48 — демо-день. Ребёнок должен видеть, где он, и что осталось. Это помогает не паниковать на 25-й минуте от мысли „а вдруг не успею всё“. На урок 46 главная задача одна — играбельность. Не красота, не звук. Играбельность.">
+    <div class="badge"><span class="dot"></span>Где мы сейчас</div>
+    <h2>Четыре урока финала — <span class="grad">ты на втором</span></h2>
+    <div class="timeline mt-20">
+      <div class="tl-item done">
+        <h3>✅ Урок 45 · Скелет</h3>
+        <p class="muted">Тема выбрана, <code>README.md</code> с планом 5–7 пунктов, окно открывается, есть главный объект</p>
+      </div>
+      <div class="tl-item now">
+        <h3 style="color:#C4B5FD;">🔥 Урок 46 · Мясо механик <span class="badge-final" style="margin-left:10px;font-size:12px;">сегодня</span></h3>
+        <p class="muted">Коллизии, списки объектов, состояния, счёт. Играбельность 1 минуту</p>
+      </div>
+      <div class="tl-item">
+        <h3>⏭ Урок 47 · Полировка + репетиция защиты</h3>
+        <p class="muted">Чек-лист UX, тестирование, <code>defence.md</code>, прогон 3–5 минут</p>
+      </div>
+      <div class="tl-item">
+        <h3>🏆 Урок 48 · Демо-день</h3>
+        <p class="muted">Публичное выступление 5–7 мин, сертификат, бейдж «Выпускник»</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: Цель урока -->
+  <section class="slide" data-notes="Ставим одну чёткую цель на 60 минут. Формула «цель — процесс — конец» — это то, что превращает «запустился код» в «игру». У ребёнка уже есть окно и объект с урока 45. Сегодня мы наделяем объект ЦЕЛЬЮ (куда/зачем), добавляем ПРОЦЕСС (препятствия/действия), ставим УСЛОВИЕ КОНЦА (выиграл/проиграл). Всё остальное — фон, красота, звук — делаем в последнюю очередь, если успеем. Это профессиональный подход: сначала играется, потом красиво.">
+    <div class="badge badge--purple"><span class="dot"></span>Цель на 60 минут</div>
+    <h2>Сделать игру <span class="grad">играбельной</span> — ровно минуту</h2>
+    <div class="grid grid-3 mt-20">
+      <div class="card card--purple">
+        <div class="ico">🎯</div>
+        <h3>Цель</h3>
+        <p class="muted">Зачем игрок что-то делает? Набрать очков, дойти, выжить, поймать</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">⚙️</div>
+        <h3>Процесс</h3>
+        <p class="muted">Что происходит между стартом и концом? Препятствия, падение, стрельба</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🏁</div>
+        <h3>Конец</h3>
+        <p class="muted">Когда игра заканчивается? Проиграл, дошёл до уровня, вышло время</p>
+      </div>
+    </div>
+    <div class="quote mt-30">
+      «Сегодня делаем <b style="color:#C4B5FD;">мясо проекта</b>, украшения — потом. Плохо играется лучше, чем идеально выглядит — механика первична.»
+      <small>— ключевая фраза урока</small>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: Разбор ДЗ / notes.md -->
+  <section class="slide" data-notes="Открываем notes.md — личный дневник проекта, заведённый на 45-м уроке. Там ребёнок записал 3 вопроса или сложности. Первые 5 минут — отвечаем НА ПЕРВЫЙ (не на все три). Почему один? Потому что если копать сразу три — уйдём в теорию и не дойдём до кода. Остальные два — решаем по ходу урока или переносим. Этот ритуал — «открой notes.md первым делом» — важная профессиональная привычка. Дневник ошибок есть у любого инженера.">
+    <div class="badge badge--yellow"><span class="dot"></span>0–5 мин · разбор ДЗ</div>
+    <h2>Открываем <code>notes.md</code> — дневник ошибок</h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">На уроке 45 ты записал <b style="color:var(--text);">3 вопроса / сложности</b> на будущее. Сегодня отвечаем на <span class="kw">один</span> — самый важный.</p>
+        <p class="muted big mt-20">Почему только один? Если разбирать все три — уйдём в теорию, и времени на код не останется. Остальные — по ходу или на 47 урок.</p>
+        <div class="warn mt-20">
+          <div class="i">📓</div>
+          <div><div class="t">Привычка профи</div><div class="d">У любого инженера есть дневник ошибок. Открывай его первым делом каждую сессию.</div></div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>notes.md</div>
+<pre class="language-markdown"><code># notes.md — проект "Котик на уроке"
+
+## Вопросы на урок 46
+1. Как сделать, чтобы родитель появлялся
+   случайно слева и справа? → разбираем первым
+2. Надо ли счёт в файл сохранять?
+3. Не могу придумать, чем котик отбивается
+
+## Идеи на потом
+- Музыка школьного звонка
+- Экран "переменка" между волнами</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: Приоритеты на урок -->
+  <section class="slide" data-notes="5–10 минут — выбираем ТРИ ПУНКТА из плана с урока 45. Не весь план, не 7 пунктов — именно три, самых важных для играбельности. Разбор на доске: 1) главная механика взаимодействия — без неё геймплея нет, 2) условие конца — без него игра бесконечная, 3) счёт или прогресс — иначе неинтересно. Ребёнок сам выбирает из своего плана. Если ребёнок путается — помогаю наводящими вопросами: «Что случится, если игрок ничего не делает? А если делает идеально?»">
+    <div class="badge badge--cyan"><span class="dot"></span>5–10 мин · приоритеты</div>
+    <h2>Выбери <span class="grad">3 пункта</span> из плана — остальное потом</h2>
+    <div class="mt-20">
+      <div class="prio prio--1">
+        <div class="pn">1</div>
+        <div>
+          <div class="pt">Главная механика взаимодействия</div>
+          <div class="pd">Что игрок делает основную часть времени? Ловит / стреляет / прыгает / отвечает</div>
+        </div>
+        <div class="pm">~15 мин</div>
+      </div>
+      <div class="prio prio--2">
+        <div class="pn">2</div>
+        <div>
+          <div class="pt">Условие конца игры</div>
+          <div class="pd">Проигрыш по жизням, победа по таймеру, добрался до уровня</div>
+        </div>
+        <div class="pm">~10 мин</div>
+      </div>
+      <div class="prio prio--3">
+        <div class="pn">3</div>
+        <div>
+          <div class="pt">Счёт или прогресс</div>
+          <div class="pd">Число, которое растёт и даёт игроку ощущение «я молодец»</div>
+        </div>
+        <div class="pm">~10 мин</div>
+      </div>
+    </div>
+    <div class="quote mt-20">
+      «Если кусок не работает 15 минут — <b style="color:#C4B5FD;">спроси YandexGPT</b>, это нормальный рабочий приём.»
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Паттерн списков объектов -->
+  <section class="slide" data-notes="Вспоминаем урок 39 — «Поймай яблоко, часть 3». Там был ключевой приём: не плодить переменные apple1, apple2, apple3, а хранить всё в списке. Этот приём нужен в 90% игр: враги, пули, монетки, препятствия — всё в списках. Разбираем шаблон: пустой список, функция spawn, цикл в update, удаление улетевших. Важный момент — `[:]` при итерации, иначе баг. На практике ребёнок копирует этот паттерн из проекта «Поймай яблоко» и подставляет под свою тему.">
+    <div class="badge badge--purple"><span class="dot"></span>Паттерн #1 · списки объектов</div>
+    <h2>Не плоди переменные — храни в <code>списке</code></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">В игре всегда много одинаковых штук: <span class="kw--purple">враги</span>, <span class="kw--pink">пули</span>, <span class="kw--yellow">монетки</span>, <span class="kw--green">препятствия</span>.</p>
+        <p class="muted big mt-20">Плохо: <code>enemy1, enemy2, enemy3</code> — 100 переменных писать?</p>
+        <p class="muted big mt-10">Хорошо: один список <code>enemies = []</code>. Его и наполняем, и чистим, и обходим.</p>
+        <div class="warn mt-20">
+          <div class="i">⚠️</div>
+          <div><div class="t">Не забудь <code>[:]</code></div><div class="d">Нельзя менять список, пока по нему идёшь. Идём по копии <code>enemies[:]</code> — иначе баг с пропадающими элементами.</div></div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>main.py · шаблон из урока 39</div>
+<pre class="language-python"><code>import random
+
+enemies = []
+
+def spawn_enemy():
+    x = random.randint(50, WIDTH - 50)
+    enemies.append(Actor('enemy', (x, 0)))
+
+clock.schedule_interval(spawn_enemy, 1.0)
+
+def update():
+    for e in enemies[:]:          # копия!
+        e.y += 3
+        if e.y > HEIGHT:
+            enemies.remove(e)
+        elif hero.colliderect(e):
+            enemies.remove(e)
+            score += 1</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Паттерн состояний -->
+  <section class="slide" data-notes="Второй важнейший паттерн — состояния. Вспоминаем урок 40 из проекта «Поймай яблоко, часть 4». Одна строковая переменная game_state определяет, что рисует draw() и что делает update(). Без состояний игра либо всегда идёт, либо всегда на меню. Состояния — это главный способ дать игре МЕНЮ и ЭКРАН ПРОИГРЫША. Минимум 3 состояния для финального проекта: menu, playing, gameover. Это не сложно — это ровно 4 строки if/elif.">
+    <div class="badge badge--pink"><span class="dot"></span>Паттерн #2 · состояния</div>
+    <h2>Одна строка делает <span class="grad">три экрана</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">Игра — это <b style="color:var(--text);">состояние</b> + <b style="color:var(--text);">данные</b>. Состояние определяет, что рисовать и что обновлять.</p>
+        <div class="mt-20 flow gap-12">
+          <div class="step" style="background:rgba(124,58,237,0.2);">menu</div>
+          <div class="arr">→</div>
+          <div class="step" style="background:rgba(6,182,212,0.2);">playing</div>
+          <div class="arr">→</div>
+          <div class="step" style="background:rgba(236,72,153,0.2);">gameover</div>
+          <div class="arr">↺</div>
+        </div>
+        <p class="muted mt-20">На клавишу <span class="kbd">SPACE</span> — меняем состояние. Это всё.</p>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>main.py</div>
+<pre class="language-python"><code>game_state = 'menu'
+score = 0
+lives = 3
+
+def draw():
+    screen.clear()
+    if game_state == 'menu':
+        screen.draw.text('SPACE — играть', center=(400,300))
+    elif game_state == 'playing':
+        hero.draw()
+        for e in enemies: e.draw()
+        screen.draw.text(f'Очки: {score}', (10,10))
+    elif game_state == 'gameover':
+        screen.draw.text('Конец! SPACE — заново', center=(400,300))</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: Столкновения colliderect -->
+  <section class="slide" data-notes="Третий паттерн — коллизии. Это ГЛАВНАЯ механика почти любой 2D-игры: персонаж врезался — что-то случилось. Используем colliderect — метод Actor, проверяет пересечение прямоугольников. Типичные ошибки: 1) пишут hero.colliderect(enemies) — а надо с конкретным, не со списком, 2) забывают else и никогда не попадают в условие, 3) не удаляют столкнувшийся объект и коллизия срабатывает 60 раз в секунду. Разбираем на уроке.">
+    <div class="badge badge--yellow"><span class="dot"></span>Паттерн #3 · коллизии</div>
+    <h2>Столкновения через <code>colliderect</code></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">Любая игра = <span class="kw--yellow">прямоугольники</span>, которые врезаются. <code>colliderect</code> возвращает <code>True</code>, если прямоугольники пересекаются.</p>
+        <ul class="check-list mt-20">
+          <li>Проверяй с <b>конкретным</b> объектом, не со списком</li>
+          <li>После попадания — <b>удали или обработай</b>, иначе срабатывает 60 раз/сек</li>
+          <li>Не забывай про <code>else</code>, когда нужно</li>
+        </ul>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>main.py · коллизия из урока 39</div>
+<pre class="language-python"><code>def update():
+    if game_state != 'playing':
+        return
+
+    for enemy in enemies[:]:
+        enemy.x -= 4
+        if hero.colliderect(enemy):
+            enemies.remove(enemy)
+            lives -= 1
+            sounds.hit.play()
+            if lives == 0:
+                game_state = 'gameover'</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: Самостоятельная работа -->
+  <section class="slide" data-notes="Главный этап урока — 25 минут самостоятельной работы. Ребёнок пишет код сам, я сижу рядом и отвечаю на вопросы. Важно: я НЕ пишу код за ребёнка. Если застрял — навожу вопросом: «вспомни, как мы в проекте „Поймай яблоко“ делали похожую вещь», «открой урок 39, там это есть», «попробуй спросить у ИИ, он тебе объяснит». Моя задача — не решить за него, а научить находить решения. Это единственный способ получить настоящий навык.">
+    <div class="badge badge--green"><span class="dot"></span>10–35 мин · самостоятельно</div>
+    <h2>Сам пишу код — <span class="grad">25 минут</span></h2>
+    <div class="grid grid-2 mt-20">
+      <div class="card card--green">
+        <h3>🧑‍💻 Что делает ученик</h3>
+        <ul class="check-list" style="font-size:16px;">
+          <li>Берёт пункт 1 из приоритетов → пишет код</li>
+          <li>Копирует паттерн из урока 39 / 40</li>
+          <li>Подставляет под свою тему</li>
+          <li>Запускает, проверяет, чинит</li>
+          <li>Переходит к пункту 2 и 3</li>
+        </ul>
+      </div>
+      <div class="card card--purple">
+        <h3>👩‍🏫 Что делает преподаватель</h3>
+        <ul class="check-list" style="font-size:16px;">
+          <li>Читает код по просьбе</li>
+          <li>Задаёт наводящие вопросы</li>
+          <li>Показывает, где взять шаблон</li>
+          <li>Поощряет использовать ИИ как дебаггер</li>
+          <li><b style="color:#FCA5A5;">НЕ пишет код вместо ребёнка</b></li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote mt-20">
+      «Не изобретай велосипед — <b style="color:#C4B5FD;">возьми паттерн</b> из проекта „Поймай яблоко“ и перепиши под себя.»
+    </div>
+  </section>
+
+  <!-- SLIDE 10: ИИ как дебаггер -->
+  <section class="slide" data-notes="Ключевой момент урока: ИИ меняет роль. На уроках 1-45 он был «дай идею», «объясни, что такое цикл», «сгенери картинку». Сегодня он впервые становится ДЕББАГГЕРОМ. Ребёнок копирует ошибку + свой код + спрашивает «что это значит?». Это НЕ «напиши мне код». Это «объясни, почему не работает». Разница принципиальна — первое убивает навык, второе усиливает. Учимся формулировать запрос с контекстом.">
+    <div class="badge badge--cyan"><span class="dot"></span>ИИ сегодня — дебаггер</div>
+    <h2>ИИ меняет <span class="grad">роль</span></h2>
+    <div class="vs mt-20">
+      <div class="card card--red">
+        <h3 style="color:#FCA5A5;">❌ Раньше было вредно</h3>
+        <p class="muted" style="font-family:'JetBrains Mono',monospace;font-size:15px;margin-top:10px;">«Напиши мне игру котик на уроке»</p>
+        <p class="muted mt-10" style="font-size:14px;">ИИ выдаёт готовый код → ребёнок ничего не понял → на защите не сможет объяснить.</p>
+      </div>
+      <div class="mid">VS</div>
+      <div class="card card--green">
+        <h3 style="color:#86EFAC;">✅ Сегодня правильно</h3>
+        <p class="muted" style="font-family:'JetBrains Mono',monospace;font-size:15px;margin-top:10px;">«Вот мой код [...], вот ошибка [...]. Объясни, почему не работает.»</p>
+        <p class="muted mt-10" style="font-size:14px;">ИИ объясняет → ребёнок правит сам → навык растёт.</p>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">💡</div>
+      <div><div class="t">Правильный запрос — всегда 3 части</div><div class="d"><b>1)</b> кусок моего кода · <b>2)</b> текст ошибки или описание поведения · <b>3)</b> вопрос «почему?»</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 11: Как спрашивать ИИ — пример -->
+  <section class="slide" data-notes="Разбираем на реальном кейсе. Частая ошибка у детей после урока 39: яблоки пропадают пачками из-за цикла без копии. Показываю, как ребёнок формулирует запрос в YandexGPT и что получает. Важно: ответ ИИ не «держите готовый код», а объяснение — в чём причина, плюс минимальный пример правки. Это ровно то, чего мы хотим. Потом ребёнок применяет правку к своему проекту — и понимает механику.">
+    <div class="badge badge--cyan"><span class="dot"></span>Как спрашивать ИИ · пример</div>
+    <h2>Код + ошибка + вопрос <span class="grad">= ответ</span></h2>
+    <div class="two-col mt-20">
+      <div class="chat">
+        <div class="msg msg--user">Вот мой код:
+<b>for apple in apples:</b>
+<b>    if apple.y > 600:</b>
+<b>        apples.remove(apple)</b>
+
+Яблоки пропадают пачками, иногда на экране ни одного. Почему?</div>
+        <div class="msg msg--ai">Ты меняешь список <b>apples</b>, пока идёшь по нему. Python пропускает элементы — отсюда «пачки».
+
+Решение: итерируйся по копии <b>apples[:]</b>:
+
+<b>for apple in apples[:]:</b>
+<b>    if apple.y > 600:</b>
+<b>        apples.remove(apple)</b>
+
+Так список в цикле «замораживается», а <b>remove</b> правит настоящий.</div>
+        <div class="msg msg--user">Ого, заработало! Спасибо.</div>
+      </div>
+      <div>
+        <h3>Что хорошего в этом запросе</h3>
+        <ul class="check-list mt-10" style="font-size:16px;">
+          <li>Код приведён целиком, не кусочек</li>
+          <li>Описано, что видно — «пачками»</li>
+          <li>Спросил «почему», а не «напиши»</li>
+          <li>Сам применил правку и проверил</li>
+        </ul>
+        <div class="warn mt-20">
+          <div class="i">📝</div>
+          <div><div class="t">Записывай в <code>notes.md</code></div><div class="d">Каждая разгаданная ошибка — строчка в дневнике. Пригодится на защите.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 12: Поминутный план -->
+  <section class="slide" data-notes="Показываю структуру урока целиком. Это визуальный якорь, ребёнок видит, где он сейчас и сколько осталось. Минуты — не строгие, это ориентир. Если механики пошли тяжело — графика сокращается до 5 минут, это нормально. Если наоборот всё идёт быстро — можно раньше перейти к звуку и даже начать полировать. Главное — к 60-й минуте есть демо.">
+    <div class="badge"><span class="dot"></span>Поминутный план · 60 минут</div>
+    <h2>Как устроен <span class="grad">урок</span></h2>
+    <div class="mt-10">
+      <div class="plan-row"><div class="tm">0–5</div><div><div class="tl">Разбор notes.md · 1 вопрос</div><div class="dc">Открываем дневник с урока 45, отвечаем на самый важный вопрос</div></div></div>
+      <div class="plan-row"><div class="tm">5–10</div><div><div class="tl">Приоритеты: 3 пункта из плана</div><div class="dc">Выбираем механику, условие конца, счёт. Остальное — на потом</div></div></div>
+      <div class="plan-row"><div class="tm">10–35</div><div><div class="tl">Самостоятельный код механик</div><div class="dc">Ребёнок пишет, я рядом с подсказками. ИИ — как дебаггер</div></div></div>
+      <div class="plan-row"><div class="tm">35–45</div><div><div class="tl">Графика: заглушки → Kandinsky</div><div class="dc">Меняем квадраты на настоящие спрайты, догенерим недостающее</div></div></div>
+      <div class="plan-row"><div class="tm">45–55</div><div><div class="tl">Один ключевой звук</div><div class="dc">Ловля, удар или взрыв — один, но точно в тему. Музыка — потом</div></div></div>
+      <div class="plan-row"><div class="tm">55–60</div><div><div class="tl">Демо текущего состояния · чек-лист</div><div class="dc">Ребёнок показывает, отмечает галочками, что из плана готово</div></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 13: Графика — заглушки -->
+  <section class="slide" data-notes="35–45 минут — графика. Ребёнок на 45-м уроке сгенерил 3-4 спрайта в Kandinsky и на ДЗ подставил в главного героя. Но в коде сегодня появились новые объекты — враги, препятствия, бонусы, — которые пока прямоугольники-заглушки. Быстрый раунд Kandinsky: генерим недостающие прямо на уроке. Промпты делаются в едином стиле — это критично для цельного вида игры. «Тот же стиль, тот же размер, прозрачный фон» — магическая формула.">
+    <div class="badge badge--purple"><span class="dot"></span>35–45 мин · графика</div>
+    <h2>Меняем квадраты на <span class="grad">настоящее</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">На уроке 45 ты сгенерил <b style="color:var(--text);">3–4 главных спрайта</b>. Сегодня в коде появились новые объекты → догенерим.</p>
+        <h3 class="mt-20">Магический шаблон промпта</h3>
+        <div class="prompt-box" style="background:#0A0E18;border:1px solid rgba(124,58,237,0.35);border-radius:14px;padding:18px 22px;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.7;color:#CBD1DE;margin-top:10px;">
+<span style="color:#C4B5FD;">предмет</span>: <span style="color:#86EFAC;">учебник</span>
+<span style="color:#C4B5FD;">стиль</span>: <span style="color:#86EFAC;">плоская детская иллюстрация</span>
+<span style="color:#C4B5FD;">фон</span>: <span style="color:#86EFAC;">прозрачный (PNG)</span>
+<span style="color:#C4B5FD;">размер</span>: <span style="color:#86EFAC;">200×200</span>
+<span style="color:#C4B5FD;">важно</span>: <span style="color:#FDE68A;">тот же стиль, что и главный герой</span></div>
+      </div>
+      <div>
+        <div class="card card--yellow">
+          <h3>🎨 Три правила единого стиля</h3>
+          <ul class="check-list mt-10" style="font-size:16px;">
+            <li><b>Тот же стиль</b> во всех промптах (плоский/пиксельный/мультяшный)</li>
+            <li><b>Прозрачный фон</b> — всегда PNG</li>
+            <li><b>Одинаковый размер</b> — главный герой и враги соразмерны</li>
+          </ul>
+        </div>
+        <div class="warn mt-20">
+          <div class="i">⚡</div>
+          <div><div class="t">Не зацикливайся</div><div class="d">5 минут на генерацию. Не нравится — временно заглушка, дорисуем на уроке 47.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 14: Один звук -->
+  <section class="slide" data-notes="45–55 минут — подключаем ОДИН звук. Не три, не десять — один, ключевой. Это звук главного события игры: поймал, ударил, выстрелил. Почему один? Потому что один звук оживляет игру сразу. Остальные — на 47-м уроке. На freesound.org — фильтр CC0 (можно использовать бесплатно), скачиваем .wav или .ogg, кладём в sounds/, вызываем sounds.catch.play() в нужном месте. Важно: имя файла без расширения в коде.">
+    <div class="badge badge--yellow"><span class="dot"></span>45–55 мин · звук</div>
+    <h2>Один <span class="grad">ключевой звук</span> — не больше</h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">Сегодня — <b style="color:var(--text);">один звук</b>, самый главный для твоей игры. Остальные на 47-м.</p>
+        <h3 class="mt-20">Где брать</h3>
+        <p class="muted">→ <b>freesound.org</b> · фильтр <code>CC0</code> — бесплатно, даже в коммерции</p>
+        <p class="muted mt-10">→ формат <code>.wav</code> или <code>.ogg</code>, длина ~0.5–1 сек</p>
+        <p class="muted mt-10">→ папка <code>sounds/catch.wav</code> · в коде <code>sounds.catch.play()</code></p>
+        <div class="warn mt-20">
+          <div class="i">🔇</div>
+          <div><div class="t">Не тот формат — не играет</div><div class="d">Если PyGame Zero молчит — скорее всего .mp3. Перекодируй в .wav.</div></div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>main.py</div>
+<pre class="language-python"><code># в sounds/ положил catch.wav
+# главное событие — поймал врага
+
+def update():
+    for enemy in enemies[:]:
+        enemy.x -= 4
+        if hero.colliderect(enemy):
+            enemies.remove(enemy)
+            score += 1
+            sounds.catch.play()   # ← один звук
+            # музыку и остальные — на уроке 47</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: Демо и чек-лист -->
+  <section class="slide" data-notes="Последние 5 минут — демо. Ребёнок запускает свой проект, играет 30 секунд передо мной. По ходу отмечаем галочками в README.md, что из плана сделано. Это важный ритуал: ребёнок ВИДИТ прогресс. На уроке 45 был скелет, сегодня уже играбельная версия. Прямо в READMЕ меняем [ ] на [x]. На защите этот чек-лист пригодится — показывает, как шёл проект.">
+    <div class="badge badge--green"><span class="dot"></span>55–60 мин · демо</div>
+    <h2>Запускаем и <span class="grad">отмечаем галочки</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">За 30 секунд проигрывания — смотрим, что из плана <b style="color:var(--text);">уже работает</b>.</p>
+        <p class="muted big mt-20">В <code>README.md</code> прямо сейчас меняем <code>[ ]</code> → <code>[x]</code>. Это не формальность, это <span class="kw">лента прогресса</span>.</p>
+        <div class="stats mt-30">
+          <div class="stat"><div class="n">70–120</div><div class="l">строк кода</div></div>
+          <div class="stat"><div class="n">≥ 2</div><div class="l">спрайта из Kandinsky</div></div>
+          <div class="stat"><div class="n">1</div><div class="l">звук</div></div>
+          <div class="stat"><div class="n">1 мин</div><div class="l">играбельность</div></div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>README.md · прогресс</div>
+<pre class="language-markdown"><code># Котик на уроке
+
+## План задач
+- [x] Окно и фон              (ур.45)
+- [x] Главный герой (котик)    (ур.45)
+- [x] Враги из списка          (ур.46 ← сегодня)
+- [x] Коллизии и жизни         (ур.46 ← сегодня)
+- [x] Экран gameover           (ур.46 ← сегодня)
+- [x] Счёт в углу              (ур.46 ← сегодня)
+- [ ] Музыка и остальные звуки
+- [ ] Красивое меню с кнопкой
+- [ ] Экран "как играть"
+- [ ] Сохранение рекорда</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: Типовые грабли -->
+  <section class="slide" data-notes="Собрал типовые грабли, на которые падают почти все дети. Пусть ребёнок видит их заранее — быстрее чинит, меньше паники. Каждая — реальный кейс из прошлых уроков. Обращаю внимание: «тормозит — не удаляешь улетевших», «пропадают пачками — нужен [:]», «коллизия не срабатывает — проверяешь со списком, а надо с элементом». Если это видно на слайде — ребёнок узнает свою ошибку за 30 секунд.">
+    <div class="badge badge--red"><span class="dot"></span>Типовые грабли</div>
+    <h2>Если что-то не работает — <span class="grad">сверься</span></h2>
+    <div class="grid grid-2 mt-20">
+      <div class="card card--red">
+        <div class="ico" style="background:rgba(239,68,68,0.2);">🐞</div>
+        <h3>Игра тормозит</h3>
+        <p class="muted">Объекты копятся, не удаляются. Добавь условие <code>if e.y > HEIGHT: enemies.remove(e)</code>.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:rgba(239,68,68,0.2);">💥</div>
+        <h3>Объекты пропадают пачками</h3>
+        <p class="muted">Забыт <code>[:]</code>. Цикл: <code>for e in enemies[:]</code>, а не <code>enemies</code>.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:rgba(239,68,68,0.2);">🎯</div>
+        <h3>Коллизия не срабатывает</h3>
+        <p class="muted">Пишешь <code>hero.colliderect(enemies)</code>? Надо с <b>одним</b>: <code>hero.colliderect(enemy)</code>.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:rgba(239,68,68,0.2);">🔇</div>
+        <h3>Звук не играет</h3>
+        <p class="muted">В коде имя без <code>.wav</code>. Формат — <code>.wav</code>/<code>.ogg</code>. Файл в папке <code>sounds/</code>.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:rgba(239,68,68,0.2);">🔁</div>
+        <h3>При рестарте старые враги остались</h3>
+        <p class="muted">Забыл <code>enemies.clear()</code> в функции рестарта. Или обнули переменные вручную.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:rgba(239,68,68,0.2);">🤖</div>
+        <h3>ИИ дал код, который не работает</h3>
+        <p class="muted">Галлюцинация или устаревшая версия. Отличный учебный момент — проверь каждую строку вручную.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Ключевые фразы преподавателя -->
+  <section class="slide" data-notes="Фразы-якоря, которые я повторяю на уроке. Это не украшения, это инструменты. «Мясо проекта» — про приоритеты. «ИИ как дебаггер» — про роль ИИ сегодня. «Не изобретай велосипед» — разрешение копировать свои же паттерны. «README — лента прогресса» — мотивация видеть рост. «Идеи на потом» — защита от отвлечений. Каждая фраза решает конкретную ситуацию в ходе урока.">
+    <div class="badge badge--purple"><span class="dot"></span>Ключевые фразы</div>
+    <h2>Что я говорю <span class="grad">на уроке</span></h2>
+    <div class="grid grid-2 mt-20">
+      <div class="quote">«Сегодня делаем <b style="color:#C4B5FD;">мясо проекта</b>, украшения потом.»<small>про приоритеты</small></div>
+      <div class="quote">«Плохо играется лучше, чем идеально выглядит — <b style="color:#67E8F9;">механика первична</b>.»<small>про порядок работ</small></div>
+      <div class="quote">«Если кусок не работает 15 минут — <b style="color:#F9A8D4;">скопируй ошибку в YandexGPT</b>, это нормальный рабочий приём.»<small>разрешение использовать ИИ</small></div>
+      <div class="quote">«Не изобретай велосипед — <b style="color:#FDE68A;">возьми паттерн</b> из „Поймай яблоко“ и перепиши под себя.»<small>про повторное использование</small></div>
+      <div class="quote">«<b style="color:#86EFAC;">README обновляем каждый урок</b> — это лента прогресса, на защите будет полезно.»<small>про документирование</small></div>
+      <div class="quote">«Хочется новой фичи — пиши в <code>notes „идеи на потом“</code>, <b style="color:#C4B5FD;">не отвлекайся</b>.»<small>защита от разброса</small></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: Бонус — частицы -->
+  <section class="slide" data-notes="Звёздная задача для мотивированных. Частицы — маленькие точки, разлетающиеся при взрыве/столкновении. В курсе такого не было — это именно «плюс сверху». Реализация простая: список словарей {x,y,vx,vy,life}, в update сдвигаем и уменьшаем life, в draw рисуем screen.draw.filled_circle. Эффект выглядит «вау». На защите — отдельный плюсик за то, что ребёнок вышел за рамки курса.">
+    <div class="badge badge--yellow"><span class="dot"></span>⭐ Звёздная задача</div>
+    <h2>Частицы — <span class="grad">вау-эффект</span> за 15 строк</h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">Маленькие точки, разлетающиеся при <b style="color:var(--text);">взрыве или столкновении</b>. Этого не было в курсе — это твой <span class="kw--yellow">плюс сверху</span>.</p>
+        <h3 class="mt-20">Идея</h3>
+        <ul class="check-list" style="font-size:16px;">
+          <li>Список словарей: <code>{x, y, vx, vy, life}</code></li>
+          <li>При столкновении — создаём 10 частиц</li>
+          <li>В update сдвигаем, life -= 1</li>
+          <li>В draw рисуем <code>filled_circle</code></li>
+        </ul>
+        <div class="warn mt-20">
+          <div class="i">🌟</div>
+          <div><div class="t">Плюс на защите</div><div class="d">«Я вышел за курс и сделал фичу, которой не учили» — любимая фраза преподавателей.</div></div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>particles.py</div>
+<pre class="language-python"><code>import random
+
+particles = []
+
+def explode(x, y):
+    for _ in range(12):
+        particles.append({
+            'x': x, 'y': y,
+            'vx': random.uniform(-3, 3),
+            'vy': random.uniform(-3, 3),
+            'life': 30,
+        })
+
+def update():
+    for p in particles[:]:
+        p['x'] += p['vx']
+        p['y'] += p['vy']
+        p['life'] -= 1
+        if p['life'] <= 0:
+            particles.remove(p)
+
+def draw():
+    for p in particles:
+        screen.draw.filled_circle(
+            (p['x'], p['y']), 3, 'yellow')</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 19: Где подключаем ИИ сегодня -->
+  <section class="slide" data-notes="Сводка по всем ИИ-инструментам, которые используем на уроке. YandexGPT — рабочая лошадка сегодня, дебаггер. Kandinsky — догенерим спрайты. Perplexity — для детей 12+, когда нужна документация PyGame Zero по нестандартному вопросу (типа „как сделать fade-in“). freesound — для одного звука. Каждый инструмент — под конкретную задачу, не просто «везде ИИ». Это профессиональный подход: правильный инструмент в правильный момент.">
+    <div class="badge badge--cyan"><span class="dot"></span>ИИ-инструменты урока</div>
+    <h2>Где подключаем <span class="grad">ИИ</span> · по задачам</h2>
+    <div class="grid grid-4 mt-20">
+      <div class="card card--purple">
+        <div class="ico">🤖</div>
+        <h3>YandexGPT</h3>
+        <p class="muted">Основной рабочий инструмент дня. Дебаггер: «объясни эту ошибку», «почему не работает».</p>
+        <div class="mt-10"><span class="tag tag--purple">дебаг</span><span class="tag tag--purple">идеи</span></div>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🎨</div>
+        <h3>Kandinsky</h3>
+        <p class="muted">Догенерить спрайты, которые не успели на уроке 45. Промпт-шаблон «тот же стиль».</p>
+        <div class="mt-10"><span class="tag tag--pink">графика</span></div>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🔍</div>
+        <h3>Perplexity</h3>
+        <p class="muted">Для 12+. Найти документацию PyGame Zero по нестандартному вопросу. С ссылками.</p>
+        <div class="mt-10"><span class="tag">документация</span></div>
+      </div>
+      <div class="card card--yellow">
+        <div class="ico">🔉</div>
+        <h3>freesound.org</h3>
+        <p class="muted">Один ключевой звук. Фильтр CC0 — лицензионно чисто. Формат .wav / .ogg.</p>
+        <div class="mt-10"><span class="tag tag--yellow">звук</span></div>
+      </div>
+    </div>
+    <div class="quote mt-30">«Спросить ИИ <b style="color:#C4B5FD;">„почему не работает?“</b> — отличный ход. Спросить <b style="color:#FCA5A5;">„напиши мне игру“</b> — плохой. Разница в одном слове.»</div>
+  </section>
+
+  <!-- SLIDE 20: Критерии успеха -->
+  <section class="slide" data-notes="Четыре критерия, по которым урок считается зачтённым. Проект играется от запуска до выигрыша/проигрыша — это №1, без этого урок не зачёт. Минимум 2 спрайта из Kandinsky — значит, ребёнок работал с ИИ-картинкой. Один звук — подключена звуковая подсистема. И главное — ребёнок активно спрашивал ИИ об ошибках (видно по notes.md). Последний критерий особенный: не код, а навык использования ИИ.">
+    <div class="badge badge--green"><span class="dot"></span>Критерии успеха</div>
+    <h2>Урок <span class="grad">зачтён</span>, если…</h2>
+    <div class="mt-20">
+      <ul class="check-list big">
+        <li>Проект играется от запуска до <b style="color:var(--text);">«выигрыш / проигрыш»</b> без крашей — минуту подряд</li>
+        <li>В игре минимум <b style="color:var(--text);">2 спрайта из Kandinsky</b> — главный герой и хотя бы один объект</li>
+        <li>Подключён минимум <b style="color:var(--text);">один звук</b> — ключевое событие озвучено</li>
+        <li>Ребёнок активно использовал ИИ для объяснения ошибок — <b style="color:var(--text);">видно по <code>notes.md</code></b></li>
+      </ul>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">📏</div>
+      <div><div class="t">Если не успеваем — режем план</div><div class="d">Лучше <b>3 механики крепко</b>, чем 7 на соплях. Оставшиеся пункты → ДЗ и урок 47.</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 21: ДЗ -->
+  <section class="slide" data-notes="Домашнее задание на 20 минут. Доделать ОДНУ фичу, которую не успели на уроке — это про фокус, не всё подряд. 30-секундное видео — для чата курса и для собственного архива прогресса. И главное — 3 новых вопроса в notes.md. Это ритуал: каждый урок ребёнок выходит с новым списком вопросов для следующего урока. Так дневник ошибок становится живым документом и главным артефактом защиты.">
+    <div class="badge badge--yellow"><span class="dot"></span>🏠 Домашнее задание (≤ 20 мин)</div>
+    <h2>Три шага <span class="grad">до урока 47</span></h2>
+    <div class="mt-20">
+      <ol class="num-list big">
+        <li><b>Доделать одну фичу</b> из плана, которую не успел на уроке. Только одну — не всё подряд.</li>
+        <li>Записать <b>30-секундное видео</b> текущего состояния игры → в чат курса.</li>
+        <li>В <code>notes.md</code> записать <b>3 новых вопроса или идеи</b> для урока 47.</li>
+      </ol>
+    </div>
+    <div class="grid grid-3 mt-30">
+      <div class="card card--yellow">
+        <div class="ico">⏱</div>
+        <h3>Фокус</h3>
+        <p class="muted">Одна фича вместо пяти недоделанных</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">📹</div>
+        <h3>Прогресс</h3>
+        <p class="muted">Видео — архив роста проекта неделя за неделей</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">📝</div>
+        <h3>Подготовка</h3>
+        <p class="muted">Урок 47 начнётся с первого вопроса из notes.md</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 22: Финал -->
+  <section class="slide final-center" data-notes="Финал урока. У ребёнка сегодня появилась играбельная версия — это огромный прорыв. Скелет → мясо — две недели, две трети пути. Осталось два урока: полировка и демо-день. Бейджа за этот урок нет, он будет на 48-м. Но сегодня ребёнок впервые работал с ИИ как с коллегой-дебаггером. Это уровень инженера, не школьника. Поздравляю.">
+    <div class="hero-eyebrow">УРОК 46 · ФИНАЛЬНЫЙ ПРОЕКТ · Ч.2 · ЗАВЕРШЁН</div>
+    <h1><span class="grad">Мясо</span><br/>проекта</h1>
+    <p class="big muted" style="max-width:760px;">Скелет оброс механиками. В игру можно играть минуту. Ты впервые работал с ИИ как с дебаггером — не «напиши за меня», а «почему не работает». Это уровень инженера.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">🦴 Скелет → <b style="color:#C4B5FD;">мясо</b></div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">🎮 Играется 1 минуту</div>
+      <div class="step">🤖 ИИ — дебаггер, не автор</div>
+    </div>
+    <div class="mt-30">
+      <span class="badge-final">Дальше → урок 47 · полировка и репетиция защиты</span>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter"><b id="currentSlide">1</b> / <span id="totalSlides">22</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+
+<div class="notes-panel" id="notesPanel">
+  <h4>Speaker notes · нажми <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 11px;">N</kbd> чтобы скрыть</h4>
+  <div id="notesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const currentEl = document.getElementById('currentSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progressEl = document.getElementById('progress');
+  const notesPanel = document.getElementById('notesPanel');
+  const notesContent = document.getElementById('notesContent');
+
+  totalEl.textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    currentEl.textContent = idx + 1;
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    const notes = slides[idx].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+    slides[idx].scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      e.preventDefault(); notesPanel.classList.toggle('open');
+    }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  let touchStartX = null;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { show(idx + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

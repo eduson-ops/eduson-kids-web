@@ -175,6 +175,12 @@ export type WorldCommand =
   | { op: 'obj_show'; target: string }
   | { op: 'obj_destroy'; target: string }
   | { op: 'obj_broadcast'; target: string; name: string }
+  // Extended motion / looks / control (Scratch+Bloxels palette)
+  | { op: 'obj_set_position'; target: string; x: number; y: number; z: number }
+  | { op: 'obj_glide_to'; target: string; x: number; y: number; z: number; seconds: number }
+  | { op: 'obj_change_size'; target: string; delta: number }
+  | { op: 'obj_flash'; target: string; color: string; seconds: number }
+  | { op: 'stop_all' }
 
 export interface PythonRunResult {
   commands: WorldCommand[]

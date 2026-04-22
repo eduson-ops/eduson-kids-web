@@ -2,6 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
+import {
+  getVkUser,
+  getParentLink,
+  startVkLogin,
+  signOutVk,
+  vkConfig,
+} from '../lib/vkAuth'
 
 /**
  * Parent Dashboard — родительский кабинет.
@@ -116,6 +123,10 @@ export default function Parent() {
           <Niksel pose="think" size={240} />
         </div>
       </section>
+
+      {/* VK-подключение — отчёты о прогрессе в сообщения */}
+      <VkConnectBanner />
+
 
       {/* KPI row */}
       <section style={{ marginBottom: 40 }}>
@@ -311,4 +322,85 @@ function formatRelative(ts: number): string {
   if (days === 1) return 'вчера'
   if (days < 7) return `${days} дн. назад`
   return new Date(ts).toLocaleDateString('ru-RU')
+}
+
+/**
+ * VkConnectBanner — карточка в родительском кабинете.
+ * Без VK: приглашение подключить, чтобы получать отчёты о прогрессе в сообщениях.
+ * С VK: статус подключения + имя + кнопка отключить.
+ */
+function VkConnectBanner() {
+  const [user, setUser] = useState(getVkUser())
+  const [link] = useState(getParentLink())
+  const [err, setErr] = useState<string | null>(null)
+  const appConfigured = vkConfig().appId.length > 0
+
+  const onConnect = async () => {
+    setErr(null)
+    try {
+      sessionStorage.setItem('ek_vk_next', '/parent')
+      await startVkLogin('parent')
+    } catch (e) {
+      setErr((e as Error).message)
+    }
+  }
+
+  const onDisconnect = () => {
+    signOutVk()
+    setUser(null)
+  }
+
+  if (user) {
+    return (
+      <section style={{ marginBottom: 40 }}>
+        <div className="kb-card" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap', padding: 20 }}>
+          <div style={{ flex: '1 1 320px' }}>
+            <div className="eyebrow">VK подключён</div>
+            <h3 className="h3" style={{ margin: '6px 0 4px' }}>
+              {user.firstName} {user.lastName}
+            </h3>
+            <p style={{ margin: 0, color: 'var(--ink-soft)', fontSize: 14 }}>
+              {link?.reportsOptIn
+                ? `Отчёты о прогрессе «${link.childName}» отправляем в VK-сообщения раз в неделю.`
+                : 'Привязка к ребёнку ещё не настроена. Добавь child_code в профиле, чтобы получать отчёты.'}
+            </p>
+          </div>
+          <button className="kb-btn kb-btn--secondary" onClick={onDisconnect}>
+            Отвязать VK
+          </button>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section style={{ marginBottom: 40 }}>
+      <div className="kb-card kb-card--feature" style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap', padding: 24 }}>
+        <div style={{ flex: '1 1 340px' }}>
+          <div className="eyebrow">Подключение VK</div>
+          <h3 className="h3" style={{ margin: '6px 0 8px' }}>
+            Получай отчёты о прогрессе ребёнка в сообщениях
+          </h3>
+          <p style={{ margin: 0, color: 'var(--ink-soft)', fontSize: 14, lineHeight: 1.55 }}>
+            Раз в неделю — короткая сводка: сколько уроков пройдено, где завис,
+            какое достижение получил. Без спама, без рекламы. Отключить можно в один клик.
+          </p>
+          {err && <p className="err" style={{ marginTop: 10 }}>{err}</p>}
+          {!appConfigured && (
+            <p style={{ marginTop: 10, fontSize: 12, color: 'var(--ink-soft)' }}>
+              <code>VITE_VK_APP_ID</code> не задан в <code>.env.local</code> — кнопка отключена в dev.
+            </p>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="vk-btn" onClick={onConnect} disabled={!appConfigured}>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+              <path fill="currentColor" d="M12.62 17.25c-5.51 0-9-3.81-9-9.75h2.77c0 4.13 1.85 5.95 3.34 6.32V7.5h2.64v4.01c1.5-.16 3.07-1.86 3.6-4.01h2.64c-.41 2.61-2.08 4.5-3.27 5.26 1.2.62 3.12 2.25 3.85 5.49h-2.9c-.56-1.84-2.05-3.26-3.92-3.45v3.45h-0.75z" />
+            </svg>
+            Подключить VK
+          </button>
+        </div>
+      </div>
+    </section>
+  )
 }

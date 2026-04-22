@@ -45,6 +45,12 @@ const STEPS: Step[] = [
     side: 'bottom',
   },
   {
+    selector: '.studio-viewport',
+    title: '🎥 Камера',
+    body: 'ПКМ — крути камеру. Колёсико мыши — зум (приблизить/отдалить). Тач-пад: двумя пальцами скролл.',
+    side: 'top',
+  },
+  {
     selector: '.studio-actions',
     title: '🔄 Сброс сцены',
     body: 'Если что-то пошло не так — кнопка «Сброс» вернёт всё в исходное. Не бойся эксперементировать.',
@@ -174,7 +180,7 @@ function computeTooltipPos(box: DOMRect | null, side: Step['side'] = 'bottom'): 
   switch (side) {
     case 'bottom':
       return {
-        left: Math.min(box.left + box.width / 2 - W / 2, window.innerWidth - W - margin),
+        left: Math.max(margin, Math.min(box.left + box.width / 2 - W / 2, window.innerWidth - W - margin)),
         top: box.bottom + margin,
         width: W,
       }

@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 21 — Что такое модули и как их использовать</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* Slide counter */
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  /* Deck */
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 56px 80px 90px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Background glow orbs */
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* Shared elements */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .55; transform: scale(1.25); }
+  }
+
+  h1.title {
+    font-size: clamp(40px, 5.2vw, 78px);
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    margin: 18px 0 14px;
+    background: linear-gradient(135deg, #FFFFFF 0%, #C8C5FF 40%, #06B6D4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2.section {
+    font-size: clamp(28px, 3.2vw, 46px);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+  }
+  h2.section .accent {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .lead {
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1.55;
+    max-width: 900px;
+  }
+  p.lead.lg { font-size: 20px; }
+
+  /* Glass card */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+  }
+  .glass.tight { padding: 18px 20px; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+  }
+  .chip.cyan { color: var(--cyan); border-color: rgba(6,182,212,0.3); }
+  .chip.purple { color: #C8B3FF; border-color: rgba(124,58,237,0.35); }
+  .chip.pink { color: #F9A8D4; border-color: rgba(236,72,153,0.3); }
+  .chip.green { color: #6EE7B7; border-color: rgba(16,185,129,0.3); }
+  .chip.yellow { color: #FDE68A; border-color: rgba(245,197,24,0.3); }
+
+  /* Code */
+  pre[class*="language-"] {
+    background: #0a0e17 !important;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px !important;
+    font-size: 14.5px !important;
+    line-height: 1.6 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    overflow: auto;
+    box-shadow: inset 0 0 0 1px rgba(124,58,237,0.08);
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.3);
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 0.92em;
+    color: #DCCFFF;
+  }
+
+  /* Lists */
+  ul.dash {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  ul.dash li {
+    position: relative;
+    padding-left: 22px;
+    line-height: 1.5;
+    color: var(--text);
+    font-size: 16px;
+  }
+  ul.dash li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 10px;
+    width: 10px; height: 2px;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    border-radius: 2px;
+  }
+
+  /* Numbered */
+  ol.num {
+    list-style: none;
+    counter-reset: n;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  ol.num li {
+    counter-increment: n;
+    position: relative;
+    padding-left: 46px;
+    line-height: 1.5;
+    font-size: 16px;
+  }
+  ol.num li::before {
+    content: counter(n);
+    position: absolute;
+    left: 0; top: -2px;
+    width: 30px; height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.18));
+    border: 1px solid rgba(124,58,237,0.4);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #E6E8EC;
+    font-size: 13px;
+  }
+
+  /* Title slide */
+  .title-slide {
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 26px;
+  }
+  .kicker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--cyan);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* Timeline */
+  .tl {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  .tl + .tl { margin-top: 12px; }
+  .tl .time {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-top: 2px;
+  }
+  .tl .body h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .tl .body p {
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  /* Error / solution card */
+  .err {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 14px;
+    align-items: start;
+  }
+  .err .icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(236,72,153,0.3), rgba(245,197,24,0.2));
+    border: 1px solid rgba(236,72,153,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .err h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .err p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Quote */
+  .quote {
+    font-size: clamp(22px, 2.4vw, 32px);
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+  }
+  .quote .mark {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--purple);
+    font-size: 1.5em;
+    vertical-align: -0.2em;
+    margin-right: 6px;
+  }
+  .q-author {
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Module card */
+  .mod {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mod .mod-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+  .mod .mod-desc {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .mod .mod-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  /* Speaker notes */
+  .notes {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 14, 0.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 40px;
+  }
+  .notes.open { display: flex; }
+  .notes__box {
+    max-width: 760px;
+    width: 100%;
+    background: linear-gradient(180deg, rgba(124,58,237,0.08), rgba(6,182,212,0.05));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 34px 38px;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.55);
+  }
+  .notes__label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--purple);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .notes__text {
+    font-size: 17px;
+    line-height: 1.62;
+    color: var(--text);
+  }
+  .notes__close {
+    margin-top: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .kbd-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .kbd-group kbd {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .big-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 64px;
+    line-height: 1;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .stat-label {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .arrow {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--purple);
+    font-size: 18px;
+    margin: 0 4px;
+  }
+
+  h3.h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  h3.h3 .accent-cyan { color: var(--cyan); }
+  h3.h3 .accent-purple { color: #C8B3FF; }
+
+  .callout {
+    padding: 16px 20px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(6,182,212,0.1));
+    border: 1px solid rgba(124,58,237,0.35);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .callout b { color: #E6E8EC; }
+
+  /* Compact code */
+  pre.sm[class*="language-"] {
+    font-size: 13.5px !important;
+    padding: 14px 16px !important;
+  }
+
+  /* Hide scrollbars pretty */
+  .slide::-webkit-scrollbar { width: 8px; height: 8px; }
+  .slide::-webkit-scrollbar-track { background: transparent; }
+  .slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+  @media (max-width: 900px) {
+    .slide { padding: 40px 32px 80px; }
+    .grid-2, .grid-3, .grid-4, .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progressFill"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- 1. Title -->
+  <section class="slide active title-slide" data-notes="Приветствие. Ребята закончили «Морской бой» — выдайте бейдж «Функциональный герой». Сегодня открываем дверь в стандартную библиотеку Python. Ключевая мысль: «Ты не обязан писать с нуля — сотни программистов уже написали нужное тебе». Держите энергию, эта тема взрывает мозг в хорошем смысле.">
+    <div class="badge"><span class="dot"></span>Урок 21 · 60 минут · 8–14 лет</div>
+    <h1 class="title">Модули Python.<br/>Готовый код за одну строку.</h1>
+    <p class="lead lg">Подключай чужие суперсилы — <code>math</code>, <code>random</code>, <code>time</code> — и строй свои программы в два раза быстрее.</p>
+    <div class="hero-meta">
+      <span class="chip cyan">6. Интеграции</span>
+      <span class="chip purple">Неделя 21</span>
+      <span class="chip green">import</span>
+      <span class="chip pink">from · import</span>
+      <span class="chip yellow">стандартная библиотека</span>
+    </div>
+  </section>
+
+  <!-- 2. Цель -->
+  <section class="slide" data-notes="Объясните своими словами: цель — не выучить 30 модулей, а понять механику импорта и получить уверенность: «если что-то нужно — скорее всего, это уже написано». Подчеркните: math/random/time — три друга на всю жизнь программиста.">
+    <span class="kicker">// 01 · Цель урока</span>
+    <h2 class="section">Открыть дверь в <span class="accent">стандартную библиотеку</span></h2>
+    <div class="grid-2" style="margin-top:14px;">
+      <div class="glass">
+        <h3 class="h3"><span class="accent-cyan">Что освоим</span></h3>
+        <ul class="dash">
+          <li>что такое модуль и зачем он нужен</li>
+          <li>как подключать код через <code>import</code></li>
+          <li>как обращаться к функциям через точку</li>
+          <li>разницу между <code>import</code> и <code>from … import</code></li>
+        </ul>
+      </div>
+      <div class="glass">
+        <h3 class="h3"><span class="accent-purple">Что сможем</span></h3>
+        <ul class="dash">
+          <li>использовать <code>math.sqrt</code>, <code>math.pi</code></li>
+          <li>генерировать числа и выбор <code>random</code></li>
+          <li>делать паузы через <code>time.sleep</code></li>
+          <li>комбинировать модули с циклами и условиями</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Что такое модуль — метафора -->
+  <section class="slide" data-notes="Это самая важная метафора урока. Модуль = учебник на полке. import = «принёс учебник на стол». Точка = «открой страницу». Повторите её три раза за урок — дети запомнят.">
+    <span class="kicker">// 02 · Метафора</span>
+    <h2 class="section">Модуль — это <span class="accent">учебник на полке</span></h2>
+    <div class="two-col" style="margin-top:10px;">
+      <div>
+        <p class="lead">Представь библиотеку. На полках — тысячи учебников: <b>математика, игры, время, таблицы, музыка</b>. Python приходит к тебе с уже заполненной библиотекой.</p>
+        <div class="callout" style="margin-top:18px;">
+          <b>import</b> <span class="arrow">→</span> «принёс учебник на стол»<br/>
+          <b>.</b> (точка) <span class="arrow">→</span> «открыл на нужной странице»<br/>
+          <b>from … import …</b> <span class="arrow">→</span> «вырвал одну страницу»
+        </div>
+      </div>
+      <div class="glass">
+        <div class="chip cyan" style="margin-bottom:12px;">живой пример</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import math
+
+# открываем страницу "sqrt" в учебнике math
+print(math.sqrt(16))   # 4.0
+
+# открываем страницу "pi"
+print(math.pi)         # 3.14159...</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. Три друга -->
+  <section class="slide" data-notes="Это «витрина» модулей. Покажите каждый на 20 секунд. Скажите: «Эти три модуля мы увидим сегодня. Все три — встроены, ставить ничего не нужно».">
+    <span class="kicker">// 03 · Три друга-модуля</span>
+    <h2 class="section">Сегодня в главных ролях</h2>
+    <div class="grid-3" style="margin-top:10px;">
+      <div class="glass mod">
+        <div class="mod-name">math</div>
+        <div class="mod-desc">Корни, степени, число π, синусы, округления. Всё, что ты учишь на математике — уже внутри.</div>
+        <div class="mod-tags"><span class="chip cyan">sqrt</span><span class="chip cyan">pi</span><span class="chip cyan">floor</span></div>
+      </div>
+      <div class="glass mod">
+        <div class="mod-name">random</div>
+        <div class="mod-desc">Случайные числа и выборы. Без него не было бы ни одной игры: кости, карты, противники.</div>
+        <div class="mod-tags"><span class="chip purple">randint</span><span class="chip purple">choice</span><span class="chip purple">shuffle</span></div>
+      </div>
+      <div class="glass mod">
+        <div class="mod-name">time</div>
+        <div class="mod-desc">Паузы, задержки, отсчёты. «Подожди секунду перед тем как напечатаешь ответ».</div>
+        <div class="mod-tags"><span class="chip pink">sleep</span><span class="chip pink">time</span></div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:22px;">
+      <b>Факт:</b> в стандартной библиотеке Python больше <b>200 модулей</b>. А с <code>pip install</code> — сотни тысяч. Ты уже стоишь на плечах тысяч программистов.
+    </div>
+  </section>
+
+  <!-- 5. math -->
+  <section class="slide" data-notes="Покажите ВЖИВУЮ. Запустите в GigaIDE math.sqrt(16), math.pi, math.floor(3.7). Дайте детям догадаться, что вернёт math.sqrt(2). Подчеркните: «Корень квадратный ты не будешь писать сам — зачем?».">
+    <span class="kicker">// 04 · math — математика из коробки</span>
+    <h2 class="section">Не пиши корень — <span class="accent">он уже написан</span></h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import math
+
+print(math.sqrt(16))    # 4.0
+print(math.pi)          # 3.141592653589793
+print(math.floor(3.7))  # 3   (округление вниз)
+print(math.ceil(3.2))   # 4   (округление вверх)
+print(math.pow(2, 10))  # 1024.0</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="glass">
+          <h3 class="h3"><span class="accent-cyan">Что внутри</span></h3>
+          <ul class="dash">
+            <li><code>sqrt(x)</code> — корень квадратный</li>
+            <li><code>pi</code> — число π</li>
+            <li><code>floor / ceil</code> — округление вниз / вверх</li>
+            <li><code>pow(a, b)</code> — a в степени b</li>
+            <li><code>sin / cos / tan</code> — тригонометрия</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <b>Фишка:</b> <code>math.pi</code> — это не функция, это <b>константа</b>. Скобки не нужны.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. random -->
+  <section class="slide" data-notes="random — любимчик детей. Пусть каждый запустит randint(1, 100) 5 раз и увидит разные числа. Это магия. Объясните: «Компьютер кидает невидимые кости каждый раз».">
+    <span class="kicker">// 05 · random — твой друг во всех играх</span>
+    <h2 class="section">Случайность — <span class="accent">двигатель игр</span></h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+# случайное целое от 1 до 6 (оба включительно)
+print(random.randint(1, 6))
+
+# случайный выбор из списка
+герой = random.choice(["маг", "воин", "лучник"])
+print(герой)
+
+# перемешать список
+колода = [1, 2, 3, 4, 5]
+random.shuffle(колода)
+print(колода)   # [3, 1, 5, 2, 4] — каждый раз разный</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="glass">
+          <h3 class="h3"><span class="accent-purple">Функции random</span></h3>
+          <ul class="dash">
+            <li><code>randint(a, b)</code> — целое от a до b <b>включительно</b></li>
+            <li><code>choice(список)</code> — один случайный элемент</li>
+            <li><code>shuffle(список)</code> — перемешать на месте</li>
+            <li><code>random()</code> — число от 0.0 до 1.0</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <b>Опасно!</b> <code>randint(1, 6)</code> включает 6. <code>randrange(1, 6)</code> — <b>не</b> включает 6. Легко запутаться.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. time -->
+  <section class="slide" data-notes="time.sleep — драматургия. Покажите эффект отсчёта «3, 2, 1, СТАРТ!». Дети поймут: пауза = напряжение. Это инструмент рассказчика.">
+    <span class="kicker">// 06 · time — режиссёр пауз</span>
+    <h2 class="section">Пауза — это <span class="accent">драма</span></h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import time
+
+print("Готов?")
+time.sleep(1)          # пауза 1 секунда
+print("3")
+time.sleep(1)
+print("2")
+time.sleep(1)
+print("1")
+time.sleep(1)
+print("СТАРТ!")</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="glass">
+          <h3 class="h3"><span class="accent-cyan">Функции time</span></h3>
+          <ul class="dash">
+            <li><code>sleep(секунды)</code> — остановить программу</li>
+            <li><code>time()</code> — сколько секунд с 1970 года</li>
+            <li>можно дробные: <code>sleep(0.3)</code> — полсекунды</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <b>Ловушка:</b> <code>sleep(1000)</code> — это <b>1000 секунд</b>, почти 17 минут. Не миллисекунды! Только секунды.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. import vs from import -->
+  <section class="slide" data-notes="Главный грамматический момент урока. Нарисуйте на доске два варианта. Спросите: «Какой короче?». Правило: если функция одна и используется часто — бери from import. Если модуль большой — просто import.">
+    <span class="kicker">// 07 · Две формы импорта</span>
+    <h2 class="section"><code>import</code> vs <code>from … import</code></h2>
+    <div class="grid-2" style="margin-top:10px;">
+      <div class="glass">
+        <div class="chip cyan" style="margin-bottom:10px;">форма 1 — весь учебник</div>
+<pre class="sm"><code class="language-python">import random
+
+print(random.randint(1, 6))
+print(random.choice(["a", "b"]))</code></pre>
+        <ul class="dash" style="margin-top:14px;">
+          <li>нужен префикс <code>random.</code></li>
+          <li>видно, откуда функция</li>
+          <li>удобно, если используешь много функций</li>
+        </ul>
+      </div>
+      <div class="glass">
+        <div class="chip purple" style="margin-bottom:10px;">форма 2 — одна страница</div>
+<pre class="sm"><code class="language-python">from random import randint, choice
+
+print(randint(1, 6))
+print(choice(["a", "b"]))</code></pre>
+        <ul class="dash" style="margin-top:14px;">
+          <li>префикс <b>не</b> нужен</li>
+          <li>короче, но неочевидно откуда</li>
+          <li>удобно для 1–2 функций</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px;">
+      <b>Правило хорошего тона:</b> все <code>import</code> — в самом верху файла. Сначала импорты, потом код.
+    </div>
+  </section>
+
+  <!-- 9. Анатомия -->
+  <section class="slide" data-notes="Медленно, по шагам: «import math — взял учебник, math — имя, . — открыл, sqrt — страница, (16) — параметр страницы, 4.0 — ответ». Это даст каркас для всех будущих строк с точкой.">
+    <span class="kicker">// 08 · Анатомия строки</span>
+    <h2 class="section">Разбираем <span class="accent">по буквам</span></h2>
+    <div class="glass" style="padding:36px;">
+<pre style="background:transparent !important; border:none; padding:0 !important; font-size:30px !important; line-height:1.3 !important;"><code class="language-python">math.sqrt(16)</code></pre>
+      <div class="grid-4" style="margin-top:28px;">
+        <div class="glass tight" style="text-align:center;">
+          <div class="chip cyan" style="margin:0 auto 8px;">math</div>
+          <div style="font-size:14px; color:var(--muted); line-height:1.5;">имя модуля, «учебник»</div>
+        </div>
+        <div class="glass tight" style="text-align:center;">
+          <div class="chip purple" style="margin:0 auto 8px;">.</div>
+          <div style="font-size:14px; color:var(--muted); line-height:1.5;">точка — «открыть»</div>
+        </div>
+        <div class="glass tight" style="text-align:center;">
+          <div class="chip pink" style="margin:0 auto 8px;">sqrt</div>
+          <div style="font-size:14px; color:var(--muted); line-height:1.5;">функция, «страница»</div>
+        </div>
+        <div class="glass tight" style="text-align:center;">
+          <div class="chip yellow" style="margin:0 auto 8px;">(16)</div>
+          <div style="font-size:14px; color:var(--muted); line-height:1.5;">аргумент — что считаем</div>
+        </div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:18px;">Прочитай вслух: <b>«Из модуля <span style="color:var(--cyan)">math</span> возьми функцию <span style="color:#F9A8D4">sqrt</span> и примени её к числу <span style="color:#FDE68A">16</span>»</b>.</p>
+  </section>
+
+  <!-- 10. Поминутный план -->
+  <section class="slide" data-notes="Это для учителя. Открыть на экране только если дети отвлеклись — показать, что по плану. 0–5 — бейджи, 5–15 — теория, 15–45 — три игры, 45–55 — «Броски костей», 55–60 — ДЗ.">
+    <span class="kicker">// 09 · Поминутный план</span>
+    <h2 class="section">60 минут · <span class="accent">пять шагов</span></h2>
+    <div style="margin-top:10px;">
+      <div class="tl"><div class="time">0–5</div><div class="body"><h3>Приветствие и бейджи</h3><p>Защиты «Морского боя», выдача бейджа «Функциональный герой», настрой на новую тему.</p></div></div>
+      <div class="tl"><div class="time">5–15</div><div class="body"><h3>Теория: что такое модуль</h3><p>Метафора библиотеки, живые примеры <code>math</code>, <code>random</code>, <code>time</code>, разница форм импорта.</p></div></div>
+      <div class="tl"><div class="time">15–45</div><div class="body"><h3>Три игры с модулями</h3><p>«Угадай число» с <code>random.randint(1, 100)</code>, «Случайный герой» с <code>choice</code>, «Таймер обратного отсчёта» с <code>time.sleep</code>.</p></div></div>
+      <div class="tl"><div class="time">45–55</div><div class="body"><h3>Мини-проект «Броски костей»</h3><p>Функция <code>roll_dice(n)</code>: бросаем n костей, печатаем сумму и среднее. Бонус — <code>math.floor</code>.</p></div></div>
+      <div class="tl"><div class="time">55–60</div><div class="body"><h3>Итог и ДЗ</h3><p>Разбор ошибок, анонс урока о файлах, домашнее задание.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 11. Practice 1: Угадай число -->
+  <section class="slide" data-notes="Первая практика. Было: secret = 7 (детерминированно). Стало: secret = randint(1, 100) — теперь по-настоящему. Попросите детей играть друг против друга: «Сколько попыток у тебя?».">
+    <span class="kicker">// 10 · Практика 1</span>
+    <h2 class="section">«Угадай число» — <span class="accent">по-настоящему</span></h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+secret = random.randint(1, 100)
+print("Я загадал число от 1 до 100.")
+
+while True:
+    guess = int(input("Твой вариант: "))
+    if guess &lt; secret:
+        print("Больше!")
+    elif guess &gt; secret:
+        print("Меньше!")
+    else:
+        print("Победа!")
+        break</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="glass">
+          <h3 class="h3"><span class="accent-cyan">Что тут новенького</span></h3>
+          <ul class="dash">
+            <li><code>import random</code> — сверху файла</li>
+            <li><code>randint(1, 100)</code> — целое от 1 до 100</li>
+            <li>секрет разный <b>каждый запуск</b></li>
+            <li><code>while True</code> + <code>break</code> — до победы</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <b>Идея:</b> добавь счётчик попыток — кто угадал быстрее, тот герой дня.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. Practice 2: Случайный герой -->
+  <section class="slide" data-notes="Вторая практика на 5 минут. Показать, что choice берёт из любого списка. Пусть каждый придумает свой список: имена друзей, блюда на ужин, названия супергероев.">
+    <span class="kicker">// 11 · Практика 2</span>
+    <h2 class="section">«Случайный герой»</h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+герои = ["маг", "воин", "лучник", "друид", "паладин"]
+
+выбор = random.choice(герои)
+print(f"Твой герой дня: {выбор}!")</div><div class="compiler-output"></div></div>
+        <div class="callout" style="margin-top:16px;">
+          <b>Расширь:</b> добавь <code>оружие = random.choice([...])</code> и <code>способность = random.choice([...])</code> — получишь уникального героя.
+        </div>
+      </div>
+      <div class="glass">
+        <h3 class="h3"><span class="accent-purple">Что делает <code>choice</code></span></h3>
+        <p class="lead" style="font-size:15px; margin-bottom:14px;">Берёт <b>один случайный элемент</b> из любой последовательности: списка, кортежа, строки.</p>
+        <ul class="dash">
+          <li>Работает со списком чисел</li>
+          <li>Работает со списком строк</li>
+          <li>Даже с буквами в строке: <code>choice("abc")</code></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. Practice 3: Timer -->
+  <section class="slide" data-notes="Третья практика — драматическая. Запустите на проекторе. Дети почувствуют, что пауза — это «настроение». Спросите: «Чем это отличается, если убрать sleep?».">
+    <span class="kicker">// 12 · Практика 3</span>
+    <h2 class="section">«Таймер обратного отсчёта»</h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import time
+
+for i in range(5, 0, -1):
+    print(i)
+    time.sleep(1)
+
+print("СТАРТ!")</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="glass">
+          <h3 class="h3"><span class="accent-cyan">Что соединили</span></h3>
+          <ul class="dash">
+            <li><code>for</code> — цикл, уже знаем</li>
+            <li><code>range(5, 0, -1)</code> — от 5 до 1 с шагом −1</li>
+            <li><code>time.sleep(1)</code> — пауза на секунду</li>
+            <li>в конце — команда «СТАРТ!»</li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <b>Магия композиции:</b> модули не заменяют циклы и условия — они <b>склеиваются</b> с ними. Это и есть настоящее программирование.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. Mini-project -->
+  <section class="slide" data-notes="Мини-проект 10 минут. Пусть каждый напишет сам. Функция + модули random/math + возврат значения. Это повторение всего, что было в 17–20 уроках, плюс новая тема. Оцените, кто сделал бонус с math.floor.">
+    <span class="kicker">// 13 · Мини-проект</span>
+    <h2 class="section">Мини-проект: <span class="accent">«Броски костей»</span></h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+import math
+
+def roll_dice(n):
+    """Бросает n костей, возвращает список."""
+    результаты = []
+    for _ in range(n):
+        бросок = random.randint(1, 6)
+        результаты.append(бросок)
+    return результаты
+
+n = int(input("Сколько костей? "))
+броски = roll_dice(n)
+
+print("Броски:", броски)
+print("Сумма:", sum(броски))
+print("Среднее:", math.floor(sum(броски) / len(броски)))</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="glass">
+          <h3 class="h3"><span class="accent-purple">Проверочный список</span></h3>
+          <ul class="dash">
+            <li>Два <code>import</code> — сверху</li>
+            <li>Функция с параметром <code>n</code></li>
+            <li>Список результатов внутри</li>
+            <li>Возврат через <code>return</code></li>
+            <li>Сумма через <code>sum()</code></li>
+            <li>Среднее через <code>math.floor</code></li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <b>Бонус:</b> найди максимум — <code>max(броски)</code>. И минимум — <code>min(броски)</code>. Это тоже встроенные функции, даже импорт не нужен.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. Типичные ошибки -->
+  <section class="slide" data-notes="Обязательно разбираем все 5 ошибок. Это сэкономит детям часы отладки. Самая частая — забытый import. Вторая — Random с большой буквы.">
+    <span class="kicker">// 14 · Типичные ошибки</span>
+    <h2 class="section">Пять ловушек <span class="accent">на пути</span></h2>
+    <div class="grid-2">
+      <div class="glass err"><div class="icon">!</div><div><h4>Забыли <code>import</code></h4><p><code>NameError: name 'random' is not defined</code> — модуль не подключён.</p></div></div>
+      <div class="glass err"><div class="icon">A</div><div><h4><code>import Random</code> с большой буквы</h4><p>Python регистрозависим. Правильно — только маленькими: <code>random</code>.</p></div></div>
+      <div class="glass err"><div class="icon">()</div><div><h4><code>random(1, 6)</code> без точки</h4><p><code>TypeError: module is not callable</code>. Нужно: <code>random.randint(1, 6)</code>.</p></div></div>
+      <div class="glass err"><div class="icon">≠</div><div><h4>Путают <code>randint</code> и <code>randrange</code></h4><p><code>randint(1, 6)</code> — <b>включает</b> 6. <code>randrange(1, 6)</code> — <b>не включает</b>.</p></div></div>
+      <div class="glass err" style="grid-column: 1 / -1;"><div class="icon">⏱</div><div><h4><code>time.sleep(1000)</code> — и тишина на 17 минут</h4><p><code>sleep</code> принимает <b>секунды</b>, не миллисекунды. Для полсекунды пиши <code>sleep(0.5)</code>.</p></div></div>
+    </div>
+  </section>
+
+  <!-- 16. Ключевые фразы преподавателя -->
+  <section class="slide" data-notes="Это ваши «мантры» — фразы, которые ребёнок должен услышать 2–3 раза за урок. Выбирайте 3–4, не обязательно все.">
+    <span class="kicker">// 15 · Словарь учителя</span>
+    <h2 class="section">Что говорим, чтобы <span class="accent">запомнилось</span></h2>
+    <div class="grid-2">
+      <div class="glass tight"><div class="quote" style="font-size:18px; line-height:1.45;"><span class="mark">«</span>Модуль — это библиотека. <code>import math</code> — «подключи учебник математики».</div></div>
+      <div class="glass tight"><div class="quote" style="font-size:18px; line-height:1.45;"><span class="mark">«</span>Точка — это «достань из библиотеки». <code>math.sqrt</code> — функция из модуля <code>math</code>.</div></div>
+      <div class="glass tight"><div class="quote" style="font-size:18px; line-height:1.45;"><span class="mark">«</span>Не пиши свой корень. Кто-то уже написал. Используй <code>math.sqrt</code>.</div></div>
+      <div class="glass tight"><div class="quote" style="font-size:18px; line-height:1.45;"><span class="mark">«</span>Импортируй в самом начале файла. Все импорты — сверху.</div></div>
+      <div class="glass tight"><div class="quote" style="font-size:18px; line-height:1.45;"><span class="mark">«</span><code>random</code> — твой друг во всех играх. Броски, выборы, перемешивания.</div></div>
+      <div class="glass tight"><div class="quote" style="font-size:18px; line-height:1.45;"><span class="mark">«</span>Если <code>ModuleNotFoundError</code> — возможно, нужно ставить через <code>pip</code>. Но <code>math</code>/<code>random</code>/<code>time</code> встроены.</div></div>
+    </div>
+  </section>
+
+  <!-- 17. Бонус: камень-ножницы-бумага -->
+  <section class="slide" data-notes="Для опережающих. Если ученик закончил мини-проект за 5 минут — дайте этот бонус. Покажите, как склеиваются модуль + условия + ввод.">
+    <span class="kicker">// 16 · Бонус для опережающих</span>
+    <h2 class="section">Камень · Ножницы · <span class="accent">Бумага</span></h2>
+    <div class="two-col">
+      <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+варианты = ["камень", "ножницы", "бумага"]
+комп = random.choice(варианты)
+игрок = input("Твой ход: ")
+
+if игрок == комп:
+    print("Ничья!")
+elif (игрок == "камень"   and комп == "ножницы") or \
+     (игрок == "ножницы" and комп == "бумага")  or \
+     (игрок == "бумага"  and комп == "камень"):
+    print("Ты победил!")
+else:
+    print(f"Компьютер выбрал {комп}. Ты проиграл.")</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="glass">
+          <h3 class="h3"><span class="accent-cyan">Что соединилось</span></h3>
+          <ul class="dash">
+            <li><code>random.choice</code> — ход компьютера</li>
+            <li><code>input</code> — ход игрока</li>
+            <li><code>if / elif / else</code> — логика правил</li>
+            <li>всё в <b>10 строк</b></li>
+          </ul>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <b>Вывод:</b> модули не делают программу длиннее — они делают её <b>умнее за меньше строк</b>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18. ИИ -->
+  <section class="slide" data-notes="ИИ как «библиотечный консультант». Пусть ребёнок задаст вопрос YandexGPT и выберет 3 модуля «попробовать дома». Это открывает личную траекторию — один увлечётся turtle, другой — json, третий — statistics.">
+    <span class="kicker">// 17 · ИИ как расширение кругозора</span>
+    <h2 class="section">YandexGPT — <span class="accent">книжный обзор</span></h2>
+    <div class="glass" style="margin-top:10px;">
+      <div class="chip cyan" style="margin-bottom:14px;">промпт для детей</div>
+      <p class="quote" style="font-size:22px;"><span class="mark">«</span>Назови 10 самых полезных модулей стандартной библиотеки Python для начинающего. Одна строка на каждый — что делает.</p>
+    </div>
+    <div class="grid-3" style="margin-top:22px;">
+      <div class="glass mod">
+        <div class="mod-name">turtle</div>
+        <div class="mod-desc">Рисование черепашкой. Геометрические фигуры за 5 строк.</div>
+      </div>
+      <div class="glass mod">
+        <div class="mod-name">calendar</div>
+        <div class="mod-desc">Календари и дни недели. Узнай, какой день был на твой день рождения.</div>
+      </div>
+      <div class="glass mod">
+        <div class="mod-name">statistics</div>
+        <div class="mod-desc">Среднее, медиана, дисперсия. Для будущих исследователей данных.</div>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:18px;">Шаг для ученика: <b>выбери 3 модуля</b> из ответа ИИ — попробуй дома любой из них.</p>
+  </section>
+
+  <!-- 19. ДЗ -->
+  <section class="slide" data-notes="ДЗ ≤ 20 минут. Три маленьких задания, каждое отрабатывает один модуль. Первое — закладка для будущей «Виселицы» на уроке 28.">
+    <span class="kicker">// 18 · Домашнее задание</span>
+    <h2 class="section">ДЗ · <span class="accent">три маленьких шага</span></h2>
+    <ol class="num">
+      <li>
+        <b>Будущая «Виселица».</b> Напиши: <code>secret_word = random.choice(["кот", "пёс", "птица", "рыба", "лев"])</code>. Запусти 5 раз, убедись, что слово меняется. Это основа игры, которую мы сделаем на уроке 28.
+      </li>
+      <li>
+        <b>Математика Python.</b> Проверь: <code>math.sin(math.pi / 2)</code> должно быть <code>1.0</code>. Напиши ещё 3 таких примера с <code>sin</code>, <code>cos</code>, <code>sqrt</code> — и покажи учителю.
+      </li>
+      <li>
+        <b>Диктор новостей.</b> Сделай программу, которая печатает <b>3 новости</b> с паузой <code>time.sleep(2)</code> между ними. Пусть это будут твои смешные новости — «Коты захватили мир», «В пятницу — конец домашки» и т.п.
+      </li>
+    </ol>
+  </section>
+
+  <!-- 20. Критерии успеха -->
+  <section class="slide" data-notes="Чек-лист для самооценки. В конце урока пусть каждый ребёнок проверит, что он умеет всё из списка. Если «нет» по какому-то пункту — быстрый вопрос учителю.">
+    <span class="kicker">// 19 · Критерии успеха</span>
+    <h2 class="section">Ребёнок может <span class="accent">к концу урока</span></h2>
+    <div class="grid-2" style="margin-top:10px;">
+      <div class="glass">
+        <h3 class="h3"><span class="accent-cyan">Знает</span></h3>
+        <ul class="dash">
+          <li>что такое модуль и зачем он нужен</li>
+          <li>как написать <code>import имя</code></li>
+          <li>что в стандартной библиотеке сотни модулей</li>
+          <li>что <code>pip</code> — это установка внешних модулей</li>
+        </ul>
+      </div>
+      <div class="glass">
+        <h3 class="h3"><span class="accent-purple">Умеет</span></h3>
+        <ul class="dash">
+          <li>подключить <code>math</code>, <code>random</code>, <code>time</code></li>
+          <li>вызвать функцию через точку</li>
+          <li>использовать <code>from … import …</code></li>
+          <li>склеить модуль с циклом и условием</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid-4" style="margin-top:22px;">
+      <div class="glass tight" style="text-align:center;">
+        <div class="big-number">3</div>
+        <div class="stat-label">модуля освоено</div>
+      </div>
+      <div class="glass tight" style="text-align:center;">
+        <div class="big-number">7</div>
+        <div class="stat-label">новых функций</div>
+      </div>
+      <div class="glass tight" style="text-align:center;">
+        <div class="big-number">1</div>
+        <div class="stat-label">мини-проект</div>
+      </div>
+      <div class="glass tight" style="text-align:center;">
+        <div class="big-number">∞</div>
+        <div class="stat-label">возможностей</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 21. Итоги -->
+  <section class="slide" data-notes="Финальный слайд — запомните ровно три вещи. Проговорите их вместе с классом хором. Это закрепит в долгой памяти.">
+    <span class="kicker">// 20 · Три главных вывода</span>
+    <h2 class="section">Запомни <span class="accent">три вещи</span></h2>
+    <div class="grid-3" style="margin-top:10px;">
+      <div class="glass">
+        <div class="big-number">01</div>
+        <h3 class="h3" style="margin-top:12px;">Не пиши с нуля</h3>
+        <p class="lead" style="font-size:15px;">Сотни программистов уже написали нужный тебе код. Твоя суперсила — <b>умение находить и подключать</b>.</p>
+      </div>
+      <div class="glass">
+        <div class="big-number">02</div>
+        <h3 class="h3" style="margin-top:12px;">Точка — ключ</h3>
+        <p class="lead" style="font-size:15px;">Структура <code>модуль.функция(аргумент)</code> работает везде. Понял её — понял половину Python.</p>
+      </div>
+      <div class="glass">
+        <div class="big-number">03</div>
+        <h3 class="h3" style="margin-top:12px;">Модули = комбо</h3>
+        <p class="lead" style="font-size:15px;">Магия появляется, когда <b>склеиваешь</b> модули с циклами, условиями и функциями из прошлых уроков.</p>
+      </div>
+    </div>
+    <p class="quote" style="margin-top:26px; text-align:center;"><span class="mark">«</span>К концу этого модуля ты сможешь писать программы, которые <span style="background: linear-gradient(135deg, #7C3AED, #06B6D4); -webkit-background-clip:text; background-clip:text; color:transparent;">сохраняют данные навсегда</span>.</p>
+    <div class="q-author" style="text-align:center;">→ Следующий урок: файлы</div>
+  </section>
+
+  <!-- 22. Навигация -->
+  <section class="slide" data-notes="Финальный слайд — инструкция навигации. Можно пропустить в демо, но полезно знать.">
+    <span class="kicker">// 21 · Навигация</span>
+    <h2 class="section">Управление <span class="accent">презентацией</span></h2>
+    <div class="grid-2" style="margin-top:14px;">
+      <div class="glass">
+        <h3 class="h3"><span class="accent-cyan">Клавиатура</span></h3>
+        <div style="display:flex; flex-direction:column; gap:14px; margin-top:10px;">
+          <div class="kbd-group"><kbd>→</kbd><kbd>Space</kbd><kbd>PgDn</kbd><span style="color:var(--muted); margin-left:8px;">следующий слайд</span></div>
+          <div class="kbd-group"><kbd>←</kbd><kbd>PgUp</kbd><span style="color:var(--muted); margin-left:8px;">предыдущий</span></div>
+          <div class="kbd-group"><kbd>Home</kbd><span style="color:var(--muted); margin-left:8px;">к началу</span></div>
+          <div class="kbd-group"><kbd>End</kbd><span style="color:var(--muted); margin-left:8px;">в конец</span></div>
+          <div class="kbd-group"><kbd>N</kbd><span style="color:var(--muted); margin-left:8px;">показать заметки спикера</span></div>
+          <div class="kbd-group"><kbd>F</kbd><span style="color:var(--muted); margin-left:8px;">полноэкранный режим</span></div>
+          <div class="kbd-group"><kbd>Esc</kbd><span style="color:var(--muted); margin-left:8px;">закрыть заметки</span></div>
+        </div>
+      </div>
+      <div class="glass">
+        <h3 class="h3"><span class="accent-purple">Для учителя</span></h3>
+        <ul class="dash">
+          <li>Нажми <kbd style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-family:'JetBrains Mono', monospace; font-size:11px;">N</kbd> на любом слайде — увидишь методическую подсказку.</li>
+          <li>Прогресс-бар сверху показывает место в деке.</li>
+          <li>В правом нижнем углу — счётчик слайдов.</li>
+          <li>Презентация работает оффлайн после первой загрузки шрифтов.</li>
+        </ul>
+        <div class="callout" style="margin-top:18px;">
+          <b>Удачного урока!</b> Пусть каждый ребёнок напишет свой первый <code>import</code> и почувствует, что у него в руках — вся мощь Python.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Speaker notes overlay -->
+<div class="notes" id="notes">
+  <div class="notes__box">
+    <div class="notes__label">// заметки спикера</div>
+    <div class="notes__text" id="notesText"></div>
+    <div class="notes__close">нажми <kbd style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-family:'JetBrains Mono', monospace; font-size:11px;">N</kbd> или <kbd style="background:rgba(255,255,255,0.08); border:1px solid var(--border); border-radius:5px; padding:1px 6px; font-family:'JetBrains Mono', monospace; font-size:11px;">Esc</kbd> чтобы закрыть</div>
+  </div>
+</div>
+
+<div class="counter"><b id="cur">1</b> / <span id="total">22</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> фулскрин</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  document.getElementById('total').textContent = total;
+
+  let idx = 0;
+  const fill = document.getElementById('progressFill');
+  const cur = document.getElementById('cur');
+  const notes = document.getElementById('notes');
+  const notesText = document.getElementById('notesText');
+
+  function render(){
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    fill.style.width = ((idx + 1) / total * 100) + '%';
+    cur.textContent = idx + 1;
+    if (notes.classList.contains('open')) {
+      notesText.textContent = slides[idx].dataset.notes || '(нет заметок на этом слайде)';
+    }
+  }
+  function go(d){ idx = Math.max(0, Math.min(total - 1, idx + d)); render(); }
+  function toSlide(n){ idx = Math.max(0, Math.min(total - 1, n)); render(); }
+  function toggleNotes(){
+    if (notes.classList.contains('open')) {
+      notes.classList.remove('open');
+    } else {
+      notesText.textContent = slides[idx].dataset.notes || '(нет заметок на этом слайде)';
+      notes.classList.add('open');
+    }
+  }
+  function toggleFullscreen(){
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+    else if (e.key === 'Home') { e.preventDefault(); toSlide(0); }
+    else if (e.key === 'End') { e.preventDefault(); toSlide(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') { e.preventDefault(); toggleNotes(); }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') { e.preventDefault(); toggleFullscreen(); }
+    else if (e.key === 'Escape') { if (notes.classList.contains('open')) notes.classList.remove('open'); }
+  });
+
+  // Click nav — правая половина вперёд, левая назад
+  document.addEventListener('click', (e) => {
+    if (notes.classList.contains('open')) { notes.classList.remove('open'); return; }
+    if (e.target.closest('kbd, code, pre, a, button')) return;
+    const half = window.innerWidth / 2;
+    if (e.clientX > half) go(1); else go(-1);
+  });
+
+  // Touch swipe
+  let touchX = null;
+  document.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+    touchX = null;
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
