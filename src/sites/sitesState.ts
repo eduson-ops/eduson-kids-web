@@ -219,7 +219,7 @@ export const TEMPLATES: SiteTemplate[] = [
         { kind: 'tg', href: 'https://t.me/' },
         { kind: 'vk', href: 'https://vk.com/' },
       ] } },
-      { id: newId(), type: 'footer', data: { text: 'Сделано в Эдусон Kids 🧱' } },
+      { id: newId(), type: 'footer', data: { text: 'Сделано в Эдюсон Kids 🧱' } },
     ],
   },
   {
@@ -325,7 +325,7 @@ export const TEMPLATES: SiteTemplate[] = [
     theme: 'yellow',
     build: () => [
       { id: newId(), type: 'hero', data: { title: 'Привет, мир!', subtitle: 'Это моя первая веб-страница.' } },
-      { id: newId(), type: 'footer', data: { text: 'Сделано в Эдусон Kids' } },
+      { id: newId(), type: 'footer', data: { text: 'Сделано в Эдюсон Kids' } },
     ],
   },
 ]

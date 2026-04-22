@@ -94,9 +94,9 @@ export default function Studio() {
             <path d="M15 6l-6 6 6 6" />
           </svg>
         </button>
-        <Link to="/" className="studio-brand-lockup" aria-label="Эдусон Kids — главная">
+        <Link to="/" className="studio-brand-lockup" aria-label="Эдюсон Kids — главная">
           <NikselMini size={30} />
-          <span>Эдусон</span>
+          <span>Эдюсон</span>
           <span className="kb-shell-brand-kids">Kids</span>
           <span style={{ opacity: .4, margin: '0 4px' }}>·</span>
           <span style={{ color: 'var(--yellow)' }}>Студия</span>

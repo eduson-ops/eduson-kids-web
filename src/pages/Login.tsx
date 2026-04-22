@@ -63,7 +63,7 @@ export default function Login() {
       <header className="login-head">
         <Link to="/" className="kb-shell-brand" aria-label="Eduson Kids — главная">
           <NikselMini size={36} />
-          <span>Эдусон</span>
+          <span>Эдюсон</span>
           <span className="kb-shell-brand-kids">Kids</span>
         </Link>
       </header>
@@ -72,7 +72,7 @@ export default function Login() {
         <div className="login-intro">
           <Niksel pose="wave" size={140} />
           <span className="eyebrow">Добро пожаловать</span>
-          <h1 className="h1">Вход в&nbsp;Эдусон&nbsp;Kids</h1>
+          <h1 className="h1">Вход в&nbsp;Эдюсон&nbsp;Kids</h1>
           <p className="lead">
             Выбери способ — и продолжи учиться. Все варианты сохраняют прогресс,
             так что начать можно одним кликом.
@@ -179,7 +179,7 @@ export default function Login() {
       </main>
 
       <footer className="login-foot">
-        <small>© 2026 Эдусон Kids · LXP</small>
+        <small>© 2026 Эдюсон Kids · LXP</small>
       </footer>
     </div>
   )

@@ -79,9 +79,9 @@ export default function PlatformShell({ children, activeKey }: Props) {
   return (
     <div className="brand-shell brand-shell--sidenav">
       <aside className="kb-sidenav">
-        <Link to="/" className="kb-shell-brand" aria-label="Эдусон Kids — главная">
+        <Link to="/" className="kb-shell-brand" aria-label="Эдюсон Kids — главная">
           <NikselMini size={36} />
-          <span>Эдусон</span>
+          <span>Эдюсон</span>
           <span className="kb-shell-brand-kids">Kids</span>
         </Link>
 

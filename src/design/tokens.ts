@@ -5,7 +5,7 @@
  * Authoritative spec: `design/brandbook/eduson_kids_brand_spec.md`
  *
  * Core identity:
- *   - Parent brand Эдусон → inherited wordmark colors, yellow + violet accents
+ *   - Parent brand Эдюсон → inherited wordmark colors, yellow + violet accents
  *   - Warm cream paper background (NOT cold white)
  *   - Chunky "LEGO-like" block shadows (4px bottom offset)
  *   - Block-coding semantic palette: move=violet, logic=yellow, data=mint,

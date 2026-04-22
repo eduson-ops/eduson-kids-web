@@ -37,9 +37,9 @@ export default function Profile() {
     <div className="profile-root">
       <aside className="profile-side">
         <header className="profile-side-top">
-          <Link to="/" className="studio-brand-lockup" aria-label="Эдусон Kids — главная" style={{ color: 'var(--ink)', fontSize: 14 }}>
+          <Link to="/" className="studio-brand-lockup" aria-label="Эдюсон Kids — главная" style={{ color: 'var(--ink)', fontSize: 14 }}>
             <NikselMini size={28} />
-            <span>Эдусон</span>
+            <span>Эдюсон</span>
             <span className="kb-shell-brand-kids">Kids</span>
           </Link>
           <h1 style={{ marginTop: 12 }}>Мой аватар</h1>

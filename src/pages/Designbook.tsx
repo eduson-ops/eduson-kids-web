@@ -64,7 +64,7 @@ export default function Designbook() {
         <div className="kb-cover-meta">
           <span className="eyebrow">Дизайнбук · v1.0</span>
           <span className="kb-cover-meta-row">
-            <span>Эдусон Kids</span><span className="dot" /><span>2026</span>
+            <span>Эдюсон Kids</span><span className="dot" /><span>2026</span>
           </span>
         </div>
         <h1 className="kb-cover-title kb-cover-title--md">
@@ -121,12 +121,12 @@ export default function Designbook() {
         </header>
         <div className="kb-card kb-card--feature">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <ScaleRow size="80px" weight={900} label="H1 · Cover" sample="Эдусон Kids" />
+            <ScaleRow size="80px" weight={900} label="H1 · Cover" sample="Эдюсон Kids" />
             <ScaleRow size="56px" weight={900} label="H1 · Section" sample="Курсы программирования" />
             <ScaleRow size="32px" weight={800} label="H2" sample="Что такое блок" />
             <ScaleRow size="20px" weight={800} label="H3" sample="Модуль 1: Первые шаги" />
             <ScaleRow size="15px" weight={600} label="Body" sample="Собираем программу из цветных блоков" />
-            <ScaleRow size="11px" weight={600} label="Eyebrow" sample="АКАДЕМИЯ ЭДУСОН · KIDS" mono />
+            <ScaleRow size="11px" weight={600} label="Eyebrow" sample="АКАДЕМИЯ ЭДЮСОН · KIDS" mono />
           </div>
         </div>
       </section>
@@ -285,7 +285,7 @@ export default function Designbook() {
         fontSize: 13,
         color: 'var(--ink-soft)',
       }}>
-        <div style={{ fontFamily: 'var(--f-mono)', letterSpacing: '.06em' }}>Эдусон Kids · Дизайнбук v1.0 · 2026</div>
+        <div style={{ fontFamily: 'var(--f-mono)', letterSpacing: '.06em' }}>Эдюсон Kids · Дизайнбук v1.0 · 2026</div>
         <Link to="/" style={{ color: 'var(--violet)', fontWeight: 700 }}>На главную →</Link>
       </section>
     </PlatformShell>

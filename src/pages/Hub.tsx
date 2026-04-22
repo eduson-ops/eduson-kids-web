@@ -60,7 +60,7 @@ export default function Hub() {
           </span>
         </div>
         <h1 className="kb-cover-title">
-          Эдусон<br/>Kids<span className="kb-cover-accent">.</span>
+          Эдюсон<br/>Kids<span className="kb-cover-accent">.</span>
         </h1>
         <p className="kb-cover-sub">
           Строй 3D-миры, собирай игры из блоков, пиши Python.<br/>

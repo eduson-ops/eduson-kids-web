@@ -46,7 +46,7 @@ export default function SharedSite() {
     <div className="shared-site">
       <header className="shared-site-bar">
         <strong>🌐 {data.name}</strong>
-        <span className="shared-site-hint">Сайт создан в Эдусон Kids · каждый ребёнок — автор</span>
+        <span className="shared-site-hint">Сайт создан в Эдюсон Kids · каждый ребёнок — автор</span>
         <Link to="/" className="kb-btn kb-btn--sm">Сделать свой</Link>
       </header>
       <iframe srcDoc={doc} title={data.name} />
