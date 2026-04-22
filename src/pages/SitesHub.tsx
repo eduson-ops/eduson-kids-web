@@ -10,7 +10,7 @@ import {
   type Site,
 } from '../sites/sitesState'
 import { SFX } from '../lib/audio'
-import NikselIcon from '../design/mascot/NikselIcon'
+import NikselIcon, { iconFromEmoji } from '../design/mascot/NikselIcon'
 
 /**
  * SitesHub — лобби трека «Сайты».
@@ -56,7 +56,9 @@ export default function SitesHub() {
             </Link>
           </div>
         </div>
-        <div style={{ fontSize: 160, lineHeight: 1 }}>🌐</div>
+        <div style={{ width: 180, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
+          <NikselIcon kind="web" size={180} />
+        </div>
       </section>
 
       {/* Мои сайты */}
@@ -108,7 +110,9 @@ export default function SitesHub() {
                     </button>
                   </div>
                   <Link to={`/sites/${s.id}`} style={{ display: 'contents' }}>
-                    <div className="kb-course-icon" style={{ fontSize: 64 }}>🌐</div>
+                    <div className="kb-course-icon kb-course-icon--niksel">
+                      <NikselIcon kind="web" size={72} />
+                    </div>
                     <div>
                       <div className="h3" style={{ fontSize: 18 }}>{s.name}</div>
                       <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 4 }}>
@@ -152,7 +156,9 @@ export default function SitesHub() {
                   <span className="kb-course-age">Шаблон</span>
                   <span className="kb-course-level">→</span>
                 </div>
-                <div className="kb-course-icon">{t.emoji}</div>
+                <div className="kb-course-icon kb-course-icon--niksel">
+                  <NikselIcon kind={iconFromEmoji(t.emoji)} size={72} />
+                </div>
                 <div>
                   <div className="h3" style={{ fontSize: 16 }}>{t.title}</div>
                   <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 6, lineHeight: 1.4 }}>

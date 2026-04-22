@@ -5255,6 +5255,19 @@ body:has(.lobby-v2) {
 .curric-lesson-hero {
   margin-bottom: 24px;
 }
+.curric-lesson-hero h1,
+.curric-lesson-hero h2,
+.curric-module-hero h1,
+.curric-module-hero h2,
+.curric-lesson-md h1,
+.curric-lesson-md h2,
+.lesson-hero h1,
+.lesson-hero h2 {
+  font-family: var(--f-display, 'Nunito'), system-ui, -apple-system, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
 .curric-lesson-hook-big {
   font-size: 18px;
   color: var(--ink-soft);
@@ -5506,7 +5519,17 @@ body:has(.lobby-v2) {
   gap: 8px;
   border-top: 3px solid var(--accent);
 }
-.kpi-emoji { font-size: 32px; }
+.kpi-emoji {
+  font-size: 32px;
+  width: 64px;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: var(--paper-2, #F4EFE3);
+}
+.kpi-emoji svg { display: block; }
 .kpi-value { font-size: 30px; font-weight: 800; line-height: 1; }
 .kpi-label {
   font-size: 13px;
