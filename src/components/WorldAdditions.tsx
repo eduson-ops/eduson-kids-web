@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { useRef } from 'react'
 import * as THREE from 'three'
+import { PUBLIC_BASE } from '../lib/publicPath'
 import {
   getAdditionsForWorld,
   subscribeEdits,
@@ -279,7 +280,7 @@ function GraveyardProp({
   scale?: number
   rotY?: number
 }) {
-  const gltf = useGLTF(`/models/kenney-graveyard/${file}`)
+  const gltf = useGLTF(`${PUBLIC_BASE}/models/kenney-graveyard/${file}`)
   const scene = useMemo(() => gltf.scene.clone(), [gltf])
   return (
     <group position={pos} scale={scale} rotation={[0, rotY, 0]}>
@@ -288,6 +289,6 @@ function GraveyardProp({
   )
 }
 
-useGLTF.preload('/models/kenney-graveyard/pumpkin-carved.glb')
-useGLTF.preload('/models/kenney-graveyard/coffin.glb')
-useGLTF.preload('/models/kenney-graveyard/candle.glb')
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/pumpkin-carved.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/coffin.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/candle.glb`)

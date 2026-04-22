@@ -8,6 +8,7 @@ import GltfMonster from '../GltfMonster'
 import { Tree, Bush, ParkedCar } from '../Scenery'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
+import { PUBLIC_BASE } from '../../lib/publicPath'
 
 // Kenney Mini Market CC0 — атмосфера магазин-империи
 function MarketProp({
@@ -21,7 +22,7 @@ function MarketProp({
   scale?: number
   rotY?: number
 }) {
-  const gltf = useGLTF(`/models/kenney-mini-market/${file}`)
+  const gltf = useGLTF(`${PUBLIC_BASE}/models/kenney-mini-market/${file}`)
   const scene = useMemo(() => gltf.scene.clone(), [gltf])
   return (
     <group position={pos} scale={scale} rotation={[0, rotY, 0]}>
@@ -30,11 +31,11 @@ function MarketProp({
   )
 }
 
-useGLTF.preload('/models/kenney-mini-market/cash-register.glb')
-useGLTF.preload('/models/kenney-mini-market/shopping-cart.glb')
-useGLTF.preload('/models/kenney-mini-market/display-fruit.glb')
-useGLTF.preload('/models/kenney-mini-market/shelf-bags.glb')
-useGLTF.preload('/models/kenney-mini-market/freezer.glb')
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-mini-market/cash-register.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-mini-market/shopping-cart.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-mini-market/display-fruit.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-mini-market/shelf-bags.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-mini-market/freezer.glb`)
 
 /**
  * TycoonWorld — educational remake of «Steal a Brainrot» (Roblox 2025 meme).

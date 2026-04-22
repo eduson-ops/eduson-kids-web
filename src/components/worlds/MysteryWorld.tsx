@@ -8,6 +8,7 @@ import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import { Tree, Bush, Mushroom } from '../Scenery'
+import { PUBLIC_BASE } from '../../lib/publicPath'
 
 // Kenney Graveyard Kit — CC0 GLB модели
 function GraveyardProp({
@@ -21,7 +22,7 @@ function GraveyardProp({
   scale?: number
   rotY?: number
 }) {
-  const gltf = useGLTF(`/models/kenney-graveyard/${file}`)
+  const gltf = useGLTF(`${PUBLIC_BASE}/models/kenney-graveyard/${file}`)
   const scene = useMemo(() => gltf.scene.clone(), [gltf])
   return (
     <group position={pos} scale={scale} rotation={[0, rotY, 0]}>
@@ -30,13 +31,13 @@ function GraveyardProp({
   )
 }
 
-useGLTF.preload('/models/kenney-graveyard/crypt.glb')
-useGLTF.preload('/models/kenney-graveyard/coffin.glb')
-useGLTF.preload('/models/kenney-graveyard/cross.glb')
-useGLTF.preload('/models/kenney-graveyard/candle.glb')
-useGLTF.preload('/models/kenney-graveyard/pumpkin-carved.glb')
-useGLTF.preload('/models/kenney-graveyard/lantern-glass.glb')
-useGLTF.preload('/models/kenney-graveyard/fence.glb')
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/crypt.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/coffin.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/cross.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/candle.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/pumpkin-carved.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/lantern-glass.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/fence.glb`)
 
 /**
  * MysteryWorld — kid-safe remake of «Murder Mystery 2».

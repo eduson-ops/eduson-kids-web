@@ -12,6 +12,8 @@
  *   L6 — «Защита капстона» (публичная презентация)
  */
 
+import { PUBLIC_BASE } from './publicPath'
+
 /** MCQ-вопрос для квиза в конце презентации урока. */
 export interface QuizQuestion {
   text: string
@@ -77,8 +79,8 @@ const M1: Lesson[] = [
       mid: 'Прошёл все 3 таба (Строить/Скрипт/Тест), покрутил камеру',
       hard: '+ выбрал цвет сцены, изменил имя проекта',
     },
-    htmlFile: '/curriculum/lessons/L1_first_game.html',
-    guideFile: '/curriculum/lessons/L1_teacher_guide.md',
+    htmlFile: `${PUBLIC_BASE}/curriculum/lessons/L1_first_game.html`,
+    guideFile: `${PUBLIC_BASE}/curriculum/lessons/L1_teacher_guide.md`,
     quiz: [
       {
         text: 'Сколько вкладок в Студии KubiK?',
@@ -106,7 +108,7 @@ const M1: Lesson[] = [
       mid: 'Поставил 5 цветных платформ с разной высотой',
       hard: '+ выбрал материалы (дерево/металл/неон)',
     },
-    guideFile: '/curriculum/lessons/L2_teacher_guide.md',
+    guideFile: `${PUBLIC_BASE}/curriculum/lessons/L2_teacher_guide.md`,
     quiz: [
       {
         text: 'Зачем менять материал у части?',
@@ -129,8 +131,8 @@ const M1: Lesson[] = [
     terms: ['блок', 'хат-событие', 'стопка'],
     newBlocks: ['@при запуске', 'сказать'],
     capstoneContribution: 'герой здоровается в начале игры',
-    htmlFile: '/curriculum/lessons/L3_events_collisions.html',
-    guideFile: '/curriculum/lessons/L3_teacher_guide.md',
+    htmlFile: `${PUBLIC_BASE}/curriculum/lessons/L3_events_collisions.html`,
+    guideFile: `${PUBLIC_BASE}/curriculum/lessons/L3_teacher_guide.md`,
     quiz: [
       {
         text: 'Что такое хат-событие (hat-блок)?',
@@ -153,7 +155,7 @@ const M1: Lesson[] = [
     terms: ['физика', 'гравитация', 'WASD'],
     newBlocks: [],
     capstoneContribution: 'прокатали управление, поправили размеры платформ',
-    guideFile: '/curriculum/lessons/L4_teacher_guide.md',
+    guideFile: `${PUBLIC_BASE}/curriculum/lessons/L4_teacher_guide.md`,
     quiz: [
       {
         text: 'Что делает гравитация?',
@@ -176,7 +178,7 @@ const M1: Lesson[] = [
     terms: ['сенсор', 'сбор', 'цель-триггер'],
     newBlocks: ['@когда коснулся'],
     capstoneContribution: '5 монет + финишная платформа',
-    guideFile: '/curriculum/lessons/L5_teacher_guide.md',
+    guideFile: `${PUBLIC_BASE}/curriculum/lessons/L5_teacher_guide.md`,
     quiz: [
       {
         text: 'В чём разница между сенсором и твёрдым коллайдером?',
@@ -199,8 +201,8 @@ const M1: Lesson[] = [
     terms: ['защита', 'рубрика', 'рефлексия'],
     newBlocks: [],
     capstoneContribution: '✅ Капстон M1: готовый Obby-платформер',
-    htmlFile: '/curriculum/lessons/L6_python_mode.html',
-    guideFile: '/curriculum/lessons/L6_teacher_guide.md',
+    htmlFile: `${PUBLIC_BASE}/curriculum/lessons/L6_python_mode.html`,
+    guideFile: `${PUBLIC_BASE}/curriculum/lessons/L6_teacher_guide.md`,
     quiz: [
       {
         text: 'Что такое рефлексия после проекта?',

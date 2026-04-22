@@ -7,6 +7,7 @@ import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import { Tree, Bush, Mushroom, Rock, GrassTuft } from '../Scenery'
+import { PUBLIC_BASE } from '../../lib/publicPath'
 
 // Kenney Graveyard — CC0 (тыквы и фонари для атмосферы)
 function GraveyardProp({
@@ -20,7 +21,7 @@ function GraveyardProp({
   scale?: number
   rotY?: number
 }) {
-  const gltf = useGLTF(`/models/kenney-graveyard/${file}`)
+  const gltf = useGLTF(`${PUBLIC_BASE}/models/kenney-graveyard/${file}`)
   const scene = useMemo(() => gltf.scene.clone(), [gltf])
   return (
     <group position={pos} scale={scale} rotation={[0, rotY, 0]}>
@@ -29,9 +30,9 @@ function GraveyardProp({
   )
 }
 
-useGLTF.preload('/models/kenney-graveyard/pumpkin.glb')
-useGLTF.preload('/models/kenney-graveyard/pumpkin-carved.glb')
-useGLTF.preload('/models/kenney-graveyard/lantern-glass.glb')
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/pumpkin.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/pumpkin-carved.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/lantern-glass.glb`)
 
 /**
  * NightsWorld — educational remake of «99 Nights in the Forest» (Roblox 2024 co-op).
