@@ -3,26 +3,61 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { NikselMini } from '../design/mascot/Niksel'
 
 /**
- * Platform shell — wraps all non-game pages with brand chrome.
- * Sticky nav + brand lockup + main content area.
- * Game/Studio pages (/play/:id, /studio) skip this shell.
+ * Platform shell v2 — dark left sidenav (Designbook pattern).
+ * Sticky 260px sidenav on left, main content shifted right.
+ * Game/Studio pages (/play/:id, /studio, /profile) skip this shell.
  */
 
 interface Props {
   children: ReactNode
-  activeKey?: 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio'
+  activeKey?: NavKey
 }
 
-const NAV = [
-  { key: 'hub',       label: 'Главная',    to: '/' },
-  { key: 'learn',     label: 'Уроки',      to: '/learn' },
-  { key: 'play',      label: 'Играть',     to: '/play' },
-  { key: 'build',     label: 'Студия',     to: '/studio' },
-  { key: 'sites',     label: 'Сайты',      to: '/sites' },
-  { key: 'portfolio', label: 'Портфолио',  to: '/me' },
-  { key: 'parent',    label: 'Родителям',  to: '/parent' },
-  { key: 'profile',   label: 'Профиль',    to: '/profile' },
-] as const
+type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook'
+
+interface NavItem {
+  key: NavKey
+  label: string
+  to: string
+  emoji: string
+}
+
+interface NavGroup {
+  label: string
+  items: NavItem[]
+}
+
+const GROUPS: NavGroup[] = [
+  {
+    label: 'Обучение',
+    items: [
+      { key: 'hub',     label: 'Главная',    to: '/',       emoji: '🏠' },
+      { key: 'learn',   label: 'Уроки',      to: '/learn',  emoji: '📚' },
+      { key: 'portfolio', label: 'Моё портфолио', to: '/me', emoji: '🏆' },
+    ],
+  },
+  {
+    label: 'Творчество',
+    items: [
+      { key: 'play',  label: 'Играть',   to: '/play',   emoji: '🎮' },
+      { key: 'build', label: 'Студия',   to: '/studio', emoji: '🧱' },
+      { key: 'sites', label: 'Сайты',    to: '/sites',  emoji: '🌐' },
+    ],
+  },
+  {
+    label: 'Аккаунт',
+    items: [
+      { key: 'parent',  label: 'Родителям', to: '/parent',  emoji: '👨‍👩‍👦' },
+      { key: 'profile', label: 'Профиль',   to: '/profile', emoji: '⚙️' },
+    ],
+  },
+  {
+    label: 'Бренд',
+    items: [
+      { key: 'designbook', label: 'Дизайнбук', to: '/designbook', emoji: '🎨' },
+    ],
+  },
+]
 
 export default function PlatformShell({ children, activeKey }: Props) {
   const loc = useLocation()
@@ -42,44 +77,60 @@ export default function PlatformShell({ children, activeKey }: Props) {
   }
 
   return (
-    <div className="brand-shell">
-      <nav className="kb-shell-nav">
-        <Link to="/" className="kb-shell-brand" aria-label="Eduson Kids — главная">
+    <div className="brand-shell brand-shell--sidenav">
+      <aside className="kb-sidenav">
+        <Link to="/" className="kb-shell-brand" aria-label="Эдусон Kids — главная">
           <NikselMini size={36} />
           <span>Эдусон</span>
           <span className="kb-shell-brand-kids">Kids</span>
         </Link>
-        <div className="kb-shell-nav-links">
-          {NAV.map((item) => (
-            <Link
-              key={item.key}
-              to={item.to}
-              className={`kb-shell-nav-link ${active === item.key ? 'active' : ''}`}
-            >
-              {item.label}
-            </Link>
+
+        <div className="kb-sidenav-groups">
+          {GROUPS.map((g) => (
+            <div key={g.label} className="kb-sidenav-group">
+              <div className="kb-sidenav-label">{g.label}</div>
+              {g.items.map((item) => (
+                <Link
+                  key={item.key}
+                  to={item.to}
+                  className={`kb-sidenav-link ${active === item.key ? 'active' : ''}`}
+                >
+                  <span className="kb-sidenav-link-emoji" aria-hidden>{item.emoji}</span>
+                  <span>{item.label}</span>
+                </Link>
+              ))}
+            </div>
           ))}
         </div>
+
         {childName ? (
-          <div className="kb-shell-user">
-            <span className="kb-shell-user-avatar" aria-hidden>
+          <div className="kb-sidenav-user">
+            <span className="kb-sidenav-user-avatar" aria-hidden>
               {childName.charAt(0).toUpperCase()}
             </span>
-            <span className="kb-shell-user-name">{childName}</span>
-            <button className="kb-shell-user-out" onClick={signOut} title="Выйти">
+            <div className="kb-sidenav-user-body">
+              <span className="kb-sidenav-user-name">{childName}</span>
+              <span className="kb-sidenav-user-role">УЧЕНИК</span>
+            </div>
+            <button className="kb-sidenav-user-out" onClick={signOut} title="Выйти">
               ↩
             </button>
           </div>
         ) : (
-          <Link to="/login" className="kb-btn kb-btn--sm">Войти</Link>
+          <Link to="/login" className="kb-sidenav-login">
+            → Войти
+          </Link>
         )}
-      </nav>
+
+        <div className="kb-sidenav-foot">v1.0 · 2026</div>
+      </aside>
+
       <main className="kb-shell-main">{children}</main>
     </div>
   )
 }
 
-function inferKey(path: string): Props['activeKey'] {
+function inferKey(path: string): NavKey | undefined {
   if (path === '/') return 'hub'
   if (path.startsWith('/learn')) return 'learn'
   if (path.startsWith('/play')) return 'play'
@@ -88,5 +139,6 @@ function inferKey(path: string): Props['activeKey'] {
   if (path.startsWith('/parent')) return 'parent'
   if (path.startsWith('/me')) return 'portfolio'
   if (path.startsWith('/profile')) return 'profile'
+  if (path.startsWith('/designbook')) return 'designbook'
   return undefined
 }

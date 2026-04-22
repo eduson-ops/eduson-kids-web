@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { apiLoginChildCode, apiLoginGuest } from '../lib/api'
 import { startVkLogin, vkConfig } from '../lib/vkAuth'
-import { NikselMini } from '../design/mascot/Niksel'
+import Niksel, { NikselMini } from '../design/mascot/Niksel'
 
 /**
  * Login — четыре пути входа:
@@ -70,6 +70,7 @@ export default function Login() {
 
       <main className="login-main">
         <div className="login-intro">
+          <Niksel pose="wave" size={140} />
           <span className="eyebrow">Добро пожаловать</span>
           <h1 className="h1">Вход в&nbsp;Эдусон&nbsp;Kids</h1>
           <p className="lead">

@@ -74,27 +74,42 @@ export default function StudentPortfolio() {
 
   return (
     <PlatformShell activeKey="portfolio">
-      {/* Hero */}
-      <section className="kb-hero portfolio-hero">
-        <div>
+      {/* Cover-style hero */}
+      <section className="kb-cover kb-cover--mint portfolio-hero-cover">
+        <div className="kb-cover-meta">
           <span className="eyebrow">Личный кабинет · Портфолио</span>
-          <h1>Привет, {name}!</h1>
-          <p>
-            Твой путь в коде. Здесь собрано всё что ты построил, чему научился и куда идёшь дальше.
-          </p>
-          <div className="portfolio-hero-meta">
-            <span className="portfolio-hero-tag">
-              🎓 {lessonsDone} / 48 уроков
-            </span>
-            <span className="portfolio-hero-tag streak">
-              🔥 {streakState.current} {streakState.current === 1 ? 'день' : 'дн.'} стрик
-            </span>
-            <span className="portfolio-hero-tag">
-              🏆 {achievements} / {ACHIEVEMENTS.length} ачивок
-            </span>
+          <span className="kb-cover-meta-row">
+            <span>Стрик {streakState.current} дн.</span>
+            <span className="dot" />
+            <span>{achievements}/{ACHIEVEMENTS.length} ачивок</span>
+          </span>
+        </div>
+        <h1 className="kb-cover-title kb-cover-title--md">
+          Привет,<br/><span className="kb-cover-accent">{name}!</span>
+        </h1>
+        <p className="kb-cover-sub">
+          Твой путь в&nbsp;коде. Здесь собрано всё что ты&nbsp;построил, чему научился и&nbsp;куда идёшь дальше.
+        </p>
+        <div className="kb-cover-footer">
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Уроков</span>
+            <strong>{lessonsDone} / 48</strong>
+          </div>
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Стрик</span>
+            <strong>🔥 {streakState.current} {streakState.current === 1 ? 'день' : 'дн.'}</strong>
+          </div>
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Ачивок</span>
+            <strong>🏆 {achievements} / {ACHIEVEMENTS.length}</strong>
+          </div>
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Прогресс</span>
+            <strong>{Math.round(progressPct)}%</strong>
           </div>
         </div>
-        <div className="portfolio-progress-ring">
+
+        <div className="portfolio-progress-ring" style={{ position: 'absolute', right: 56, top: 56, zIndex: 2 }}>
           <svg viewBox="0 0 140 140" width={180} height={180}>
             <circle cx={70} cy={70} r={60} fill="none" stroke="rgba(107,92,231,.15)" strokeWidth={14} />
             <circle

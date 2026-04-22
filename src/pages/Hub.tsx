@@ -49,23 +49,59 @@ export default function Hub() {
 
   return (
     <PlatformShell activeKey="hub">
-      {/* Hero */}
-      <section className="kb-hero" style={{ marginBottom: 40 }}>
-        <div>
-          <span className="eyebrow">С возвращением{name ? `, ${name}` : ''}</span>
-          <h1>Продолжи урок 3 — «События и коллизии»</h1>
-          <p>Ты остановился на сборе монеток. Осталось 7 минут — и ты разблокируешь новый мир.</p>
-          <div className="kb-hero-actions">
-            <Link to="/learn/3" className="kb-btn kb-btn--lg">
-              ▶ Продолжить урок
-            </Link>
-            <Link to="/learn" className="kb-btn kb-btn--ghost kb-btn--lg">
-              Все уроки
-            </Link>
+      {/* Cover-style hero (Designbook pattern) */}
+      <section className="kb-cover">
+        <div className="kb-cover-meta">
+          <span className="eyebrow">С&nbsp;возвращением{name ? `, ${name}` : ''}</span>
+          <span className="kb-cover-meta-row">
+            <span>v1.0</span>
+            <span className="dot" />
+            <span>2026</span>
+          </span>
+        </div>
+        <h1 className="kb-cover-title">
+          Эдусон<br/>Kids<span className="kb-cover-accent">.</span>
+        </h1>
+        <p className="kb-cover-sub">
+          Строй 3D-миры, собирай игры из блоков, пиши Python.<br/>
+          Платформа блочного программирования для&nbsp;возраста 9–15&nbsp;лет.
+        </p>
+        <div className="kb-cover-actions">
+          <Link to={`/learn/${currentLesson}`} className="kb-btn kb-btn--lg kb-btn--secondary">
+            ▶ Продолжить урок {currentLesson}
+          </Link>
+          <Link to="/learn" className="kb-btn kb-btn--lg kb-btn--ghost" style={{ color: 'var(--paper)', boxShadow: 'inset 0 0 0 2px rgba(255,251,243,.6)' }}>
+            Все уроки
+          </Link>
+        </div>
+
+        <div className="kb-cover-footer">
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Модуль</span>
+            <strong>1 · Первые шаги</strong>
+          </div>
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Прогресс</span>
+            <strong>{currentLesson} / 48 уроков</strong>
+          </div>
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Монет</span>
+            <strong>{(currentLesson - 1) * 15} 💰</strong>
+          </div>
+          <div className="kb-cover-footer-col">
+            <span className="eyebrow">Достижений</span>
+            <strong>2 ⭐</strong>
           </div>
         </div>
-        <div className="kb-hero-mascot">
-          <Niksel pose="wave" size={260} />
+
+        <div className="kb-cover-mascot" aria-hidden>
+          <Niksel pose="wave" size={280} />
+        </div>
+
+        <div className="kb-cover-deco" aria-hidden>
+          <div className="kb-cover-deco-block b-logic" style={{ right: 40, top: 60, transform: 'rotate(6deg)' }}>Если</div>
+          <div className="kb-cover-deco-block b-data" style={{ right: 120, top: 140, transform: 'rotate(-4deg)' }}>Повтори</div>
+          <div className="kb-cover-deco-block b-event" style={{ right: 60, top: 230, transform: 'rotate(4deg)' }}>Клик</div>
         </div>
       </section>
 

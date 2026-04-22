@@ -17,6 +17,7 @@ const Parent = lazy(() => import('./pages/Parent'))
 const StudentPortfolio = lazy(() => import('./pages/StudentPortfolio'))
 const SharedSite = lazy(() => import('./pages/SharedSite'))
 const VkCallback = lazy(() => import('./pages/VkCallback'))
+const Designbook = lazy(() => import('./pages/Designbook'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -193,6 +194,15 @@ export default function App() {
             </Suspense>
           }
         />
+        <Route
+          path="/designbook"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю дизайнбук…" />}>
+              <Designbook />
+            </Suspense>
+          }
+        />
+
         {/* /character — исторический псевдоним. Настоящий 3D-редактор героя живёт в /profile. */}
         <Route path="/character" element={<Navigate to="/profile" replace />} />
 

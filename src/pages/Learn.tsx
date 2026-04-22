@@ -91,14 +91,23 @@ export default function Learn() {
 function CoursesCatalog() {
   return (
     <PlatformShell activeKey="learn">
-      <header style={{ marginBottom: 32 }}>
-        <span className="eyebrow">Академия Эдюсон · Kids</span>
-        <h1 className="h1" style={{ marginTop: 10 }}>Курсы программирования</h1>
-        <p style={{ fontSize: 17, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 720, lineHeight: 1.55 }}>
+      <section className="kb-cover kb-cover--ink">
+        <div className="kb-cover-meta">
+          <span className="eyebrow">Академия Эдюсон · Kids</span>
+          <span className="kb-cover-meta-row">
+            <span>{COURSES.length} курсов</span>
+            <span className="dot" />
+            <span>9–15 лет</span>
+          </span>
+        </div>
+        <h1 className="kb-cover-title kb-cover-title--md">
+          Курсы<br/><span className="kb-cover-accent">программирования</span>
+        </h1>
+        <p className="kb-cover-sub">
           Выбери трек по возрасту и формату. Каждый курс — годовая программа
           с поурочными планами, проектами и защитой финального продукта.
         </p>
-      </header>
+      </section>
 
       <div className="curric-modules">
         {COURSES.map((c) => {

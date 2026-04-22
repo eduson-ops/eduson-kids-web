@@ -17,6 +17,7 @@ import {
 import { nanoid } from 'nanoid'
 import { SFX } from '../lib/audio'
 import HtmlBlocklyWorkspace from '../components/HtmlBlocklyWorkspace'
+import { NikselMini } from '../design/mascot/Niksel'
 
 /**
  * SiteEditor — редактор сайта с тремя режимами прогрессии:
@@ -80,7 +81,8 @@ export default function SiteEditor() {
           ←
         </button>
         <div className="site-editor-brand">
-          🌐 <strong>{site.name}</strong>
+          <NikselMini size={26} />
+          <strong style={{ marginLeft: 2 }}>{site.name}</strong>
           <small>· {site.sections.length} секций</small>
         </div>
         <div className="site-mode-switch">

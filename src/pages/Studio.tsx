@@ -10,6 +10,8 @@ import { runPython, warmPyodide } from '../lib/pyodide-executor'
 import { emitCommands } from '../lib/commandBus'
 import type { WorldCommand } from '../lib/python-world-runtime'
 import { SFX } from '../lib/audio'
+import { Link } from 'react-router-dom'
+import { NikselMini } from '../design/mascot/Niksel'
 
 type Tab = 'build' | 'script' | 'test'
 
@@ -92,9 +94,13 @@ export default function Studio() {
             <path d="M15 6l-6 6 6 6" />
           </svg>
         </button>
-        <div className="studio-brand">
-          🎨 <strong>Студия</strong>
-        </div>
+        <Link to="/" className="studio-brand-lockup" aria-label="Эдусон Kids — главная">
+          <NikselMini size={30} />
+          <span>Эдусон</span>
+          <span className="kb-shell-brand-kids">Kids</span>
+          <span style={{ opacity: .4, margin: '0 4px' }}>·</span>
+          <span style={{ color: 'var(--yellow)' }}>Студия</span>
+        </Link>
         <nav className="studio-tabs">
           <button
             className={`studio-tab ${tab === 'build' ? 'active' : ''}`}
