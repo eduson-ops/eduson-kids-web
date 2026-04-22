@@ -7999,3 +7999,71 @@ body:has(.lobby-v2) {
   background: rgba(21, 20, 27, 0.42);
   background-clip: content-box;
 }
+
+/* Lesson heading — Nunito 900 */
+.lp-title,
+.curric-lesson-title,
+.curric-lesson-md h1,
+.curric-lesson-md h2,
+.lesson-hero h1,
+.lesson-hero h2 {
+  font-family: var(--f-display, 'Nunito'), system-ui, -apple-system, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+/* Mascot overlay */
+.mascot-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.mascot-spark {
+  position: absolute;
+  color: #FFD43C;
+  font-size: 28px;
+  font-weight: 900;
+  text-shadow: 0 2px 0 rgba(0,0,0,.15);
+  animation: mascot-spark-pop 1.2s ease-in-out infinite;
+}
+.mascot-spark--1 { top: 8%; left: 12%; animation-delay: 0s; }
+.mascot-spark--2 { top: 4%; right: 22%; animation-delay: .3s; }
+.mascot-spark--3 { top: 20%; right: 8%; animation-delay: .6s; }
+@keyframes mascot-spark-pop {
+  0%, 100% { transform: scale(.6); opacity: .4; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+.mascot-bubble {
+  position: absolute;
+  top: 6%;
+  right: 4%;
+  background: var(--paper, #fffbf3);
+  color: var(--violet, #6B5CE7);
+  font-family: var(--f-display, 'Nunito');
+  font-weight: 900;
+  font-size: 32px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50% 50% 50% 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 rgba(0,0,0,.12);
+  animation: mascot-bubble-bob 1.8s ease-in-out infinite;
+}
+@keyframes mascot-bubble-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.mascot-laptop {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  width: 44%;
+  height: 18%;
+  background: linear-gradient(to bottom, #2a3340 60%, #444c5a 60%);
+  border-radius: 4px 4px 2px 2px;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 0 rgba(0,0,0,.15);
+}

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
 import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
+import { MascotMoodOverlay } from '../design/mascot/MascotMoodOverlay'
 import { GAMES } from '../lib/games'
 import { plural, pluralize } from '../lib/plural'
 import { useProgress } from '../hooks/useProgress'
@@ -107,8 +108,9 @@ export default function Hub() {
           </div>
         </div>
 
-        <div className="kb-cover-mascot" aria-hidden>
+        <div className="kb-cover-mascot" style={{ position: 'relative' }} aria-hidden>
           <Niksel pose={mood} size={280} />
+          <MascotMoodOverlay mood={mood} />
         </div>
 
         {/* Plashki встают РЯДОМ в верхний ряд над title, НЕ над пингвином и не в его зоне. */}
