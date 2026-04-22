@@ -137,6 +137,16 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'halfpipe',   label: 'Хаф-пайп',  emoji: '🛹', defaultColor: '#9FE8C7', tags: ['хаф-пайп','halfpipe','скейт','рампа'], hint: 'Скейт-рампа изогнутая' },
     ],
   },
+  {
+    id: 'special',
+    name: 'Особые',
+    icon: '✨',
+    items: [
+      { kind: 'windmill',      label: 'Ветряк',        emoji: '🌀', defaultColor: '#c0c0c0', tags: ['ветряк','мельница','windmill','анимация'], hint: 'Вращающийся ветряк' },
+      { kind: 'snowman',       label: 'Снеговик',      emoji: '☃', defaultColor: '#ffffff', tags: ['снеговик','snowman','зима','снег'], hint: 'Декоративный снеговик' },
+      { kind: 'satellite-dish',label: 'Антенна',       emoji: '📡', defaultColor: '#c0c0c0', tags: ['антенна','тарелка','satellite','tech'], hint: 'Спутниковая тарелка' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

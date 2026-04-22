@@ -30,6 +30,8 @@ export type PropKind =
   | 'speed-pad' | 'portal' | 'crystal' | 'campfire' | 'sign' | 'stair-step'
   // Architecture
   | 'arch' | 'fence' | 'bench' | 'flower-pot' | 'halfpipe'
+  // Special
+  | 'windmill' | 'snowman' | 'satellite-dish'
 
 export interface SpawnedPart {
   id: string
