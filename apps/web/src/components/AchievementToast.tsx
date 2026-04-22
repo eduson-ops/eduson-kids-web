@@ -19,11 +19,15 @@ export default function AchievementToast() {
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null
-    return subscribeAchievementUnlock((id) => {
+    const unsub = subscribeAchievementUnlock((id) => {
       if (timer) clearTimeout(timer)
       setItem({ id, key: Date.now() })
       timer = setTimeout(() => setItem(null), 3500)
     })
+    return () => {
+      unsub()
+      if (timer) clearTimeout(timer)
+    }
   }, [])
 
   if (!item) return null

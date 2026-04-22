@@ -85,6 +85,30 @@ const CATEGORIES: Array<{ name: string; items: PaletteItem[] }> = [
       { kind: 'seesaw', emoji: '⚖️', label: 'Качалка', defaultColor: '#48c774' },
     ],
   },
+  {
+    name: '🪐 Космос',
+    items: [
+      { kind: 'planet', emoji: '🪐', label: 'Планета', defaultColor: '#a855f7' },
+      { kind: 'asteroid', emoji: '☄️', label: 'Астероид', defaultColor: '#8b8b8b' },
+      { kind: 'space-station', emoji: '🛸', label: 'Станция', defaultColor: '#c0c0c0' },
+    ],
+  },
+  {
+    name: '📚 Школа',
+    items: [
+      { kind: 'book-stack', emoji: '📚', label: 'Книги', defaultColor: '#FF9454' },
+      { kind: 'globe', emoji: '🌍', label: 'Глобус', defaultColor: '#4c97ff' },
+      { kind: 'microscope', emoji: '🔬', label: 'Микроскоп', defaultColor: '#6B5CE7' },
+    ],
+  },
+  {
+    name: '⚔️ Рыцари',
+    items: [
+      { kind: 'sword', emoji: '⚔️', label: 'Меч', defaultColor: '#c0c0c0' },
+      { kind: 'shield', emoji: '🛡️', label: 'Щит', defaultColor: '#8b5a2b' },
+      { kind: 'knight-statue', emoji: '🏰', label: 'Рыцарь', defaultColor: '#8b8b8b' },
+    ],
+  },
 ]
 
 export default function SpawnPalette() {

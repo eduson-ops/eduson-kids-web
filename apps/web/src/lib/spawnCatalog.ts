@@ -233,6 +233,30 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'seesaw',  label: 'Качалка',  emoji: '⚖️', defaultColor: '#48c774', tags: ['качалка','seesaw','балансир','детская','площадка'], hint: 'Качалка-балансир' },
     ],
   },
+  {
+    id: 'space', name: 'Космос', icon: '🪐',
+    items: [
+      { kind: 'planet',        label: 'Планета',   emoji: '🪐', defaultColor: '#a855f7', tags: ['планета','planet','космос','space','орбита'], hint: 'Полосатая газовая планета' },
+      { kind: 'asteroid',      label: 'Астероид',  emoji: '☄️', defaultColor: '#8b8b8b', tags: ['астероид','asteroid','метеор','камень','космос'], hint: 'Неровный космический булыжник' },
+      { kind: 'space-station', label: 'Станция',   emoji: '🛸', defaultColor: '#c0c0c0', tags: ['станция','station','космос','space','МКС'], hint: 'Модульная космическая станция' },
+    ],
+  },
+  {
+    id: 'school', name: 'Школа', icon: '📚',
+    items: [
+      { kind: 'book-stack', label: 'Книги',     emoji: '📚', defaultColor: '#FF9454', tags: ['книги','books','стопка','школа','library'], hint: 'Стопка разноцветных книг' },
+      { kind: 'globe',      label: 'Глобус',    emoji: '🌍', defaultColor: '#4c97ff', tags: ['глобус','globe','земля','карта','geography'], hint: 'Вращающийся глобус' },
+      { kind: 'microscope', label: 'Микроскоп', emoji: '🔬', defaultColor: '#6B5CE7', tags: ['микроскоп','microscope','наука','science','лаборатория'], hint: 'Лабораторный микроскоп' },
+    ],
+  },
+  {
+    id: 'medieval', name: 'Средневековье', icon: '⚔️',
+    items: [
+      { kind: 'sword',        label: 'Меч',    emoji: '⚔️', defaultColor: '#c0c0c0', tags: ['меч','sword','рыцарь','фэнтези','оружие'], hint: 'Двуручный рыцарский меч' },
+      { kind: 'shield',       label: 'Щит',    emoji: '🛡️', defaultColor: '#8b5a2b', tags: ['щит','shield','рыцарь','фэнтези','защита'], hint: 'Деревянный щит с гербом' },
+      { kind: 'knight-statue',label: 'Рыцарь', emoji: '🏰', defaultColor: '#8b8b8b', tags: ['рыцарь','knight','доспех','средневековье','статуя'], hint: 'Каменная статуя рыцаря' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

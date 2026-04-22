@@ -2,6 +2,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useToast } from '../hooks/useToast'
 import AvatarModel from '../components/AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from '../components/PlayerCharacter'
 import Sun from '../components/Sun'
@@ -23,18 +24,25 @@ import { NikselMini } from '../design/mascot/Niksel'
 export default function Profile() {
   const navigate = useNavigate()
   const [avatar, setAvatar] = useState<Avatar>(() => loadAvatar())
+  const { toast, show: showToast } = useToast()
 
   const patch = (p: Partial<Avatar>) => setAvatar((a) => ({ ...a, ...p }))
 
   const saveAndBack = async () => {
     saveAvatar(avatar)
     const { apiPutAvatar } = await import('../lib/api')
-    void apiPutAvatar(avatar) // fire-and-forget sync to backend if online
-    navigate('/')
+    void apiPutAvatar(avatar)
+    showToast('✓ Аватар сохранён', 'success')
+    setTimeout(() => navigate('/'), 700)
   }
 
   return (
     <div className="profile-root">
+      {toast && (
+        <div key={toast.key} className={`kb-ui-toast kb-ui-toast--${toast.kind}`}>
+          {toast.msg}
+        </div>
+      )}
       <aside className="profile-side">
         <header className="profile-side-top">
           <Link to="/" className="studio-brand-lockup" aria-label="Эдюсон Kids — главная" style={{ color: 'var(--ink)', fontSize: 14 }}>

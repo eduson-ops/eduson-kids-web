@@ -373,6 +373,30 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'seesaw':
       return <Seesaw pos={pos} color={color} size={size} />
 
+    // Space
+    case 'planet':
+      return <Planet pos={pos} color={color} size={size} />
+    case 'asteroid':
+      return <Asteroid pos={pos} color={color} size={size} />
+    case 'space-station':
+      return <SpaceStation pos={pos} color={color} size={size} />
+
+    // School
+    case 'book-stack':
+      return <BookStack pos={pos} color={color} size={size} />
+    case 'globe':
+      return <Globe pos={pos} color={color} size={size} />
+    case 'microscope':
+      return <Microscope pos={pos} color={color} size={size} />
+
+    // Medieval
+    case 'sword':
+      return <Sword pos={pos} color={color} size={size} />
+    case 'shield':
+      return <Shield pos={pos} color={color} size={size} />
+    case 'knight-statue':
+      return <KnightStatue pos={pos} color={color} size={size} />
+
     default:
       return null
   }
@@ -1821,6 +1845,270 @@ function Seesaw({ pos, color, size }: { pos: [number, number, number]; color: st
       <mesh position={[size * 0.68, size * 0.28, 0]} castShadow>
         <boxGeometry args={[size * 0.22, size * 0.06, size * 0.16]} />
         <meshStandardMaterial color="#48c774" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function Planet({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 0.4 })
+  return (
+    <group ref={ref} position={pos}>
+      {/* Main sphere */}
+      <mesh castShadow>
+        <sphereGeometry args={[size * 0.55, 24, 24]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Ring 1 */}
+      <mesh rotation={[Math.PI * 0.28, 0, 0]}>
+        <torusGeometry args={[size * 0.78, size * 0.06, 6, 32]} />
+        <meshStandardMaterial color="#c0a060" roughness={0.8} transparent opacity={0.75} />
+      </mesh>
+      {/* Ring 2 */}
+      <mesh rotation={[Math.PI * 0.28, 0, 0]}>
+        <torusGeometry args={[size * 0.95, size * 0.04, 6, 32]} />
+        <meshStandardMaterial color="#a08848" roughness={0.8} transparent opacity={0.55} />
+      </mesh>
+    </group>
+  )
+}
+
+function Asteroid({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Main irregular chunk */}
+      <mesh castShadow rotation={[0.4, 0.7, 0.2]}>
+        <dodecahedronGeometry args={[size * 0.45, 0]} />
+        <meshStandardMaterial color={color} roughness={0.95} />
+      </mesh>
+      {/* Small chunk 1 */}
+      <mesh position={[size * 0.3, size * 0.2, 0]} castShadow rotation={[1, 0.5, 0]}>
+        <dodecahedronGeometry args={[size * 0.18, 0]} />
+        <meshStandardMaterial color={color} roughness={0.95} />
+      </mesh>
+      {/* Small chunk 2 */}
+      <mesh position={[-size * 0.25, -size * 0.15, size * 0.1]} castShadow rotation={[0.2, 1.2, 0.8]}>
+        <dodecahedronGeometry args={[size * 0.12, 0]} />
+        <meshStandardMaterial color={color} roughness={0.95} />
+      </mesh>
+    </group>
+  )
+}
+
+function SpaceStation({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 0.3 })
+  return (
+    <group ref={ref} position={pos}>
+      {/* Central hub */}
+      <mesh castShadow>
+        <cylinderGeometry args={[size * 0.18, size * 0.18, size * 0.3, 8]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.7} />
+      </mesh>
+      {/* Horizontal arm */}
+      <mesh castShadow rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[size * 0.06, size * 0.06, size * 1.4, 8]} />
+        <meshStandardMaterial color="#c0c0c0" roughness={0.3} metalness={0.6} />
+      </mesh>
+      {/* Solar panel left */}
+      <mesh position={[-size * 0.58, 0, 0]} castShadow>
+        <boxGeometry args={[size * 0.55, size * 0.06, size * 0.32]} />
+        <meshStandardMaterial color="#1a3a8a" roughness={0.4} metalness={0.5} />
+      </mesh>
+      {/* Solar panel right */}
+      <mesh position={[size * 0.58, 0, 0]} castShadow>
+        <boxGeometry args={[size * 0.55, size * 0.06, size * 0.32]} />
+        <meshStandardMaterial color="#1a3a8a" roughness={0.4} metalness={0.5} />
+      </mesh>
+      {/* Top module */}
+      <mesh position={[0, size * 0.28, 0]} castShadow>
+        <boxGeometry args={[size * 0.24, size * 0.18, size * 0.24]} />
+        <meshStandardMaterial color="#d0d0d0" roughness={0.3} metalness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function BookStack({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const COLORS = [color, '#FF5464', '#4c97ff', '#48c774']
+  const heights = [size * 0.14, size * 0.12, size * 0.16, size * 0.11]
+  let y = 0
+  return (
+    <group position={pos}>
+      {heights.map((h, i) => {
+        const cy = y + h / 2
+        y += h
+        const tilt = (i % 2 === 0) ? 0 : Math.PI * 0.04
+        return (
+          <mesh key={i} position={[0, cy, 0]} rotation={[0, tilt, 0]} castShadow>
+            <boxGeometry args={[size * 0.7, h, size * 0.5]} />
+            <meshStandardMaterial color={COLORS[i]} roughness={0.7} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
+function Globe({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 0.5 })
+  return (
+    <group position={pos}>
+      {/* Stand base */}
+      <mesh position={[0, size * 0.06, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.28, size * 0.3, size * 0.08, 12]} />
+        <meshStandardMaterial color="#8b5a2b" roughness={0.7} />
+      </mesh>
+      {/* Pole */}
+      <mesh position={[0, size * 0.3, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.03, size * 0.03, size * 0.44, 8]} />
+        <meshStandardMaterial color="#8b5a2b" roughness={0.5} />
+      </mesh>
+      {/* Sphere globe */}
+      <group ref={ref} position={[0, size * 0.56, 0]}>
+        <mesh castShadow>
+          <sphereGeometry args={[size * 0.3, 18, 18]} />
+          <meshStandardMaterial color={color} roughness={0.5} />
+        </mesh>
+        {/* Equator ring */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[size * 0.32, size * 0.018, 6, 24]} />
+          <meshStandardMaterial color="#8b5a2b" roughness={0.5} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+function Microscope({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Base */}
+      <mesh position={[0, size * 0.05, 0]} castShadow>
+        <boxGeometry args={[size * 0.5, size * 0.08, size * 0.38]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.5} />
+      </mesh>
+      {/* Arm / column */}
+      <mesh position={[-size * 0.1, size * 0.42, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.06, size * 0.06, size * 0.7, 8]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.5} />
+      </mesh>
+      {/* Horizontal arm */}
+      <mesh position={[-size * 0.1, size * 0.78, -size * 0.08]} castShadow rotation={[Math.PI / 2.5, 0, 0]}>
+        <cylinderGeometry args={[size * 0.04, size * 0.04, size * 0.3, 8]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.5} />
+      </mesh>
+      {/* Eyepiece */}
+      <mesh position={[-size * 0.1, size * 0.9, -size * 0.04]} castShadow>
+        <cylinderGeometry args={[size * 0.05, size * 0.07, size * 0.16, 10]} />
+        <meshStandardMaterial color="#2a2a2a" roughness={0.3} metalness={0.7} />
+      </mesh>
+      {/* Stage / slide platform */}
+      <mesh position={[-size * 0.1, size * 0.45, 0]} castShadow>
+        <boxGeometry args={[size * 0.3, size * 0.04, size * 0.22]} />
+        <meshStandardMaterial color="#aaa" roughness={0.3} metalness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function Sword({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos} rotation={[0, 0, Math.PI * 0.12]}>
+      {/* Blade */}
+      <mesh position={[0, size * 0.38, 0]} castShadow>
+        <boxGeometry args={[size * 0.08, size * 0.9, size * 0.04]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.85} />
+      </mesh>
+      {/* Blade tip (cone) */}
+      <mesh position={[0, size * 0.85, 0]} castShadow>
+        <coneGeometry args={[size * 0.04, size * 0.14, 4]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.85} />
+      </mesh>
+      {/* Guard (crossguard) */}
+      <mesh position={[0, size * 0.05, 0]} castShadow>
+        <boxGeometry args={[size * 0.48, size * 0.07, size * 0.07]} />
+        <meshStandardMaterial color="#FFD43C" roughness={0.3} metalness={0.7} />
+      </mesh>
+      {/* Grip */}
+      <mesh position={[0, -size * 0.2, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.05, size * 0.05, size * 0.38, 8]} />
+        <meshStandardMaterial color="#5a3010" roughness={0.7} />
+      </mesh>
+      {/* Pommel */}
+      <mesh position={[0, -size * 0.42, 0]} castShadow>
+        <sphereGeometry args={[size * 0.08, 10, 10]} />
+        <meshStandardMaterial color="#FFD43C" roughness={0.3} metalness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function Shield({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos} rotation={[0.2, 0.3, 0]}>
+      {/* Shield body */}
+      <mesh castShadow>
+        <boxGeometry args={[size * 0.65, size * 0.8, size * 0.1]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Emblem cross horizontal */}
+      <mesh position={[0, 0, size * 0.06]} castShadow>
+        <boxGeometry args={[size * 0.5, size * 0.1, size * 0.04]} />
+        <meshStandardMaterial color="#FFD43C" roughness={0.4} metalness={0.4} />
+      </mesh>
+      {/* Emblem cross vertical */}
+      <mesh position={[0, 0, size * 0.06]} castShadow>
+        <boxGeometry args={[size * 0.1, size * 0.55, size * 0.04]} />
+        <meshStandardMaterial color="#FFD43C" roughness={0.4} metalness={0.4} />
+      </mesh>
+      {/* Metal rim */}
+      <mesh position={[0, 0, -size * 0.04]}>
+        <boxGeometry args={[size * 0.7, size * 0.85, size * 0.04]} />
+        <meshStandardMaterial color="#c0c0c0" roughness={0.3} metalness={0.7} wireframe />
+      </mesh>
+    </group>
+  )
+}
+
+function KnightStatue({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Plinth */}
+      <mesh position={[0, size * 0.06, 0]} castShadow>
+        <boxGeometry args={[size * 0.55, size * 0.1, size * 0.55]} />
+        <meshStandardMaterial color="#8b8b8b" roughness={0.9} />
+      </mesh>
+      {/* Legs */}
+      <mesh position={[-size * 0.1, size * 0.3, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.1, size * 0.12, size * 0.38, 8]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.6} />
+      </mesh>
+      <mesh position={[size * 0.1, size * 0.3, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.1, size * 0.12, size * 0.38, 8]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* Torso / armour */}
+      <mesh position={[0, size * 0.62, 0]} castShadow>
+        <boxGeometry args={[size * 0.38, size * 0.4, size * 0.22]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* Helmet head */}
+      <mesh position={[0, size * 0.88, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.14, size * 0.16, size * 0.22, 8]} />
+        <meshStandardMaterial color={color} roughness={0.35} metalness={0.65} />
+      </mesh>
+      {/* Visor slit */}
+      <mesh position={[0, size * 0.9, size * 0.14]} castShadow>
+        <boxGeometry args={[size * 0.18, size * 0.04, size * 0.04]} />
+        <meshStandardMaterial color="#111" roughness={0.8} />
+      </mesh>
+      {/* Sword arm */}
+      <mesh position={[size * 0.28, size * 0.66, 0]} castShadow rotation={[0, 0, -0.3]}>
+        <cylinderGeometry args={[size * 0.05, size * 0.05, size * 0.3, 6]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.6} />
       </mesh>
     </group>
   )

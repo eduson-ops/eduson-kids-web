@@ -50,6 +50,12 @@ export type PropKind =
   | 'airplane' | 'boat' | 'train'
   // Playground
   | 'swing' | 'slide' | 'seesaw'
+  // Space
+  | 'planet' | 'asteroid' | 'space-station'
+  // School
+  | 'book-stack' | 'globe' | 'microscope'
+  // Medieval
+  | 'sword' | 'shield' | 'knight-statue'
 
 export interface SpawnedPart {
   id: string
