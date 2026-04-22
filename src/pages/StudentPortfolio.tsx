@@ -4,16 +4,10 @@ import PlatformShell from '../components/PlatformShell'
 import { loadAvatar } from '../lib/avatars'
 import { MODULES, ALL_LESSONS, getLesson } from '../lib/curriculum'
 import {
-  countDone,
   countDoneInModule,
-  countAchievements,
-  countPerfectQuizzes,
-  averageQuizScore,
-  getStreak,
   getQuizResult,
-  getUnlockedAchievements,
-  subscribeProgress,
 } from '../lib/progress'
+import { useProgress } from '../hooks/useProgress'
 import {
   ACHIEVEMENTS,
   RARITY_COLOR,
@@ -50,24 +44,24 @@ export default function StudentPortfolio() {
   const [name, setName] = useState('Гость')
   const avatar = useMemo(() => loadAvatar(), [])
   const sites = useMemo(() => getSitesState().sites, [])
+  const prog = useProgress()
 
   useEffect(() => {
     ensureAchievementsWatcher()
     setName(localStorage.getItem('ek_child_name') ?? 'Гость')
-    const unsub1 = subscribeProgress(() => force((x) => x + 1))
     const unsub2 = subscribeBilling(() => force((x) => x + 1))
-    return () => { unsub1(); unsub2() }
+    return () => { unsub2() }
   }, [])
 
   const billing = getBilling()
   const remaining = lessonsRemaining()
 
-  const lessonsDone = countDone()
-  const streakState = getStreak()
-  const perfectQuizzes = countPerfectQuizzes()
-  const avgScore = averageQuizScore()
-  const achievements = countAchievements()
-  const unlocked = getUnlockedAchievements()
+  const lessonsDone = prog.completedLessons
+  const streakState = { current: prog.streak, longest: prog.streak, lastDay: '' }
+  const perfectQuizzes = prog.perfectQuizzes
+  const avgScore = prog.avgQuizScore
+  const achievements = prog.achievements
+  const unlocked = new Set(prog.unlocked)
   const progressPct = (lessonsDone / 48) * 100
 
   // Capstones status — memo so MODULES loop doesn't run on every render

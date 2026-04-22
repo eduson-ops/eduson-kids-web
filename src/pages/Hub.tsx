@@ -5,6 +5,7 @@ import Niksel from '../design/mascot/Niksel'
 import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
 import { GAMES } from '../lib/games'
 import { plural, pluralize } from '../lib/plural'
+import { useProgress } from '../hooks/useProgress'
 
 /**
  * Hub — the new front door of Eduson Kids.
@@ -39,44 +40,19 @@ const ACCENT_MAP: Record<string, { color: string; soft: string; ink: string }> =
   orange: { color: '#FF9454', soft: '#FFE2CE', ink: '#6B2A05' },
 }
 
-function readCurrentLesson(): number {
-  try {
-    const raw = localStorage.getItem('ek_progress_v1')
-    if (!raw) return 1
-    const p = JSON.parse(raw) as Record<string, unknown>
-    // Find highest completed lesson number
-    const done = Object.keys(p)
-      .map(Number)
-      .filter((n) => !isNaN(n) && p[String(n)] === true)
-    return done.length > 0 ? Math.max(...done) + 1 : 1
-  } catch {
-    return 1
-  }
-}
-
-function readCoins(): number {
-  try {
-    const raw = localStorage.getItem('ek_coins_v1')
-    return raw ? Number(raw) : 0
-  } catch {
-    return 0
-  }
-}
-
 export default function Hub() {
   const [name, setName] = useState<string | null>(null)
-  const [currentLesson, setCurrentLesson] = useState(1)
-  const [coins, setCoins] = useState(0)
+  const p = useProgress()
+  const currentLesson = p.currentLesson
+  const coins = p.completedLessons * 15 // placeholder: 15 coins per lesson
 
   useEffect(() => {
     setName(localStorage.getItem('ek_child_name'))
-    setCurrentLesson(readCurrentLesson())
-    setCoins(readCoins())
   }, [])
 
   // Unlock modules based on progress: module N unlocks after finishing lesson (N-1)*6
-  const unlockedModuleN = Math.max(1, Math.ceil(currentLesson / 6))
-  const lessonsCompleted = Math.max(0, currentLesson - 1)
+  const lessonsCompleted = p.completedLessons
+  const unlockedModuleN = Math.max(1, Math.ceil((lessonsCompleted + 1) / 6))
   const currentModuleN = Math.min(8, Math.ceil(currentLesson / 6))
   const currentModuleTitle = MODULES[currentModuleN - 1]?.title ?? 'Первые шаги в Эдюсон Kids'
 
