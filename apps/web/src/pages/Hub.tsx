@@ -87,7 +87,7 @@ export default function Hub() {
           }
         </p>
         <div className="kb-cover-actions">
-          <Link to={`/learn/${currentLesson}`} className="kb-btn kb-btn--lg kb-btn--secondary">
+          <Link to={`/learn/lesson/${currentLesson}`} className="kb-btn kb-btn--lg kb-btn--secondary">
             {lessonsCompleted === 0 ? '🚀 Начать урок 1' : `▶ Продолжить урок ${currentLesson}`}
           </Link>
           <Link to="/learn" className="kb-btn kb-btn--lg kb-btn--ghost" style={{ color: 'var(--paper)', boxShadow: 'inset 0 0 0 2px rgba(255,251,243,.6)' }}>
