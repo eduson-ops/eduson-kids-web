@@ -1,6 +1,6 @@
 /**
  * Curriculum data — single source of truth для 48-урочного
- * годового курса KubiK (blocks-only).
+ * годового курса Эдюсон Kids (blocks-only).
  *
  * Структура навеяна 9-step Blockseli + Bloxels 2025-2026 pattern
  * (вспоминалка/проектный/защита) из competitor_pedagogy_review.md.
@@ -77,7 +77,7 @@ export interface Module {
 
 /**
  * Course — верхний уровень LXP иерархии.
- * Одна платформа может содержать несколько курсов (KubiK / Python+AI / Vibe Coding …).
+ * Одна платформа может содержать несколько курсов (Эдюсон Kids / Python+AI / Vibe Coding …).
  * У каждого курса — свой набор модулей, возраст, формат, домен, методический документ.
  */
 export interface Course {
@@ -96,7 +96,7 @@ export interface Course {
   source: 'builtin' | 'ingested'
 }
 
-// ─── M1 · Первые шаги в KubiK ──────────────────────────────────
+// ─── M1 · Первые шаги в Эдюсон Kids ──────────────────────────────────
 const M1: Lesson[] = [
   {
     n: 1, localN: 1, moduleN: 1, kind: 'concept',
@@ -114,7 +114,7 @@ const M1: Lesson[] = [
     guideFile: `${PUBLIC_BASE}/curriculum/lessons/L1_teacher_guide.md`,
     quiz: [
       {
-        text: 'Сколько вкладок в Студии KubiK?',
+        text: 'Сколько вкладок в Студии Эдюсон Kids?',
         options: ['1', '2', '3', '5'],
         correctIdx: 2,
         explanation: 'Три вкладки: 🧱 Строить (сцена), 🧩 Скрипт (блоки), ▶ Тест (живая игра).',
@@ -697,7 +697,7 @@ const M8: Lesson[] = [
   },
   {
     n: 48, localN: 6, moduleN: 8, kind: 'defense',
-    title: 'Демо-день: защита + публикация на KubiK Hub',
+    title: 'Демо-день: защита + публикация на Эдюсон Kids Hub',
     hook: '2-минутная защита. Публикация. Сертификат об окончании курса.',
     terms: ['публикация', 'рефлексия', 'портфолио'],
     newBlocks: [],
@@ -707,8 +707,8 @@ const M8: Lesson[] = [
 
 export const MODULES: Module[] = [
   {
-    n: 1, title: 'Первые шаги в KubiK', emoji: '🧱', accent: '#6B5CE7', ageAnchor: '9-11',
-    story: 'Ты попал на остров KubiK — всё построено из блоков. Собери свой первый мир.',
+    n: 1, title: 'Первые шаги в Эдюсон Kids', emoji: '🧱', accent: '#6B5CE7', ageAnchor: '9-11',
+    story: 'Ты попал на остров Эдюсон Kids — всё построено из блоков. Собери свой первый мир.',
     capstone: { name: 'Моя первая игра', genre: 'Obby', worldId: 'obby-rainbow' },
     lessons: M1,
   },
@@ -856,10 +856,10 @@ export const KIND_COLOR: Record<Lesson['kind'], string> = {
 // Multi-course registry — LXP уровень
 // ═══════════════════════════════════════════════════════════
 
-/** Основной built-in курс KubiK (3D + блочное программирование) */
+/** Основной built-in курс Эдюсон Kids (3D + блочное программирование) */
 export const KUBIK_COURSE: Course = {
   slug: 'kubik',
-  title: 'KubiK · 3D Программирование',
+  title: 'Эдюсон Kids · 3D Программирование',
   subtitle: '48 блочных уроков с переходом на Python: создаём 3D-миры и игры',
   emoji: '🧱',
   accent: '#6B5CE7',
@@ -906,7 +906,7 @@ export function getCourse(slug: string): Course | undefined {
 
 /**
  * Получить все уроки курса плоским списком.
- * По умолчанию — KubiK (для обратной совместимости со старыми страницами).
+ * По умолчанию — Эдюсон Kids (для обратной совместимости со старыми страницами).
  */
 export function getAllLessonsOf(course: Course = KUBIK_COURSE): Lesson[] {
   return course.modules.flatMap((m) => m.lessons)

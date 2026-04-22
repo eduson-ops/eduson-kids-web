@@ -361,7 +361,7 @@ const SLIDES: Slide[] = [
             <div className="lp-next-lesson">
               <div className="lp-eyebrow">Ты на финише!</div>
               <h3>🎉 Все 48 уроков пройдены</h3>
-              <p>Ты завершил годовой курс KubiK. Получи сертификат у учителя.</p>
+              <p>Ты завершил годовой курс Эдюсон Kids. Получи сертификат у учителя.</p>
             </div>
           )}
         </div>

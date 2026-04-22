@@ -27,7 +27,7 @@ import {
 } from '../lib/progress'
 
 /**
- * Learn — каталог и детали 48-урочного курса KubiK.
+ * Learn — каталог и детали 48-урочного курса Эдюсон Kids.
  * Routes:
  *   /learn                → все модули (карточки с прогрессом)
  *   /learn/module/:N      → все 6 уроков модуля N
@@ -56,7 +56,7 @@ export default function Learn() {
     return <CourseCatalogPage course={course} />
   }
 
-  // ─── Legacy роуты (KubiK only) ───
+  // ─── Legacy роуты (Эдюсон Kids only) ───
   if (params.moduleN) {
     const n = Number(params.moduleN) || 1
     const m = getModule(n)
@@ -218,7 +218,7 @@ function CourseCatalogPage({ course }: { course: Course }) {
 // ─────────────────────────────────────────────────────────
 // Страница 1 · Каталог 8 модулей
 // ─────────────────────────────────────────────────────────
-// @ts-expect-error — legacy KubiK catalog page, оставлена как fallback для /learn (пока не разрабатывали полностью).
+// @ts-expect-error — legacy Эдюсон Kids catalog page, оставлена как fallback для /learn (пока не разрабатывали полностью).
 function _CatalogPage() {
   const totalDone = countDone()
   const currentN = getCurrentLesson(ALL_LESSONS.map((l) => l.n))
@@ -381,7 +381,7 @@ function ModulePage({ m, course }: { m: Module; course: Course }) {
 // ─────────────────────────────────────────────────────────
 function LessonPage({ lesson, m, course }: { lesson: Lesson; m: Module; course: Course }) {
   const isDone = course.slug === 'kubik' ? isLessonDone(lesson.n) : false
-  // Для мульти-курсов next/prev берём из course.modules, не глобального KubiK getLesson
+  // Для мульти-курсов next/prev берём из course.modules, не глобального Эдюсон Kids getLesson
   const flat = course.modules.flatMap((mm) => mm.lessons)
   const idx = flat.findIndex((l) => l.n === lesson.n)
   const nextLesson = idx >= 0 ? flat[idx + 1] : undefined

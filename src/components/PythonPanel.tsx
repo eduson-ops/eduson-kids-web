@@ -8,7 +8,7 @@ interface Props {
   error?: string | null
 }
 
-/** Minimal token-based syntax highlighter for KubiK Python subset. */
+/** Minimal token-based syntax highlighter for Эдюсон Kids Python subset. */
 function highlight(line: string): string {
   if (!line) return '&nbsp;'
   // Escape HTML first
@@ -27,7 +27,7 @@ function highlight(line: string): string {
   kw.forEach(k => {
     s = s.replace(new RegExp(`\\b(${k})\\b`, 'g'), '<span class="py-kw">$1</span>')
   })
-  // KubiK API functions
+  // Эдюсон Kids API functions
   const apiFns = PYTHON_API_REFERENCE.map(r => r.fn.split('(')[0])
   apiFns.forEach(f => {
     s = s.replace(new RegExp(`\\b(${f})\\b`, 'g'), '<span class="py-fn">$1</span>')

@@ -95,6 +95,7 @@ export function markLessonDone(n: number) {
   completed = new Set([...completed, n])
   persistCompleted()
   touchStreak()
+  recordActivity({ lessons: 1, minutes: 12, coins: 15 })
   emit()
 }
 export function unmarkLesson(n: number) {
@@ -133,6 +134,7 @@ export function recordQuizResult(lessonN: number, correct: number, total: number
   }
   persistQuiz()
   touchStreak()
+  recordActivity({ minutes: 3, coins: correct * 2 })
   emit()
 }
 export function countPerfectQuizzes(): number {
@@ -157,6 +159,53 @@ export function touchStreak() {
   }
   if (streak.current > streak.longest) streak = { ...streak, longest: streak.current }
   persistStreak()
+}
+
+// ─── Daily activity API (persisted, for родителям) ───
+const KEY_DAILY = 'ek_daily_activity_v1'
+
+export interface DailyActivity {
+  lessons: number   // завершено уроков в этот день
+  minutes: number   // минут в приложении (оценка — 12 мин/урок по умолчанию)
+  coins: number     // монет заработано
+}
+
+type DailyMap = Record<string, DailyActivity>
+
+function loadDaily(): DailyMap {
+  try {
+    const raw = localStorage.getItem(KEY_DAILY)
+    return raw ? (JSON.parse(raw) as DailyMap) : {}
+  } catch {
+    return {}
+  }
+}
+function persistDaily(m: DailyMap) {
+  try { localStorage.setItem(KEY_DAILY, JSON.stringify(m)) } catch { /* quota */ }
+}
+
+/** Регистрация активности за сегодня. delta — то, что добавилось только что. */
+export function recordActivity(delta: Partial<DailyActivity>) {
+  const today = ymd()
+  const m = loadDaily()
+  const prev = m[today] ?? { lessons: 0, minutes: 0, coins: 0 }
+  m[today] = {
+    lessons: prev.lessons + (delta.lessons ?? 0),
+    minutes: prev.minutes + (delta.minutes ?? 0),
+    coins: prev.coins + (delta.coins ?? 0),
+  }
+  persistDaily(m)
+}
+
+/** Вернуть последние N дней (по убыванию дат). Включает пустые. */
+export function getDailyLastN(days: number): Array<{ day: string; data: DailyActivity }> {
+  const m = loadDaily()
+  const out: Array<{ day: string; data: DailyActivity }> = []
+  for (let i = days - 1; i >= 0; i--) {
+    const d = ymd(new Date(Date.now() - i * 86400_000))
+    out.push({ day: d, data: m[d] ?? { lessons: 0, minutes: 0, coins: 0 } })
+  }
+  return out
 }
 
 // ─── Achievements API ────────────────────────────────

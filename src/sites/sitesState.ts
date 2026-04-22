@@ -186,7 +186,7 @@ export const BLOCK_CATALOG: BlockSpec[] = [
     make: () => ({ id: newId(), type: 'faq', data: {
       items: [
         { q: 'Сколько тебе лет?', a: 'Мне 10, скоро 11!' },
-        { q: 'На чём ты программируешь?', a: 'На KubiK в блоках и понемногу на Python.' },
+        { q: 'На чём ты программируешь?', a: 'На Эдюсон Kids в блоках и понемногу на Python.' },
       ],
     } }) },
 ]
@@ -214,7 +214,7 @@ export const TEMPLATES: SiteTemplate[] = [
     build: () => [
       { id: newId(), type: 'hero', data: { title: 'Привет! Я Никита', subtitle: 'Люблю играть, рисовать и учиться.' } },
       { id: newId(), type: 'about', data: { text: 'Мне 10 лет. Я учусь в 4-м классе и обожаю роботов.' } },
-      { id: newId(), type: 'skills', data: { title: 'Что я умею', items: ['Собирать Лего', 'Рисовать комиксы', 'Программировать в KubiK'] } },
+      { id: newId(), type: 'skills', data: { title: 'Что я умею', items: ['Собирать Лего', 'Рисовать комиксы', 'Программировать в Эдюсон Kids'] } },
       { id: newId(), type: 'social', data: { items: [
         { kind: 'tg', href: 'https://t.me/' },
         { kind: 'vk', href: 'https://vk.com/' },
@@ -239,7 +239,7 @@ export const TEMPLATES: SiteTemplate[] = [
       { id: newId(), type: 'link-cards', data: { title: 'Смотреть вживую', items: [
         { emoji: '🎮', title: 'Моя игра', desc: 'Платформер с кодом на Python', href: '#' },
         { emoji: '🌐', title: 'Мой сайт', desc: 'Он тебя и встречает прямо сейчас', href: '#' },
-        { emoji: '🎨', title: 'Мой 3D-аватар', desc: 'Собрал в KubiK-редакторе', href: '#' },
+        { emoji: '🎨', title: 'Мой 3D-аватар', desc: 'Собрал в Эдюсон Kids-редакторе', href: '#' },
       ] } },
       { id: newId(), type: 'cta', data: { title: 'Хочешь попробовать?', buttonText: 'Начать', buttonHref: '#' } },
       { id: newId(), type: 'footer', data: { text: '© 2026' } },
@@ -254,7 +254,7 @@ export const TEMPLATES: SiteTemplate[] = [
     build: () => [
       { id: newId(), type: 'hero', data: { title: 'Дневник юного программиста', subtitle: 'Что я сделал сегодня' } },
       { id: newId(), type: 'heading', data: { text: 'Апдейт недели', level: 'h2', align: 'left' } },
-      { id: newId(), type: 'paragraph', data: { text: 'Сегодня я построил свой первый 3D-мир в KubiK и добавил туда летающего дракона. Дракон ещё не понимает команды, но уже очень красиво машет крыльями.', align: 'left' } },
+      { id: newId(), type: 'paragraph', data: { text: 'Сегодня я построил свой первый 3D-мир в Эдюсон Kids и добавил туда летающего дракона. Дракон ещё не понимает команды, но уже очень красиво машет крыльями.', align: 'left' } },
       { id: newId(), type: 'quote', data: { text: 'Ошибка — это не провал, а ещё одна подсказка.', author: 'моя учительница' } },
       { id: newId(), type: 'timeline', data: { items: [
         { date: 'Пн', title: 'Начал проект', desc: 'Собрал карту и персонажа.' },

@@ -90,10 +90,10 @@ const SCENE_PRESETS: Record<LightingPreset, SceneConfig> = {
 function defaultScene(): EditorState {
   return {
     parts: [
-      // Начальная «площадка»
+      // Земля (пол 16×16)
       {
         id: 'ground-0',
-        type: 'cube',
+        type: 'floor',
         position: [0, -0.5, 0],
         scale: [16, 1, 16],
         rotation: [0, 0, 0],
@@ -102,6 +102,7 @@ function defaultScene(): EditorState {
         anchored: true,
         name: 'Земля',
       },
+      // Точка старта — чтобы игрок появился в правильном месте
       {
         id: 'spawn-0',
         type: 'spawn',
@@ -112,6 +113,86 @@ function defaultScene(): EditorState {
         material: 'plastic',
         anchored: true,
         name: 'Точка старта',
+      },
+      // Платформы — ребёнок сразу видит, что сцена живая
+      {
+        id: 'plat-1',
+        type: 'cube',
+        position: [-3, 0.5, -2],
+        scale: [2, 1, 2],
+        rotation: [0, 0, 0],
+        color: '#6B5CE7',
+        material: 'plastic',
+        anchored: true,
+        name: 'Платформа 1',
+      },
+      {
+        id: 'plat-2',
+        type: 'cube',
+        position: [0, 1, -4],
+        scale: [2, 1, 2],
+        rotation: [0, 0, 0],
+        color: '#FF8CAE',
+        material: 'plastic',
+        anchored: true,
+        name: 'Платформа 2',
+      },
+      {
+        id: 'plat-3',
+        type: 'cube',
+        position: [3, 1.5, -6],
+        scale: [2, 1, 2],
+        rotation: [0, 0, 0],
+        color: '#FFD43C',
+        material: 'plastic',
+        anchored: true,
+        name: 'Платформа 3',
+      },
+      // Монетки — образец цели
+      {
+        id: 'coin-1',
+        type: 'coin',
+        position: [-3, 1.2, -2],
+        scale: [0.6, 0.6, 0.6],
+        rotation: [0, 0, 0],
+        color: '#FFD43C',
+        material: 'plastic',
+        anchored: true,
+        name: 'Монетка 1',
+      },
+      {
+        id: 'coin-2',
+        type: 'coin',
+        position: [0, 1.7, -4],
+        scale: [0.6, 0.6, 0.6],
+        rotation: [0, 0, 0],
+        color: '#FFD43C',
+        material: 'plastic',
+        anchored: true,
+        name: 'Монетка 2',
+      },
+      {
+        id: 'coin-3',
+        type: 'coin',
+        position: [3, 2.2, -6],
+        scale: [0.6, 0.6, 0.6],
+        rotation: [0, 0, 0],
+        color: '#FFD43C',
+        material: 'plastic',
+        anchored: true,
+        name: 'Монетка 3',
+      },
+      // Финиш — куда надо добежать
+      {
+        id: 'finish-0',
+        type: 'finish',
+        position: [5, 1.6, -6],
+        scale: [1, 0.3, 1],
+        rotation: [0, 0, 0],
+        color: '#3DB07A',
+        material: 'neon',
+        anchored: true,
+        name: 'Финиш',
       },
     ],
     selectedId: null,

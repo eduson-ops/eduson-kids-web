@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
+import { getDailyLastN } from '../lib/progress'
 import {
   getVkUser,
   getParentLink,
@@ -45,8 +46,25 @@ const ACHIEVEMENTS: Achievement[] = [
   { id: 'tower', title: 'Покоритель башни', desc: 'Дошёл до вершины Tower of Code', emoji: '🗼', earnedAt: null, color: '#9FE8C7' },
 ]
 
+/**
+ * Загрузка реальной активности из localStorage через progress.ts.
+ * Если за 28 дней нет ни одной записи (новый пользователь) — показываем
+ * детерминированный mock, чтобы график не выглядел пустым на демо.
+ */
+function loadRealActivity(): Activity[] {
+  const last28 = getDailyLastN(28)
+  const anyReal = last28.some((d) => d.data.minutes > 0 || d.data.lessons > 0)
+  if (!anyReal) return loadMockActivity()
+  return last28.map((d, idx) => ({
+    day: idx,
+    minutes: d.data.minutes,
+    coins: d.data.coins,
+    lessonsCompleted: d.data.lessons,
+  }))
+}
+
 function loadMockActivity(): Activity[] {
-  // Детерминированный mock: игровой ритм — сильные выходные, слабая среда
+  // Детерминированный mock (fallback для новых пользователей).
   const out: Activity[] = []
   let rngSeed = 1337
   const rng = () => {
@@ -54,7 +72,7 @@ function loadMockActivity(): Activity[] {
     return rngSeed / 0x7fffffff
   }
   for (let d = 0; d < 28; d++) {
-    const weekday = (d + 4) % 7       // смещение чтобы "воскресенье"=пиковый
+    const weekday = (d + 4) % 7
     const peak = weekday === 0 || weekday === 6
     const mid = weekday === 3
     const base = peak ? 35 : mid ? 8 : 20
@@ -76,7 +94,7 @@ function formatMinutes(min: number): string {
 export default function Parent() {
   const [childName, setChildName] = useState<string>('твой ребёнок')
   const [parentName, setParentName] = useState<string>('родитель')
-  const activity = useMemo(() => loadMockActivity(), [])
+  const activity = useMemo(() => loadRealActivity(), [])
 
   useEffect(() => {
     setChildName(localStorage.getItem('ek_child_name') ?? 'твой ребёнок')
@@ -133,7 +151,7 @@ export default function Parent() {
         <h2 className="h2" style={{ marginBottom: 20 }}>За последние 4 недели</h2>
         <div className="kb-grid-4">
           <KpiCard value={String(totalLessons)} label="Уроков завершено" emoji="🎓" accent="#6B5CE7" />
-          <KpiCard value={formatMinutes(totalMinutes)} label="Времени в KubiK" emoji="⏱" accent="#5AA9FF" />
+          <KpiCard value={formatMinutes(totalMinutes)} label="Времени в Эдюсон Kids" emoji="⏱" accent="#5AA9FF" />
           <KpiCard value={String(totalCoins)} label="Монет собрано" emoji="💰" accent="#FFD43C" />
           <KpiCard value={`${earnedAch} / ${ACHIEVEMENTS.length}`} label="Достижений" emoji="🏆" accent="#FF9454" />
         </div>
@@ -159,7 +177,7 @@ export default function Parent() {
         <h2 className="h2" style={{ marginBottom: 20 }}>Текущий модуль</h2>
         <div className="kb-card kb-card--feature" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
           <div>
-            <div className="eyebrow">Модуль 1 · Первые шаги в KubiK</div>
+            <div className="eyebrow">Модуль 1 · Первые шаги в Эдюсон Kids</div>
             <h3 className="h3" style={{ margin: '8px 0 12px' }}>Урок 4 из 6 — Переменные и счёт</h3>
             <div className="kb-progress kb-progress--lg">
               <div className="kb-progress-bar" style={{ width: '60%', background: 'var(--violet)' }} />
@@ -388,7 +406,7 @@ function VkConnectBanner() {
           {err && <p className="err" style={{ marginTop: 10 }}>{err}</p>}
           {!appConfigured && (
             <p style={{ marginTop: 10, fontSize: 12, color: 'var(--ink-soft)' }}>
-              <code>VITE_VK_APP_ID</code> не задан в <code>.env.local</code> — кнопка отключена в dev.
+              Интеграция временно недоступна. Скоро добавим Telegram и&nbsp;email для отчётов.
             </p>
           )}
         </div>

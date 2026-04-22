@@ -27,7 +27,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'tower-of-code',
     title: 'Башня Кода',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#6B5CE7',
     category: 'tower',
     emoji: '🗼',
@@ -45,7 +45,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'growbot-garden',
     title: 'Огород Бота',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#34C38A',
     category: 'garden',
     emoji: '🌱',
@@ -63,7 +63,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'pet-math-sim',
     title: 'Питомцы-математики',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#c879ff',
     category: 'pets',
     emoji: '🐾',
@@ -81,7 +81,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'bot-town',
     title: 'Городок Ботов',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#5AA9FF',
     category: 'town',
     emoji: '🏙',
@@ -99,7 +99,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'fashion-runway',
     title: 'Модный Показ',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#FFB4C8',
     category: 'fashion',
     emoji: '👗',
@@ -117,7 +117,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'detective-mansion',
     title: 'Детектив в Особняке',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#6B5CE7',
     category: 'mystery',
     emoji: '🔍',
@@ -135,7 +135,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'forest-nights',
     title: '99 Ночей в Лесу',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#FFD43C',
     category: 'nights',
     emoji: '🏕',
@@ -153,7 +153,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'brainrot-tycoon',
     title: 'Империя Плинтов',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#FFD43C',
     category: 'tycoon',
     emoji: '🏛',
@@ -171,7 +171,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'ability-builder',
     title: 'Огненный Шар',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#ff5464',
     category: 'ability',
     emoji: '🔥',
@@ -189,7 +189,7 @@ export const GAMES: GameMeta[] = [
   {
     id: 'pet-brain',
     title: 'Мой Питомец',
-    author: 'KubiKStudio',
+    author: 'Эдюсон KidsStudio',
     authorColor: '#FFB4C8',
     category: 'petbrain',
     emoji: '🐶',

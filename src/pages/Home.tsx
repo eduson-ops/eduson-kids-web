@@ -188,7 +188,7 @@ function GameGrid({ games, withCreateFirst }: { games: GameMeta[]; withCreateFir
           <div style={{ textAlign: 'center' }}>
             <div className="h3" style={{ fontSize: 16, color: 'var(--violet-ink)' }}>Создай свой мир</div>
             <div style={{ fontSize: 13, color: 'var(--violet-ink)', opacity: 0.7, marginTop: 4 }}>
-              Студия KubiK
+              Студия Эдюсон Kids
             </div>
           </div>
         </Link>

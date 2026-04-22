@@ -98,7 +98,7 @@ export default function App() {
           }
         />
 
-        {/* Backward-compat: старый /learn/:id (KubiK only) */}
+        {/* Backward-compat: старый /learn/:id (Эдюсон Kids only) */}
         <Route
           path="/learn/:moduleOrLesson"
           element={

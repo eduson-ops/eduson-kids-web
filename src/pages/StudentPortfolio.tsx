@@ -22,6 +22,16 @@ import {
 } from '../lib/achievements'
 import { hasAchievement } from '../lib/progress'
 import { getSitesState } from '../sites/sitesState'
+import {
+  getBilling,
+  subscribeBilling,
+  buyInstallment48,
+  buyPack10,
+  startSubscription,
+  cancelSubscription,
+  lessonsRemaining,
+  formatRub,
+} from '../lib/billing'
 
 /**
  * StudentPortfolio — личный кабинет ученика.
@@ -44,8 +54,13 @@ export default function StudentPortfolio() {
   useEffect(() => {
     ensureAchievementsWatcher()
     setName(localStorage.getItem('ek_child_name') ?? 'Гость')
-    return subscribeProgress(() => force((x) => x + 1))
+    const unsub1 = subscribeProgress(() => force((x) => x + 1))
+    const unsub2 = subscribeBilling(() => force((x) => x + 1))
+    return () => { unsub1(); unsub2() }
   }, [])
+
+  const billing = getBilling()
+  const remaining = lessonsRemaining()
 
   const lessonsDone = countDone()
   const streakState = getStreak()
@@ -239,6 +254,138 @@ export default function StudentPortfolio() {
             <Link to="/profile" className="kb-btn kb-btn--sm">✏ Редактировать</Link>
           </div>
         </div>
+      </section>
+
+      {/* Billing / lessons balance */}
+      <section style={{ marginBottom: 40 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+          <h2 className="h2">Оплата и уроки</h2>
+          <span className="eyebrow">баланс курса</span>
+        </div>
+
+        <div className="kb-card kb-card--feature" style={{ marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, alignItems: 'stretch' }}>
+            <div>
+              <span className="eyebrow">Оплачено уроков</span>
+              <div style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 40, color: 'var(--violet)', marginTop: 4 }}>
+                {billing.lessonsPaid}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>всего куплено</div>
+            </div>
+            <div>
+              <span className="eyebrow">Пройдено</span>
+              <div style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 40, color: 'var(--ink)', marginTop: 4 }}>
+                {billing.lessonsUsed}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>использовано</div>
+            </div>
+            <div>
+              <span className="eyebrow">Осталось</span>
+              <div style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 40, color: 'var(--mint-deep)', marginTop: 4 }}>
+                {remaining}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+                {remaining === 0 ? 'нужно докупить' : 'доступно к прохождению'}
+              </div>
+            </div>
+          </div>
+
+          {billing.lessonsPaid > 0 && (
+            <div className="kb-progress kb-progress--lg" style={{ marginTop: 16 }}>
+              <div
+                className="kb-progress-bar"
+                style={{
+                  width: `${(billing.lessonsUsed / billing.lessonsPaid) * 100}%`,
+                  background: 'linear-gradient(90deg, var(--violet), var(--yellow))',
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Subscription status */}
+        <div className="kb-card" style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <div>
+              <span className="eyebrow">Подписка</span>
+              <h3 className="h3" style={{ marginTop: 6 }}>
+                {billing.subscription.active
+                  ? `Активна — ${formatRub(billing.subscription.pricePerMonthRub)}/мес`
+                  : 'Не подключена'}
+              </h3>
+              {billing.subscription.active && billing.subscription.nextChargeAt && (
+                <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--ink-soft)' }}>
+                  Следующее списание: {new Date(billing.subscription.nextChargeAt).toLocaleDateString('ru-RU')}.
+                  Отменить можно в&nbsp;один клик — мы&nbsp;не&nbsp;привязываем.
+                </p>
+              )}
+              {!billing.subscription.active && (
+                <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--ink-soft)' }}>
+                  {formatRub(5937)}/мес за&nbsp;безлимит уроков. Отключение в&nbsp;1 клик (ст. 32 ЗоЗПП).
+                </p>
+              )}
+            </div>
+            {billing.subscription.active ? (
+              <button className="kb-btn kb-btn--ghost" onClick={cancelSubscription}>
+                Отменить подписку
+              </button>
+            ) : (
+              <button className="kb-btn kb-btn--secondary kb-btn--lg" onClick={startSubscription}>
+                Подключить за {formatRub(5937)}/мес
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Quick buy options */}
+        <div className="kb-grid-2">
+          <div className="kb-card" style={{ borderLeft: '4px solid var(--violet)' }}>
+            <span className="eyebrow">Полный курс в рассрочку</span>
+            <h3 className="h3" style={{ marginTop: 6 }}>48 уроков за {formatRub(71244)}</h3>
+            <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink-soft)' }}>
+              Разовое зачисление 48 уроков сразу. Рассрочка через банк-партнёр, платишь помесячно.
+            </p>
+            <button className="kb-btn kb-btn--lg" style={{ marginTop: 14 }} onClick={buyInstallment48}>
+              → Оформить рассрочку
+            </button>
+          </div>
+
+          <div className="kb-card" style={{ borderLeft: '4px solid var(--yellow)' }}>
+            <span className="eyebrow">Пак-добивка</span>
+            <h3 className="h3" style={{ marginTop: 6 }}>+10 уроков за {formatRub(9900)}</h3>
+            <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink-soft)' }}>
+              Если нужно больше занятий помимо подписки или базового курса. Зачисляем моментально.
+            </p>
+            <button className="kb-btn kb-btn--lg kb-btn--secondary" style={{ marginTop: 14 }} onClick={buyPack10}>
+              + Купить 10 уроков
+            </button>
+          </div>
+        </div>
+
+        {/* Purchase history */}
+        {billing.purchases.length > 0 && (
+          <div className="kb-card" style={{ marginTop: 16 }}>
+            <span className="eyebrow">История покупок</span>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {billing.purchases.slice(0, 6).map((p) => (
+                <li key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '8px 0', borderBottom: '1px solid rgba(21,20,27,.06)' }}>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--ink-soft)' }}>
+                    {new Date(p.createdAt).toLocaleDateString('ru-RU')}
+                  </span>
+                  <span style={{ fontWeight: 700 }}>
+                    {p.kind === 'installment-48' ? 'Рассрочка 48 уроков' : p.kind === 'pack-10' ? 'Пак 10 уроков' : 'Подписка'}
+                  </span>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontWeight: 700 }}>{formatRub(p.amountRub)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, lineHeight: 1.55 }}>
+          ⓘ MVP-заглушка: реальные списания подключим с&nbsp;бэкендом (ЮKassa / CloudPayments).
+          Все оплаты пока локальные.
+        </p>
       </section>
 
       {/* Achievements */}

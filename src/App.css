@@ -5870,6 +5870,165 @@ body:has(.lobby-v2) {
   box-shadow: 0 0 0 3px rgba(107, 92, 231, 0.15);
 }
 
+/* ─── Site editor v2: 2-col split (sections+content left, preview right) ─── */
+.tpl-mode--split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 16px;
+  min-height: 0;
+  flex: 1;
+}
+.tpl-editor-pane {
+  background: var(--paper);
+  border-radius: 16px;
+  border: 1px solid rgba(21,20,27,.08);
+  padding: 16px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 4px 14px rgba(21,20,27,.04);
+}
+.tpl-editor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(21,20,27,.06);
+}
+.tpl-editor-head strong { font-size: 15px; }
+.tpl-editor-head small { color: rgba(21,20,27,.5); margin-left: 4px; font-size: 12px; }
+.tpl-theme-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tpl-theme-inline .tpl-theme-swatches { gap: 6px; display: flex; }
+.tpl-theme-inline .tpl-theme-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s;
+}
+.tpl-theme-inline .tpl-theme-dot:hover { transform: scale(1.15); }
+.tpl-theme-inline .tpl-theme-dot.active { border-color: var(--ink); box-shadow: 0 0 0 2px #fff inset; }
+
+.tpl-section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tpl-section-card {
+  border: 1px solid rgba(21,20,27,.08);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.tpl-section-card.open {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(107,92,231,.08);
+}
+.tpl-section-header {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 24px 22px auto 1fr auto 14px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  background: rgba(21,20,27,.02);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+}
+.tpl-section-card.open .tpl-section-header {
+  background: rgba(107,92,231,.06);
+}
+.tpl-section-header:hover { background: rgba(21,20,27,.04); }
+.tpl-section-idx {
+  width: 22px;
+  height: 22px;
+  background: rgba(21,20,27,.08);
+  color: var(--ink-soft);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.tpl-section-card.open .tpl-section-idx {
+  background: var(--violet);
+  color: var(--paper);
+}
+.tpl-section-header .tpl-section-icon { font-size: 18px; }
+.tpl-section-header .tpl-section-name { font-size: 13.5px; font-weight: 700; }
+.tpl-section-preview-hint {
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.tpl-section-card .tpl-section-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.tpl-section-header:hover .tpl-section-actions,
+.tpl-section-card.open .tpl-section-actions { opacity: 1; }
+.tpl-section-card .tpl-section-actions button {
+  border: none;
+  background: rgba(21,20,27,.06);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 10px;
+  color: rgba(21,20,27,.7);
+}
+.tpl-section-card .tpl-section-actions button:hover { background: rgba(107,92,231,.2); color: var(--ink); }
+.tpl-section-chev {
+  font-size: 14px;
+  color: rgba(21,20,27,.4);
+  text-align: center;
+}
+.tpl-section-body {
+  padding: 14px 16px 18px;
+  border-top: 1px solid rgba(21,20,27,.06);
+  background: var(--paper);
+}
+.tpl-section-body .tpl-props-form header { display: none; }
+
+.tpl-preview--half {
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.tpl-preview--half .tpl-preview-frame {
+  flex: 1;
+  border-radius: 16px;
+  border: 1px solid rgba(21,20,27,.08);
+  min-height: 400px;
+}
+
+@media (max-width: 1100px) {
+  .tpl-mode--split { grid-template-columns: 1fr; grid-template-rows: 1fr 500px; }
+  .tpl-preview--half .tpl-preview-frame { min-height: 300px; }
+}
+
 /* ─── Add-block button + modal ─── */
 .tpl-add-btn {
   width: 100%;
@@ -6630,7 +6789,7 @@ body:has(.lobby-v2) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   KubiK Python Panel — enterprise UX upgrade
+   Эдюсон Kids Python Panel — enterprise UX upgrade
    ═══════════════════════════════════════════════════════════════ */
 
 .py-panel {
@@ -6750,7 +6909,7 @@ body:has(.lobby-v2) {
 
 /* Syntax token colors */
 .py-kw  { color: var(--violet); font-weight: 600; }  /* keywords */
-.py-fn  { color: #ff5ab1; }                      /* KubiK API functions */
+.py-fn  { color: #ff5ab1; }                      /* Эдюсон Kids API functions */
 .py-blt { color: #4c97ff; }                      /* builtins */
 .py-str { color: #86efac; }                      /* strings */
 .py-num { color: #fbbf24; }                      /* numbers */
@@ -6823,10 +6982,10 @@ body:has(.lobby-v2) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   KubiK Blockly Workspace — brand theme overrides
+   Эдюсон Kids Blockly Workspace — brand theme overrides
    ═══════════════════════════════════════════════════════════════ */
 
-/* Override Blockly's default grey with KubiK dark theme */
+/* Override Blockly's default grey with Эдюсон Kids dark theme */
 .blocklySvg {
   background-color: #0a0a1a !important;
 }
@@ -6835,7 +6994,7 @@ body:has(.lobby-v2) {
   stroke: none !important;
 }
 
-/* Grid dots in KubiK purple */
+/* Grid dots in Эдюсон Kids purple */
 .blocklyGrid {
   fill: rgba(124, 92, 255, 0.15) !important;
 }
@@ -6854,10 +7013,10 @@ body:has(.lobby-v2) {
 .blocklyTrash { opacity: 0.6; }
 
 /* ═══════════════════════════════════════════════════════════════
-   KubiK corporate brand enhancements (global)
+   Эдюсон Kids corporate brand enhancements (global)
    ═══════════════════════════════════════════════════════════════ */
 
-/* KubiK brand gradient text utility */
+/* Эдюсон Kids brand gradient text utility */
 .kubik-gradient-text {
   background: linear-gradient(135deg, var(--violet), #ff5ab1);
   -webkit-background-clip: text;
@@ -6900,7 +7059,7 @@ body:has(.lobby-v2) {
   background: rgba(81, 207, 102, 0.08);
 }
 
-/* Studio publish button — KubiK brand */
+/* Studio publish button — Эдюсон Kids brand */
 .publish {
   background: linear-gradient(135deg, var(--violet), #ff5ab1) !important;
   font-weight: 700;

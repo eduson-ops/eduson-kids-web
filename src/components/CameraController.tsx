@@ -37,8 +37,8 @@ export default function CameraController() {
     }
     const onMouseMove = (e: MouseEvent) => {
       if (!cam.locked) return
-      cam.yaw -= e.movementX * 0.0025
-      cam.pitch -= e.movementY * 0.0022
+      cam.yaw -= e.movementX * 0.0018
+      cam.pitch -= e.movementY * 0.0010
       // clamp pitch
       cam.pitch = Math.max(-1.2, Math.min(0.8, cam.pitch))
     }

@@ -18,7 +18,7 @@ import { GAMES } from '../lib/games'
  */
 
 const MODULES = [
-  { n: 1, title: 'Первые шаги в KubiK',   accent: 'violet', lessons: 6, emoji: '🧱' },
+  { n: 1, title: 'Первые шаги в Эдюсон Kids',   accent: 'violet', lessons: 6, emoji: '🧱' },
   { n: 2, title: 'Движение и события',    accent: 'sky',    lessons: 6, emoji: '🎮' },
   { n: 3, title: 'Переменные и счёт',     accent: 'mint',   lessons: 6, emoji: '💰' },
   { n: 4, title: 'Функции и повторы',     accent: 'yellow', lessons: 6, emoji: '🔁' },
@@ -98,10 +98,11 @@ export default function Hub() {
           <Niksel pose="wave" size={280} />
         </div>
 
+        {/* Deco blocks смещены вверх и в разные зоны — пингвин их не перекрывает. */}
         <div className="kb-cover-deco" aria-hidden>
-          <div className="kb-cover-deco-block b-logic" style={{ right: 40, top: 60, transform: 'rotate(6deg)' }}>Если</div>
-          <div className="kb-cover-deco-block b-data" style={{ right: 120, top: 140, transform: 'rotate(-4deg)' }}>Повтори</div>
-          <div className="kb-cover-deco-block b-event" style={{ right: 60, top: 230, transform: 'rotate(4deg)' }}>Клик</div>
+          <div className="kb-cover-deco-block b-logic" style={{ left: '46%', top: 40, transform: 'rotate(6deg)' }}>Если</div>
+          <div className="kb-cover-deco-block b-data" style={{ right: 320, top: 28, transform: 'rotate(-4deg)' }}>Повтори</div>
+          <div className="kb-cover-deco-block b-event" style={{ right: 40, top: 40, transform: 'rotate(4deg)' }}>Клик</div>
         </div>
       </section>
 
@@ -113,7 +114,7 @@ export default function Hub() {
         </div>
         <div className="kb-card kb-card--feature" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
           <div>
-            <div className="eyebrow">Модуль 1 · Первые шаги в KubiK</div>
+            <div className="eyebrow">Модуль 1 · Первые шаги в Эдюсон Kids</div>
             <h3 className="h3" style={{ margin: '8px 0 12px' }}>Урок {currentLesson} из 48</h3>
             <div className="kb-progress kb-progress--lg">
               <div className="kb-progress-bar" style={{ width: `${(currentLesson / 48) * 100}%`, background: 'var(--violet)' }} />

@@ -140,7 +140,6 @@ export default function SiteEditor() {
 function TemplateMode({ site }: { site: Site }) {
   const [selectedId, setSelectedId] = useState<string | null>(site.sections[0]?.id ?? null)
   const [addOpen, setAddOpen] = useState(false)
-  const selected = site.sections.find((s) => s.id === selectedId) ?? null
 
   const patchData = (id: string, dataPatch: Record<string, unknown>) => {
     updateSite(site.id, {
@@ -183,72 +182,94 @@ function TemplateMode({ site }: { site: Site }) {
   }
 
   return (
-    <div className="tpl-mode">
-      {/* Left: секции */}
-      <aside className="tpl-sections">
-        <header>
-          <strong>Секции</strong>
-          <small>{site.sections.length}</small>
+    <div className="tpl-mode tpl-mode--split">
+      {/* Left column: все секции раскрыты + их редактирование inline */}
+      <aside className="tpl-editor-pane">
+        <header className="tpl-editor-head">
+          <div>
+            <strong>Секции сайта</strong>
+            <small>·&nbsp;{site.sections.length}</small>
+          </div>
+          <div className="tpl-theme-inline">
+            <span className="eyebrow">Тема</span>
+            <div className="tpl-theme-swatches">
+              {Object.entries(THEMES).map(([key, theme]) => (
+                <button
+                  key={key}
+                  className={`tpl-theme-dot ${site.theme === key ? 'active' : ''}`}
+                  style={{ background: theme.color }}
+                  onClick={() => updateSite(site.id, { theme: key as ThemeKey })}
+                  title={theme.name}
+                  aria-label={`Тема ${theme.name}`}
+                />
+              ))}
+            </div>
+          </div>
         </header>
-        <ul>
-          {site.sections.map((s) => (
-            <li
-              key={s.id}
-              className={`tpl-section-row ${selectedId === s.id ? 'active' : ''}`}
-              onClick={() => setSelectedId(s.id)}
-            >
-              <span className="tpl-section-icon">{sectionEmoji(s.type)}</span>
-              <span className="tpl-section-name">{sectionLabel(s.type)}</span>
-              <div className="tpl-section-actions">
-                <button onClick={(e) => { e.stopPropagation(); moveSection(s.id, -1) }} title="Выше">▲</button>
-                <button onClick={(e) => { e.stopPropagation(); moveSection(s.id, 1) }} title="Ниже">▼</button>
-                <button onClick={(e) => { e.stopPropagation(); duplicateSection(s.id) }} title="Дублировать">⎘</button>
-                <button onClick={(e) => { e.stopPropagation(); removeSection(s.id) }} title="Удалить">×</button>
+
+        <div className="tpl-section-list">
+          {site.sections.map((s, idx) => {
+            const isOpen = selectedId === s.id
+            return (
+              <div key={s.id} className={`tpl-section-card ${isOpen ? 'open' : ''}`}>
+                <button
+                  className="tpl-section-header"
+                  onClick={() => setSelectedId(isOpen ? null : s.id)}
+                >
+                  <span className="tpl-section-idx">{idx + 1}</span>
+                  <span className="tpl-section-icon">{sectionEmoji(s.type)}</span>
+                  <span className="tpl-section-name">{sectionLabel(s.type)}</span>
+                  <span className="tpl-section-preview-hint">
+                    {previewHint(s)}
+                  </span>
+                  <div className="tpl-section-actions">
+                    <button onClick={(e) => { e.stopPropagation(); moveSection(s.id, -1) }} title="Выше">▲</button>
+                    <button onClick={(e) => { e.stopPropagation(); moveSection(s.id, 1) }} title="Ниже">▼</button>
+                    <button onClick={(e) => { e.stopPropagation(); duplicateSection(s.id) }} title="Дублировать">⎘</button>
+                    <button onClick={(e) => { e.stopPropagation(); removeSection(s.id) }} title="Удалить">×</button>
+                  </div>
+                  <span className="tpl-section-chev" aria-hidden>{isOpen ? '▾' : '▸'}</span>
+                </button>
+                {isOpen && (
+                  <div className="tpl-section-body">
+                    <SectionProps
+                      key={s.id}
+                      section={s}
+                      onChange={(p) => patchData(s.id, p)}
+                    />
+                  </div>
+                )}
               </div>
-            </li>
-          ))}
-        </ul>
+            )
+          })}
+        </div>
+
         <button className="tpl-add-btn" onClick={() => { SFX.click(); setAddOpen(true) }}>
           ＋ Добавить блок
         </button>
-        <div className="tpl-theme">
-          <strong>Тема</strong>
-          <div className="tpl-theme-swatches">
-            {Object.entries(THEMES).map(([key, theme]) => (
-              <button
-                key={key}
-                className={`tpl-theme-dot ${site.theme === key ? 'active' : ''}`}
-                style={{ background: theme.color }}
-                onClick={() => updateSite(site.id, { theme: key as ThemeKey })}
-                title={theme.name}
-                aria-label={`Тема ${theme.name}`}
-              />
-            ))}
-          </div>
-        </div>
       </aside>
 
-      {/* Center: live preview */}
-      <section className="tpl-preview">
+      {/* Right column: live preview — половина экрана */}
+      <section className="tpl-preview tpl-preview--half">
         <LivePreview site={site} />
       </section>
-
-      {/* Right: свойства выбранной секции */}
-      <aside className="tpl-props">
-        {selected ? (
-          <SectionProps
-            key={selected.id}
-            section={selected}
-            onChange={(p) => patchData(selected.id, p)}
-          />
-        ) : (
-          <div className="tpl-props-empty">Выбери секцию слева, чтобы редактировать. <br/>Или нажми «＋ Добавить блок».</div>
-        )}
-      </aside>
 
       {addOpen && <AddBlockModal onPick={addSection} onClose={() => setAddOpen(false)} />}
     </div>
   )
+}
+
+/** Короткая подсказка для свёрнутой секции — что в ней сейчас (первые 40 симв). */
+function previewHint(s: Section): string {
+  const d = s.data as Record<string, unknown>
+  const text =
+    (typeof d.title === 'string' && d.title) ||
+    (typeof d.text === 'string' && d.text) ||
+    (typeof d.q === 'string' && d.q) ||
+    (Array.isArray(d.items) && d.items.length > 0 ? `${d.items.length} элементов` : '') ||
+    ''
+  if (!text) return ''
+  return text.length > 40 ? text.slice(0, 40) + '…' : text
 }
 
 /** Модалка выбора нового блока с категориями. */
