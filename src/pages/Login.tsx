@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { apiLoginChildCode, apiLoginGuest } from '../lib/api'
 import { startVkLogin, vkConfig } from '../lib/vkAuth'
+import { NikselMini } from '../design/mascot/Niksel'
 
 /**
- * Login — три пути входа:
- *   1) VK ID (OAuth2 + PKCE) — основной для LXP, открывает сообщения родителю
- *   2) Код ребёнка (6 цифр) — от наставника на МК, для малышей без аккаунта
- *   3) Гость — оффлайн, только этот браузер
+ * Login — четыре пути входа:
+ *   1) VK ID — если настроен backend OAuth flow. На статик-сборке disabled.
+ *   2) Демо-VK — быстрый вход для co-founder preview. Просто заводит гостя
+ *      с именем «Демо», без реального VK.
+ *   3) Код ребёнка (6 цифр) — от наставника на МК.
+ *   4) Гость — оффлайн, только в этом браузере.
  */
 export default function Login() {
   const navigate = useNavigate()
@@ -37,6 +40,14 @@ export default function Login() {
     navigate('/')
   }
 
+  const demoVk = () => {
+    // Демо-вход: симулирует успешный VK-флоу без реального OAuth.
+    // Используется на статических сборках (GH Pages), где нет бекенда для обмена code→token.
+    localStorage.setItem('ek_child_code', 'demo-vk')
+    localStorage.setItem('ek_child_name', 'Никита (VK-демо)')
+    navigate('/')
+  }
+
   const loginWithVk = async (role: 'child' | 'parent') => {
     setVkErr(null)
     try {
@@ -48,75 +59,128 @@ export default function Login() {
   }
 
   return (
-    <main className="app">
-      <header className="brand">
-        <div className="logo" aria-hidden>🎮</div>
-        <h1>Eduson Kids</h1>
-        <p className="tagline">Строй свои миры. Учись программировать.</p>
+    <div className="brand-shell login-shell">
+      <header className="login-head">
+        <Link to="/" className="kb-shell-brand" aria-label="Eduson Kids — главная">
+          <NikselMini size={36} />
+          <span>Эдусон</span>
+          <span className="kb-shell-brand-kids">Kids</span>
+        </Link>
       </header>
 
-      <section className="card">
-        <h2>Вход через VK</h2>
-        <p className="hint">Быстро и безопасно. Родитель получает отчёты в сообщениях.</p>
-        {!vkAppConfigured && (
-          <p className="err" style={{ marginTop: 0 }}>
-            VK ID не настроен — задай <code>VITE_VK_APP_ID</code> в <code>.env.local</code>.
+      <main className="login-main">
+        <div className="login-intro">
+          <span className="eyebrow">Добро пожаловать</span>
+          <h1 className="h1">Вход в&nbsp;Эдусон&nbsp;Kids</h1>
+          <p className="lead">
+            Выбери способ — и продолжи учиться. Все варианты сохраняют прогресс,
+            так что начать можно одним кликом.
           </p>
-        )}
-        <div style={{ display: 'grid', gap: 10 }}>
-          <button
-            className="vk-btn"
-            onClick={() => loginWithVk('child')}
-            disabled={!vkAppConfigured}
-          >
-            <VkIcon /> Войти как ученик
-          </button>
-          <button
-            className="vk-btn vk-btn-parent"
-            onClick={() => loginWithVk('parent')}
-            disabled={!vkAppConfigured}
-          >
-            <VkIcon /> Войти как родитель
-          </button>
-          {vkErr && <p className="err">{vkErr}</p>}
         </div>
-      </section>
 
-      <section className="card">
-        <h2>Войти по коду</h2>
-        <p className="hint">Код — 6 цифр. Дал наставник на мастер-классе.</p>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="\d{6}"
-            maxLength={6}
-            placeholder="000000"
-            value={childCode}
-            onChange={(e) => {
-              setStatus('idle')
-              setChildCode(e.target.value.replace(/\D/g, ''))
-            }}
-            className="code-input"
-            aria-label="Код ребёнка"
-          />
-          <button type="submit" disabled={status === 'checking'}>
-            {status === 'checking' ? 'Вхожу…' : 'Войти'}
-          </button>
-        </form>
-        {status === 'error' && <p className="err">Код должен быть из 6 цифр</p>}
-      </section>
+        <div className="login-grid">
+          {/* 1. VK-блок */}
+          <section className="kb-card kb-card--feature login-card">
+            <div className="login-card-head">
+              <span className="eyebrow">VK ID</span>
+              <h2 className="h2">Войти через VK</h2>
+              <p className="lead-s">
+                Быстро и безопасно. Родитель получает отчёты в&nbsp;VK-сообщениях.
+              </p>
+            </div>
 
-      <section className="card alt">
-        <h3>Просто попробовать</h3>
-        <p>Без кода. Сохранение работает только в этом браузере.</p>
-        <button className="ghost" onClick={quickStart}>Войти как гость</button>
-      </section>
+            {!vkAppConfigured && (
+              <div className="kb-state kb-state--info login-info">
+                <span>🔌</span>
+                <span>
+                  VK OAuth требует серверный обмен токеном. На превью попробуй
+                  «Демо-вход» ниже — работает без бэкенда.
+                </span>
+              </div>
+            )}
 
-      <footer className="foot">
-        <small>© 2026 Eduson Kids · LXP</small>
+            <div className="login-btn-col">
+              <button
+                className="kb-btn kb-btn--lg"
+                onClick={() => loginWithVk('child')}
+                disabled={!vkAppConfigured}
+              >
+                <VkIcon /> Войти как ученик
+              </button>
+              <button
+                className="kb-btn kb-btn--lg kb-btn--secondary"
+                onClick={() => loginWithVk('parent')}
+                disabled={!vkAppConfigured}
+              >
+                <VkIcon /> Войти как родитель
+              </button>
+              {vkErr && <div className="kb-state kb-state--error">{vkErr}</div>}
+
+              <div className="login-divider"><span>или</span></div>
+
+              <button className="kb-btn kb-btn--lg kb-btn--ghost" onClick={demoVk}>
+                🎭 Демо-вход (без VK)
+              </button>
+            </div>
+          </section>
+
+          {/* 2. Код ребёнка */}
+          <section className="kb-card login-card">
+            <div className="login-card-head">
+              <span className="eyebrow">Мастер-класс</span>
+              <h2 className="h2">Код от&nbsp;наставника</h2>
+              <p className="lead-s">6 цифр, которые дал наставник на&nbsp;встрече.</p>
+            </div>
+
+            <form className="login-code-form" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="\d{6}"
+                maxLength={6}
+                placeholder="000000"
+                value={childCode}
+                onChange={(e) => {
+                  setStatus('idle')
+                  setChildCode(e.target.value.replace(/\D/g, ''))
+                }}
+                className="login-code-input"
+                aria-label="Код ребёнка"
+              />
+              <button
+                type="submit"
+                className="kb-btn kb-btn--lg"
+                disabled={status === 'checking' || childCode.length !== 6}
+              >
+                {status === 'checking' ? 'Вхожу…' : '→ Войти'}
+              </button>
+              {status === 'error' && (
+                <div className="kb-state kb-state--error">Код должен быть из 6 цифр</div>
+              )}
+            </form>
+          </section>
+
+          {/* 3. Гость */}
+          <section className="kb-card login-card login-card--guest">
+            <div className="login-card-head">
+              <span className="eyebrow">Без регистрации</span>
+              <h2 className="h2">Просто посмотреть</h2>
+              <p className="lead-s">
+                Сохранение работает только в&nbsp;этом браузере. Хороший вариант
+                для первой встречи.
+              </p>
+            </div>
+            <button className="kb-btn kb-btn--lg kb-btn--ghost" onClick={quickStart}>
+              👋 Войти как гость
+            </button>
+          </section>
+        </div>
+      </main>
+
+      <footer className="login-foot">
+        <small>© 2026 Эдусон Kids · LXP</small>
       </footer>
-    </main>
+    </div>
   )
 }
 

@@ -1,5 +1,5 @@
-import { Link, useLocation } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type ReactNode } from 'react'
 import { NikselMini } from '../design/mascot/Niksel'
 
 /**
@@ -26,7 +26,20 @@ const NAV = [
 
 export default function PlatformShell({ children, activeKey }: Props) {
   const loc = useLocation()
+  const navigate = useNavigate()
   const active = activeKey ?? inferKey(loc.pathname)
+  const [childName, setChildName] = useState<string | null>(null)
+
+  useEffect(() => {
+    setChildName(localStorage.getItem('ek_child_name'))
+  }, [loc.pathname])
+
+  const signOut = () => {
+    localStorage.removeItem('ek_child_name')
+    localStorage.removeItem('ek_child_code')
+    setChildName(null)
+    navigate('/login')
+  }
 
   return (
     <div className="brand-shell">
@@ -47,6 +60,19 @@ export default function PlatformShell({ children, activeKey }: Props) {
             </Link>
           ))}
         </div>
+        {childName ? (
+          <div className="kb-shell-user">
+            <span className="kb-shell-user-avatar" aria-hidden>
+              {childName.charAt(0).toUpperCase()}
+            </span>
+            <span className="kb-shell-user-name">{childName}</span>
+            <button className="kb-shell-user-out" onClick={signOut} title="Выйти">
+              ↩
+            </button>
+          </div>
+        ) : (
+          <Link to="/login" className="kb-btn kb-btn--sm">Войти</Link>
+        )}
       </nav>
       <main className="kb-shell-main">{children}</main>
     </div>
