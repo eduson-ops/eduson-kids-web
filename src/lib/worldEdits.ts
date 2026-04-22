@@ -42,6 +42,10 @@ export type PropKind =
   | 'guitar' | 'piano' | 'drum-kit'
   // Sports
   | 'soccer-ball' | 'trophy' | 'goal-net'
+  // Animals
+  | 'duck' | 'cat-statue' | 'fish-tank'
+  // Household
+  | 'table' | 'bookshelf' | 'lamp-floor'
 
 export interface SpawnedPart {
   id: string

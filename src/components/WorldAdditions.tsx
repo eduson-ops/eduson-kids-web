@@ -344,6 +344,18 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
       return <Trophy pos={pos} color={color} size={size} />
     case 'goal-net':
       return <GoalNet pos={pos} color={color} size={size} />
+    case 'duck':
+      return <Duck pos={pos} color={color} size={size} />
+    case 'cat-statue':
+      return <CatStatue pos={pos} color={color} size={size} />
+    case 'fish-tank':
+      return <FishTank pos={pos} color={color} size={size} />
+    case 'table':
+      return <Table pos={pos} color={color} size={size} />
+    case 'bookshelf':
+      return <Bookshelf pos={pos} color={color} size={size} />
+    case 'lamp-floor':
+      return <FloorLamp pos={pos} color={color} size={size} />
 
     default:
       return null
@@ -1324,6 +1336,225 @@ function GoalNet({ pos, color, size }: { pos: [number, number, number]; color: s
       <mesh position={[0, size * 0.61, -size * 0.25]} receiveShadow>
         <boxGeometry args={[size * 1.16, size * 1.16, size * 0.5]} />
         <meshStandardMaterial color="#ffffff" roughness={1} transparent opacity={0.18} side={2} />
+      </mesh>
+    </group>
+  )
+}
+
+function Duck({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Body */}
+      <mesh position={[0, size * 0.28, 0]} castShadow>
+        <sphereGeometry args={[size * 0.28, 16, 12]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[size * 0.2, size * 0.58, 0]} castShadow>
+        <sphereGeometry args={[size * 0.18, 14, 10]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Beak */}
+      <mesh position={[size * 0.38, size * 0.56, 0]} castShadow>
+        <boxGeometry args={[size * 0.12, size * 0.06, size * 0.08]} />
+        <meshStandardMaterial color="#FF8C1A" roughness={0.6} />
+      </mesh>
+      {/* Eye */}
+      <mesh position={[size * 0.35, size * 0.62, size * 0.06]}>
+        <sphereGeometry args={[size * 0.028, 8, 6]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.2} />
+      </mesh>
+      {/* Tail */}
+      <mesh position={[-size * 0.28, size * 0.38, 0]} rotation={[0, 0, Math.PI * 0.25]} castShadow>
+        <coneGeometry args={[size * 0.1, size * 0.22, 8]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Feet */}
+      {[-1, 1].map((side, i) => (
+        <mesh key={i} position={[size * 0.04, size * 0.04, side * size * 0.12]} castShadow>
+          <boxGeometry args={[size * 0.16, size * 0.04, size * 0.1]} />
+          <meshStandardMaterial color="#FF8C1A" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function CatStatue({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Body */}
+      <mesh position={[0, size * 0.38, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.22, size * 0.26, size * 0.66, 16]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.3} />
+      </mesh>
+      {/* Head */}
+      <mesh position={[0, size * 0.82, 0]} castShadow>
+        <sphereGeometry args={[size * 0.22, 16, 12]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.3} />
+      </mesh>
+      {/* Ears */}
+      {[-1, 1].map((side, i) => (
+        <mesh key={i} position={[side * size * 0.14, size * 1.04, 0]} castShadow>
+          <coneGeometry args={[size * 0.07, size * 0.13, 4]} />
+          <meshStandardMaterial color={color} roughness={0.4} metalness={0.3} />
+        </mesh>
+      ))}
+      {/* Eyes */}
+      {[-1, 1].map((side, i) => (
+        <mesh key={i} position={[side * size * 0.08, size * 0.84, size * 0.18]}>
+          <sphereGeometry args={[size * 0.04, 8, 6]} />
+          <meshStandardMaterial color="#1a6a1a" roughness={0.1} emissive="#00aa00" emissiveIntensity={0.3} />
+        </mesh>
+      ))}
+      {/* Raised paw */}
+      <mesh position={[size * 0.2, size * 0.6, 0]} rotation={[0, 0, Math.PI * 0.3]} castShadow>
+        <cylinderGeometry args={[size * 0.06, size * 0.06, size * 0.28, 10]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.3} />
+      </mesh>
+      {/* Base */}
+      <mesh position={[0, size * 0.03, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[size * 0.3, size * 0.32, size * 0.06, 20]} />
+        <meshStandardMaterial color="#c0a060" roughness={0.5} metalness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function FishTank({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Stand */}
+      <mesh position={[0, size * 0.1, 0]} castShadow receiveShadow>
+        <boxGeometry args={[size * 0.9, size * 0.18, size * 0.5]} />
+        <meshStandardMaterial color="#6b4f2a" roughness={0.7} />
+      </mesh>
+      {/* Tank glass */}
+      <mesh position={[0, size * 0.56, 0]} castShadow>
+        <boxGeometry args={[size * 0.82, size * 0.6, size * 0.44]} />
+        <meshStandardMaterial color={color} roughness={0.05} metalness={0.1} transparent opacity={0.35} side={2} />
+      </mesh>
+      {/* Water */}
+      <mesh position={[0, size * 0.5, 0]}>
+        <boxGeometry args={[size * 0.78, size * 0.5, size * 0.4]} />
+        <meshStandardMaterial color="#4c97ff" roughness={0.1} transparent opacity={0.4} />
+      </mesh>
+      {/* Fish 1 */}
+      <mesh position={[-size * 0.12, size * 0.52, 0]}>
+        <sphereGeometry args={[size * 0.07, 10, 8]} />
+        <meshStandardMaterial color="#ff5464" roughness={0.4} />
+      </mesh>
+      {/* Fish 2 */}
+      <mesh position={[size * 0.14, size * 0.62, size * 0.06]}>
+        <sphereGeometry args={[size * 0.055, 10, 8]} />
+        <meshStandardMaterial color="#FFD43C" roughness={0.4} />
+      </mesh>
+      {/* Gravel */}
+      <mesh position={[0, size * 0.26, 0]}>
+        <boxGeometry args={[size * 0.78, size * 0.08, size * 0.4]} />
+        <meshStandardMaterial color="#c8b89a" roughness={1} />
+      </mesh>
+      {/* Lid */}
+      <mesh position={[0, size * 0.82, 0]} castShadow>
+        <boxGeometry args={[size * 0.84, size * 0.04, size * 0.46]} />
+        <meshStandardMaterial color="#888" roughness={0.4} metalness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function Table({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Top */}
+      <mesh position={[0, size * 0.76, 0]} castShadow>
+        <boxGeometry args={[size * 1.4, size * 0.08, size * 0.8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {/* Legs */}
+      {[[-0.6, -0.32], [-0.6, 0.32], [0.6, -0.32], [0.6, 0.32]].map(([x, z], i) => (
+        <mesh key={i} position={[x * size, size * 0.38, z * size]} castShadow>
+          <boxGeometry args={[size * 0.08, size * 0.76, size * 0.08]} />
+          <meshStandardMaterial color={color} roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Cross supports */}
+      <mesh position={[0, size * 0.2, 0]} castShadow>
+        <boxGeometry args={[size * 1.18, size * 0.06, size * 0.06]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function Bookshelf({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const BOOK_COLORS = ['#ff5464', '#6B5CE7', '#48c774', '#FFD43C', '#4c97ff', '#FF9454']
+  return (
+    <group position={pos}>
+      {/* Frame */}
+      <mesh position={[-size * 0.48, size * 0.8, 0]} castShadow>
+        <boxGeometry args={[size * 0.06, size * 1.6, size * 0.4]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[size * 0.48, size * 0.8, 0]} castShadow>
+        <boxGeometry args={[size * 0.06, size * 1.6, size * 0.4]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size * 1.58, 0]} castShadow>
+        <boxGeometry args={[size * 0.96, size * 0.06, size * 0.4]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size * 0.02, 0]} castShadow receiveShadow>
+        <boxGeometry args={[size * 0.96, size * 0.06, size * 0.4]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Shelves */}
+      {[0.54, 1.06].map((y, i) => (
+        <mesh key={i} position={[0, y * size, 0]}>
+          <boxGeometry args={[size * 0.94, size * 0.05, size * 0.38]} />
+          <meshStandardMaterial color={color} roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Books on shelves */}
+      {[0.2, 0.72, 1.24].map((shelfY, si) =>
+        BOOK_COLORS.slice(0, 5).map((c, bi) => (
+          <mesh key={`${si}-${bi}`} position={[(bi - 2) * size * 0.17, shelfY * size, 0]} castShadow>
+            <boxGeometry args={[size * 0.12, size * 0.24, size * 0.32]} />
+            <meshStandardMaterial color={c} roughness={0.6} />
+          </mesh>
+        ))
+      )}
+    </group>
+  )
+}
+
+function FloorLamp({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Base */}
+      <mesh position={[0, size * 0.05, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[size * 0.22, size * 0.26, size * 0.1, 16]} />
+        <meshStandardMaterial color="#2a3340" roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* Pole */}
+      <mesh position={[0, size * 0.8, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.03, size * 0.03, size * 1.4, 8]} />
+        <meshStandardMaterial color="#2a3340" roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* Arm */}
+      <mesh position={[size * 0.12, size * 1.44, 0]} rotation={[0, 0, -Math.PI * 0.15]} castShadow>
+        <cylinderGeometry args={[size * 0.02, size * 0.02, size * 0.28, 6]} />
+        <meshStandardMaterial color="#2a3340" roughness={0.4} metalness={0.6} />
+      </mesh>
+      {/* Shade */}
+      <mesh position={[size * 0.18, size * 1.38, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.22, size * 0.14, size * 0.28, 16]} />
+        <meshStandardMaterial color={color} roughness={0.5} side={2} />
+      </mesh>
+      {/* Bulb glow */}
+      <mesh position={[size * 0.18, size * 1.34, 0]}>
+        <sphereGeometry args={[size * 0.06, 8, 6]} />
+        <meshStandardMaterial color="#fffde0" emissive="#ffe066" emissiveIntensity={0.8} roughness={0.1} />
       </mesh>
     </group>
   )

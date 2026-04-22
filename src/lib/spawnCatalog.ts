@@ -197,6 +197,26 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'goal-net',    label: 'Ворота',    emoji: '🥅', defaultColor: '#ffffff', tags: ['ворота','net','goal','гол','футбол'], hint: 'Футбольные ворота' },
     ],
   },
+  {
+    id: 'animals',
+    name: 'Животные',
+    icon: '🐾',
+    items: [
+      { kind: 'duck',       label: 'Утка',       emoji: '🦆', defaultColor: '#FFD43C', tags: ['утка','duck','птица','bird','животное'], hint: 'Жёлтая утка' },
+      { kind: 'cat-statue', label: 'Кот',        emoji: '🐱', defaultColor: '#FF9454', tags: ['кот','cat','котик','животное','статуя'], hint: 'Фигурка кота манэки-нэко' },
+      { kind: 'fish-tank',  label: 'Аквариум',   emoji: '🐠', defaultColor: '#4c97ff', tags: ['аквариум','fish','рыба','рыбки','tank'], hint: 'Аквариум с рыбками' },
+    ],
+  },
+  {
+    id: 'household',
+    name: 'Интерьер',
+    icon: '🏠',
+    items: [
+      { kind: 'table',      label: 'Стол',       emoji: '🪑', defaultColor: '#8b5a2b', tags: ['стол','table','мебель','интерьер'], hint: 'Деревянный стол' },
+      { kind: 'bookshelf',  label: 'Полка',      emoji: '📚', defaultColor: '#8b5a2b', tags: ['полка','shelf','книги','книжная','мебель'], hint: 'Книжная полка' },
+      { kind: 'lamp-floor', label: 'Торшер',     emoji: '💡', defaultColor: '#FFD43C', tags: ['торшер','lamp','лампа','свет','интерьер'], hint: 'Напольный торшер' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
