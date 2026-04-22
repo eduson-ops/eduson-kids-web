@@ -105,12 +105,12 @@ export default function Hub() {
             <strong>{lessonsCompleted} / 48 {plural(48, 'lesson')}</strong>
           </div>
           <div className="kb-cover-footer-col">
-            <span className="eyebrow">Монет</span>
-            <strong>{pluralize(coins, 'coin')}</strong>
+            <span className="eyebrow">Стрик</span>
+            <strong>{p.streak > 0 ? `🔥 ${pluralize(p.streak, 'day')}` : '—'}</strong>
           </div>
           <div className="kb-cover-footer-col">
-            <span className="eyebrow">Достижений</span>
-            <strong>{p.achievements} ⭐</strong>
+            <span className="eyebrow">Монет</span>
+            <strong>{pluralize(coins, 'coin')}</strong>
           </div>
         </div>
 
