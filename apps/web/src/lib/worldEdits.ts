@@ -56,6 +56,10 @@ export type PropKind =
   | 'book-stack' | 'globe' | 'microscope'
   // Medieval
   | 'sword' | 'shield' | 'knight-statue'
+  // Ocean
+  | 'coral' | 'submarine' | 'anchor'
+  // Winter
+  | 'igloo' | 'sled' | 'snowflake-deco'
 
 export interface SpawnedPart {
   id: string

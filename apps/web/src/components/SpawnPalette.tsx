@@ -109,6 +109,22 @@ const CATEGORIES: Array<{ name: string; items: PaletteItem[] }> = [
       { kind: 'knight-statue', emoji: '🏰', label: 'Рыцарь', defaultColor: '#8b8b8b' },
     ],
   },
+  {
+    name: '🌊 Океан',
+    items: [
+      { kind: 'coral', emoji: '🪸', label: 'Коралл', defaultColor: '#ff5464' },
+      { kind: 'submarine', emoji: '🛸', label: 'Подлодка', defaultColor: '#FFD43C' },
+      { kind: 'anchor', emoji: '⚓', label: 'Якорь', defaultColor: '#2a3340' },
+    ],
+  },
+  {
+    name: '❄️ Зима',
+    items: [
+      { kind: 'igloo', emoji: '🏔️', label: 'Иглу', defaultColor: '#88d4ff' },
+      { kind: 'sled', emoji: '🛷', label: 'Санки', defaultColor: '#ff5464' },
+      { kind: 'snowflake-deco', emoji: '❄️', label: 'Снежинка', defaultColor: '#88d4ff' },
+    ],
+  },
 ]
 
 export default function SpawnPalette() {

@@ -257,6 +257,22 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'knight-statue',label: 'Рыцарь', emoji: '🏰', defaultColor: '#8b8b8b', tags: ['рыцарь','knight','доспех','средневековье','статуя'], hint: 'Каменная статуя рыцаря' },
     ],
   },
+  {
+    id: 'ocean', name: 'Океан', icon: '🌊',
+    items: [
+      { kind: 'coral',     label: 'Коралл',    emoji: '🪸', defaultColor: '#ff5464', tags: ['коралл','coral','море','подводный','ocean'], hint: 'Коралловый куст' },
+      { kind: 'submarine', label: 'Подлодка',  emoji: '🛸', defaultColor: '#FFD43C', tags: ['подлодка','submarine','море','флот','underwater'], hint: 'Жёлтая подводная лодка' },
+      { kind: 'anchor',    label: 'Якорь',     emoji: '⚓', defaultColor: '#2a3340', tags: ['якорь','anchor','корабль','море','порт'], hint: 'Морской якорь' },
+    ],
+  },
+  {
+    id: 'winter', name: 'Зима', icon: '❄️',
+    items: [
+      { kind: 'igloo',         label: 'Иглу',     emoji: '🏔️', defaultColor: '#88d4ff', tags: ['иглу','igloo','зима','снег','эскимос'], hint: 'Снежный иглу-домик' },
+      { kind: 'sled',          label: 'Санки',    emoji: '🛷', defaultColor: '#ff5464', tags: ['санки','sled','снег','зима','кататься'], hint: 'Деревянные санки' },
+      { kind: 'snowflake-deco',label: 'Снежинка', emoji: '❄️', defaultColor: '#88d4ff', tags: ['снежинка','snowflake','зима','мороз','декор'], hint: 'Декоративная 3D-снежинка' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
