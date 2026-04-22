@@ -57,7 +57,13 @@ const STEPS: Step[] = [
     side: 'bottom',
   },
   {
-    selector: '.studio-brand',
+    selector: '.studio-props',
+    title: '⌨ Горячие клавиши',
+    body: 'Delete — удалить выделенный объект. Ctrl+Z — отменить последнее действие. Escape — снять выделение. Кликни на любой объект в списке справа — он выделится.',
+    side: 'left',
+  },
+  {
+    selector: '.studio-brand-lockup',
     title: '✨ Всё готово',
     body: 'Теперь ты знаешь базу. В любой момент открой «Уроки» на главной — там 48 шаговых уроков. Удачи!',
     side: 'bottom',
