@@ -16,6 +16,8 @@ export type PropKind =
   | 'cube' | 'sphere' | 'cylinder' | 'ramp' | 'plate'
   // Gameplay
   | 'coin' | 'checkpoint' | 'goal' | 'spike' | 'bouncer'
+  // Platformer collectibles (Kenney)
+  | 'chest' | 'key' | 'star' | 'heart' | 'bomb' | 'barrel' | 'crate' | 'ladder' | 'tree-pine' | 'flag-platformer'
   // Nature
   | 'tree' | 'bush' | 'mushroom' | 'rock' | 'flower' | 'grass-tuft'
   // NPCs

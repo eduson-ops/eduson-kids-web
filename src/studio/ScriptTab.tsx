@@ -8,7 +8,7 @@ import {
   getState,
   setAutoRun,
   setBlocklyXml,
-  setLuaCode,
+  setBlocklyPython,
   setPythonCode,
   setScriptMode,
   subscribe,
@@ -107,7 +107,7 @@ export default function ScriptTab() {
               initialXml={state.blocklyXml}
               onChange={(python, xml) => {
                 setBlocklyXml(xml)
-                setLuaCode(python)
+                setBlocklyPython(python)
               }}
             />
             <FloatingHint>
@@ -124,14 +124,14 @@ export default function ScriptTab() {
                 initialXml={state.blocklyXml}
                 onChange={(python, xml) => {
                   setBlocklyXml(xml)
-                  setLuaCode(python)
+                  setBlocklyPython(python)
                 }}
               />
             </div>
             <div className="script-bridge-right">
               <PythonPanel
-                code={state.luaCode}
-                onRun={() => handleRun(state.luaCode)}
+                code={state.blocklyPython}
+                onRun={() => handleRun(state.blocklyPython)}
                 isRunning={isRunning}
                 error={runError}
               />

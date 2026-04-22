@@ -49,6 +49,23 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
+    id: 'platformer',
+    name: 'Платформер',
+    icon: '🎯',
+    items: [
+      { kind: 'chest', label: 'Сундук', emoji: '🎁', defaultColor: '#FFD43C', tags: ['сундук','chest','клад','treasure'], hint: 'Kenney Platformer Kit' },
+      { kind: 'key', label: 'Ключ', emoji: '🗝', defaultColor: '#FFD43C', tags: ['ключ','key','замок'], hint: 'Открывает дверь' },
+      { kind: 'star', label: 'Звезда', emoji: '⭐', defaultColor: '#FFD43C', tags: ['звезда','star','очки','балл'], hint: 'Собери все звёзды' },
+      { kind: 'heart', label: 'Сердце', emoji: '❤', defaultColor: '#ff5464', tags: ['сердце','жизнь','heart','hp'], hint: 'Прибавляет жизнь' },
+      { kind: 'bomb', label: 'Бомба', emoji: '💣', defaultColor: '#2a3340', tags: ['бомба','bomb','взрыв','опасность'], hint: 'Опасный предмет' },
+      { kind: 'barrel', label: 'Бочка', emoji: '🪣', defaultColor: '#8b5a2b', tags: ['бочка','barrel'], hint: 'Деревянная бочка' },
+      { kind: 'crate', label: 'Ящик', emoji: '📦', defaultColor: '#C99E00', tags: ['ящик','crate','коробка'], hint: 'Деревянный ящик' },
+      { kind: 'ladder', label: 'Лестница', emoji: '🪜', defaultColor: '#8b5a2b', tags: ['лестница','ladder','подъём'], hint: 'Можно залезть вверх' },
+      { kind: 'tree-pine', label: 'Сосна', emoji: '🌲', defaultColor: '#34C38A', tags: ['сосна','ель','pine','хвойное','дерево'], hint: 'Kenney Platformer' },
+      { kind: 'flag-platformer', label: 'Флаг', emoji: '🏴', defaultColor: '#ff5464', tags: ['флаг','flag','финиш'], hint: 'Флажок-декор' },
+    ],
+  },
+  {
     id: 'nature',
     name: 'Природа',
     icon: '🌳',

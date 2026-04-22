@@ -608,11 +608,11 @@ function LessonPage({ lesson, m, course }: { lesson: Lesson; m: Module; course: 
 function NotFound() {
   return (
     <PlatformShell activeKey="learn">
-      <div className="kb-card kb-card--feature" style={{ textAlign: 'center', padding: 40 }}>
-        <div style={{ fontSize: 56, marginBottom: 12 }}>🔍</div>
-        <h2 className="h2" style={{ margin: '0 0 10px' }}>Урок не найден</h2>
-        <p style={{ color: 'var(--ink-soft)', marginBottom: 20 }}>
-          Возможно, ты попал на несуществующую страницу. Вернись в каталог.
+      <div className="kb-card kb-card--feature" style={{ textAlign: 'center', padding: '48px 40px' }}>
+        <NikselIcon kind="logic" size={100} />
+        <h2 className="h2" style={{ margin: '16px 0 10px' }}>Урок не найден</h2>
+        <p style={{ color: 'var(--ink-soft)', marginBottom: 24, maxWidth: 360, margin: '0 auto 24px' }}>
+          Никсель обыскал все коридоры — такой страницы нет. Вернись в каталог!
         </p>
         <Link to="/learn" className="kb-btn kb-btn--lg">← В каталог</Link>
       </div>

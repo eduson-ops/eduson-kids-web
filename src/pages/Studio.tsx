@@ -31,11 +31,11 @@ export default function Studio() {
   // ─── Глобальный Live-watcher (персистит между вкладками) ───
   // Раньше жил в ScriptTab — и пока ты на Test, watcher был мёртв.
   // Теперь: что бы ты ни редактировал (Script textarea или Live-оверлей
-  // прямо из Test-табa), изменение pythonCode/luaCode вызывает debounced run.
+  // прямо из Test-табa), изменение pythonCode/blocklyPython вызывает debounced run.
   const lastCodeRef = useRef('')
   useEffect(() => {
     if (!state.autoRun) return
-    const code = state.scriptMode === 'python' ? state.pythonCode : state.luaCode
+    const code = state.scriptMode === 'python' ? state.pythonCode : state.blocklyPython
     if (!code || code === lastCodeRef.current) return
     lastCodeRef.current = code
     const id = window.setTimeout(async () => {
@@ -48,7 +48,7 @@ export default function Studio() {
       }
     }, 500)
     return () => window.clearTimeout(id)
-  }, [state.autoRun, state.luaCode, state.pythonCode, state.scriptMode])
+  }, [state.autoRun, state.blocklyPython, state.pythonCode, state.scriptMode])
 
   // Когда пользователь впервые приходит на Test-таб с autoRun=true — если
   // watcher уже отрабатывал до монтажа TestTab, команды ушли в пустоту
@@ -56,7 +56,7 @@ export default function Studio() {
   const lastReplayRef = useRef('')
   useEffect(() => {
     if (tab !== 'test' || !state.autoRun) return
-    const code = state.scriptMode === 'python' ? state.pythonCode : state.luaCode
+    const code = state.scriptMode === 'python' ? state.pythonCode : state.blocklyPython
     if (!code || code === lastReplayRef.current) return
     lastReplayRef.current = code
     ;(async () => {
@@ -68,7 +68,7 @@ export default function Studio() {
         setScriptError(e instanceof Error ? e.message : String(e))
       }
     })()
-  }, [tab, state.autoRun, state.pythonCode, state.luaCode, state.scriptMode])
+  }, [tab, state.autoRun, state.pythonCode, state.blocklyPython, state.scriptMode])
 
   useEffect(() => {
     // Индикатор автосохранения: "..." → "сохранено"

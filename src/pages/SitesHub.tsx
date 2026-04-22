@@ -10,6 +10,7 @@ import {
   type Site,
 } from '../sites/sitesState'
 import { SFX } from '../lib/audio'
+import NikselIcon from '../design/mascot/NikselIcon'
 
 /**
  * SitesHub — лобби трека «Сайты».
@@ -59,6 +60,23 @@ export default function SitesHub() {
       </section>
 
       {/* Мои сайты */}
+      {sites.length === 0 && (
+        <section style={{ marginBottom: 40 }}>
+          <div className="kb-card" style={{ display: 'flex', alignItems: 'center', gap: 24, padding: 32 }}>
+            <NikselIcon kind="build" size={80} />
+            <div>
+              <h3 className="h3" style={{ marginBottom: 8 }}>Твои сайты появятся здесь</h3>
+              <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginBottom: 16 }}>
+                Выбери шаблон ниже — Никсель поможет собрать первый сайт за 5 минут!
+              </p>
+              <button className="kb-btn" onClick={() => onStart('about-me')}>
+                ➕ Начать с шаблона «Обо мне»
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {sites.length > 0 && (
         <section style={{ marginBottom: 40 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 20 }}>

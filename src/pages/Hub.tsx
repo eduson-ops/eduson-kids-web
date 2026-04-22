@@ -73,6 +73,12 @@ export default function Hub() {
     setCoins(readCoins())
   }, [])
 
+  // Unlock modules based on progress: module N unlocks after finishing lesson (N-1)*6
+  const unlockedModuleN = Math.max(1, Math.ceil(currentLesson / 6))
+  const lessonsCompleted = Math.max(0, currentLesson - 1)
+  const currentModuleN = Math.min(8, Math.ceil(currentLesson / 6))
+  const currentModuleTitle = MODULES[currentModuleN - 1]?.title ?? 'Первые шаги в Эдюсон Kids'
+
   const featuredGames = GAMES.filter((g) => g.featured).slice(0, 3)
 
   return (
@@ -106,11 +112,11 @@ export default function Hub() {
         <div className="kb-cover-footer">
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Модуль</span>
-            <strong>1 · Первые шаги</strong>
+            <strong>M{currentModuleN}</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Прогресс</span>
-            <strong>{currentLesson} / 48 уроков</strong>
+            <strong>{lessonsCompleted} / 48 уроков</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Монет</span>
@@ -134,28 +140,16 @@ export default function Hub() {
         </div>
       </section>
 
-      {/* Progress strip */}
-      <section style={{ marginBottom: 40 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
-          <h2 className="h2">Твой путь</h2>
-          <Link to="/learn" className="kb-shell-nav-link">Подробнее →</Link>
-        </div>
-        <div className="kb-card kb-card--feature" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 24, alignItems: 'center' }}>
-          <div>
-            <div className="eyebrow">Модуль 1 · Первые шаги в Эдюсон Kids</div>
-            <h3 className="h3" style={{ margin: '8px 0 12px' }}>Урок {currentLesson} из 48</h3>
-            <div className="kb-progress kb-progress--lg">
-              <div className="kb-progress-bar" style={{ width: `${(currentLesson / 48) * 100}%`, background: 'var(--violet)' }} />
-            </div>
-            <div style={{ display: 'flex', gap: 24, marginTop: 16, fontSize: 14, color: 'var(--ink-soft)', fontWeight: 600 }}>
-              <span>🏆 {currentLesson - 1} завершено</span>
-              <span>💰 {coins} монет</span>
-              <span>⭐ 2 достижения</span>
-            </div>
+      {/* Тонкий progress-strip, без дублирующего CTA — он уже в cover-hero */}
+      <section style={{ marginBottom: 32 }}>
+        <div className="kb-card" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 20, alignItems: 'center', padding: '14px 20px' }}>
+          <div className="eyebrow" style={{ whiteSpace: 'nowrap' }}>М{currentModuleN} · {currentModuleTitle}</div>
+          <div className="kb-progress" style={{ height: 10 }}>
+            <div className="kb-progress-bar" style={{ width: `${(lessonsCompleted / 48) * 100}%`, background: 'var(--violet)' }} />
           </div>
-          <Link to={`/learn/${currentLesson}`} className="kb-btn kb-btn--lg">
-            Продолжить
-          </Link>
+          <div style={{ fontFamily: 'var(--f-mono)', fontSize: 13, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>
+            {lessonsCompleted} / 48 · {coins} монет
+          </div>
         </div>
       </section>
 
@@ -168,17 +162,22 @@ export default function Hub() {
         <div className="kb-grid-4">
           {MODULES.map((m) => {
             const a = ACCENT_MAP[m.accent]
-            const unlocked = m.n === 1
+            const unlocked = m.n <= unlockedModuleN
+            const isActive = m.n === currentModuleN
+            // Module internal progress: how many of this module's 6 lessons are done
+            const moduleLessonsStart = (m.n - 1) * m.lessons + 1
+            const doneinModule = Math.min(m.lessons, Math.max(0, lessonsCompleted - (moduleLessonsStart - 1)))
+            const modulePct = (doneinModule / m.lessons) * 100
             return (
               <Link
                 key={m.n}
                 to={unlocked ? `/learn/module/${m.n}` : '#'}
-                className="kb-course"
+                className={`kb-course${isActive ? ' kb-course--active' : ''}`}
                 style={{
                   '--accent': a.color,
                   '--accent-soft': a.soft,
                   '--accent-ink': a.ink,
-                  opacity: unlocked ? 1 : 0.55,
+                  opacity: unlocked ? 1 : 0.45,
                   pointerEvents: unlocked ? 'auto' : 'none',
                 } as React.CSSProperties}
               >
@@ -194,10 +193,10 @@ export default function Hub() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, borderTop: '1px solid rgba(21,20,27,.06)' }}>
                   <div className="kb-progress" style={{ flex: 1 }}>
-                    <div className="kb-progress-bar" style={{ width: unlocked ? '40%' : '0%', background: a.color }} />
+                    <div className="kb-progress-bar" style={{ width: `${modulePct}%`, background: a.color }} />
                   </div>
                   <span style={{ fontSize: 11, color: 'var(--ink-soft)', fontWeight: 700 }}>
-                    {unlocked ? 'В пути' : '🔒'}
+                    {!unlocked ? '🔒' : doneinModule === m.lessons ? '✅' : isActive ? 'В пути' : `${doneinModule}/${m.lessons}`}
                   </span>
                 </div>
               </Link>
@@ -228,6 +227,34 @@ export default function Hub() {
           ))}
         </div>
       </section>
+
+      {/* Y2 teaser — только когда Y1 завершён или почти (урок ≥ 43) */}
+      {currentLesson >= 43 && (
+        <section style={{ marginBottom: 40 }}>
+          <div
+            className="kb-card kb-card--feature"
+            style={{
+              background: 'linear-gradient(135deg, #FF9454 0%, #6B5CE7 140%)',
+              color: 'var(--paper)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 24,
+            }}
+          >
+            <div style={{ fontSize: 72, flexShrink: 0 }}>🔬</div>
+            <div style={{ flex: 1 }}>
+              <span className="eyebrow" style={{ color: 'rgba(255,251,243,.7)' }}>Год 2 · Алгоритмический стек</span>
+              <h2 className="h2" style={{ color: 'var(--paper)', margin: '8px 0 10px' }}>Готов к Year 2?</h2>
+              <p style={{ color: 'rgba(255,251,243,.85)', fontSize: 15, marginBottom: 16, maxWidth: 480 }}>
+                Алгоритмы, структуры данных, рекурсия, свои библиотеки — 48 новых уроков. Ты почти завершил Y1!
+              </p>
+              <Link to="/learn/course/kubik-y2" className="kb-btn kb-btn--secondary">
+                Открыть Year 2 →
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Two tracks CTA — Games + Sites */}
       <section>

@@ -152,6 +152,42 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
         </RigidBody>
       )
 
+    // ─── Платформер (Kenney Platformer Kit) ───
+    case 'chest':
+    case 'key':
+    case 'star':
+    case 'heart':
+    case 'bomb':
+    case 'barrel':
+    case 'crate':
+    case 'ladder':
+    case 'tree-pine':
+    case 'flag-platformer': {
+      const fileMap: Record<string, string> = {
+        'chest': 'chest.glb',
+        'key': 'key.glb',
+        'star': 'star.glb',
+        'heart': 'heart.glb',
+        'bomb': 'bomb.glb',
+        'barrel': 'barrel.glb',
+        'crate': 'crate.glb',
+        'ladder': 'ladder.glb',
+        'tree-pine': 'tree-pine.glb',
+        'flag-platformer': 'flag.glb',
+      }
+      const scaleMap: Record<string, number> = {
+        'chest': 1.8, 'key': 1.2, 'star': 1.4, 'heart': 1.2, 'bomb': 1.5,
+        'barrel': 1.5, 'crate': 1.5, 'ladder': 2.0, 'tree-pine': 2.5, 'flag-platformer': 1.8,
+      }
+      return (
+        <PlatformerProp
+          file={fileMap[kind]}
+          pos={pos}
+          scale={size * (scaleMap[kind] ?? 1.5)}
+        />
+      )
+    }
+
     // ─── Природа ───
     case 'tree':
       return (
@@ -289,6 +325,35 @@ function GraveyardProp({
   )
 }
 
+function PlatformerProp({
+  file,
+  pos,
+  scale = 1.5,
+  rotY = 0,
+}: {
+  file: string
+  pos: [number, number, number]
+  scale?: number
+  rotY?: number
+}) {
+  const base = `${PUBLIC_BASE}/models/kenney-platformer/Models/GLB%20format/`
+  const gltf = useGLTF(`${base}${file}`)
+  const scene = useMemo(() => gltf.scene.clone(), [gltf])
+  return (
+    <group position={pos} scale={scale} rotation={[0, rotY, 0]}>
+      <primitive object={scene} />
+    </group>
+  )
+}
+
 useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/pumpkin-carved.glb`)
 useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/coffin.glb`)
 useGLTF.preload(`${PUBLIC_BASE}/models/kenney-graveyard/candle.glb`)
+
+// Platformer pack — preload most-used items
+const PLT_BASE = `${PUBLIC_BASE}/models/kenney-platformer/Models/GLB%20format/`
+useGLTF.preload(`${PLT_BASE}chest.glb`)
+useGLTF.preload(`${PLT_BASE}star.glb`)
+useGLTF.preload(`${PLT_BASE}coin-gold.glb`)
+useGLTF.preload(`${PLT_BASE}tree-pine.glb`)
+useGLTF.preload(`${PLT_BASE}barrel.glb`)

@@ -5067,7 +5067,24 @@ body:has(.lobby-v2) {
   align-items: flex-start;
   gap: 12px;
 }
-.curric-module-emoji { font-size: 36px; line-height: 1; }
+.curric-module-emoji {
+  font-size: 36px;
+  line-height: 1;
+  width: 60px;
+  height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper-2, #F4EFE3);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.curric-module-emoji svg { display: block; }
+.kb-course-icon--niksel {
+  background: var(--accent-soft, var(--paper-2)) !important;
+  padding: 12px !important;
+  border-radius: 18px;
+}
 .curric-module-meta { flex: 1; min-width: 0; }
 .curric-module-title {
   margin: 4px 0 0;
@@ -7249,6 +7266,9 @@ body:has(.lobby-v2) {
   background: var(--accent, var(--violet));
 }
 .kb-course:hover { transform: translateY(-2px); box-shadow: var(--sh-2); }
+.kb-course--active {
+  box-shadow: 0 0 0 3px var(--accent, var(--violet)), var(--sh-2);
+}
 .kb-course-top { display: flex; justify-content: space-between; padding-top: 6px; }
 .kb-course-age {
   background: var(--accent-soft, var(--violet-soft));

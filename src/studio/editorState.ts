@@ -62,7 +62,7 @@ export interface EditorState {
   /** Skript — Blockly workspace serialized */
   blocklyXml: string
   /** Python code auto-generated from Blockly (read-only preview) */
-  luaCode: string
+  blocklyPython: string
   /** Python code written manually in pure-Python mode */
   pythonCode: string
   /**
@@ -204,7 +204,7 @@ function defaultScene(): EditorState {
     blocklyXml: `<xml xmlns="https://developers.google.com/blockly/xml">
   <block type="ek_on_start" x="40" y="40"></block>
 </xml>`,
-    luaCode: '# нажми «▶ Тест» чтобы запустить\n',
+    blocklyPython: '# нажми «▶ Тест» чтобы запустить\n',
     autoRun: false,
     pythonCode: `# Привет! Это твой Python-код.
 # Управляй игровым миром через готовые функции.
@@ -357,8 +357,8 @@ export function setBlocklyXml(xml: string) {
   emit()
 }
 
-export function setLuaCode(code: string) {
-  state = { ...state, luaCode: code }
+export function setBlocklyPython(code: string) {
+  state = { ...state, blocklyPython: code }
   emit()
 }
 
