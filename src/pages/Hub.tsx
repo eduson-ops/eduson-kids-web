@@ -4,6 +4,7 @@ import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
 import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
 import { GAMES } from '../lib/games'
+import { plural, pluralize } from '../lib/plural'
 
 /**
  * Hub — the new front door of Eduson Kids.
@@ -116,7 +117,7 @@ export default function Hub() {
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Прогресс</span>
-            <strong>{lessonsCompleted} / 48 уроков</strong>
+            <strong>{lessonsCompleted} / 48 {plural(48, 'lesson')}</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Монет</span>
@@ -148,7 +149,7 @@ export default function Hub() {
             <div className="kb-progress-bar" style={{ width: `${(lessonsCompleted / 48) * 100}%`, background: 'var(--violet)' }} />
           </div>
           <div style={{ fontFamily: 'var(--f-mono)', fontSize: 13, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>
-            {lessonsCompleted} / 48 · {coins} монет
+            {lessonsCompleted} / 48 · {pluralize(coins, 'coin')}
           </div>
         </div>
       </section>
@@ -183,7 +184,7 @@ export default function Hub() {
               >
                 <div className="kb-course-top">
                   <span className="kb-course-age">M{m.n}</span>
-                  <span className="kb-course-level">{m.lessons} уроков</span>
+                  <span className="kb-course-level">{pluralize(m.lessons, 'lesson')}</span>
                 </div>
                 <div className="kb-course-icon kb-course-icon--niksel">
                   <NikselIcon kind={m.icon} size={84} />

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
 import { getDailyLastN } from '../lib/progress'
+import { plural, pluralize } from '../lib/plural'
 import {
   getVkUser,
   getParentLink,
@@ -112,7 +113,7 @@ export default function Parent() {
     const events: TimelineEvent[] = []
     for (const a of activity) {
       const ts = Date.now() - (27 - a.day) * 24 * 3600_000
-      if (a.lessonsCompleted > 0) events.push({ ts, kind: 'lesson', label: `Завершил урок (${a.minutes} мин, ${a.coins} монет)` })
+      if (a.lessonsCompleted > 0) events.push({ ts, kind: 'lesson', label: `Завершил урок (${pluralize(a.minutes, 'minute')}, ${pluralize(a.coins, 'coin')})` })
     }
     for (const a of ACHIEVEMENTS) {
       if (a.earnedAt) events.push({ ts: a.earnedAt, kind: 'achievement', label: `Получил ачивку «${a.title}»` })
@@ -161,7 +162,7 @@ export default function Parent() {
       <section style={{ marginBottom: 40 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
           <h2 className="h2">Активность по дням</h2>
-          <span className="eyebrow">28 дней</span>
+          <span className="eyebrow">{pluralize(28, 'day')}</span>
         </div>
         <div className="kb-card kb-card--feature" style={{ padding: 24 }}>
           <ActivityChart data={activity} />

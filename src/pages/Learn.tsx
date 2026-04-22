@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { plural, pluralize } from '../lib/plural'
 import PlatformShell from '../components/PlatformShell'
 import {
   MODULES,
@@ -131,7 +132,7 @@ function CoursesCatalog() {
               <p className="curric-module-story">{c.subtitle}</p>
               <div className="curric-module-progress">
                 <small>
-                  {c.modules.length} модулей · {totalLessons} уроков
+                  {pluralize(c.modules.length, 'module')} · {pluralize(totalLessons, 'lesson')}
                   {c.source === 'ingested' && ' · импорт'}
                 </small>
               </div>
@@ -207,7 +208,7 @@ function CourseCatalogPage({ course }: { course: Course }) {
                 <div className="kb-progress">
                   <div className="kb-progress-bar" style={{ width: `${pct}%`, background: m.accent }} />
                 </div>
-                <small>{done} / {m.lessons.length} уроков</small>
+                <small>{done} / {m.lessons.length} {plural(m.lessons.length, 'lesson')}</small>
               </div>
             </Link>
           )
@@ -295,7 +296,7 @@ function _CatalogPage() {
                 <div className="kb-progress">
                   <div className="kb-progress-bar" style={{ width: `${pct}%`, background: m.accent }} />
                 </div>
-                <small>{done} / {m.lessons.length} уроков</small>
+                <small>{done} / {m.lessons.length} {plural(m.lessons.length, 'lesson')}</small>
               </div>
             </Link>
           )
