@@ -204,12 +204,15 @@ export default function Hub() {
                 key={m.n}
                 to={unlocked ? `/learn/module/${m.n}` : '#'}
                 className={`kb-course${isActive ? ' kb-course--active' : ''}`}
+                title={unlocked ? undefined : 'Пройди предыдущие модули, чтобы разблокировать'}
+                aria-disabled={!unlocked}
                 style={{
                   '--accent': a.color,
                   '--accent-soft': a.soft,
                   '--accent-ink': a.ink,
                   opacity: unlocked ? 1 : 0.45,
                   pointerEvents: unlocked ? 'auto' : 'none',
+                  cursor: unlocked ? 'pointer' : 'not-allowed',
                 } as React.CSSProperties}
               >
                 <div className="kb-course-top">

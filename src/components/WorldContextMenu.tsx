@@ -14,9 +14,17 @@ interface Props {
   worldId: string
 }
 
-const QUICK_COLORS = [
-  '#ff5464', '#ffd644', '#48c774', '#4c97ff', '#c879ff',
-  '#ff8c1a', '#ff5ab1', '#88d4ff', '#ffffff', '#2a3340',
+const QUICK_COLORS: { hex: string; name: string }[] = [
+  { hex: '#ff5464', name: 'Красный' },
+  { hex: '#ffd644', name: 'Жёлтый' },
+  { hex: '#48c774', name: 'Зелёный' },
+  { hex: '#4c97ff', name: 'Синий' },
+  { hex: '#c879ff', name: 'Фиолетовый' },
+  { hex: '#ff8c1a', name: 'Оранжевый' },
+  { hex: '#ff5ab1', name: 'Розовый' },
+  { hex: '#88d4ff', name: 'Голубой' },
+  { hex: '#ffffff', name: 'Белый' },
+  { hex: '#2a3340', name: 'Тёмный' },
 ]
 
 export default function WorldContextMenu({ worldId }: Props) {
@@ -129,13 +137,14 @@ export default function WorldContextMenu({ worldId }: Props) {
         </header>
         {colorOpen ? (
           <div className="wctx-colors">
-            {QUICK_COLORS.map((c) => (
+            {QUICK_COLORS.map(({ hex, name }) => (
               <button
-                key={c}
+                key={hex}
                 className="wctx-swatch"
-                style={{ background: c }}
-                onClick={() => recolor(c)}
-                aria-label={`Цвет ${c}`}
+                style={{ background: hex }}
+                onClick={() => recolor(hex)}
+                aria-label={name}
+                title={name}
               />
             ))}
             <button className="wctx-back" onClick={() => setColorOpen(false)}>← назад</button>
