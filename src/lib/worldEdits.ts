@@ -116,6 +116,16 @@ export type PropKind =
   | 'arcade-machine' | 'retro-tv' | 'cassette-tape' | 'game-controller' | 'pixel-heart'
   // Nature 2
   | 'waterfall' | 'lotus-pond' | 'volcano' | 'geyser' | 'cave-entrance'
+  // Dinosaurs
+  | 't-rex' | 'triceratops' | 'stegosaurus' | 'pterodactyl' | 'dino-egg'
+  // Western
+  | 'saloon' | 'cactus-tall' | 'tumbleweed' | 'wanted-sign' | 'horseshoe'
+  // Ice Kingdom
+  | 'ice-castle' | 'ice-spike' | 'frozen-tree' | 'snowfort' | 'polar-bear'
+  // Anime
+  | 'torii-gate' | 'paper-lantern' | 'sakura-tree' | 'ninja-star' | 'temple-bell'
+  // Deep Space
+  | 'black-hole' | 'nebula-cloud' | 'space-debris' | 'laser-turret' | 'warp-gate'
 
 export interface SpawnedPart {
   id: string

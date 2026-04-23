@@ -535,6 +535,56 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'cave-entrance',  label: 'Вход в пещеру', emoji: '🕳️', defaultColor: '#4a4a5a', tags: ['пещера','cave','вход','тёмный','entrance','подземелье'], hint: 'Вход в тёмную пещеру' },
     ],
   },
+  {
+    id: 'dinosaurs', name: 'Динозавры', icon: '🦕',
+    items: [
+      { kind: 't-rex',        label: 'Тираннозавр',  emoji: '🦖', defaultColor: '#4a7a2a', tags: ['динозавр','тирекс','t-rex','ящер','юра','хищник'], hint: 'Тираннозавр Рекс' },
+      { kind: 'triceratops',  label: 'Трицератопс',  emoji: '🦕', defaultColor: '#6a8a4a', tags: ['трицератопс','динозавр','рога','травоядный','юра'], hint: 'Трицератопс с рогами' },
+      { kind: 'stegosaurus',  label: 'Стегозавр',    emoji: '🦕', defaultColor: '#5a7a3a', tags: ['стегозавр','динозавр','пластины','хвост','юра'], hint: 'Стегозавр с шипами' },
+      { kind: 'pterodactyl', label: 'Птеродактиль', emoji: '🦅', defaultColor: '#7a5a3a', tags: ['птеродактиль','летающий','динозавр','крылья','птица'], hint: 'Летящий птеродактиль' },
+      { kind: 'dino-egg',    label: 'Яйцо динозавра',emoji: '🥚', defaultColor: '#c8b48a', tags: ['яйцо','динозавр','egg','dino','гнездо'], hint: 'Яйцо динозавра в гнезде' },
+    ],
+  },
+  {
+    id: 'western', name: 'Вестерн', icon: '🤠',
+    items: [
+      { kind: 'saloon',       label: 'Салун',         emoji: '🏠', defaultColor: '#a0724a', tags: ['салун','вестерн','запад','бар','west','дикий'], hint: 'Деревянный салун Дикого Запада' },
+      { kind: 'cactus-tall', label: 'Высокий кактус', emoji: '🌵', defaultColor: '#3a8a3a', tags: ['кактус','cactus','пустыня','высокий','запад','суккулент'], hint: 'Большой кактус-самоапичо' },
+      { kind: 'tumbleweed',  label: 'Перекати-поле',  emoji: '🌾', defaultColor: '#c8a87a', tags: ['перекати','tumbleweed','ветер','пустыня','запад','шар'], hint: 'Перекати-поле катится по пустыне' },
+      { kind: 'wanted-sign', label: 'Плакат «Разыскивается»', emoji: '📋', defaultColor: '#f5e8b0', tags: ['разыскивается','wanted','плакат','знак','запад','шериф'], hint: 'Плакат «Разыскивается»' },
+      { kind: 'horseshoe',   label: 'Подкова',        emoji: '🧲', defaultColor: '#b0a080', tags: ['подкова','horseshoe','лошадь','удача','металл'], hint: 'Подкова на удачу' },
+    ],
+  },
+  {
+    id: 'ice-kingdom', name: 'Ледяное царство', icon: '🏔️',
+    items: [
+      { kind: 'ice-castle',   label: 'Ледяной замок',  emoji: '🏰', defaultColor: '#a0d8ef', tags: ['замок','лёд','ice','castle','зима','холод','дворец'], hint: 'Замок изо льда' },
+      { kind: 'ice-spike',    label: 'Ледяной шип',    emoji: '🔷', defaultColor: '#7ab8d8', tags: ['шип','лёд','ice','spike','кристалл','острый'], hint: 'Острый ледяной шип' },
+      { kind: 'frozen-tree',  label: 'Замёрзшее дерево',emoji: '🌲', defaultColor: '#c0e0f0', tags: ['дерево','лёд','замёрзший','frozen','зима','иней'], hint: 'Дерево покрытое льдом' },
+      { kind: 'snowfort',     label: 'Снежная крепость',emoji: '🏯', defaultColor: '#e8f4ff', tags: ['крепость','снег','snow','fort','снеговик','зима'], hint: 'Снежная крепость с бойницами' },
+      { kind: 'polar-bear',   label: 'Белый медведь',  emoji: '🐻', defaultColor: '#f0f0f0', tags: ['медведь','белый','polar','bear','арктика','животное'], hint: 'Полярный медведь' },
+    ],
+  },
+  {
+    id: 'anime', name: 'Аниме/Японский', icon: '⛩️',
+    items: [
+      { kind: 'torii-gate',    label: 'Ворота Тории',  emoji: '⛩️', defaultColor: '#e84040', tags: ['тории','ворота','torii','японский','храм','красный'], hint: 'Традиционные японские ворота Тории' },
+      { kind: 'paper-lantern', label: 'Бумажный фонарь',emoji: '🏮', defaultColor: '#ff7a3a', tags: ['фонарь','бумажный','lantern','японский','свет','аниме'], hint: 'Светящийся бумажный фонарь' },
+      { kind: 'sakura-tree',   label: 'Сакура',        emoji: '🌸', defaultColor: '#ffb7c5', tags: ['сакура','sakura','вишня','цветок','японский','аниме','весна'], hint: 'Цветущая сакура' },
+      { kind: 'ninja-star',    label: 'Сюрикен',       emoji: '⭐', defaultColor: '#888888', tags: ['сюрикен','ninja','star','ниндзя','метательный','оружие'], hint: 'Метательная звезда ниндзя' },
+      { kind: 'temple-bell',   label: 'Храмовый колокол',emoji: '🔔', defaultColor: '#c8a050', tags: ['колокол','bell','храм','temple','японский','бронза'], hint: 'Большой японский колокол' },
+    ],
+  },
+  {
+    id: 'deep-space', name: 'Глубокий космос', icon: '🌌',
+    items: [
+      { kind: 'black-hole',    label: 'Чёрная дыра',   emoji: '🌑', defaultColor: '#1a0030', tags: ['чёрная','дыра','black','hole','космос','гравитация'], hint: 'Вращающаяся чёрная дыра' },
+      { kind: 'nebula-cloud',  label: 'Туманность',    emoji: '🌫️', defaultColor: '#7040c0', tags: ['туманность','nebula','cloud','космос','газ','звёзды'], hint: 'Красочная туманность' },
+      { kind: 'space-debris',  label: 'Космический мусор',emoji: '🪨', defaultColor: '#707070', tags: ['мусор','debris','космос','обломки','астероид'], hint: 'Обломки в космосе' },
+      { kind: 'laser-turret',  label: 'Лазерная турель',emoji: '🔫', defaultColor: '#00ff88', tags: ['лазер','турель','laser','turret','оружие','sci-fi','космос'], hint: 'Автоматическая лазерная турель' },
+      { kind: 'warp-gate',     label: 'Врата варпа',   emoji: '🌀', defaultColor: '#4488ff', tags: ['врата','портал','warp','gate','телепорт','sci-fi'], hint: 'Межзвёздные врата варпа' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
