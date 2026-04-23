@@ -202,6 +202,12 @@ export type PropKind =
   // Neon City
   | 'neon-tower' | 'hologram-kiosk' | 'cyber-pod' | 'neon-fountain' | 'hover-platform'
   | 'data-pillar' | 'glitch-box' | 'neon-bench' | 'cyber-gate' | 'signal-array'
+  // Ancient Egypt
+  | 'pyramid-block' | 'sphinx-head' | 'obelisk' | 'sarcophagus' | 'ankh-idol'
+  | 'canopic-jar' | 'scarab-gem' | 'papyrus-scroll' | 'eye-of-ra' | 'desert-torch'
+  // Fairy Garden
+  | 'fairy-mushroom' | 'dewdrop-flower' | 'butterfly-perch' | 'fern-curl' | 'acorn-house'
+  | 'spider-web' | 'fairy-ring' | 'pebble-path' | 'moss-log' | 'wish-well'
 
 export interface SpawnedPart {
   id: string
