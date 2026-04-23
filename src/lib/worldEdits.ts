@@ -86,6 +86,10 @@ export type PropKind =
   | 'cow' | 'barn' | 'hay-bale' | 'scarecrow' | 'well'
   // Pirates
   | 'cannon' | 'ship-wheel' | 'treasure-map' | 'jolly-roger' | 'anchor-chain'
+  // Jungle
+  | 'palm-tree' | 'bamboo' | 'snake-deco' | 'tribal-mask' | 'vine-swing'
+  // City
+  | 'traffic-light' | 'fire-hydrant' | 'mailbox' | 'street-lamp' | 'phone-booth'
 
 export interface SpawnedPart {
   id: string

@@ -376,6 +376,26 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
+    id: 'jungle', name: 'Джунгли', icon: '🌴',
+    items: [
+      { kind: 'palm-tree',   label: 'Пальма',      emoji: '🌴', defaultColor: '#34C38A', tags: ['пальма','palm','дерево','тропики','пляж'], hint: 'Тропическая пальма с листьями' },
+      { kind: 'bamboo',      label: 'Бамбук',      emoji: '🎋', defaultColor: '#5ba55b', tags: ['бамбук','bamboo','азия','трость','зелёный'], hint: 'Стебли бамбука с узлами' },
+      { kind: 'snake-deco',  label: 'Змея',        emoji: '🐍', defaultColor: '#5ba55b', tags: ['змея','snake','джунгли','декор','рептилия'], hint: 'Свёрнутая декоративная змея' },
+      { kind: 'tribal-mask', label: 'Маска',       emoji: '🎭', defaultColor: '#c8841a', tags: ['маска','mask','племя','tribal','ритуал'], hint: 'Племенная деревянная маска' },
+      { kind: 'vine-swing',  label: 'Лиана',       emoji: '🌿', defaultColor: '#48c774', tags: ['лиана','vine','джунгли','качели','зелёный'], hint: 'Лиана-качели' },
+    ],
+  },
+  {
+    id: 'city', name: 'Город', icon: '🏙️',
+    items: [
+      { kind: 'traffic-light', label: 'Светофор',   emoji: '🚦', defaultColor: '#2a3340', tags: ['светофор','traffic light','город','дорога','сигнал'], hint: 'Трёхцветный светофор' },
+      { kind: 'fire-hydrant',  label: 'Гидрант',    emoji: '🚒', defaultColor: '#c0392b', tags: ['гидрант','hydrant','пожар','красный','улица'], hint: 'Пожарный гидрант' },
+      { kind: 'mailbox',       label: 'Почтовый ящик',emoji: '📮', defaultColor: '#c0392b', tags: ['почта','mailbox','ящик','письмо','красный'], hint: 'Уличный почтовый ящик' },
+      { kind: 'street-lamp',   label: 'Фонарный столб',emoji: '🏮', defaultColor: '#3a3a3a', tags: ['фонарь','lamp','столб','улица','город'], hint: 'Чугунный фонарный столб' },
+      { kind: 'phone-booth',   label: 'Телефонная будка',emoji: '☎️', defaultColor: '#ff5464', tags: ['будка','телефон','phone booth','красная','город'], hint: 'Красная телефонная будка' },
+    ],
+  },
+  {
     id: 'pirates', name: 'Пираты', icon: '☠️',
     items: [
       { kind: 'cannon',        label: 'Пушка',       emoji: '💣', defaultColor: '#3a3a3a', tags: ['пушка','cannon','пираты','выстрел','чугун'], hint: 'Корабельная чугунная пушка' },
