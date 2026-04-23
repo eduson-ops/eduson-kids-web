@@ -283,6 +283,46 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'lantern',        label: 'Фонарь',       emoji: '🏮', defaultColor: '#FF9454', tags: ['фонарь','lantern','свет','азиатский','декор'], hint: 'Декоративный фонарик' },
     ],
   },
+  {
+    id: 'kitchen', name: 'Кухня', icon: '🍔',
+    items: [
+      { kind: 'burger', label: 'Бургер', emoji: '🍔', defaultColor: '#c8841a', tags: ['бургер','burger','еда','food','фаст-фуд'], hint: 'Высокий трёхэтажный бургер' },
+      { kind: 'pizza',  label: 'Пицца',  emoji: '🍕', defaultColor: '#ff5464', tags: ['пицца','pizza','еда','итальянская','круглая'], hint: 'Круглая пицца с начинкой' },
+      { kind: 'sushi',  label: 'Суши',   emoji: '🍣', defaultColor: '#2a3340', tags: ['суши','sushi','японская','рис','рыба'], hint: 'Нигири суши на деревянной доске' },
+    ],
+  },
+  {
+    id: 'camping', name: 'Кемпинг', icon: '🏕️',
+    items: [
+      { kind: 'tent',     label: 'Палатка',  emoji: '⛺', defaultColor: '#48c774', tags: ['палатка','tent','поход','кемпинг','лес'], hint: 'Туристическая палатка' },
+      { kind: 'backpack', label: 'Рюкзак',   emoji: '🎒', defaultColor: '#FF9454', tags: ['рюкзак','backpack','поход','туризм','сумка'], hint: 'Туристический рюкзак' },
+      { kind: 'compass',  label: 'Компас',   emoji: '🧭', defaultColor: '#c0c0c0', tags: ['компас','compass','навигация','ориентир','север'], hint: 'Старинный компас со стрелкой' },
+    ],
+  },
+  {
+    id: 'halloween', name: 'Хэллоуин', icon: '🎃',
+    items: [
+      { kind: 'witch-hat',  label: 'Шляпа ведьмы', emoji: '🧙', defaultColor: '#2a3340', tags: ['шляпа','witch','ведьма','хэллоуин','halloween'], hint: 'Остроконечная шляпа ведьмы' },
+      { kind: 'ghost',      label: 'Призрак',        emoji: '👻', defaultColor: '#e8e8f0', tags: ['призрак','ghost','хэллоуин','приведение','пугать'], hint: 'Летящий призрак' },
+      { kind: 'spider-web', label: 'Паутина',         emoji: '🕸️', defaultColor: '#c0c0c0', tags: ['паутина','spider','web','паук','хэллоуин'], hint: 'Декоративная паутина' },
+    ],
+  },
+  {
+    id: 'toys', name: 'Игрушки', icon: '🧸',
+    items: [
+      { kind: 'teddy-bear', label: 'Медвежонок', emoji: '🧸', defaultColor: '#c8841a', tags: ['мишка','teddy','медведь','игрушка','мягкий'], hint: 'Плюшевый медвежонок' },
+      { kind: 'lego-brick', label: 'Кубик Лего', emoji: '🧱', defaultColor: '#ff5464', tags: ['лего','lego','кубик','конструктор','детский'], hint: 'Кубик из конструктора' },
+      { kind: 'yo-yo',      label: 'Йо-йо',       emoji: '🪀', defaultColor: '#6B5CE7', tags: ['йо-йо','yo-yo','игрушка','юла','крутить'], hint: 'Классическое йо-йо' },
+    ],
+  },
+  {
+    id: 'lab', name: 'Лаборатория', icon: '⚗️',
+    items: [
+      { kind: 'flask', label: 'Колба',  emoji: '⚗️', defaultColor: '#48c774', tags: ['колба','flask','химия','наука','lab'], hint: 'Химическая колба с жидкостью' },
+      { kind: 'atom',  label: 'Атом',   emoji: '⚛️', defaultColor: '#88d4ff', tags: ['атом','atom','физика','наука','электроны'], hint: 'Модель атома с орбитами' },
+      { kind: 'gear',  label: 'Шестерня', emoji: '⚙️', defaultColor: '#8b8b8b', tags: ['шестерня','gear','механика','технику','robot'], hint: 'Металлическая шестерня' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

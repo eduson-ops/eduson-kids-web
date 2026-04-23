@@ -62,6 +62,16 @@ export type PropKind =
   | 'igloo' | 'sled' | 'snowflake-deco'
   // Circus
   | 'circus-tent' | 'ferris-wheel' | 'hot-air-balloon' | 'pinwheel' | 'lantern'
+  // Kitchen/Food2
+  | 'burger' | 'pizza' | 'sushi'
+  // Camping
+  | 'tent' | 'backpack' | 'compass'
+  // Halloween
+  | 'witch-hat' | 'ghost' | 'spider-web'
+  // Toys
+  | 'teddy-bear' | 'lego-brick' | 'yo-yo'
+  // Lab
+  | 'flask' | 'atom' | 'gear'
 
 export interface SpawnedPart {
   id: string
