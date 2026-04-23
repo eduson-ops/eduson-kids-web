@@ -15,6 +15,9 @@ const FORMS = {
   question:    ['вопрос',     'вопроса',     'вопросов']     as const,
   object:      ['объект',     'объекта',     'объектов']     as const,
   step:        ['шаг',        'шага',        'шагов']        as const,
+  class:       ['класс',      'класса',      'классов']      as const,
+  student:     ['ученик',     'ученика',     'учеников']     as const,
+  project:     ['проект',     'проекта',     'проектов']     as const,
 } as const
 
 export type PluralKey = keyof typeof FORMS
