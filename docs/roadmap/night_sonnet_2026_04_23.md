@@ -26,9 +26,14 @@
 | 11 | Space Station + Prehistoric | 20 |
 | 12 | Enchanted Village + Underwater Lab | 20 |
 | 13 | Desert Oasis + Medieval Castle | 20 |
+| 14 | Rainforest + Arctic Research | 20 |
+| 15 | Pirate Cove + Candy Land | 20 |
+| 16 | Volcano World + Neon City | 20 |
+| 17 | Ancient Egypt + Fairy Garden | 20 |
+| 18 | Western Town + Haunted Mansion | 20 |
 
-**Итого новых пропсов**: 80  
-**Всего пропсов**: ~472 across ~79 categories
+**Итого новых пропсов**: 180  
+**Всего пропсов**: ~592 across ~97 categories
 
 ## QA исправления
 
