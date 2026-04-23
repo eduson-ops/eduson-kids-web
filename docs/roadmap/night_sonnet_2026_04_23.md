@@ -44,9 +44,20 @@
 | 29 | Medieval Market + Tech Lab | 19 |
 | 30 | Space Station + Underwater Castle | 19 |
 | 31 | Steampunk City + Anime Dojo | 18 |
+| 32 | Enchanted Forest + Post-Apocalypse | 17 |
+| 33 | Farm + Industrial Port | 17 |
+| 34 | Ancient Greece + Cyberpunk City | 17 |
+| 35 | Arctic Tundra + Medieval Castle | 15 |
+| 36 | Rainforest + Space Exploration | 14 |
+| 37 | Candy Land + Egyptian Pyramids | 13 |
+| 38 | Pirate Cove + Fairy Tale Forest | 13 |
+| 39 | Dinosaur World + Music Studio | 11 |
+| 40 | Sports + Halloween | 10 |
+| 41 | Ocean Life + Christmas | 10 |
 
-**Итого новых пропсов**: ~435 (батчи 10-31)  
-**Всего пропсов**: ~865 across ~125 categories
+**Итого новых пропсов**: ~567 (батчи 10-41)  
+**Всего пропсов**: 1002+ across 145+ categories  
+**MILESTONE: 1000+ достигнуто ✅**
 
 ## QA исправления
 
@@ -72,7 +83,7 @@ https://eduson-ops.github.io/eduson-kids-web/
 ### UX polish (P2)
 - Global "My Blocks" library shared across projects
 - HtmlBlocklyWorkspace: 16 новых типов секций сайта
-- Batch 32+: продолжение 3D-пропсов (цель 1000+)
+- ~~Batch 32+: продолжение 3D-пропсов (цель 1000+)~~ ✅ DONE — 1002+
 
 ## Технические решения (locked)
 
