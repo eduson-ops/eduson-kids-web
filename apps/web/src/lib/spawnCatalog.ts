@@ -1461,6 +1461,33 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'post-apoc-telephone',label: 'Телефонная будка',      emoji: '📞', defaultColor: '#cc3322', tags: ['будка','post apoc telephone','телефон','разбита','плющ'], hint: 'Разбитая телефонная будка, увитая плющом' },
     ],
   },
+  {
+    id: 'farm', name: 'Ферма', icon: '🌾',
+    items: [
+      { kind: 'farm-hay-bale',       label: 'Тюк сена',              emoji: '🌾', defaultColor: '#e8c866', tags: ['сено','farm hay bale','рулон','тюк','ферма'], hint: 'Круглый тюк сена с верёвками' },
+      { kind: 'chicken-coop',        label: 'Курятник',              emoji: '🐔', defaultColor: '#8B4513', tags: ['курятник','chicken coop','птицы','сетка','ферма'], hint: 'Деревянный курятник с сеткой' },
+      { kind: 'tractor-b33',         label: 'Трактор',               emoji: '🚜', defaultColor: '#cc4400', tags: ['трактор','tractor','большие колёса','ферма','красный'], hint: 'Классический красный трактор' },
+      { kind: 'farm-silo',           label: 'Зернохранилище',        emoji: '🥫', defaultColor: '#aabbcc', tags: ['силос','farm silo','зерно','металл','ферма'], hint: 'Металлический силос с куполом' },
+      { kind: 'garden-scarecrow',    label: 'Пугало',                emoji: '🧑‍🌾', defaultColor: '#ff6644', tags: ['пугало','garden scarecrow','шляпа','качается','огород'], hint: 'Пугало в шляпе, качающееся на ветру' },
+      { kind: 'rooster-weather-vane',label: 'Флюгер-петух',          emoji: '🐓', defaultColor: '#b8860b', tags: ['флюгер','rooster weather vane','петух','ветер','крутится'], hint: 'Металлический флюгер в форме петуха' },
+      { kind: 'pig-pen',             label: 'Свинарник',             emoji: '🐷', defaultColor: '#8B4513', tags: ['свинарник','pig pen','свинья','забор','грязь'], hint: 'Загон для свиней с толстушкой внутри' },
+      { kind: 'water-mill',          label: 'Водяная мельница',      emoji: '⚙️', defaultColor: '#8B4513', tags: ['мельница','water mill','колесо','вращается','ферма'], hint: 'Водяная мельница с вращающимся колесом' },
+    ],
+  },
+  {
+    id: 'industrial-port', name: 'Индустриальный порт', icon: '⚓',
+    items: [
+      { kind: 'port-crane',          label: 'Портовый кран',         emoji: '🏗️', defaultColor: '#ffcc00', tags: ['кран','port crane','поворачивается','стрела','крюк'], hint: 'Поворотный портовый кран с крюком' },
+      { kind: 'shipping-container',  label: 'Морской контейнер',     emoji: '📦', defaultColor: '#cc4422', tags: ['контейнер','shipping container','стальной','гофрированный','порт'], hint: 'Стальной морской контейнер' },
+      { kind: 'dock-cleat',          label: 'Портовая утка',         emoji: '⚓', defaultColor: '#888888', tags: ['утка','dock cleat','швартовка','верёвка','металл'], hint: 'Металлическая швартовая утка с верёвкой' },
+      { kind: 'storage-tank-b33',    label: 'Резервуар',             emoji: '🛢️', defaultColor: '#aabbcc', tags: ['резервуар','storage tank','цилиндр','лестница','порт'], hint: 'Большой промышленный резервуар с лестницей' },
+      { kind: 'fork-lift',           label: 'Погрузчик',             emoji: '🚛', defaultColor: '#ffcc00', tags: ['погрузчик','fork lift','вилы','склад','жёлтый'], hint: 'Жёлтый вилочный погрузчик' },
+      { kind: 'fishing-boat',        label: 'Рыболовное судно',      emoji: '⛵', defaultColor: '#2244cc', tags: ['лодка','fishing boat','сеть','рыба','море'], hint: 'Рыболовное судно с мачтой и сетью' },
+      { kind: 'lighthouse-port-b33', label: 'Портовый маяк',        emoji: '🗼', defaultColor: '#ffffff', tags: ['маяк','lighthouse port','свет','мигает','берег'], hint: 'Полосатый маяк с мигающим огнём' },
+      { kind: 'coal-conveyor',       label: 'Ленточный транспортёр', emoji: '⚙️', defaultColor: '#666655', tags: ['транспортёр','coal conveyor','лента','уголь','промышленный'], hint: 'Наклонный ленточный транспортёр' },
+      { kind: 'industrial-chimney',  label: 'Промышленная труба',    emoji: '🏭', defaultColor: '#887766', tags: ['труба','industrial chimney','дым','красные полосы','завод'], hint: 'Высокая промышленная труба с красными полосами' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

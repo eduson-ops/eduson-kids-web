@@ -299,6 +299,12 @@ export type PropKind =
   // Post-Apocalypse
   | 'ruined-skyscraper' | 'rusted-car-wreck' | 'radiation-barrel' | 'scavenger-tower' | 'wasteland-turret'
   | 'bunker-entrance' | 'apoc-solar-panel' | 'post-apoc-telephone'
+  // Farm
+  | 'farm-hay-bale' | 'chicken-coop' | 'tractor-b33' | 'farm-silo' | 'garden-scarecrow'
+  | 'rooster-weather-vane' | 'pig-pen' | 'water-mill'
+  // Industrial Port
+  | 'port-crane' | 'shipping-container' | 'dock-cleat' | 'storage-tank-b33' | 'fork-lift'
+  | 'fishing-boat' | 'lighthouse-port-b33' | 'coal-conveyor' | 'industrial-chimney'
 
 export interface SpawnedPart {
   id: string
