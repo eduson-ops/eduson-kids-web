@@ -209,7 +209,14 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
 
       {open && (
         <>
-          <div className="spawn-menu-backdrop" onClick={() => setOpen(false)} />
+          <div
+            className="spawn-menu-backdrop"
+            onClick={() => setOpen(false)}
+            role="button"
+            tabIndex={0}
+            aria-label="Закрыть меню спавна"
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpen(false) }}
+          />
           <div className="spawn-menu" onClick={(e) => e.stopPropagation()}>
             <header className="spawn-menu-head">
               <nav className="spawn-menu-tabs">
@@ -404,13 +411,15 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                         onClick={() => pickItem(item)}
                         title={item.hint}
                       >
-                        <span
+                        <button
                           className="spawn-menu-fav"
                           onClick={(e) => { e.stopPropagation(); toggleFavorite(item.kind) }}
                           title={fav ? 'Убрать из избранного' : 'Добавить в избранное'}
+                          aria-label={fav ? 'Убрать из избранного' : 'Добавить в избранное'}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
                         >
                           {fav ? '⭐' : '☆'}
-                        </span>
+                        </button>
                         <span className="spawn-menu-emoji">{item.emoji}</span>
                         <span className="spawn-menu-label">{highlight(item.label, query)}</span>
                         {item.hint && <small className="spawn-menu-hint">{item.hint}</small>}
