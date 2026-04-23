@@ -232,6 +232,12 @@ export type PropKind =
   // Atlantis City
   | 'atlantis-temple' | 'trident-monument' | 'coral-pillar' | 'seahorse-statue' | 'bubble-chamber'
   | 'atlantis-gate' | 'ocean-floor-ruin' | 'atlantis-crystal-spire' | 'mermaid-fountain' | 'neptune-idol'
+  // Magic School
+  | 'spell-cauldron' | 'wizard-desk' | 'spell-book-stand' | 'astro-lab-table' | 'magic-mirror-school'
+  | 'graduation-podium' | 'wand-rack' | 'hourglass-school' | 'star-map' | 'magic-chalkboard'
+  // Jungle Temple
+  | 'jungle-pillar' | 'moss-altar' | 'vine-gate' | 'temple-idol' | 'giant-leaf'
+  | 'temple-fire-brazier' | 'serpent-carving' | 'hidden-trap-door' | 'ancient-gong' | 'jungle-shrine'
 
 export interface SpawnedPart {
   id: string

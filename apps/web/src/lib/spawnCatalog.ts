@@ -1140,6 +1140,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'neptune-idol',          label: 'Идол Нептуна',          emoji: '🔱', defaultColor: '#334455', tags: ['нептун','neptune idol','идол','морской бог','трезубец'], hint: 'Каменный идол бога морей' },
     ],
   },
+  {
+    id: 'magic-school', name: 'Школа магии', icon: '🧙',
+    items: [
+      { kind: 'spell-cauldron',     label: 'Котёл заклинаний',     emoji: '🪄', defaultColor: '#aa44ff', tags: ['котёл','spell cauldron','зелье','варит','магия'], hint: 'Кипящий котёл с зельем' },
+      { kind: 'wizard-desk',        label: 'Стол волшебника',       emoji: '🪄', defaultColor: '#8B4513', tags: ['стол','wizard desk','волшебник','хаос','книги'], hint: 'Захламлённый стол мага' },
+      { kind: 'spell-book-stand',   label: 'Подставка для книги',   emoji: '📖', defaultColor: '#aa4400', tags: ['подставка','spell book stand','книга','заклинание','читает'], hint: 'Стойка с раскрытой книгой заклинаний' },
+      { kind: 'astro-lab-table',    label: 'Астролябия',            emoji: '🌐', defaultColor: '#cc8822', tags: ['астролябия','astro lab table','астрономия','золотая','вращается'], hint: 'Золотая астролябия на столе' },
+      { kind: 'magic-mirror-school',label: 'Волшебное зеркало',     emoji: '🪞', defaultColor: '#aaeeff', tags: ['зеркало','magic mirror','волшебное','светится','голубое'], hint: 'Светящееся зеркало с видением' },
+      { kind: 'graduation-podium',  label: 'Пьедестал выпускника',  emoji: '🏆', defaultColor: '#ffdd44', tags: ['пьедестал','graduation podium','выпускник','победа','награда'], hint: 'Трёхступенчатый пьедестал почёта' },
+      { kind: 'wand-rack',          label: 'Стойка волшебных палочек', emoji: '🪄', defaultColor: '#664422', tags: ['палочка','wand rack','волшебная','набор','магия'], hint: 'Пять разных волшебных палочек' },
+      { kind: 'hourglass-school',   label: 'Песочные часы',          emoji: '⌛', defaultColor: '#88ccff', tags: ['часы','hourglass','песок','время','прозрачные'], hint: 'Большие стеклянные песочные часы' },
+      { kind: 'star-map',           label: 'Карта звёздного неба',   emoji: '🌟', defaultColor: '#ffcc44', tags: ['карта','star map','звёзды','ночное небо','астрономия'], hint: 'Карта созвездий на тёмном фоне' },
+      { kind: 'magic-chalkboard',   label: 'Волшебная доска',        emoji: '🪄', defaultColor: '#225533', tags: ['доска','magic chalkboard','формулы','магия','светится'], hint: 'Классная доска с магическими символами' },
+    ],
+  },
+  {
+    id: 'jungle-temple', name: 'Храм джунглей', icon: '🌿',
+    items: [
+      { kind: 'jungle-pillar',      label: 'Колонна джунглей',      emoji: '🏛', defaultColor: '#556644', tags: ['колонна','jungle pillar','покрыта мхом','камень','древняя'], hint: 'Каменная колонна в лианах' },
+      { kind: 'moss-altar',         label: 'Замшелый алтарь',        emoji: '🍀', defaultColor: '#445533', tags: ['алтарь','moss altar','мох','светится','зелёный'], hint: 'Древний алтарь покрытый мхом' },
+      { kind: 'vine-gate',          label: 'Врата из лиан',          emoji: '🌿', defaultColor: '#334422', tags: ['врата','vine gate','лианы','джунгли','проход'], hint: 'Каменные врата, увитые лианами' },
+      { kind: 'temple-idol',        label: 'Идол храма',             emoji: '🗿', defaultColor: '#556644', tags: ['идол','temple idol','золото','светится','древний'], hint: 'Золотоглазый идол на постаменте' },
+      { kind: 'giant-leaf',         label: 'Гигантский лист',        emoji: '🌱', defaultColor: '#44aa22', tags: ['лист','giant leaf','большой','зелёный','джунгли'], hint: 'Огромный лист тропического растения' },
+      { kind: 'temple-fire-brazier',label: 'Жертвенный огонь',       emoji: '🔥', defaultColor: '#ff6600', tags: ['жертвенный','temple fire brazier','огонь','бронза','ритуал'], hint: 'Горящая бронзовая чаша на шесте' },
+      { kind: 'serpent-carving',    label: 'Резьба змеи',            emoji: '🐍', defaultColor: '#334422', tags: ['змея','serpent carving','резьба','камень','тотем'], hint: 'Каменная резьба в виде змеи' },
+      { kind: 'hidden-trap-door',   label: 'Скрытый люк',            emoji: '🚪', defaultColor: '#554433', tags: ['люк','hidden trap door','скрытый','опасный','загадка'], hint: 'Люк в полу, почти незаметный' },
+      { kind: 'ancient-gong',       label: 'Древний гонг',           emoji: '🔔', defaultColor: '#cc8822', tags: ['гонг','ancient gong','бронза','звук','ритуал'], hint: 'Бронзовый гонг на деревянных стойках' },
+      { kind: 'jungle-shrine',      label: 'Алтарь джунглей',        emoji: '🌿', defaultColor: '#445533', tags: ['алтарь','jungle shrine','светится','зелёный','джунгли'], hint: 'Маленький алтарь с магической сферой' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
