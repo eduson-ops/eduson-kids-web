@@ -160,6 +160,18 @@ export type PropKind =
   // Jungle Park
   | 'jungle-bridge' | 'tribal-drum' | 'jungle-flower' | 'tree-giant' | 'parrot-perch'
   | 'waterfall-small' | 'bamboo-wall' | 'frog-statue' | 'temple-ruin' | 'treasure-map-stand'
+  // Steampunk
+  | 'steam-pipe' | 'clockwork-gear' | 'airship-engine' | 'pressure-gauge' | 'steam-locomotive'
+  | 'cog-tower' | 'tesla-lamp' | 'brass-telescope' | 'steam-vent' | 'dirigible'
+  // Cyberpunk
+  | 'neon-billboard' | 'cyber-vending' | 'holo-ad' | 'drone-prop' | 'cyberpunk-car'
+  | 'server-rack' | 'cyber-street-lamp' | 'rain-puddle' | 'graffiti-wall' | 'cyber-trash'
+  // Space Station
+  | 'launch-silo' | 'space-capsule' | 'moon-crater' | 'ion-thruster' | 'astro-lab'
+  | 'solar-collector' | 'space-beacon' | 'oxygen-tank' | 'hull-panel' | 'space-buggy'
+  // Prehistoric
+  | 'cave-painting' | 'mammoth' | 'dino-track' | 'bone-pile' | 'flint-club'
+  | 'stone-hut' | 'fire-pit-2' | 'sabre-tooth' | 'tar-pit' | 'amber-gem'
 
 export interface SpawnedPart {
   id: string
