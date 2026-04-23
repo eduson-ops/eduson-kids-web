@@ -244,6 +244,12 @@ export type PropKind =
   // Lava Forge
   | 'forge-anvil' | 'lava-forge' | 'molten-hammer' | 'lava-tube-pipe' | 'forge-chest'
   | 'smith-bellows' | 'lava-rune' | 'forge-golem' | 'molten-crucible' | 'ember-spark'
+  // Mushroom Kingdom
+  | 'giant-mushroom-b24' | 'mushroom-house-b24' | 'spore-cloud' | 'glowing-mushroom-ring' | 'mushroom-bridge'
+  | 'mushroom-toadstool' | 'mushroom-lamp' | 'mushroom-fountain-b24' | 'mushroom-gate' | 'toad-king-throne'
+  // Space Outpost
+  | 'satellite-dish-b24' | 'habitat-module' | 'space-antenna' | 'outpost-cryo-pod' | 'airblock-door'
+  | 'space-tool-rack' | 'meteor-fragment' | 'outpost-beacon' | 'space-turret' | 'hull-breach-patch'
 
 export interface SpawnedPart {
   id: string

@@ -1200,6 +1200,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'ember-spark',      label: 'Искры',                   emoji: '✨', defaultColor: '#ff6600', tags: ['искры','ember spark','летают','огонь','частицы'], hint: 'Летящие искры от кузницы' },
     ],
   },
+  {
+    id: 'mushroom-kingdom', name: 'Грибное царство', icon: '🍄',
+    items: [
+      { kind: 'giant-mushroom-b24',    label: 'Гигантский гриб',       emoji: '🍄', defaultColor: '#ff4466', tags: ['гриб','giant mushroom','огромный','красный','пятна'], hint: 'Огромный гриб с белыми пятнами' },
+      { kind: 'mushroom-house-b24',    label: 'Домик-гриб',            emoji: '🍄', defaultColor: '#ff2244', tags: ['домик','mushroom house','гриб','красный','дверь'], hint: 'Уютный домик в форме гриба' },
+      { kind: 'spore-cloud',           label: 'Облако спор',           emoji: '✨', defaultColor: '#cc44ff', tags: ['споры','spore cloud','светится','фиолетовый','летит'], hint: 'Облако светящихся спор' },
+      { kind: 'glowing-mushroom-ring', label: 'Светящееся кольцо',     emoji: '⭕', defaultColor: '#44ffaa', tags: ['кольцо','glowing mushroom ring','круг','светится','феи'], hint: 'Кольцо из светящихся грибов' },
+      { kind: 'mushroom-bridge',       label: 'Мостик из грибов',      emoji: '🌉', defaultColor: '#ff6644', tags: ['мостик','mushroom bridge','грибы','переход','сказочный'], hint: 'Мостик на опорах из грибов' },
+      { kind: 'mushroom-toadstool',    label: 'Поганка',               emoji: '🍄', defaultColor: '#ff8833', tags: ['поганка','mushroom toadstool','малая','гриб','яркая'], hint: 'Маленькая яркая поганка' },
+      { kind: 'mushroom-lamp',         label: 'Гриб-фонарь',           emoji: '💡', defaultColor: '#ffcc44', tags: ['фонарь','mushroom lamp','светится','ночь','уютный'], hint: 'Светящийся гриб-светильник' },
+      { kind: 'mushroom-fountain-b24', label: 'Грибной фонтан',        emoji: '⛲', defaultColor: '#ff6688', tags: ['фонтан','mushroom fountain','гриб','вода','красивый'], hint: 'Фонтан с грибовидной чашей' },
+      { kind: 'mushroom-gate',         label: 'Грибные ворота',        emoji: '🚪', defaultColor: '#ff4422', tags: ['ворота','mushroom gate','грибы','проход','сказочный'], hint: 'Ворота из двух больших грибов' },
+      { kind: 'toad-king-throne',      label: 'Трон короля гномов',    emoji: '👑', defaultColor: '#887755', tags: ['трон','toad king throne','король','гриб','деревянный'], hint: 'Трон мудрого правителя грибного царства' },
+    ],
+  },
+  {
+    id: 'space-outpost', name: 'Космическая база', icon: '🛸',
+    items: [
+      { kind: 'satellite-dish-b24', label: 'Спутниковая тарелка',    emoji: '📡', defaultColor: '#778899', tags: ['тарелка','satellite dish','сигнал','космос','металл'], hint: 'Вращающаяся спутниковая тарелка' },
+      { kind: 'habitat-module',     label: 'Жилой модуль',           emoji: '🏠', defaultColor: '#556677', tags: ['модуль','habitat module','цилиндр','жилой','космос'], hint: 'Цилиндрический жилой модуль с солнечными панелями' },
+      { kind: 'space-antenna',      label: 'Антенна связи',          emoji: '📡', defaultColor: '#aabbcc', tags: ['антенна','space antenna','связь','мигает','башня'], hint: 'Высокая антенна с мигающим огнём' },
+      { kind: 'outpost-cryo-pod',   label: 'Криокапсула',            emoji: '🧊', defaultColor: '#334455', tags: ['крио','outpost cryo pod','капсула','сон','прозрачная'], hint: 'Капсула для криосна экипажа' },
+      { kind: 'airblock-door',      label: 'Шлюз',                   emoji: '🚪', defaultColor: '#334455', tags: ['шлюз','airblock door','дверь','космос','зелёный свет'], hint: 'Герметичный шлюз с зелёным индикатором' },
+      { kind: 'space-tool-rack',    label: 'Стойка инструментов',    emoji: '🔧', defaultColor: '#778899', tags: ['инструменты','space tool rack','стойка','ремонт','космос'], hint: 'Настенная стойка с космическими инструментами' },
+      { kind: 'meteor-fragment',    label: 'Метеоритный фрагмент',   emoji: '☄️', defaultColor: '#556644', tags: ['метеорит','meteor fragment','камень','космический','грубый'], hint: 'Осколок упавшего метеорита' },
+      { kind: 'outpost-beacon',     label: 'Маяк',                   emoji: '🔆', defaultColor: '#44aaff', tags: ['маяк','outpost beacon','свет','сигнал','синий'], hint: 'Маяк для навигации кораблей' },
+      { kind: 'space-turret',       label: 'Турель',                  emoji: '🔫', defaultColor: '#445566', tags: ['турель','space turret','пушка','вращается','защита'], hint: 'Автоматическая оборонная турель' },
+      { kind: 'hull-breach-patch',  label: 'Заплатка обшивки',       emoji: '🔩', defaultColor: '#445566', tags: ['заплатка','hull breach patch','ремонт','обшивка','лава'], hint: 'Аварийная заплатка на пробоине корпуса' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
