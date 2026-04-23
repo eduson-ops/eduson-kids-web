@@ -18,7 +18,7 @@
 | 6 | Mascot overlay | ✅ useMascotMood + MascotMoodOverlay wired in Hub |
 | 7 | Deploy + roadmap | ✅ gh-pages current, this file created |
 
-## 3D модели (добавлено в этой сессии)
+## 3D модели (добавлено в этой и предыдущей сессии)
 
 | Батч | Категории | Пропсов |
 |------|-----------|---------|
@@ -38,14 +38,21 @@
 | 23 | Ice Palace + Lava Forge | 20 |
 | 24 | Mushroom Kingdom + Space Outpost | 20 |
 | 25 | Toy Workshop + Garden Party | 20 |
+| 26 | Circus Spectacular + Viking Age | 20 |
+| 27 | Samurai Japan + Aztec Empire | 19 |
+| 28 | Deep Sea + Wild West | 19 |
+| 29 | Medieval Market + Tech Lab | 19 |
+| 30 | Space Station + Underwater Castle | 19 |
+| 31 | Steampunk City + Anime Dojo | 18 |
 
-**Итого новых пропсов**: 320  
-**Всего пропсов**: ~752 across ~107 categories
+**Итого новых пропсов**: ~435 (батчи 10-31)  
+**Всего пропсов**: ~865 across ~125 categories
 
 ## QA исправления
 
-- `Settings.tsx`: React key на `<Fragment>` вместо дочерних элементов (предотвращает warning)
-- `Settings.tsx`: `ToastKind 'info'` → `'default'` (фиксирует TS error)
+- `Settings.tsx`: React key на `<Fragment>` вместо дочерних элементов
+- `Settings.tsx`: `ToastKind 'info'` → `'default'`
+- Дубликаты функций в WorldAdditions.tsx: переименованы по паттерну B21/B26/B28/B30 и с тематическим префиксом
 
 ## Live URL
 
@@ -65,7 +72,7 @@ https://eduson-ops.github.io/eduson-kids-web/
 ### UX polish (P2)
 - Global "My Blocks" library shared across projects
 - HtmlBlocklyWorkspace: 16 новых типов секций сайта
-- Batch 26+: продолжение 3D-пропсов (цель 1000+)
+- Batch 32+: продолжение 3D-пропсов (цель 1000+)
 
 ## Технические решения (locked)
 
@@ -73,3 +80,6 @@ https://eduson-ops.github.io/eduson-kids-web/
 - Build: `npm run build` = `tsc -b + vite build` — оба зелёные перед deploy
 - `rotation` prop → на `<mesh>`, НЕ на geometry elements
 - Admin gate: `localStorage.getItem('ek_admin') === '1'` или `?admin=1`
+- Git repo: `.git` живёт в `C:/Users/being/Desktop/R&D/src/.git`
+- Push pattern: `git -C C:/Users/being/Desktop/R&D/src push origin night-sonnet-2026-04-23:night-sonnet-2026-04-23-local`
+- Дубликаты функций: переименовывать с префиксом B{batch} или тематическим — НЕ удалять существующие
