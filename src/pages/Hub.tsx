@@ -158,7 +158,7 @@ export default function Hub() {
           </div>
         </div>
 
-        <div className="kb-cover-mascot" style={{ position: 'relative' }} aria-hidden>
+        <div className="kb-cover-mascot" aria-hidden>
           <Niksel pose={mood} size={280} />
           <MascotMoodOverlay mood={mood} />
         </div>

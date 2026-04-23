@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import { useToast } from '../hooks/useToast'
 import { getMuted, setMuted, setVolume, getVolume } from '../lib/audio'
+import { resetOnboarding } from '../components/OnboardingOverlay'
 
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
@@ -269,6 +270,13 @@ export default function Settings() {
         <div className="kb-card">
           <h2 className="h2" style={{ marginBottom: 16 }}>Аккаунт</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+            <button
+              className="kb-btn"
+              onClick={() => { resetOnboarding(); showToast('✓ Обучение сброшено — откройте любой мир', 'success') }}
+              title="Показать обучение заново при следующем открытии мира"
+            >
+              🎓 Пройти обучение снова
+            </button>
             <button className="kb-btn kb-btn--secondary" onClick={handleSignOut}>
               🚪 Выйти
             </button>

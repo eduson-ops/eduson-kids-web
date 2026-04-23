@@ -130,6 +130,12 @@ export type PropKind =
   | 'fireworks' | 'spark-fountain' | 'smoke-cloud' | 'rainbow-jet' | 'magic-circle'
   // Superhero
   | 'hero-cape' | 'hero-mask' | 'power-shield' | 'hero-statue' | 'energy-core'
+  // Buildings
+  | 'house-small' | 'apartment' | 'skyscraper' | 'cottage' | 'lighthouse-prop'
+  | 'castle-wall' | 'shop-front' | 'school-building' | 'barn-big' | 'temple-prop'
+  // City-2
+  | 'hospital' | 'police-station' | 'fire-station' | 'library-building' | 'park-fountain'
+  | 'bus-stop' | 'bridge-arch' | 'stadium' | 'museum' | 'market-stall'
 
 export interface SpawnedPart {
   id: string
