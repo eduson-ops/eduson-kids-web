@@ -16,7 +16,7 @@ export default function EscapeMenu({ gameTitle }: Props) {
   const [open, setOpen] = useState(false)
   const [muted, setMutedState] = useState(getMuted())
   const [sfxVol, setSfxVol] = useState(Math.round(getVolume() * 100))
-  const [quality, setQuality] = useState(() => localStorage.getItem('ek_quality') ?? 'high')
+  const [quality, setQuality] = useState(() => localStorage.getItem('ek_quality') ?? 'auto')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -89,9 +89,9 @@ export default function EscapeMenu({ gameTitle }: Props) {
                 window.dispatchEvent(new CustomEvent('ek:quality-change', { detail: { quality: q } }))
               }}
             >
-              <option value="low">Низкое (быстро)</option>
+              <option value="auto">Авто (адаптивно)</option>
               <option value="med">Среднее</option>
-              <option value="high">Высокое (по умолч.)</option>
+              <option value="low">Низкое (быстро)</option>
             </select>
           </label>
         </section>
