@@ -238,6 +238,12 @@ export type PropKind =
   // Jungle Temple
   | 'jungle-pillar' | 'moss-altar' | 'vine-gate' | 'temple-idol' | 'giant-leaf'
   | 'temple-fire-brazier' | 'serpent-carving' | 'hidden-trap-door' | 'ancient-gong' | 'jungle-shrine'
+  // Ice Palace
+  | 'ice-palace-tower' | 'frozen-waterfall' | 'ice-statue' | 'ice-bridge' | 'snow-drift'
+  | 'ice-crystal-pillar' | 'ice-blizzard-shield' | 'ice-throne-chair' | 'polar-bear-statue' | 'ice-lantern'
+  // Lava Forge
+  | 'forge-anvil' | 'lava-forge' | 'molten-hammer' | 'lava-tube-pipe' | 'forge-chest'
+  | 'smith-bellows' | 'lava-rune' | 'forge-golem' | 'molten-crucible' | 'ember-spark'
 
 export interface SpawnedPart {
   id: string

@@ -1170,6 +1170,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'jungle-shrine',      label: 'Алтарь джунглей',        emoji: '🌿', defaultColor: '#445533', tags: ['алтарь','jungle shrine','светится','зелёный','джунгли'], hint: 'Маленький алтарь с магической сферой' },
     ],
   },
+  {
+    id: 'ice-palace', name: 'Ледяной дворец', icon: '🧊',
+    items: [
+      { kind: 'ice-palace-tower',    label: 'Ледяная башня',          emoji: '🧊', defaultColor: '#aaddff', tags: ['башня','ice palace tower','лёд','прозрачная','синяя'], hint: 'Высокая прозрачная ледяная башня' },
+      { kind: 'frozen-waterfall',    label: 'Замёрзший водопад',      emoji: '🌊', defaultColor: '#cceeff', tags: ['водопад','frozen waterfall','лёд','застывший','холодный'], hint: 'Водопад, застывший в момент падения' },
+      { kind: 'ice-statue',          label: 'Ледяная статуя',         emoji: '🧊', defaultColor: '#aaddff', tags: ['статуя','ice statue','лёд','прозрачная','фигура'], hint: 'Прозрачная ледяная фигура' },
+      { kind: 'ice-bridge',          label: 'Ледяной мост',           emoji: '🌉', defaultColor: '#bbddff', tags: ['мост','ice bridge','лёд','переход','хрустальный'], hint: 'Хрустальный мост с перилами' },
+      { kind: 'snow-drift',          label: 'Сугроб',                 emoji: '⛄', defaultColor: '#eeeeff', tags: ['сугроб','snow drift','снег','белый','мягкий'], hint: 'Большой пушистый сугроб' },
+      { kind: 'ice-crystal-pillar',  label: 'Ледяной кристалл',       emoji: '💎', defaultColor: '#88ccff', tags: ['кристалл','ice crystal pillar','ледяной','светится','вращается'], hint: 'Вращающийся ледяной кристалл' },
+      { kind: 'ice-blizzard-shield', label: 'Щит метели',             emoji: '❄️', defaultColor: '#aaddff', tags: ['щит','ice blizzard shield','метель','кольца','магия'], hint: 'Магический щит из ледяных колец' },
+      { kind: 'ice-throne-chair',    label: 'Ледяной трон',           emoji: '👑', defaultColor: '#99ccff', tags: ['трон','ice throne','кресло','лёд','королева'], hint: 'Трон Снежной Королевы' },
+      { kind: 'polar-bear-statue',   label: 'Белый медведь',          emoji: '🐻', defaultColor: '#eeeeff', tags: ['медведь','polar bear statue','белый','статуя','арктика'], hint: 'Фигурка белого медведя' },
+      { kind: 'ice-lantern',         label: 'Ледяной фонарь',         emoji: '🏮', defaultColor: '#88ddff', tags: ['фонарь','ice lantern','лёд','светится','синий'], hint: 'Фонарь из прозрачного льда' },
+    ],
+  },
+  {
+    id: 'lava-forge', name: 'Кузница лавы', icon: '🔥',
+    items: [
+      { kind: 'forge-anvil',      label: 'Наковальня',              emoji: '⚒️', defaultColor: '#555544', tags: ['наковальня','forge anvil','металл','кузница','тяжёлая'], hint: 'Тяжёлая металлическая наковальня' },
+      { kind: 'lava-forge',       label: 'Горн',                    emoji: '🔥', defaultColor: '#ff4400', tags: ['горн','lava forge','огонь','кузница','дым'], hint: 'Раскалённый кузнечный горн' },
+      { kind: 'molten-hammer',    label: 'Расплавленный молот',     emoji: '🔨', defaultColor: '#cc6600', tags: ['молот','molten hammer','раскалённый','металл','оружие'], hint: 'Светящийся от жара молот' },
+      { kind: 'lava-tube-pipe',   label: 'Лавовая труба',           emoji: '🌋', defaultColor: '#ff3300', tags: ['труба','lava tube pipe','лава','горячая','металл'], hint: 'Металлическая труба с лавой' },
+      { kind: 'forge-chest',      label: 'Сундук кузнеца',         emoji: '📦', defaultColor: '#445566', tags: ['сундук','forge chest','металл','золото','хранение'], hint: 'Металлический сундук с золотыми замками' },
+      { kind: 'smith-bellows',    label: 'Кузнечные меха',          emoji: '💨', defaultColor: '#882200', tags: ['меха','smith bellows','воздух','кузница','дует'], hint: 'Качающиеся кузнечные меха' },
+      { kind: 'lava-rune',        label: 'Лавовая руна',            emoji: '🔥', defaultColor: '#ff5500', tags: ['руна','lava rune','огненная','светится','магия'], hint: 'Огненная руна на каменной плите' },
+      { kind: 'forge-golem',      label: 'Голем кузницы',           emoji: '🤖', defaultColor: '#333222', tags: ['голем','forge golem','металл','страж','светящиеся глаза'], hint: 'Металлический страж кузницы' },
+      { kind: 'molten-crucible',  label: 'Тигель',                  emoji: '🔴', defaultColor: '#ff4400', tags: ['тигель','molten crucible','расплав','металл','горячий'], hint: 'Кипящий тигель с расплавленным металлом' },
+      { kind: 'ember-spark',      label: 'Искры',                   emoji: '✨', defaultColor: '#ff6600', tags: ['искры','ember spark','летают','огонь','частицы'], hint: 'Летящие искры от кузницы' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
