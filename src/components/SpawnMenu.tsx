@@ -42,9 +42,17 @@ const TOOLS: ToolDef[] = [
   { id: 'remove', emoji: '🗑', label: 'Удалятель', hint: 'Клик по объекту мгновенно скрывает его' },
 ]
 
-const TOOL_COLORS = [
-  '#ff5464', '#ffd644', '#48c774', '#4c97ff', '#c879ff',
-  '#ff8c1a', '#ff5ab1', '#88d4ff', '#ffffff', '#2a3340',
+const TOOL_COLORS: { hex: string; name: string }[] = [
+  { hex: '#ff5464', name: 'Красный' },
+  { hex: '#ffd644', name: 'Жёлтый' },
+  { hex: '#48c774', name: 'Зелёный' },
+  { hex: '#4c97ff', name: 'Синий' },
+  { hex: '#c879ff', name: 'Фиолетовый' },
+  { hex: '#ff8c1a', name: 'Оранжевый' },
+  { hex: '#ff5ab1', name: 'Розовый' },
+  { hex: '#88d4ff', name: 'Голубой' },
+  { hex: '#ffffff', name: 'Белый' },
+  { hex: '#2a3340', name: 'Тёмный' },
 ]
 
 interface SpawnMenuProps {
@@ -155,13 +163,14 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
           <span>📍 Кликни в мир чтобы поставить <b>{findItem(placement.kind as PropKind)?.label ?? placement.kind}</b>.
           Esc — отмена · Q — другой объект</span>
           <div className="spawn-hint-colors">
-            {TOOL_COLORS.map((c) => (
+            {TOOL_COLORS.map(({ hex, name }) => (
               <button
-                key={c}
+                key={hex}
                 className="spawn-hint-swatch"
-                style={{ background: c, outline: placement.color === c ? '2px solid #fff' : '2px solid transparent' }}
-                onClick={() => setPlacement({ ...placement, color: c })}
-                aria-label={`Цвет ${c}`}
+                style={{ background: hex, outline: placement.color === hex ? '2px solid #fff' : '2px solid transparent' }}
+                onClick={() => setPlacement({ ...placement, color: hex })}
+                aria-label={name}
+                title={name}
               />
             ))}
           </div>
@@ -254,13 +263,14 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                   <section className="tools-section">
                     <h4>🎨 Цвет кисти</h4>
                     <div className="tools-colors">
-                      {TOOL_COLORS.map((c) => (
+                      {TOOL_COLORS.map(({ hex, name }) => (
                         <button
-                          key={c}
-                          className={`tools-swatch ${toolColor === c ? 'active' : ''}`}
-                          style={{ background: c }}
-                          onClick={() => { setToolColor(c); setToolColorLocal(c); SFX.click() }}
-                          aria-label={`Цвет ${c}`}
+                          key={hex}
+                          className={`tools-swatch ${toolColor === hex ? 'active' : ''}`}
+                          style={{ background: hex }}
+                          onClick={() => { setToolColor(hex); setToolColorLocal(hex); SFX.click() }}
+                          aria-label={name}
+                          title={name}
                         />
                       ))}
                     </div>
