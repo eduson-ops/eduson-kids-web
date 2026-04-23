@@ -413,6 +413,12 @@ export type PropKind =
   | 'hover-car-b52' | 'sky-tower-b52' | 'ad-billboard-b52' | 'tube-pod-b52' | 'energy-fountain-b52'
   // Zen Garden
   | 'sand-rake-b52' | 'stepping-stones-b52' | 'bonsai-tree-b52' | 'zen-bowl-b52' | 'incense-stick-b52'
+  // Treehouse Village
+  | 'treehouse-b53' | 'rope-ladder-b53' | 'zip-line-b53' | 'bird-feeder-b53' | 'tree-swing-b53'
+  // Neon Arcade
+  | 'arcade-cabinet-b53' | 'prize-counter-b53' | 'pinball-machine-b53' | 'token-slot-b53' | 'score-board-b53'
+  // Ice Kingdom
+  | 'ice-throne-b53' | 'frozen-waterfall-b53' | 'snowflake-arch-b53' | 'glacier-shard-b53' | 'frost-lamp-b53'
 
 export interface SpawnedPart {
   id: string

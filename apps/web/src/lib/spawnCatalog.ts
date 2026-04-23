@@ -2001,6 +2001,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'incense-stick-b52', label: 'Благовония',           emoji: '🕯️', defaultColor: '#88aacc', tags: ['благовония','incense stick','дым','дзен','ароматы'], hint: 'Тонкие палочки с голубым дымком' },
     ],
   },
+  {
+    id: 'treehouse-village-b53', name: '🌳 Деревня на деревьях', icon: '🌳',
+    items: [
+      { kind: 'treehouse-b53',     label: 'Домик на дереве',      emoji: '🏡', defaultColor: '#8B4513', tags: ['домик','treehouse','дерево','приключение','дети'], hint: 'Уютный домик на ветвях большого дуба' },
+      { kind: 'rope-ladder-b53',   label: 'Верёвочная лестница',  emoji: '🪜', defaultColor: '#8B6914', tags: ['лестница','rope ladder','верёвка','дерево','подъём'], hint: 'Плетёная лестница уходящая вверх' },
+      { kind: 'zip-line-b53',      label: 'Тролли (зиплайн)',     emoji: '🎢', defaultColor: '#888888', tags: ['зиплайн','zip line','скользить','приключение','дерево'], hint: 'Стальной трос для скоростного спуска' },
+      { kind: 'bird-feeder-b53',   label: 'Кормушка для птиц',    emoji: '🐦', defaultColor: '#cc8800', tags: ['кормушка','bird feeder','птицы','дерево','природа'], hint: 'Деревянная кормушка с семечками' },
+      { kind: 'tree-swing-b53',    label: 'Качели на дереве',     emoji: '🎠', defaultColor: '#8B4513', tags: ['качели','tree swing','дерево','игра','дети'], hint: 'Деревянные качели на толстых верёвках' },
+    ],
+  },
+  {
+    id: 'neon-arcade-b53', name: '🕹️ Неоновый аркадный зал', icon: '🕹️',
+    items: [
+      { kind: 'arcade-cabinet-b53',label: 'Аркадный автомат',     emoji: '🕹️', defaultColor: '#ff2288', tags: ['автомат','arcade cabinet','игра','неон','ретро'], hint: 'Мерцающий ретро-автомат с джойстиком' },
+      { kind: 'prize-counter-b53', label: 'Прилавок призов',      emoji: '🏆', defaultColor: '#ffcc00', tags: ['призы','prize counter','награда','аркада','витрина'], hint: 'Витрина с игрушками за жетоны' },
+      { kind: 'pinball-machine-b53',label: 'Пинбол',              emoji: '🎱', defaultColor: '#ff4400', tags: ['пинбол','pinball machine','шарик','игра','аркада'], hint: 'Классический пинбольный автомат' },
+      { kind: 'token-slot-b53',    label: 'Слот для жетонов',     emoji: '🪙', defaultColor: '#ffcc00', tags: ['жетон','token slot','монетка','аркада','игра'], hint: 'Металлический слот для монеток' },
+      { kind: 'score-board-b53',   label: 'Табло результатов',    emoji: '📊', defaultColor: '#00ff88', tags: ['табло','score board','счёт','аркада','рекорд'], hint: 'Светящееся табло с рекордами' },
+    ],
+  },
+  {
+    id: 'ice-kingdom-b53', name: '❄️ Ледяное королевство', icon: '❄️',
+    items: [
+      { kind: 'ice-throne-b53',    label: 'Ледяной трон',         emoji: '❄️', defaultColor: '#88ccff', tags: ['трон','ice throne','лёд','холод','королевство'], hint: 'Величественный трон из синего льда' },
+      { kind: 'frozen-waterfall-b53',label: 'Замёрзший водопад',  emoji: '🏔️', defaultColor: '#aaccff', tags: ['водопад','frozen waterfall','лёд','природа','красиво'], hint: 'Застывший в прыжке ледяной водопад' },
+      { kind: 'snowflake-arch-b53',label: 'Арка снежинок',        emoji: '❄️', defaultColor: '#ccddff', tags: ['снежинки','snowflake arch','арка','лёд','зима'], hint: 'Ворота из огромных кристаллических снежинок' },
+      { kind: 'glacier-shard-b53', label: 'Осколок ледника',      emoji: '🧊', defaultColor: '#88bbff', tags: ['ледник','glacier shard','лёд','кристалл','арктика'], hint: 'Острый прозрачный осколок льда' },
+      { kind: 'frost-lamp-b53',    label: 'Морозный фонарь',      emoji: '💙', defaultColor: '#88aaff', tags: ['фонарь','frost lamp','лёд','свет','зима'], hint: 'Фонарь заключённый в ледяной кристалл' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
