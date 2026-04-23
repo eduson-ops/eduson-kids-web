@@ -196,6 +196,12 @@ export type PropKind =
   // Candy Land
   | 'candy-tree' | 'lollipop-tower' | 'gingerbread-house' | 'candy-cane-gate' | 'cupcake-throne'
   | 'cotton-candy-cloud' | 'chocolate-river' | 'donut-arch' | 'jellybean-path' | 'sugar-castle'
+  // Volcano World
+  | 'lava-pool' | 'volcano-rock' | 'fire-geyser' | 'obsidian-pillar' | 'lava-bridge'
+  | 'magma-crystal' | 'fire-shrine' | 'ash-tree' | 'ember-lantern' | 'lava-golem'
+  // Neon City
+  | 'neon-tower' | 'hologram-kiosk' | 'cyber-pod' | 'neon-fountain' | 'hover-platform'
+  | 'data-pillar' | 'glitch-box' | 'neon-bench' | 'cyber-gate' | 'signal-array'
 
 export interface SpawnedPart {
   id: string
