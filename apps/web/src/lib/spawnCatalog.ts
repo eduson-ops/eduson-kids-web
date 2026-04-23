@@ -1821,6 +1821,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'pressure-gauge-b46',  label: 'Манометр',           emoji: '🌡️', defaultColor: '#cc8800', tags: ['манометр','pressure gauge','давление','пар','стимпанк'], hint: 'Латунный манометр с красной стрелкой' },
     ],
   },
+  {
+    id: 'arctic-station-b47', name: '🧊 Арктическая станция', icon: '🧊',
+    items: [
+      { kind: 'ice-drill-b47',     label: 'Ледяная дрель',     emoji: '🔩', defaultColor: '#aaccee', tags: ['дрель','ice drill','лёд','арктика','бурение'], hint: 'Буровая установка для льда' },
+      { kind: 'research-tent-b47', label: 'Исследовательская палатка', emoji: '⛺', defaultColor: '#ff5500', tags: ['палатка','research tent','арктика','лагерь','наука'], hint: 'Оранжевая научная палатка' },
+      { kind: 'snowcat-b47',       label: 'Снегоход',          emoji: '🚙', defaultColor: '#cc4400', tags: ['снегоход','snowcat','арктика','транспорт','гусеница'], hint: 'Гусеничный снегоход' },
+      { kind: 'core-sample-b47',   label: 'Керн льда',         emoji: '🧪', defaultColor: '#88ccff', tags: ['керн','core sample','лёд','анализ','наука'], hint: 'Цилиндрический образец ледяного ядра' },
+      { kind: 'weather-mast-b47',  label: 'Метеорологическая мачта', emoji: '📡', defaultColor: '#888899', tags: ['мачта','weather mast','метео','ветер','датчики'], hint: 'Метеомачта с датчиками ветра' },
+    ],
+  },
+  {
+    id: 'pirate-ship-b47', name: '🏴‍☠️ Палуба пиратского корабля', icon: '🏴‍☠️',
+    items: [
+      { kind: 'ships-wheel-b47',   label: 'Штурвал',           emoji: '🎡', defaultColor: '#8B4513', tags: ['штурвал','ships wheel','пираты','корабль','руль'], hint: 'Деревянный штурвал с медными рукоятями' },
+      { kind: 'cannon-b47',        label: 'Пушка',             emoji: '💣', defaultColor: '#444444', tags: ['пушка','cannon','пираты','корабль','оружие'], hint: 'Чугунная корабельная пушка' },
+      { kind: 'rigging-post-b47',  label: 'Мачта с такелажем', emoji: '⚓', defaultColor: '#8B6914', tags: ['мачта','rigging post','пираты','корабль','снасти'], hint: 'Деревянная мачта с верёвочным такелажем' },
+      { kind: 'crows-nest-b47',    label: 'Марс (вороний гнездо)', emoji: '🔭', defaultColor: '#8B6914', tags: ['марс','crows nest','наблюдатель','мачта','пираты'], hint: 'Корзина наблюдателя на верхушке мачты' },
+      { kind: 'anchor-b47',        label: 'Якорь',             emoji: '⚓', defaultColor: '#555555', tags: ['якорь','anchor','пираты','корабль','море'], hint: 'Массивный корабельный якорь' },
+    ],
+  },
+  {
+    id: 'crystal-caves-b47', name: '💎 Кристальные пещеры', icon: '💎',
+    items: [
+      { kind: 'stalactite-cluster-b47', label: 'Гроздь сталактитов', emoji: '🏔️', defaultColor: '#aaaacc', tags: ['сталактит','stalactite cluster','пещера','камень','природа'], hint: 'Свисающие известняковые наросты' },
+      { kind: 'crystal-pool-b47',  label: 'Кристальный водоём', emoji: '💧', defaultColor: '#44aaff', tags: ['водоём','crystal pool','кристалл','пещера','вода'], hint: 'Светящийся подземный бассейн' },
+      { kind: 'glowing-moss-b47',  label: 'Светящийся мох',    emoji: '🌿', defaultColor: '#44ff88', tags: ['мох','glowing moss','свечение','пещера','природа'], hint: 'Биолюминесцентный пещерный мох' },
+      { kind: 'cave-mushroom-b47', label: 'Пещерный гриб',     emoji: '🍄', defaultColor: '#aa88cc', tags: ['гриб','cave mushroom','пещера','подземный','светится'], hint: 'Огромный светящийся пещерный гриб' },
+      { kind: 'echo-crystal-b47',  label: 'Эхо-кристалл',      emoji: '💠', defaultColor: '#88ccff', tags: ['кристалл','echo crystal','звук','пещера','магия'], hint: 'Кристалл резонирующий со звуком' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

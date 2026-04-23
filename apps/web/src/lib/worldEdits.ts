@@ -377,6 +377,12 @@ export type PropKind =
   | 'toadstool-house-b46' | 'flower-lantern-b46' | 'butterfly-arch-b46' | 'petal-bridge-b46' | 'dewdrop-pond-b46'
   // Steampunk Factory
   | 'gear-cluster-b46' | 'steam-piston-b46' | 'furnace-unit-b46' | 'conveyor-belt-b46' | 'pressure-gauge-b46'
+  // Arctic Research Station
+  | 'ice-drill-b47' | 'research-tent-b47' | 'snowcat-b47' | 'core-sample-b47' | 'weather-mast-b47'
+  // Pirate Ship Deck
+  | 'ships-wheel-b47' | 'cannon-b47' | 'rigging-post-b47' | 'crows-nest-b47' | 'anchor-b47'
+  // Crystal Caves
+  | 'stalactite-cluster-b47' | 'crystal-pool-b47' | 'glowing-moss-b47' | 'cave-mushroom-b47' | 'echo-crystal-b47'
 
 export interface SpawnedPart {
   id: string
