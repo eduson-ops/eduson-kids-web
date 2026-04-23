@@ -126,6 +126,10 @@ export type PropKind =
   | 'torii-gate' | 'paper-lantern' | 'sakura-tree' | 'ninja-star' | 'temple-bell'
   // Deep Space
   | 'black-hole' | 'nebula-cloud' | 'space-debris' | 'laser-turret' | 'warp-gate'
+  // Magic Effects
+  | 'fireworks' | 'spark-fountain' | 'smoke-cloud' | 'rainbow-jet' | 'magic-circle'
+  // Superhero
+  | 'hero-cape' | 'hero-mask' | 'power-shield' | 'hero-statue' | 'energy-core'
 
 export interface SpawnedPart {
   id: string

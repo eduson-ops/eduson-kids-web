@@ -25,6 +25,28 @@ export interface CatalogCategory {
 
 export const CATALOG: CatalogCategory[] = [
   {
+    id: 'essentials',
+    name: '⭐ Лучшее',
+    icon: '🌟',
+    items: [
+      { kind: 'cube',        label: 'Куб',          emoji: '🟨', defaultColor: '#FFD43C', tags: ['блок','куб','box','essential'], hint: 'Базовый строительный блок' },
+      { kind: 'sphere',      label: 'Шар',          emoji: '⚽', defaultColor: '#FF9454', tags: ['шар','ball','essential'], hint: 'Катится, если не закреплён' },
+      { kind: 'coin',        label: 'Монета',       emoji: '💰', defaultColor: '#FFD43C', tags: ['монета','coin','essential'], hint: 'При касании даёт +1 очко' },
+      { kind: 'tree',        label: 'Дерево',       emoji: '🌲', defaultColor: '#2ECC71', tags: ['дерево','tree','essential'], hint: 'Большое зелёное дерево' },
+      { kind: 'npc-bunny',   label: 'Зайчик',       emoji: '🐰', defaultColor: '#FFE4E1', tags: ['заяц','bunny','npc','essential'], hint: 'Дружелюбный NPC-зайчик' },
+      { kind: 'checkpoint',  label: 'Чекпоинт',     emoji: '🚩', defaultColor: '#48c774', tags: ['чекпоинт','flag','essential'], hint: 'Сохраняет прогресс' },
+      { kind: 'ramp',        label: 'Рампа',        emoji: '📐', defaultColor: '#5AA9FF', tags: ['рампа','ramp','essential'], hint: 'Наклонная поверхность' },
+      { kind: 'torch',       label: 'Факел',        emoji: '🔥', defaultColor: '#FF8C1A', tags: ['факел','torch','огонь','essential'], hint: 'Горящий факел с пламенем' },
+      { kind: 'chest',       label: 'Сундук',       emoji: '📦', defaultColor: '#8B5A2B', tags: ['сундук','chest','essential'], hint: 'Деревянный сундук с сокровищем' },
+      { kind: 'star',        label: 'Звезда',       emoji: '⭐', defaultColor: '#FFD700', tags: ['звезда','star','essential'], hint: 'Крутящаяся звезда-коллектибл' },
+      { kind: 'rock',        label: 'Камень',       emoji: '🪨', defaultColor: '#888888', tags: ['камень','rock','essential'], hint: 'Каменный булыжник' },
+      { kind: 'plate',       label: 'Платформа',    emoji: '⬜', defaultColor: '#9FE8C7', tags: ['платформа','plate','essential'], hint: 'Тонкая широкая плита' },
+      { kind: 'bouncer',     label: 'Батут',        emoji: '🔵', defaultColor: '#4c97ff', tags: ['батут','bouncer','essential'], hint: 'Подбрасывает игрока вверх' },
+      { kind: 'campfire',    label: 'Костёр',       emoji: '🏕️', defaultColor: '#FF6B35', tags: ['костёр','огонь','campfire','essential'], hint: 'Горящий лагерный костёр' },
+      { kind: 'crystal',     label: 'Кристалл',     emoji: '💎', defaultColor: '#88d4ff', tags: ['кристалл','crystal','essential'], hint: 'Светящийся кристалл' },
+    ],
+  },
+  {
     id: 'blocks',
     name: 'Блоки',
     icon: '🧱',
@@ -583,6 +605,26 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'space-debris',  label: 'Космический мусор',emoji: '🪨', defaultColor: '#707070', tags: ['мусор','debris','космос','обломки','астероид'], hint: 'Обломки в космосе' },
       { kind: 'laser-turret',  label: 'Лазерная турель',emoji: '🔫', defaultColor: '#00ff88', tags: ['лазер','турель','laser','turret','оружие','sci-fi','космос'], hint: 'Автоматическая лазерная турель' },
       { kind: 'warp-gate',     label: 'Врата варпа',   emoji: '🌀', defaultColor: '#4488ff', tags: ['врата','портал','warp','gate','телепорт','sci-fi'], hint: 'Межзвёздные врата варпа' },
+    ],
+  },
+  {
+    id: 'magic-effects', name: 'Магия/Эффекты', icon: '✨',
+    items: [
+      { kind: 'fireworks',      label: 'Фейерверк',       emoji: '🎆', defaultColor: '#ff5464', tags: ['фейерверк','fireworks','взрыв','праздник','магия'], hint: 'Взрывающийся фейерверк' },
+      { kind: 'spark-fountain', label: 'Фонтан искр',     emoji: '✨', defaultColor: '#ffd644', tags: ['искры','фонтан','spark','fountain','магия','свет'], hint: 'Фонтан из искр и огней' },
+      { kind: 'smoke-cloud',    label: 'Облако дыма',     emoji: '💨', defaultColor: '#aaaaaa', tags: ['дым','облако','smoke','cloud','туман','эффект'], hint: 'Клуб дыма или тумана' },
+      { kind: 'rainbow-jet',    label: 'Радужная струя',  emoji: '🌈', defaultColor: '#ff9f43', tags: ['радуга','rainbow','jet','цвета','магия','эффект'], hint: 'Струя радужных частиц' },
+      { kind: 'magic-circle',   label: 'Магический круг', emoji: '🔮', defaultColor: '#c879ff', tags: ['магический','круг','magic','circle','портал','заклинание'], hint: 'Светящийся магический круг' },
+    ],
+  },
+  {
+    id: 'superhero', name: 'Супергерои', icon: '🦸',
+    items: [
+      { kind: 'hero-cape',    label: 'Плащ героя',    emoji: '🦸', defaultColor: '#e84040', tags: ['плащ','герой','cape','hero','супергерой','костюм'], hint: 'Развевающийся плащ супергероя' },
+      { kind: 'hero-mask',    label: 'Маска героя',   emoji: '🎭', defaultColor: '#4c97ff', tags: ['маска','герой','mask','hero','супергерой','костюм'], hint: 'Маска супергероя' },
+      { kind: 'power-shield', label: 'Силовой щит',   emoji: '🛡️', defaultColor: '#4488ff', tags: ['щит','shield','энергия','защита','супергерой','sci-fi'], hint: 'Энергетический защитный щит' },
+      { kind: 'hero-statue',  label: 'Статуя героя',  emoji: '🗿', defaultColor: '#888888', tags: ['статуя','герой','statue','hero','монумент','памятник'], hint: 'Каменная статуя героя' },
+      { kind: 'energy-core',  label: 'Ядро энергии',  emoji: '⚡', defaultColor: '#00d2ff', tags: ['ядро','энергия','core','energy','sci-fi','реактор','пульсирует'], hint: 'Пульсирующее энергетическое ядро' },
     ],
   },
 ]
