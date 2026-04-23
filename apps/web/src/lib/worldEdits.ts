@@ -220,6 +220,12 @@ export type PropKind =
   // Underwater City
   | 'kelp-tower' | 'bubble-dome' | 'sea-arch' | 'clam-throne' | 'whirlpool-gate'
   | 'glowing-jellyfish' | 'sunken-statue' | 'treasure-chest-sea' | 'anglerfish-lamp' | 'submarine-dock'
+  // Sky Kingdom
+  | 'cloud-castle' | 'rainbow-bridge' | 'sky-balloon' | 'wind-mill-sky' | 'floating-island'
+  | 'sun-dial' | 'cloud-throne' | 'sky-crystal' | 'wind-chime' | 'storm-eye'
+  // Crystal Cave
+  | 'stalactite' | 'crystal-cluster' | 'cave-pool' | 'glow-worm' | 'mineral-vein'
+  | 'cave-mushroom' | 'echo-stone' | 'underground-waterfall' | 'gem-geode' | 'lava-crack'
 
 export interface SpawnedPart {
   id: string

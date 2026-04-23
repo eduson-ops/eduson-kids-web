@@ -48,9 +48,17 @@ export default function Hub() {
   const currentLesson = p.currentLesson
   const coins = p.completedLessons * 15 // placeholder: 15 coins per lesson
   const mood = useMascotMood('hub')
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     setName(localStorage.getItem('ek_child_name'))
+  }, [])
+
+  // Плашки растворяются после 200px скролла — чтобы не отвлекали при чтении модулей
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 200)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Unlock modules based on progress: module N unlocks after finishing lesson (N-1)*6
@@ -99,7 +107,7 @@ export default function Hub() {
                 ? '🚀 Начать урок 1'
                 : `▶ Продолжить урок ${safeLesson}`}
           </Link>
-          <Link to="/learn" className="kb-btn kb-btn--lg kb-btn--ghost" style={{ color: 'var(--paper)', boxShadow: 'inset 0 0 0 2px rgba(255,251,243,.6)' }}>
+          <Link to="/learn" className="kb-cover-link-lite">
             Все уроки
           </Link>
         </div>
@@ -129,7 +137,7 @@ export default function Hub() {
         </div>
 
         {/* Plashki встают РЯДОМ в верхний ряд над title, НЕ над пингвином и не в его зоне. */}
-        <div className="kb-cover-deco kb-cover-deco--top-row" aria-hidden>
+        <div className={`kb-cover-deco kb-cover-deco--top-row${scrolled ? ' is-scrolled' : ''}`} aria-hidden>
           <div className="kb-cover-deco-block b-logic" style={{ transform: 'rotate(-4deg)' }}>Если</div>
           <div className="kb-cover-deco-block b-data" style={{ transform: 'rotate(3deg)' }}>Повтори</div>
           <div className="kb-cover-deco-block b-event" style={{ transform: 'rotate(-2deg)' }}>Клик</div>
@@ -160,7 +168,6 @@ export default function Hub() {
             const a = ACCENT_MAP[m.accent]
             const unlocked = m.n <= unlockedModuleN
             const isActive = m.n === currentModuleN
-            // Module internal progress: how many of this module's 6 lessons are done
             const moduleLessonsStart = (m.n - 1) * m.lessons + 1
             const doneinModule = Math.min(m.lessons, Math.max(0, lessonsCompleted - (moduleLessonsStart - 1)))
             const modulePct = (doneinModule / m.lessons) * 100
@@ -261,7 +268,7 @@ export default function Hub() {
           <div
             className="kb-card kb-card--feature"
             style={{
-              background: 'linear-gradient(135deg, var(--violet-soft), var(--violet) 140%)',
+              background: 'linear-gradient(135deg, #6B5CE7, #4A3DB5)',
               color: 'var(--paper)',
               display: 'flex',
               flexDirection: 'column',
@@ -269,9 +276,9 @@ export default function Hub() {
             }}
           >
             <div>
-              <span className="eyebrow" style={{ color: 'rgba(255,251,243,.65)' }}>Трек 1 · Игры</span>
-              <h2 className="h2" style={{ color: 'var(--paper)', marginTop: 8 }}>Построй свой 3D-мир</h2>
-              <p style={{ color: 'rgba(255,251,243,.85)', fontSize: 15, marginTop: 10, maxWidth: 420 }}>
+              <span className="eyebrow" style={{ color: '#FFD43C', fontWeight: 700 }}>ТРЕК 1 · ИГРЫ</span>
+              <h2 className="h2" style={{ color: '#fff', marginTop: 8 }}>Построй свой 3D-мир</h2>
+              <p style={{ color: '#fff', opacity: 0.92, fontSize: 15, marginTop: 10, maxWidth: 420 }}>
                 Перетаскивай блоки, пиши Python, публикуй свои игры. 3 режима: блоки → блоки+Python → чистый Python.
               </p>
             </div>
@@ -295,7 +302,7 @@ export default function Hub() {
           <div
             className="kb-card kb-card--feature"
             style={{
-              background: 'linear-gradient(135deg, #E1F7EC, #34C38A 140%)',
+              background: 'linear-gradient(135deg, #2E8C5F, #1E6D47)',
               color: 'var(--paper)',
               display: 'flex',
               flexDirection: 'column',
@@ -303,9 +310,9 @@ export default function Hub() {
             }}
           >
             <div>
-              <span className="eyebrow" style={{ color: 'rgba(255,251,243,.75)' }}>Трек 2 · Сайты</span>
-              <h2 className="h2" style={{ color: 'var(--paper)', marginTop: 8 }}>Собери свой сайт</h2>
-              <p style={{ color: 'rgba(255,251,243,.9)', fontSize: 15, marginTop: 10, maxWidth: 420 }}>
+              <span className="eyebrow" style={{ color: '#FFD43C', fontWeight: 700 }}>ТРЕК 2 · САЙТЫ</span>
+              <h2 className="h2" style={{ color: '#fff', marginTop: 8 }}>Собери свой сайт</h2>
+              <p style={{ color: '#fff', opacity: 0.92, fontSize: 15, marginTop: 10, maxWidth: 420 }}>
                 Начни с шаблона и блок-секций, потом загляни под капот в HTML и CSS. Плавный путь от L1 к L2.
               </p>
             </div>

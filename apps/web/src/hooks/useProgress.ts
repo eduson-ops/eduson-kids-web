@@ -15,6 +15,7 @@ export interface ProgressSnapshot {
   currentLesson: number
   completedLessons: number
   streak: number
+  streakFreezes: number
   perfectQuizzes: number
   avgQuizScore: number
   achievements: number
@@ -34,6 +35,7 @@ function computeSnapshot(): ProgressSnapshot {
     currentLesson: getCurrentLesson(ALL_LESSON_NUMBERS),
     completedLessons: countDone(),
     streak: streakState.current,
+    streakFreezes: streakState.freezes,
     perfectQuizzes: countPerfectQuizzes(),
     avgQuizScore: averageQuizScore(),
     achievements: countAchievements(),

@@ -1080,6 +1080,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'submarine-dock',   label: 'Стыковочный узел',    emoji: '🚢', defaultColor: '#445566', tags: ['стыковка','submarine dock','узел','подводная','база'], hint: 'Стыковочный узел для субмарин' },
     ],
   },
+  {
+    id: 'sky-kingdom', name: 'Небесное царство', icon: '☁️',
+    items: [
+      { kind: 'cloud-castle',    label: 'Облачный замок',      emoji: '🏰', defaultColor: '#f0f8ff', tags: ['замок','cloud castle','облако','белый','воздушный'], hint: 'Замок из облаков в небе' },
+      { kind: 'rainbow-bridge',  label: 'Радужный мост',       emoji: '🌈', defaultColor: '#ff4488', tags: ['мост','rainbow bridge','радуга','цвета','небо'], hint: 'Мост из радужных полос' },
+      { kind: 'sky-balloon',     label: 'Воздушный шар',       emoji: '🎈', defaultColor: '#ff8800', tags: ['шар','sky balloon','воздушный','летит','небо'], hint: 'Воздушный шар с корзиной' },
+      { kind: 'wind-mill-sky',   label: 'Небесная мельница',   emoji: '🌀', defaultColor: '#aaddff', tags: ['мельница','windmill','вращается','небо','ветер'], hint: 'Ветряная мельница на облаке' },
+      { kind: 'floating-island', label: 'Парящий остров',      emoji: '🏝', defaultColor: '#44aa44', tags: ['остров','floating island','летит','земля','парит'], hint: 'Небольшой остров парящий в воздухе' },
+      { kind: 'sun-dial',        label: 'Солнечные часы',      emoji: '☀️', defaultColor: '#ffcc44', tags: ['часы','sun dial','солнечные','золото','время'], hint: 'Золотые солнечные часы' },
+      { kind: 'cloud-throne',    label: 'Облачный трон',       emoji: '👑', defaultColor: '#f5f5ff', tags: ['трон','cloud throne','облако','белый','небесный'], hint: 'Трон из пышных облаков' },
+      { kind: 'sky-crystal',     label: 'Небесный кристалл',   emoji: '💎', defaultColor: '#88ddff', tags: ['кристалл','sky crystal','голубой','светится','небо'], hint: 'Кристалл из небесного льда' },
+      { kind: 'wind-chime',      label: 'Ветряной колокольчик',emoji: '🎐', defaultColor: '#aaaadd', tags: ['колокольчик','wind chime','ветер','звон','серебро'], hint: 'Серебряные колокольчики на ветру' },
+      { kind: 'storm-eye',       label: 'Глаз бури',           emoji: '🌪', defaultColor: '#334466', tags: ['буря','storm eye','вихрь','тёмный','опасный'], hint: 'Вращающийся глаз грозовой бури' },
+    ],
+  },
+  {
+    id: 'crystal-cave', name: 'Кристальная пещера', icon: '💎',
+    items: [
+      { kind: 'stalactite',           label: 'Сталактит',            emoji: '🧊', defaultColor: '#aabbcc', tags: ['сталактит','stalactite','пещера','свисает','камень'], hint: 'Каменный сталактит' },
+      { kind: 'crystal-cluster',      label: 'Кристальный куст',     emoji: '💎', defaultColor: '#aa44ff', tags: ['кристалл','crystal cluster','куст','светится','фиолетовый'], hint: 'Группа острых кристаллов' },
+      { kind: 'cave-pool',            label: 'Пещерный бассейн',     emoji: '🌊', defaultColor: '#225588', tags: ['бассейн','cave pool','вода','тихая','голубая'], hint: 'Спокойное подземное озерцо' },
+      { kind: 'glow-worm',            label: 'Светлячок пещеры',     emoji: '✨', defaultColor: '#88ffcc', tags: ['светлячок','glow worm','светится','зелёный','пещера'], hint: 'Светящийся червячок на своде' },
+      { kind: 'mineral-vein',         label: 'Рудная жила',          emoji: '⛏', defaultColor: '#cc8822', tags: ['жила','mineral vein','руда','золото','порода'], hint: 'Золотистая жила в камне' },
+      { kind: 'cave-mushroom',        label: 'Пещерный гриб',        emoji: '🍄', defaultColor: '#cc66cc', tags: ['гриб','cave mushroom','пещера','фиолетовый','странный'], hint: 'Светящийся гриб из пещеры' },
+      { kind: 'echo-stone',           label: 'Камень-эхо',           emoji: '🪨', defaultColor: '#7788aa', tags: ['камень','echo stone','эхо','резонанс','таинственный'], hint: 'Камень, повторяющий звуки' },
+      { kind: 'underground-waterfall',label: 'Подземный водопад',    emoji: '💦', defaultColor: '#4488cc', tags: ['водопад','underground waterfall','подземный','вода','пещера'], hint: 'Водопад в глубине пещеры' },
+      { kind: 'gem-geode',            label: 'Жеода',                emoji: '🪨', defaultColor: '#ff44aa', tags: ['жеода','gem geode','кристаллы','внутри','розовая'], hint: 'Камень с кристаллами внутри' },
+      { kind: 'lava-crack',           label: 'Трещина лавы',         emoji: '🔥', defaultColor: '#ff5500', tags: ['трещина','lava crack','лава','горячая','красная'], hint: 'Трещина в полу, светящаяся лавой' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
