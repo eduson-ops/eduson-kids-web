@@ -148,8 +148,14 @@ export default function Studio() {
         </div>
         <div className="studio-actions">
           {scriptError && (
-            <span className="studio-error-pill" title={scriptError}>
+            <span className="studio-error-pill" title={scriptError} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               ⚠ Ошибка
+              <button
+                onClick={() => setScriptError(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 2px', fontSize: 12, lineHeight: 1, color: 'inherit', opacity: 0.7 }}
+                title="Закрыть"
+                aria-label="Закрыть ошибку"
+              >✕</button>
             </span>
           )}
           {!confirmReset ? (
