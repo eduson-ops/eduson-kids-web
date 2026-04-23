@@ -60,6 +60,8 @@ export type PropKind =
   | 'coral' | 'submarine' | 'anchor'
   // Winter
   | 'igloo' | 'sled' | 'snowflake-deco'
+  // Circus
+  | 'circus-tent' | 'ferris-wheel' | 'hot-air-balloon' | 'pinwheel' | 'lantern'
 
 export interface SpawnedPart {
   id: string

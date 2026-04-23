@@ -423,6 +423,18 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'snowflake-deco':
       return <SnowflakeDeco pos={pos} color={color} size={size} />
 
+    // Circus/Fair
+    case 'circus-tent':
+      return <CircusTent pos={pos} color={color} size={size} />
+    case 'ferris-wheel':
+      return <FerrisWheel pos={pos} color={color} size={size} />
+    case 'hot-air-balloon':
+      return <HotAirBalloon pos={pos} color={color} size={size} />
+    case 'pinwheel':
+      return <Pinwheel pos={pos} color={color} size={size} />
+    case 'lantern':
+      return <Lantern pos={pos} color={color} size={size} />
+
     default:
       return null
   }
@@ -2319,6 +2331,196 @@ function SnowflakeDeco({ pos, color, size }: { pos: [number, number, number]; co
       <mesh castShadow>
         <octahedronGeometry args={[size * 0.1]} />
         <meshStandardMaterial color={color} roughness={0.2} metalness={0.5} emissive={color} emissiveIntensity={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function CircusTent({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const STRIPE = '#ffffff'
+  return (
+    <group position={pos}>
+      {/* Ground ring */}
+      <mesh position={[0, size * 0.04, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.62, size * 0.65, size * 0.06, 12]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* Main cone body */}
+      <mesh position={[0, size * 0.38, 0]} castShadow>
+        <coneGeometry args={[size * 0.62, size * 0.7, 12]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Stripe panels (3 alternating) */}
+      {[0, 2, 4].map((i) => (
+        <mesh key={i} position={[0, size * 0.38, 0]} rotation={[0, (i * Math.PI) / 3, 0]} castShadow>
+          <coneGeometry args={[size * 0.63, size * 0.71, 3]} />
+          <meshStandardMaterial color={STRIPE} roughness={0.6} transparent opacity={0.35} />
+        </mesh>
+      ))}
+      {/* Top spire */}
+      <mesh position={[0, size * 0.82, 0]} castShadow>
+        <coneGeometry args={[size * 0.07, size * 0.28, 8]} />
+        <meshStandardMaterial color="#ffd644" roughness={0.4} />
+      </mesh>
+      {/* Flag */}
+      <mesh position={[0, size * 1.0, size * 0.06]} castShadow>
+        <boxGeometry args={[size * 0.12, size * 0.09, size * 0.01]} />
+        <meshStandardMaterial color="#ff5464" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function FerrisWheel({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.z += dt * 0.35 })
+  return (
+    <group position={pos}>
+      {/* Support legs */}
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[side * size * 0.25, size * 0.36, 0]} rotation={[0, 0, side * 0.35]} castShadow>
+          <cylinderGeometry args={[size * 0.04, size * 0.05, size * 0.74, 6]} />
+          <meshStandardMaterial color="#888" roughness={0.4} metalness={0.5} />
+        </mesh>
+      ))}
+      {/* Axle */}
+      <mesh position={[0, size * 0.72, 0]} castShadow rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[size * 0.04, size * 0.04, size * 0.14, 8]} />
+        <meshStandardMaterial color="#aaa" roughness={0.3} metalness={0.7} />
+      </mesh>
+      {/* Rotating wheel */}
+      <group ref={ref} position={[0, size * 0.72, 0]}>
+        {/* Outer ring */}
+        <mesh>
+          <torusGeometry args={[size * 0.48, size * 0.04, 8, 24]} />
+          <meshStandardMaterial color={color} roughness={0.4} metalness={0.4} />
+        </mesh>
+        {/* Inner ring */}
+        <mesh>
+          <torusGeometry args={[size * 0.18, size * 0.03, 6, 20]} />
+          <meshStandardMaterial color={color} roughness={0.4} metalness={0.4} />
+        </mesh>
+        {/* Spokes (6) */}
+        {[0, 30, 60, 90, 120, 150].map((deg) => (
+          <mesh key={deg} rotation={[0, 0, (deg * Math.PI) / 180]} castShadow>
+            <boxGeometry args={[size * 0.96, size * 0.03, size * 0.03]} />
+            <meshStandardMaterial color={color} roughness={0.4} />
+          </mesh>
+        ))}
+        {/* 6 gondola cars */}
+        {[0, 60, 120, 180, 240, 300].map((deg) => {
+          const rad = (deg * Math.PI) / 180
+          return (
+            <mesh key={deg} position={[Math.cos(rad) * size * 0.48, Math.sin(rad) * size * 0.48, 0]} castShadow>
+              <boxGeometry args={[size * 0.1, size * 0.1, size * 0.08]} />
+              <meshStandardMaterial color="#FFD43C" roughness={0.5} />
+            </mesh>
+          )
+        })}
+      </group>
+    </group>
+  )
+}
+
+function HotAirBalloon({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame((state) => { if (ref.current) ref.current.position.y = pos[1] + Math.sin(state.clock.elapsedTime * 0.7) * size * 0.08 })
+  return (
+    <group ref={ref} position={pos}>
+      {/* Balloon envelope */}
+      <mesh position={[0, size * 0.55, 0]} castShadow>
+        <sphereGeometry args={[size * 0.48, 16, 16]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* Vertical color stripes */}
+      {[0, 72, 144, 216, 288].map((deg, i) => (
+        <mesh key={deg} position={[0, size * 0.55, 0]} rotation={[0, (deg * Math.PI) / 180, 0]} castShadow>
+          <sphereGeometry args={[size * 0.49, 3, 16, 0, 0.628, 0, Math.PI]} />
+          <meshStandardMaterial color={i % 2 === 0 ? '#ffffff' : color} roughness={0.6} transparent opacity={0.5} />
+        </mesh>
+      ))}
+      {/* Ropes */}
+      {[[-0.14, 0.14], [0.14, 0.14], [-0.14, -0.14], [0.14, -0.14]].map(([rx, rz], i) => (
+        <mesh key={i} position={[size * rx, size * 0.16, size * rz]} castShadow>
+          <cylinderGeometry args={[size * 0.008, size * 0.008, size * 0.42, 4]} />
+          <meshStandardMaterial color="#8b5a2b" roughness={0.7} />
+        </mesh>
+      ))}
+      {/* Basket */}
+      <mesh position={[0, size * -0.08, 0]} castShadow>
+        <boxGeometry args={[size * 0.28, size * 0.16, size * 0.28]} />
+        <meshStandardMaterial color="#8b5a2b" roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function Pinwheel({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.z += dt * 2.5 })
+  return (
+    <group position={pos}>
+      {/* Stick */}
+      <mesh position={[0, size * 0.26, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.02, size * 0.02, size * 0.5, 6]} />
+        <meshStandardMaterial color="#8b5a2b" roughness={0.7} />
+      </mesh>
+      {/* Spinning blades */}
+      <group ref={ref} position={[0, size * 0.5, 0]}>
+        {[0, 90, 180, 270].map((deg, i) => (
+          <mesh key={deg} position={[
+            Math.cos((deg * Math.PI) / 180) * size * 0.14,
+            Math.sin((deg * Math.PI) / 180) * size * 0.14,
+            0
+          ]} rotation={[0, 0, (deg * Math.PI) / 180 + Math.PI / 4]} castShadow>
+            <boxGeometry args={[size * 0.28, size * 0.14, size * 0.03]} />
+            <meshStandardMaterial color={i % 2 === 0 ? color : '#ffffff'} roughness={0.5} />
+          </mesh>
+        ))}
+        {/* Center bolt */}
+        <mesh castShadow>
+          <cylinderGeometry args={[size * 0.04, size * 0.04, size * 0.05, 6]} />
+          <meshStandardMaterial color="#c0c0c0" roughness={0.3} metalness={0.7} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+function Lantern({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  return (
+    <group position={pos}>
+      {/* Top cap */}
+      <mesh position={[0, size * 0.62, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.16, size * 0.2, size * 0.08, 8]} />
+        <meshStandardMaterial color="#8b2020" roughness={0.5} />
+      </mesh>
+      {/* Top hook */}
+      <mesh position={[0, size * 0.68, 0]} castShadow>
+        <torusGeometry args={[size * 0.05, size * 0.015, 6, 12, Math.PI]} />
+        <meshStandardMaterial color="#8b2020" roughness={0.4} />
+      </mesh>
+      {/* Main lantern body */}
+      <mesh position={[0, size * 0.36, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.2, size * 0.2, size * 0.48, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} transparent opacity={0.85} />
+      </mesh>
+      {/* Inner glow */}
+      <mesh position={[0, size * 0.36, 0]}>
+        <cylinderGeometry args={[size * 0.18, size * 0.18, size * 0.46, 8]} />
+        <meshStandardMaterial color="#ffeeaa" roughness={1} emissive="#ffeeaa" emissiveIntensity={1} transparent opacity={0.6} />
+      </mesh>
+      {/* Tassel at bottom */}
+      {[-1, 0, 1].map((x) => (
+        <mesh key={x} position={[size * x * 0.06, size * 0.06, 0]} castShadow>
+          <cylinderGeometry args={[size * 0.01, size * 0.005, size * 0.14, 4]} />
+          <meshStandardMaterial color="#8b2020" roughness={0.6} />
+        </mesh>
+      ))}
+      {/* Bottom cap */}
+      <mesh position={[0, size * 0.1, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.2, size * 0.14, size * 0.07, 8]} />
+        <meshStandardMaterial color="#8b2020" roughness={0.5} />
       </mesh>
     </group>
   )

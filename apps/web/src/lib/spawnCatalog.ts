@@ -273,6 +273,16 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'snowflake-deco',label: 'Снежинка', emoji: '❄️', defaultColor: '#88d4ff', tags: ['снежинка','snowflake','зима','мороз','декор'], hint: 'Декоративная 3D-снежинка' },
     ],
   },
+  {
+    id: 'circus', name: 'Ярмарка', icon: '🎡',
+    items: [
+      { kind: 'circus-tent',    label: 'Шатёр',        emoji: '🎪', defaultColor: '#ff5464', tags: ['шатёр','цирк','circus','tent','ярмарка'], hint: 'Полосатый цирковой шатёр' },
+      { kind: 'ferris-wheel',   label: 'Колесо',       emoji: '🎡', defaultColor: '#6B5CE7', tags: ['колесо','ferris','wheel','аттракцион','ярмарка'], hint: 'Вращающееся колесо обозрения' },
+      { kind: 'hot-air-balloon',label: 'Аэростат',     emoji: '🎈', defaultColor: '#ff8c1a', tags: ['аэростат','balloon','воздушный шар','летит','небо'], hint: 'Воздушный шар с корзиной' },
+      { kind: 'pinwheel',       label: 'Вертушка',     emoji: '🌀', defaultColor: '#FFD43C', tags: ['вертушка','pinwheel','ветер','игрушка','спиннер'], hint: 'Крутящаяся вертушка-ветряк' },
+      { kind: 'lantern',        label: 'Фонарь',       emoji: '🏮', defaultColor: '#FF9454', tags: ['фонарь','lantern','свет','азиатский','декор'], hint: 'Декоративный фонарик' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
