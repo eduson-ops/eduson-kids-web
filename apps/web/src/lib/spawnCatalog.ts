@@ -1290,6 +1290,35 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'nordic-banner',     label: 'Скандинавский стяг',      emoji: '🚩', defaultColor: '#cc4422', tags: ['стяг','nordic banner','флаг','красный','викинг'], hint: 'Боевой стяг викинга на шесте' },
     ],
   },
+  {
+    id: 'samurai-japan', name: 'Самурайская Япония', icon: '⚔️',
+    items: [
+      { kind: 'samurai-sword',       label: 'Катана',                emoji: '⚔️', defaultColor: '#d0d8e0', tags: ['катана','samurai sword','меч','самурай','металл'], hint: 'Изогнутый самурайский меч' },
+      { kind: 'samurai-armor',       label: 'Доспехи самурая',       emoji: '🛡️', defaultColor: '#cc4422', tags: ['доспехи','samurai armor','бронь','самурай','шлем'], hint: 'Полный комплект самурайских доспехов' },
+      { kind: 'pagoda-temple',       label: 'Пагода',                emoji: '🏯', defaultColor: '#cc3333', tags: ['пагода','pagoda temple','башня','ярусы','японский'], hint: 'Многоярусная пагода' },
+      { kind: 'torii-gate',          label: 'Ворота тории',          emoji: '⛩️', defaultColor: '#cc3333', tags: ['тории','torii gate','ворота','красные','синтоизм'], hint: 'Красные синтоистские ворота' },
+      { kind: 'cherry-blossom',      label: 'Сакура',                emoji: '🌸', defaultColor: '#ffb7c5', tags: ['сакура','cherry blossom','цветы','весна','японский'], hint: 'Цветущее дерево сакуры' },
+      { kind: 'katana-rack',         label: 'Стойка для катан',      emoji: '🗡️', defaultColor: '#5c3a1e', tags: ['стойка','katana rack','мечи','дерево','оружие'], hint: 'Деревянная стойка с тремя катанами' },
+      { kind: 'lantern-japanese',    label: 'Японский фонарь',       emoji: '🏮', defaultColor: '#ff4400', tags: ['фонарь','lantern japanese','красный','светится','японский'], hint: 'Светящийся японский фонарь' },
+      { kind: 'sakura-bridge',       label: 'Мост сакуры',           emoji: '🌉', defaultColor: '#cc3333', tags: ['мост','sakura bridge','красный','арка','японский'], hint: 'Красный арочный мост через ручей' },
+      { kind: 'tea-house-japanese',  label: 'Чайный домик',          emoji: '🍵', defaultColor: '#8b1a1a', tags: ['домик','tea house japanese','чайный','традиционный','крыша'], hint: 'Традиционный японский чайный домик' },
+      { kind: 'shuriken-b27',        label: 'Сюрикен',               emoji: '✴️', defaultColor: '#888888', tags: ['сюрикен','shuriken','звезда','метательный','ниндзя'], hint: 'Вращающаяся звезда ниндзя' },
+    ],
+  },
+  {
+    id: 'aztec-empire', name: 'Империя ацтеков', icon: '🌞',
+    items: [
+      { kind: 'aztec-pyramid',       label: 'Пирамида ацтеков',      emoji: '🏛️', defaultColor: '#cc8800', tags: ['пирамида','aztec pyramid','ступени','ацтеки','храм'], hint: 'Ступенчатая пирамида ацтеков' },
+      { kind: 'aztec-sun-stone',     label: 'Камень солнца',         emoji: '☀️', defaultColor: '#ff8800', tags: ['камень','aztec sun stone','солнце','календарь','диск'], hint: 'Вращающийся солнечный камень-календарь' },
+      { kind: 'quetzal-bird',        label: 'Птица кетцаль',         emoji: '🦜', defaultColor: '#00aa44', tags: ['кетцаль','quetzal bird','птица','перья','священный'], hint: 'Священная птица кетцаль с длинным хвостом' },
+      { kind: 'aztec-water-fountain',label: 'Фонтан ацтеков',        emoji: '⛲', defaultColor: '#cc8800', tags: ['фонтан','aztec water fountain','вода','камень','ацтеки'], hint: 'Каменный фонтан в ацтекском стиле' },
+      { kind: 'jade-mask',           label: 'Нефритовая маска',      emoji: '😷', defaultColor: '#3da05f', tags: ['маска','jade mask','нефрит','зелёная','ритуал'], hint: 'Ритуальная нефритовая маска с убором' },
+      { kind: 'obsidian-altar',      label: 'Алтарь из обсидиана',   emoji: '⬛', defaultColor: '#111111', tags: ['алтарь','obsidian altar','чёрный','камень','ритуал'], hint: 'Чёрный алтарь из обсидиана' },
+      { kind: 'tepee-hut',           label: 'Типи',                  emoji: '⛺', defaultColor: '#cc8844', tags: ['типи','tepee hut','конус','коренные','хижина'], hint: 'Конусообразный шатёр типи' },
+      { kind: 'aztec-warrior',       label: 'Воин ацтеков',          emoji: '🗡️', defaultColor: '#cc4422', tags: ['воин','aztec warrior','щит','копьё','ацтеки'], hint: 'Воин ацтеков с щитом и копьём' },
+      { kind: 'aztec-serpent',       label: 'Пернатый змей',         emoji: '🐍', defaultColor: '#00aa44', tags: ['змей','aztec serpent','кецалькоатль','свернулся','ацтеки'], hint: 'Пернатый змей Кецалькоатль' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

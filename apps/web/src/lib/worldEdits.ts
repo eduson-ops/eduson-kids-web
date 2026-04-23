@@ -262,6 +262,12 @@ export type PropKind =
   // Viking Age
   | 'viking-longship' | 'runestone-b26' | 'viking-iron-helmet' | 'viking-mead-hall' | 'viking-axe-rack'
   | 'bonfire-viking' | 'viking-shield' | 'dragon-prow' | 'nordic-well' | 'nordic-banner'
+  // Samurai Japan
+  | 'samurai-sword' | 'samurai-armor' | 'pagoda-temple' | 'torii-gate' | 'cherry-blossom'
+  | 'katana-rack' | 'lantern-japanese' | 'sakura-bridge' | 'tea-house-japanese' | 'shuriken-b27'
+  // Aztec Empire
+  | 'aztec-pyramid' | 'aztec-sun-stone' | 'quetzal-bird' | 'aztec-water-fountain' | 'jade-mask'
+  | 'obsidian-altar' | 'tepee-hut' | 'aztec-warrior' | 'aztec-serpent'
 
 export interface SpawnedPart {
   id: string
