@@ -251,6 +251,7 @@ function KpiCard({ value, label, iconKind, accent }: { value: string; label: str
  * PDF пока через window.print() стиля — lightweight, без зависимостей.
  */
 function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName: string }) {
+  const [popupBlocked, setPopupBlocked] = useState(false)
   // Последние 7 дней — это последние 7 элементов массива (day 21..27)
   const last7 = activity.slice(-7)
   const totalMin = last7.reduce((s, a) => s + a.minutes, 0)
@@ -291,7 +292,7 @@ function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName
     </body></html>`
     const w = window.open('', '_blank', 'width=720,height=900')
     if (!w) {
-      alert('Разреши всплывающие окна для этого сайта, чтобы скачать отчёт.')
+      setPopupBlocked(true)
       return
     }
     w.document.write(html)
@@ -305,6 +306,11 @@ function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName
         <button className="kb-btn kb-btn--sm kb-btn--secondary" onClick={downloadReport}>
           📄 Скачать PDF
         </button>
+        {popupBlocked && (
+          <span style={{ fontSize: 12, color: '#c33', marginLeft: 8 }}>
+            Разреши всплывающие окна в браузере
+          </span>
+        )}
       </div>
       <div className="kb-card kb-card--feature" style={{ padding: 24 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 20 }}>

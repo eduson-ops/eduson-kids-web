@@ -443,11 +443,15 @@ export default function Settings() {
 /** Карточка настройки вечернего напоминания о стрике. */
 function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'success' | 'info' | 'error') => void }) {
   const [enabled, setEnabled] = useState(() => isStreakReminderEnabled())
+  const [toggling, setToggling] = useState(false)
   const [perm, setPerm] = useState<NotificationPermission>(
     typeof Notification === 'undefined' ? 'denied' : Notification.permission
   )
 
   const toggle = async () => {
+    if (toggling) return
+    setToggling(true)
+    try {
     if (!enabled) {
       // Включаем — спросим разрешение браузера
       if (typeof Notification === 'undefined') {
@@ -468,6 +472,9 @@ function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'succes
       setEnabled(false)
       onToast('Напоминание выключено', 'info')
     }
+    } finally {
+      setToggling(false)
+    }
   }
 
   return (
@@ -483,8 +490,9 @@ function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'succes
         <input
           type="checkbox"
           checked={enabled}
+          disabled={toggling}
           onChange={toggle}
-          style={{ width: 18, height: 18, cursor: 'pointer' }}
+          style={{ width: 18, height: 18, cursor: toggling ? 'wait' : 'pointer' }}
         />
         <span style={{ fontSize: 15, fontWeight: 600 }}>
           {enabled ? 'Включено' : 'Включить вечернее напоминание'}
