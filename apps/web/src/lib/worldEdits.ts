@@ -342,6 +342,11 @@ export type PropKind =
   | 'soccer-ball-b40' | 'trophy-b40' | 'basketball-hoop-b40' | 'starting-block-b40'
   // Halloween
   | 'jack-o-lantern-b40' | 'ghost-b40' | 'witch-hat-b40' | 'spider-web-b40' | 'cauldron-b40' | 'bat-b40'
+  // Ocean Life
+  | 'dolphin-b41' | 'clown-fish-b41' | 'sea-horse-b41'
+  // Christmas
+  | 'christmas-tree-b41' | 'snowman-b41' | 'gift-box-b41' | 'reindeer-b41'
+  | 'santa-hat-b41' | 'bell-b41' | 'candle-b41'
 
 export interface SpawnedPart {
   id: string

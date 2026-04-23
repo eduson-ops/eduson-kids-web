@@ -1628,6 +1628,18 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'spider-web-b40': return <SpiderWebB40 pos={pos} color={color} size={size} />
     case 'cauldron-b40': return <CauldronB40 pos={pos} color={color} size={size} />
     case 'bat-b40': return <BatB40 pos={pos} color={color} size={size} />
+    // Batch 41 — Ocean Life
+    case 'dolphin-b41': return <DolphinB41 pos={pos} color={color} size={size} />
+    case 'clown-fish-b41': return <ClownFishB41 pos={pos} color={color} size={size} />
+    case 'sea-horse-b41': return <SeaHorseB41 pos={pos} color={color} size={size} />
+    // Batch 41 — Christmas
+    case 'christmas-tree-b41': return <ChristmasTreeB41 pos={pos} color={color} size={size} />
+    case 'snowman-b41': return <SnowmanB41 pos={pos} color={color} size={size} />
+    case 'gift-box-b41': return <GiftBoxB41 pos={pos} color={color} size={size} />
+    case 'reindeer-b41': return <ReindeerB41 pos={pos} color={color} size={size} />
+    case 'santa-hat-b41': return <SantaHatB41 pos={pos} color={color} size={size} />
+    case 'bell-b41': return <BellB41 pos={pos} color={color} size={size} />
+    case 'candle-b41': return <CandleB41 pos={pos} color={color} size={size} />
 
     default:
       return null
@@ -29532,6 +29544,352 @@ function BatB40({ pos, color, size }: P40) {
           <meshStandardMaterial color="#ffaa00" emissive="#ffaa00" emissiveIntensity={0.5} roughness={0.3} />
         </mesh>
       ))}
+    </group>
+  )
+}
+
+// === BATCH 41: Final 10 — Ocean Life + Christmas ===
+interface P41 { pos: [number,number,number]; color: string; size: number }
+
+function DolphinB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    ref.current.rotation.y = t * 0.6
+    ref.current.position.y = pos[1] + Math.sin(t * 2) * size * 0.15
+    ref.current.rotation.z = Math.sin(t * 2) * 0.2
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <sphereGeometry args={[size*0.28, 10, 7]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[size*0.32, 0, 0]}>
+        <sphereGeometry args={[size*0.18, 8, 6]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[size*0.48, 0, 0]}>
+        <boxGeometry args={[size*0.08, size*0.04, size*0.14]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[-size*0.32, 0, 0]}>
+        <boxGeometry args={[size*0.12, size*0.02, size*0.22]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.26, 0]}>
+        <boxGeometry args={[size*0.06, size*0.2, size*0.04]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function ClownFishB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    ref.current.rotation.y = t * 0.9
+    ref.current.position.y = pos[1] + Math.sin(t * 2.5) * size * 0.1
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <sphereGeometry args={[size*0.22, 8, 7]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {([-0.12, 0, 0.12] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, 0, size*0.18]}>
+          <boxGeometry args={[size*0.03, size*0.3, size*0.02]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0, -size*0.22]}>
+        <boxGeometry args={[size*0.06, size*0.2, size*0.02]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function SeaHorseB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.5
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 1.5) * size * 0.08
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, size*0.2, 0]}>
+        <sphereGeometry args={[size*0.18, 8, 7]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[size*0.06, size*0.02, 0]}>
+        <sphereGeometry args={[size*0.14, 8, 6]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[size*0.08, -size*0.14, 0]}>
+        <sphereGeometry args={[size*0.11, 7, 5]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[size*0.04, -size*0.28, 0]}>
+        <torusGeometry args={[size*0.1, size*0.03, 5, 10, Math.PI*1.4]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[-size*0.06, size*0.28, 0]} rotation={[0, 0, -0.4]}>
+        <boxGeometry args={[size*0.22, size*0.05, size*0.03]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function ChristmasTreeB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    ref.current.children.forEach((c, i) => {
+      if (i > 2) {
+        (c as THREE.Mesh).traverse((o) => {
+          if ((o as THREE.Mesh).material) {
+            ((o as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(t * 2 + i * 0.8) * 0.5
+          }
+        })
+      }
+    })
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, -size*0.65, 0]}>
+        <cylinderGeometry args={[size*0.1, size*0.1, size*0.25, 6]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, -size*0.25, 0]}>
+        <coneGeometry args={[size*0.6, size*0.65, 8]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.18, 0]}>
+        <coneGeometry args={[size*0.42, size*0.52, 8]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.56, 0]}>
+        <coneGeometry args={[size*0.24, size*0.38, 8]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.78, 0]}>
+        <sphereGeometry args={[size*0.08, 6, 5]} />
+        <meshStandardMaterial color="#ffee00" emissive="#ffee00" emissiveIntensity={0.9} roughness={0.2} />
+      </mesh>
+      {([0, 1, 2, 3, 4, 5, 6] as number[]).map((i) => (
+        <mesh key={i} position={[
+          Math.sin(i*0.898)*size*(0.2 + (i%3)*0.1),
+          (i*0.18 - 0.5)*size,
+          Math.cos(i*0.898)*size*(0.2 + (i%3)*0.1)
+        ]}>
+          <sphereGeometry args={[size*0.05, 5, 4]} />
+          <meshStandardMaterial color={['#ff0000','#ffee00','#4444ff','#ff8800'][i%4]} emissive={['#ff0000','#ffee00','#4444ff','#ff8800'][i%4]} emissiveIntensity={0.8} roughness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SnowmanB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.2
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, -size*0.28, 0]} castShadow>
+        <sphereGeometry args={[size*0.38, 10, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.15, 0]}>
+        <sphereGeometry args={[size*0.28, 10, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.46, 0]}>
+        <sphereGeometry args={[size*0.2, 8, 7]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.5, size*0.18]}>
+        <coneGeometry args={[size*0.04, size*0.18, 6]} rotation={[Math.PI/2, 0, 0]} />
+        <meshStandardMaterial color="#ff6600" roughness={0.6} />
+      </mesh>
+      {([-0.08, 0.08] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, size*0.5, size*0.18]}>
+          <sphereGeometry args={[size*0.03, 5, 4]} />
+          <meshStandardMaterial color="#222" roughness={0.5} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.65, 0]}>
+        <cylinderGeometry args={[size*0.18, size*0.18, size*0.04, 8]} />
+        <meshStandardMaterial color="#222" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size*0.74, 0]}>
+        <cylinderGeometry args={[size*0.14, size*0.14, size*0.2, 8]} />
+        <meshStandardMaterial color="#222" roughness={0.6} />
+      </mesh>
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.3, size*0.14, 0]} rotation={[0, 0, s * 0.5]}>
+          <cylinderGeometry args={[size*0.025, size*0.02, size*0.38, 5]} />
+          <meshStandardMaterial color="#8B4513" roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GiftBoxB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.4
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 1.8) * size * 0.04
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*0.6, size*0.55, size*0.6]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.3, 0]}>
+        <boxGeometry args={[size*0.64, size*0.12, size*0.64]} />
+        <meshStandardMaterial color="#aa0000" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.0, 0]}>
+        <boxGeometry args={[size*0.06, size*0.56, size*0.64]} />
+        <meshStandardMaterial color="#aa0000" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.0, 0]}>
+        <boxGeometry args={[size*0.64, size*0.56, size*0.06]} />
+        <meshStandardMaterial color="#aa0000" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.4, 0]}>
+        <torusGeometry args={[size*0.1, size*0.03, 5, 12]} />
+        <meshStandardMaterial color="#ffee00" roughness={0.3} metalness={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+function ReindeerB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.4
+    ref.current.position.y = pos[1] + Math.abs(Math.sin(clock.getElapsedTime() * 1.2)) * size * 0.06
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*0.6, size*0.32, size*0.28]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[size*0.38, size*0.12, 0]}>
+        <sphereGeometry args={[size*0.2, 8, 7]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[size*0.5, size*0.08, 0]}>
+        <sphereGeometry args={[size*0.09, 6, 5]} />
+        <meshStandardMaterial color="#ff2222" emissive="#ff2222" emissiveIntensity={0.7} roughness={0.4} />
+      </mesh>
+      {([[-0.2, 0.26, 0.1], [0.2, 0.26, 0.1]] as [number,number,number][]).map(([x,y,z], i) => (
+        <group key={i} position={[x*size, y*size, z*size]}>
+          <mesh rotation={[0, 0, i === 0 ? -0.3 : 0.3]}>
+            <cylinderGeometry args={[size*0.02, size*0.025, size*0.35, 5]} />
+            <meshStandardMaterial color={color} roughness={0.7} />
+          </mesh>
+          <mesh position={[i===0?-size*0.12:size*0.12, size*0.18, 0]}>
+            <cylinderGeometry args={[size*0.015, size*0.02, size*0.22, 4]} />
+            <meshStandardMaterial color={color} roughness={0.7} />
+          </mesh>
+        </group>
+      ))}
+      {([-0.2, 0, 0.2, 0.4] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size - size*0.1, -size*0.26, (i%2*2-1)*size*0.1]}>
+          <boxGeometry args={[size*0.1, size*0.38, size*0.08]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SantaHatB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.5
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 1.2) * size * 0.05
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, -size*0.06, 0]}>
+        <cylinderGeometry args={[size*0.52, size*0.52, size*0.18, 14]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size*0.35, 0]}>
+        <coneGeometry args={[size*0.44, size*0.88, 14]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[size*0.15, size*0.82, 0]}>
+        <sphereGeometry args={[size*0.1, 7, 6]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function BellB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.z = Math.sin(clock.getElapsedTime() * 3) * 0.25
+    ref.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.1
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <sphereGeometry args={[size*0.34, 10, 8, 0, Math.PI*2, 0, Math.PI*0.7]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.18, 0]}>
+        <cylinderGeometry args={[size*0.08, size*0.08, size*0.12, 8]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.26, 0]}>
+        <torusGeometry args={[size*0.06, size*0.02, 5, 10]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.7} />
+      </mesh>
+      <mesh position={[0, -size*0.18, 0]}>
+        <sphereGeometry args={[size*0.07, 6, 5]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function CandleB41({ pos, color, size }: P41) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.6 + Math.sin(clock.getElapsedTime() * 6 + Math.random() * 0.1) * 0.4
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, -size*0.1, 0]} castShadow>
+        <cylinderGeometry args={[size*0.12, size*0.12, size*0.7, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.28, 0]}>
+        <cylinderGeometry args={[size*0.015, size*0.015, size*0.16, 4]} />
+        <meshStandardMaterial color="#333" roughness={0.8} />
+      </mesh>
+      <mesh ref={ref} position={[0, size*0.38, 0]}>
+        <coneGeometry args={[size*0.06, size*0.14, 6]} />
+        <meshStandardMaterial color="#ffaa00" emissive="#ffaa00" emissiveIntensity={0.8} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, -size*0.48, 0]}>
+        <cylinderGeometry args={[size*0.18, size*0.18, size*0.06, 8]} />
+        <meshStandardMaterial color="#aaa" roughness={0.4} metalness={0.5} />
+      </mesh>
     </group>
   )
 }

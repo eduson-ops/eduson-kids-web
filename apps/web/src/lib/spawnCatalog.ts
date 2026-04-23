@@ -1651,6 +1651,26 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'bat-b40',            label: 'Летучая мышь',    emoji: '🦇', defaultColor: '#2a1a3e', tags: ['мышь','bat','летит','ночь','хэллоуин'], hint: 'Летящая летучая мышь' },
     ],
   },
+  {
+    id: 'ocean-life', name: 'Морская жизнь', icon: '🐬',
+    items: [
+      { kind: 'dolphin-b41',    label: 'Дельфин',      emoji: '🐬', defaultColor: '#4488cc', tags: ['дельфин','dolphin','море','прыгает','умный'], hint: 'Прыгающий дельфин' },
+      { kind: 'clown-fish-b41', label: 'Рыба-клоун',   emoji: '🐠', defaultColor: '#ff6600', tags: ['рыба','clown fish','немо','полосатая','коралл'], hint: 'Рыба-клоун с белыми полосами' },
+      { kind: 'sea-horse-b41',  label: 'Морской конёк', emoji: '🐴', defaultColor: '#ff8800', tags: ['конёк','sea horse','море','хвост','красивый'], hint: 'Изящный морской конёк' },
+    ],
+  },
+  {
+    id: 'christmas', name: 'Рождество', icon: '🎄',
+    items: [
+      { kind: 'christmas-tree-b41', label: 'Рождественская ёлка', emoji: '🎄', defaultColor: '#228B22', tags: ['ёлка','christmas tree','гирлянда','рождество','украшена'], hint: 'Нарядная рождественская ёлка с огнями' },
+      { kind: 'snowman-b41',        label: 'Снеговик',            emoji: '⛄', defaultColor: '#f0f8ff', tags: ['снеговик','snowman','зима','снег','шляпа'], hint: 'Весёлый снеговик в шляпе и шарфе' },
+      { kind: 'gift-box-b41',       label: 'Подарок',             emoji: '🎁', defaultColor: '#cc2200', tags: ['подарок','gift box','бант','рождество','сюрприз'], hint: 'Завязанная лентой подарочная коробка' },
+      { kind: 'reindeer-b41',       label: 'Олень',               emoji: '🦌', defaultColor: '#8B4513', tags: ['олень','reindeer','рога','красный нос','рождество'], hint: 'Рождественский олень с красным носом' },
+      { kind: 'santa-hat-b41',      label: 'Шапка Санты',         emoji: '🎅', defaultColor: '#cc0000', tags: ['шапка','santa hat','красная','помпон','рождество'], hint: 'Красная шапка Санта-Клауса' },
+      { kind: 'bell-b41',           label: 'Колокольчик',         emoji: '🔔', defaultColor: '#c8a000', tags: ['колокольчик','bell','золотой','звон','рождество'], hint: 'Золотой рождественский колокольчик' },
+      { kind: 'candle-b41',         label: 'Свеча',               emoji: '🕯️', defaultColor: '#f5deb3', tags: ['свеча','candle','огонь','пламя','рождество'], hint: 'Мерцающая рождественская свеча' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
