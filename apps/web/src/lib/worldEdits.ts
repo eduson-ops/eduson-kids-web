@@ -208,6 +208,12 @@ export type PropKind =
   // Fairy Garden
   | 'fairy-mushroom' | 'dewdrop-flower' | 'butterfly-perch' | 'fern-curl' | 'acorn-house'
   | 'spider-web' | 'fairy-ring' | 'pebble-path' | 'moss-log' | 'wish-well'
+  // Western Town
+  | 'saloon-front' | 'water-trough' | 'hitching-post' | 'wanted-poster' | 'sheriff-star'
+  | 'cactus-barrel' | 'mining-cart' | 'gold-nugget' | 'western-fence' | 'hay-bale'
+  // Haunted Mansion
+  | 'ghost-lantern' | 'gravestone' | 'haunted-tree' | 'cauldron-bubble' | 'bat-swarm'
+  | 'cobweb-arch' | 'coffin-lid' | 'potion-shelf' | 'cursed-mirror' | 'spirit-flame'
 
 export interface SpawnedPart {
   id: string

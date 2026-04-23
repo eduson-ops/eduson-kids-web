@@ -1020,6 +1020,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'wish-well',        label: 'Колодец желаний',    emoji: '🪣', defaultColor: '#7a5a3a', tags: ['колодец','wish well','желание','монетки','деревянный'], hint: 'Сказочный колодец с монетками' },
     ],
   },
+  {
+    id: 'western-town', name: 'Дикий Запад', icon: '🤠',
+    items: [
+      { kind: 'saloon-front',   label: 'Фасад салуна',        emoji: '🏠', defaultColor: '#8b5a1a', tags: ['салун','saloon','фасад','запад','деревянный'], hint: 'Классический фасад салуна' },
+      { kind: 'water-trough',   label: 'Поилка для лошадей',  emoji: '🪣', defaultColor: '#6b8a4a', tags: ['поилка','water trough','лошадь','вода','деревянная'], hint: 'Деревянный желоб с водой' },
+      { kind: 'hitching-post',  label: 'Коновязь',            emoji: '🪵', defaultColor: '#8b5a1a', tags: ['коновязь','hitching post','столб','лошадь','привязать'], hint: 'Столб для привязи лошадей' },
+      { kind: 'wanted-poster',  label: 'Плакат «РАЗЫСКИВАЕТСЯ»', emoji: '📋', defaultColor: '#d4b060', tags: ['плакат','wanted poster','разыскивается','бумага','шериф'], hint: 'Бумажный плакат с портретом' },
+      { kind: 'sheriff-star',   label: 'Звезда шерифа',       emoji: '⭐', defaultColor: '#ffcc44', tags: ['звезда','sheriff star','шериф','значок','золото'], hint: 'Позолоченная звезда шерифа' },
+      { kind: 'cactus-barrel',  label: 'Кактус в бочке',      emoji: '🌵', defaultColor: '#44aa44', tags: ['кактус','cactus barrel','бочка','пустыня','западный'], hint: 'Большой кактус в деревянной бочке' },
+      { kind: 'mining-cart',    label: 'Шахтная тележка',     emoji: '🚃', defaultColor: '#8b5a1a', tags: ['тележка','mining cart','шахта','рельсы','уголь'], hint: 'Тележка для шахтной породы' },
+      { kind: 'gold-nugget',    label: 'Золотой самородок',   emoji: '💰', defaultColor: '#ffbb00', tags: ['самородок','gold nugget','золото','руда','ценный'], hint: 'Блестящий золотой самородок' },
+      { kind: 'western-fence',  label: 'Забор из досок',      emoji: '🪵', defaultColor: '#8b6030', tags: ['забор','western fence','доски','деревянный','ранчо'], hint: 'Деревянный забор из горизонтальных досок' },
+      { kind: 'hay-bale',       label: 'Стог сена',           emoji: '🌾', defaultColor: '#d4a840', tags: ['сено','hay bale','стог','тюк','ферма'], hint: 'Связанный тюк сена' },
+    ],
+  },
+  {
+    id: 'haunted-mansion', name: 'Дом с привидениями', icon: '👻',
+    items: [
+      { kind: 'ghost-lantern',  label: 'Фонарь-призрак',      emoji: '🏮', defaultColor: '#44ff88', tags: ['фонарь','ghost lantern','призрак','светится','зелёный'], hint: 'Фонарь с призрачным светом' },
+      { kind: 'gravestone',     label: 'Надгробие',           emoji: '🪦', defaultColor: '#888888', tags: ['надгробие','gravestone','кладбище','серый','RIP'], hint: 'Старое потрескавшееся надгробие' },
+      { kind: 'haunted-tree',   label: 'Жуткое дерево',       emoji: '🌳', defaultColor: '#332222', tags: ['дерево','haunted tree','мёртвое','пугающее','ветки'], hint: 'Мёртвое дерево с жуткими ветвями' },
+      { kind: 'cauldron-bubble',label: 'Котёл с зельем',      emoji: '🪄', defaultColor: '#33aa44', tags: ['котёл','cauldron','зелье','пузыри','ведьма'], hint: 'Булькающий котёл с зельем' },
+      { kind: 'bat-swarm',      label: 'Стая летучих мышей',  emoji: '🦇', defaultColor: '#221133', tags: ['летучие мыши','bat swarm','стая','ночь','тёмные'], hint: 'Стая взлетающих летучих мышей' },
+      { kind: 'cobweb-arch',    label: 'Арка с паутиной',     emoji: '🕸', defaultColor: '#cccccc', tags: ['арка','cobweb arch','паутина','вход','мрачный'], hint: 'Арка вся в паутине' },
+      { kind: 'coffin-lid',     label: 'Крышка гроба',        emoji: '⚰', defaultColor: '#332211', tags: ['гроб','coffin','крышка','тёмный','мрачный'], hint: 'Тёмная крышка полуоткрытого гроба' },
+      { kind: 'potion-shelf',   label: 'Полка с зельями',     emoji: '🧪', defaultColor: '#4444aa', tags: ['полка','potion shelf','зелья','бутылки','магия'], hint: 'Полка с разноцветными склянками' },
+      { kind: 'cursed-mirror',  label: 'Проклятое зеркало',   emoji: '🪞', defaultColor: '#2233aa', tags: ['зеркало','cursed mirror','проклятое','тёмное','отражение'], hint: 'Старинное зеркало с тёмным отражением' },
+      { kind: 'spirit-flame',   label: 'Дух огня',            emoji: '👻', defaultColor: '#44aaff', tags: ['дух','spirit flame','синий','огонь','призрак'], hint: 'Синий призрачный огонёк' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
