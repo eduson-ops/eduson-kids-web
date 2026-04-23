@@ -50,27 +50,36 @@ function getWorker(): Worker {
   return worker
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+    promise.then((v) => { clearTimeout(t); resolve(v) }, (e) => { clearTimeout(t); reject(e) })
+  })
+}
+
 export async function warmPyodide(): Promise<void> {
   if (readyPromise) return readyPromise
   const w = getWorker()
   const id = nextId++
-  readyPromise = new Promise<void>((resolve, reject) => {
+  const raw = new Promise<void>((resolve, reject) => {
     pending.set(id, {
       resolve: () => resolve(),
       reject,
     })
     w.postMessage({ id, type: 'ping' } satisfies InMsg)
   })
+  readyPromise = withTimeout(raw, 30_000, 'warmPyodide')
   return readyPromise
 }
 
 export async function runPython(code: string): Promise<Command[]> {
   const w = getWorker()
   const id = nextId++
-  return new Promise<Command[]>((resolve, reject) => {
+  const raw = new Promise<Command[]>((resolve, reject) => {
     pending.set(id, { resolve, reject })
     w.postMessage({ id, type: 'run', code } satisfies InMsg)
   })
+  return withTimeout(raw, 10_000, 'runPython')
 }
 
 export async function resetRuntime(): Promise<void> {
