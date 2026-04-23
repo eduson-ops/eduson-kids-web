@@ -1610,6 +1610,27 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'story-book-b38',     label: 'Сказочная книга',   emoji: '📖', defaultColor: '#8B0000', tags: ['книга','story book','сказка','страницы','открытая'], hint: 'Волшебная открытая книга сказок' },
     ],
   },
+  {
+    id: 'dinosaur-world', name: 'Мир динозавров', icon: '🦕',
+    items: [
+      { kind: 't-rex-b39',       label: 'Тираннозавр',    emoji: '🦖', defaultColor: '#5a8a2e', tags: ['тирекс','t-rex','динозавр','хищник','зубы'], hint: 'Грозный тираннозавр Рекс' },
+      { kind: 'triceratops-b39', label: 'Трицератопс',    emoji: '🦏', defaultColor: '#6a8a3e', tags: ['трицератопс','triceratops','рога','травоядный','динозавр'], hint: 'Трицератопс с тремя рогами' },
+      { kind: 'stegosaurus-b39', label: 'Стегозавр',      emoji: '🦕', defaultColor: '#4a7a2e', tags: ['стегозавр','stegosaurus','пластины','динозавр','травоядный'], hint: 'Стегозавр с красными пластинами' },
+      { kind: 'dino-egg-b39',    label: 'Яйцо динозавра', emoji: '🥚', defaultColor: '#c4b47a', tags: ['яйцо','dino egg','динозавр','гнездо','пятнистое'], hint: 'Пятнистое яйцо динозавра' },
+      { kind: 'pterodactyl-b39', label: 'Птеродактиль',   emoji: '🦅', defaultColor: '#7a6a4a', tags: ['птеродактиль','pterodactyl','летает','крылья','динозавр'], hint: 'Летящий птеродактиль машет крыльями' },
+    ],
+  },
+  {
+    id: 'music-studio', name: 'Музыкальная студия', icon: '🎵',
+    items: [
+      { kind: 'guitar-b39',        label: 'Гитара',          emoji: '🎸', defaultColor: '#c87432', tags: ['гитара','guitar','струны','музыка','рок'], hint: 'Акустическая гитара со струнами' },
+      { kind: 'drum-kit-b39',      label: 'Барабанная установка', emoji: '🥁', defaultColor: '#cc3300', tags: ['барабаны','drum kit','ритм','музыка','джаз'], hint: 'Полная барабанная установка' },
+      { kind: 'piano-b39',         label: 'Фортепиано',      emoji: '🎹', defaultColor: '#111111', tags: ['пианино','piano','клавиши','чёрный','белый'], hint: 'Классическое фортепиано с клавишами' },
+      { kind: 'microphone-b39',    label: 'Микрофон',        emoji: '🎤', defaultColor: '#888888', tags: ['микрофон','microphone','вокал','студия','пение'], hint: 'Студийный микрофон на стойке' },
+      { kind: 'vinyl-record-b39',  label: 'Виниловая пластинка', emoji: '💿', defaultColor: '#cc2244', tags: ['винил','vinyl record','пластинка','вращается','музыка'], hint: 'Вращающаяся виниловая пластинка' },
+      { kind: 'speaker-b39',       label: 'Колонка',         emoji: '🔊', defaultColor: '#222222', tags: ['колонка','speaker','звук','бас','музыка'], hint: 'Мощная студийная колонка' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

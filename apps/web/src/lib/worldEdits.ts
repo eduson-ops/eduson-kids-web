@@ -334,6 +334,10 @@ export type PropKind =
   // Fairy Tale Forest
   | 'fairy-mushroom-b38' | 'fairy-lantern-b38' | 'enchanted-tree-b38' | 'fairy-wing-b38'
   | 'pixie-dust-b38' | 'magic-wand-b38' | 'story-book-b38'
+  // Dinosaur World
+  | 't-rex-b39' | 'triceratops-b39' | 'stegosaurus-b39' | 'dino-egg-b39' | 'pterodactyl-b39'
+  // Music Studio
+  | 'guitar-b39' | 'drum-kit-b39' | 'piano-b39' | 'microphone-b39' | 'vinyl-record-b39' | 'speaker-b39'
 
 export interface SpawnedPart {
   id: string
