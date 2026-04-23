@@ -8517,6 +8517,19 @@ body:has(.lobby-v2) {
   width: 22px; height: 22px;
   margin-left: 2px;
 }
+.kb-streak-freeze {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: rgba(107, 92, 231, 0.12);
+  border-radius: 8px;
+  color: #5AA9FF;
+  font-size: 10px;
+  font-weight: 700;
+}
+.kb-streak-freeze small { font-size: 10px; }
 
 /* На мобилке — скрываем чипы, они перекрывают меню */
 @media (max-width: 720px) {

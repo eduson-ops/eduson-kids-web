@@ -39,10 +39,19 @@ export default function StreakWidget() {
       <Link
         to="/me"
         className="kb-streak-chip"
-        title={p.streak > 0 ? `Стрик ${p.streak} дн.` : 'Начни стрик — занимайся каждый день!'}
+        title={
+          p.streak > 0
+            ? `Стрик ${p.streak} дн.${p.streakFreezes > 0 ? ` · ❄ ${p.streakFreezes} заморозок` : ''}`
+            : 'Начни стрик — занимайся каждый день!'
+        }
       >
         <span className="kb-streak-icon">🔥</span>
         <span className="kb-streak-val">{p.streak}</span>
+        {p.streakFreezes > 0 && (
+          <span className="kb-streak-freeze" aria-label={`${p.streakFreezes} заморозок`}>
+            ❄<small>{p.streakFreezes}</small>
+          </span>
+        )}
       </Link>
       <Link
         to="/settings"

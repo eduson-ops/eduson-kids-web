@@ -51,21 +51,55 @@ interface StreakState {
   current: number        // дней подряд
   longest: number
   lastDay: string        // YYYY-MM-DD
+  freezes: number        // сколько «заморозок» есть в запасе
+  freezeGrantedWeek: string // YYYY-WW последней выдачи недельной заморозки
 }
 
 let streak: StreakState = loadStreak()
 function loadStreak(): StreakState {
   try {
     const raw = localStorage.getItem(KEY_STREAK)
-    if (!raw) return { current: 0, longest: 0, lastDay: '' }
-    return JSON.parse(raw) as StreakState
-  } catch { return { current: 0, longest: 0, lastDay: '' } }
+    if (!raw) return { current: 0, longest: 0, lastDay: '', freezes: 0, freezeGrantedWeek: '' }
+    const loaded = JSON.parse(raw) as Partial<StreakState>
+    return {
+      current: loaded.current ?? 0,
+      longest: loaded.longest ?? 0,
+      lastDay: loaded.lastDay ?? '',
+      freezes: loaded.freezes ?? 0,
+      freezeGrantedWeek: loaded.freezeGrantedWeek ?? '',
+    }
+  } catch { return { current: 0, longest: 0, lastDay: '', freezes: 0, freezeGrantedWeek: '' } }
 }
 function persistStreak() {
   try { localStorage.setItem(KEY_STREAK, JSON.stringify(streak)) } catch { /* quota */ }
 }
 function ymd(d: Date = new Date()): string {
   return d.toISOString().slice(0, 10)
+}
+function yearWeek(d: Date = new Date()): string {
+  // ISO-8601 week
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  const dayNum = (t.getUTCDay() + 6) % 7
+  t.setUTCDate(t.getUTCDate() - dayNum + 3)
+  const firstThu = t.valueOf()
+  t.setUTCMonth(0, 1)
+  if (t.getUTCDay() !== 4) t.setUTCMonth(0, 1 + ((4 - t.getUTCDay()) + 7) % 7)
+  const week = 1 + Math.ceil((firstThu - t.valueOf()) / 604800000)
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
+}
+
+/** Выдать недельную заморозку (1 шт/неделю), если ещё не выдавали на этой неделе. */
+function grantWeeklyFreeze() {
+  const week = yearWeek()
+  if (streak.freezeGrantedWeek === week) return
+  // Начислять только если юзер активный (стрик > 0) — новичку смысла нет
+  if (streak.current > 0 && streak.freezes < 3) {
+    streak = { ...streak, freezes: streak.freezes + 1, freezeGrantedWeek: week }
+    persistStreak()
+  } else if (streak.current > 0) {
+    streak = { ...streak, freezeGrantedWeek: week }
+    persistStreak()
+  }
 }
 
 // ─── Achievements ────────────────────────────────────
@@ -149,16 +183,45 @@ export function averageQuizScore(): number {
 // ─── Streak API ──────────────────────────────────────
 export function getStreak(): StreakState { return streak }
 export function touchStreak() {
+  grantWeeklyFreeze()
   const today = ymd()
   if (streak.lastDay === today) return
   const yesterday = ymd(new Date(Date.now() - 86400_000))
   if (streak.lastDay === yesterday) {
     streak = { ...streak, current: streak.current + 1, lastDay: today }
-  } else {
+  } else if (streak.lastDay === '') {
+    // Первый заход — без учёта заморозки
     streak = { ...streak, current: 1, lastDay: today }
+  } else {
+    // Разрыв. Считаем сколько дней пропущено
+    const last = new Date(streak.lastDay + 'T00:00:00Z').getTime()
+    const nowD = new Date(today + 'T00:00:00Z').getTime()
+    const daysMissed = Math.floor((nowD - last) / 86400_000) - 1
+    if (daysMissed >= 1 && daysMissed <= streak.freezes) {
+      // Хватает заморозок закрыть дыру — списываем и продолжаем стрик
+      streak = {
+        ...streak,
+        current: streak.current + 1,
+        lastDay: today,
+        freezes: streak.freezes - daysMissed,
+      }
+    } else {
+      // Не хватило — стрик сгорел
+      streak = { ...streak, current: 1, lastDay: today }
+    }
   }
   if (streak.current > streak.longest) streak = { ...streak, longest: streak.current }
   persistStreak()
+  emit()
+}
+
+/** Потратить монеты на заморозку (200 монет → +1 заморозка). Возвращает true при успехе. */
+export function buyStreakFreeze(): boolean {
+  if (streak.freezes >= 3) return false // максимум 3
+  streak = { ...streak, freezes: streak.freezes + 1 }
+  persistStreak()
+  emit()
+  return true
 }
 
 // ─── Daily activity API (persisted, for родителям) ───
