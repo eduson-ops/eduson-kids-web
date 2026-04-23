@@ -8,7 +8,6 @@ import { GAMES } from '../lib/games'
 import { plural, pluralize } from '../lib/plural'
 import { useProgress } from '../hooks/useProgress'
 import { useMascotMood } from '../hooks/useMascotMood'
-import PathMap from '../components/PathMap'
 
 /**
  * Hub — the new front door of Eduson Kids.
@@ -34,7 +33,14 @@ const MODULES: Array<{ n: number; title: string; accent: string; lessons: number
   { n: 8, title: 'Публикация + авторство',     accent: 'yellow', lessons: 6, icon: 'trophy' },
 ]
 
-// ACCENT_MAP removed — PathMap resolves accent from its own --accent CSS var
+const ACCENT_MAP: Record<string, { color: string; soft: string; ink: string }> = {
+  violet: { color: '#6B5CE7', soft: '#E4E0FC', ink: '#2A1F8C' },
+  yellow: { color: '#FFD43C', soft: '#FFF0B0', ink: '#7A5900' },
+  mint:   { color: '#9FE8C7', soft: '#E1F7EC', ink: '#0C4E2E' },
+  pink:   { color: '#FFB4C8', soft: '#FFE4EC', ink: '#6A1A33' },
+  sky:    { color: '#A9D8FF', soft: '#DFF0FF', ink: '#1A3A6E' },
+  orange: { color: '#FF9454', soft: '#FFE2CE', ink: '#6B2A05' },
+}
 
 export default function Hub() {
   const [name, setName] = useState<string | null>(null)
@@ -151,28 +157,58 @@ export default function Hub() {
         </div>
       </section>
 
-      {/* Course modules — Duolingo-style path map */}
+      {/* Course modules */}
       <section style={{ marginBottom: 40 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 20 }}>
-          <h2 className="h2">Твой путь · 8 модулей</h2>
-          <span className="eyebrow">{pluralize(48, 'lesson')}</span>
+          <h2 className="h2">8 модулей · 48 уроков</h2>
+          <span className="eyebrow">полная программа</span>
         </div>
-        <PathMap
-          modules={MODULES.map((m) => {
+        <div className="kb-grid-4">
+          {MODULES.map((m) => {
+            const a = ACCENT_MAP[m.accent]
+            const unlocked = m.n <= unlockedModuleN
+            const isActive = m.n === currentModuleN
             const moduleLessonsStart = (m.n - 1) * m.lessons + 1
             const doneinModule = Math.min(m.lessons, Math.max(0, lessonsCompleted - (moduleLessonsStart - 1)))
-            return {
-              n: m.n,
-              title: m.title,
-              accent: m.accent,
-              icon: m.icon,
-              lessonsTotal: m.lessons,
-              lessonsDone: doneinModule,
-            }
+            const modulePct = (doneinModule / m.lessons) * 100
+            return (
+              <Link
+                key={m.n}
+                to={unlocked ? `/learn/module/${m.n}` : '#'}
+                className={`kb-course${isActive ? ' kb-course--active' : ''}`}
+                title={unlocked ? undefined : 'Пройди предыдущие модули, чтобы разблокировать'}
+                aria-disabled={!unlocked}
+                style={{
+                  '--accent': a.color,
+                  '--accent-soft': a.soft,
+                  '--accent-ink': a.ink,
+                  opacity: unlocked ? 1 : 0.45,
+                  pointerEvents: unlocked ? 'auto' : 'none',
+                  cursor: unlocked ? 'pointer' : 'not-allowed',
+                } as React.CSSProperties}
+              >
+                <div className="kb-course-top">
+                  <span className="kb-course-age">M{m.n}</span>
+                  <span className="kb-course-level">{pluralize(m.lessons, 'lesson')}</span>
+                </div>
+                <div className="kb-course-icon kb-course-icon--niksel">
+                  <NikselIcon kind={m.icon} size={84} />
+                </div>
+                <div>
+                  <div className="h3" style={{ fontSize: 16 }}>{m.title}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, borderTop: '1px solid rgba(21,20,27,.06)' }}>
+                  <div className="kb-progress" style={{ flex: 1 }}>
+                    <div className="kb-progress-bar" style={{ width: `${modulePct}%`, background: a.color }} />
+                  </div>
+                  <span style={{ fontSize: 11, color: 'var(--ink-soft)', fontWeight: 700 }}>
+                    {!unlocked ? '🔒' : doneinModule === m.lessons ? '✅' : isActive ? 'В пути' : `${doneinModule}/${m.lessons}`}
+                  </span>
+                </div>
+              </Link>
+            )
           })}
-          unlockedUpTo={unlockedModuleN}
-          currentModuleN={currentModuleN}
-        />
+        </div>
       </section>
 
       {/* Featured worlds */}
