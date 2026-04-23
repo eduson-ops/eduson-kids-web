@@ -287,6 +287,12 @@ export type PropKind =
   // Underwater Castle
   | 'underwater-castle' | 'coral-spire' | 'mermaid-statue' | 'underwater-anchor' | 'bubble-stream'
   | 'ocean-treasure-map' | 'b30-sea-turtle' | 'wreck-cannon' | 'aqua-gargoyle' | 'underwater-gate'
+  // Steampunk City
+  | 'steam-piston' | 'gearwork-clock' | 'airship-b31' | 'steam-pipe-system' | 'brass-gauge'
+  | 'steampunk-golem' | 'telegraph-station' | 'steam-factory' | 'zeppelin-b31'
+  // Anime Dojo
+  | 'dojo-punching-dummy' | 'katana-blade' | 'dojo-scroll-board' | 'ninja-tower' | 'anime-energy-orb'
+  | 'tako-yaki-cart' | 'dojo-mat' | 'breaking-boards' | 'training-bell'
 
 export interface SpawnedPart {
   id: string

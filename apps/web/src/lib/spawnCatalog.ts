@@ -1406,6 +1406,34 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'underwater-gate',    label: 'Подводные врата',        emoji: '🚪', defaultColor: '#4488aa', tags: ['врата','underwater gate','арка','водоросли','проход'], hint: 'Каменные арочные врата на морском дне' },
     ],
   },
+  {
+    id: 'steampunk-city', name: 'Стимпанк Город', icon: '⚙️',
+    items: [
+      { kind: 'steam-piston',       label: 'Паровой поршень',        emoji: '⚙️', defaultColor: '#886644', tags: ['поршень','steam piston','движется','пар','металл'], hint: 'Двигающийся паровой поршень' },
+      { kind: 'gearwork-clock',     label: 'Шестерёнчатые часы',     emoji: '🕰️', defaultColor: '#b8860b', tags: ['часы','gearwork clock','шестерни','стрелки','механизм'], hint: 'Часы со вращающимися шестернями' },
+      { kind: 'airship-b31',        label: 'Воздушный корабль',      emoji: '🎈', defaultColor: '#cc4422', tags: ['дирижабль','airship','гондола','пропеллер','летит'], hint: 'Парящий воздушный корабль' },
+      { kind: 'steam-pipe-system',  label: 'Паровые трубы',          emoji: '🔧', defaultColor: '#886644', tags: ['трубы','steam pipe system','вентиль','клапан','пар'], hint: 'Система паровых труб с вентилем' },
+      { kind: 'brass-gauge',        label: 'Латунный манометр',      emoji: '🔩', defaultColor: '#b8860b', tags: ['манометр','brass gauge','давление','стрелка','латунь'], hint: 'Манометр с качающейся стрелкой' },
+      { kind: 'steampunk-golem',    label: 'Стимпанк-голем',         emoji: '🤖', defaultColor: '#886644', tags: ['голем','steampunk golem','робот','огненные глаза','механизм'], hint: 'Механический голем с огненными глазами' },
+      { kind: 'telegraph-station',  label: 'Телеграфная станция',    emoji: '📻', defaultColor: '#8B4513', tags: ['телеграф','telegraph station','провода','здание','викторианский'], hint: 'Телеграфная станция с мачтой' },
+      { kind: 'steam-factory',      label: 'Паровой завод',          emoji: '🏭', defaultColor: '#886644', tags: ['завод','steam factory','трубы','дым','кирпич'], hint: 'Завод с дымящими трубами' },
+      { kind: 'zeppelin-b31',       label: 'Цеппелин',               emoji: '🛸', defaultColor: '#ccaa66', tags: ['цеппелин','zeppelin','дирижабль','огромный','небо'], hint: 'Величественный цеппелин в полёте' },
+    ],
+  },
+  {
+    id: 'anime-dojo', name: 'Аниме Додзё', icon: '🥋',
+    items: [
+      { kind: 'dojo-punching-dummy',label: 'Манекен для ударов',     emoji: '🥊', defaultColor: '#cc4422', tags: ['манекен','dojo punching dummy','удар','деревянный','тренировка'], hint: 'Качающийся деревянный манекен' },
+      { kind: 'katana-blade',       label: 'Клинок катаны',          emoji: '⚔️', defaultColor: '#d8e0e8', tags: ['клинок','katana blade','меч','цуба','самурай'], hint: 'Отточенный клинок катаны с рукоятью' },
+      { kind: 'dojo-scroll-board',  label: 'Доска с иероглифами',    emoji: '📜', defaultColor: '#e8d5a0', tags: ['доска','dojo scroll board','каллиграфия','красный','традиция'], hint: 'Доска с японской каллиграфией' },
+      { kind: 'ninja-tower',        label: 'Башня ниндзя',           emoji: '🗼', defaultColor: '#cc3322', tags: ['башня','ninja tower','ярусы','чёрный','японский'], hint: 'Трёхъярусная башня в стиле ниндзя' },
+      { kind: 'anime-energy-orb',   label: 'Энергетический шар',     emoji: '✨', defaultColor: '#4488ff', tags: ['шар','anime energy orb','светится','энергия','аниме'], hint: 'Пульсирующий энергетический шар' },
+      { kind: 'tako-yaki-cart',     label: 'Тележка такояки',        emoji: '🐙', defaultColor: '#cc4422', tags: ['такояки','tako yaki cart','еда','уличная','зонт'], hint: 'Уличная тележка с такояки' },
+      { kind: 'dojo-mat',           label: 'Татами',                  emoji: '🟩', defaultColor: '#4a7a2a', tags: ['татами','dojo mat','коврик','тренировка','зелёный'], hint: 'Зелёный тренировочный коврик-татами' },
+      { kind: 'breaking-boards',    label: 'Разбивание досок',       emoji: '🪵', defaultColor: '#8B4513', tags: ['доски','breaking boards','карате','тренировка','трещина'], hint: 'Стойка с досками для разбивания' },
+      { kind: 'training-bell',      label: 'Тренировочный колокол',  emoji: '🔔', defaultColor: '#b8860b', tags: ['колокол','training bell','бронза','качается','звук'], hint: 'Бронзовый тренировочный колокол' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
