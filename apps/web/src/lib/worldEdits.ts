@@ -317,6 +317,11 @@ export type PropKind =
   // Medieval Castle
   | 'castle-tower-b35' | 'drawbridge-b35' | 'knight-armor-b35' | 'catapult-b35'
   | 'medieval-well-b35' | 'torch-b35' | 'banner-b35'
+  // Rainforest
+  | 'toucan-b36' | 'liana-b36' | 'parrot-b36' | 'water-fall-b36' | 'fern-b36' | 'jaguar-b36'
+  // Space Exploration
+  | 'rocket-ship-b36' | 'space-suit-b36' | 'lunar-lander-b36' | 'star-map-b36'
+  | 'moon-rover-b36' | 'asteroid-b36' | 'space-antenna-b36' | 'nebula-crystal-b36'
 
 export interface SpawnedPart {
   id: string

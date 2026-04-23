@@ -1540,6 +1540,30 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'banner-b35',        label: 'Знамя',             emoji: '🚩', defaultColor: '#cc0000', tags: ['знамя','banner','флаг','геральдика','замок'], hint: 'Развевающееся знамя замка' },
     ],
   },
+  {
+    id: 'rainforest', name: 'Джунгли', icon: '🌴',
+    items: [
+      { kind: 'toucan-b36',    label: 'Тукан',           emoji: '🐦', defaultColor: '#ff6600', tags: ['тукан','toucan','птица','джунгли','клюв'], hint: 'Яркий тукан с огромным клювом' },
+      { kind: 'liana-b36',     label: 'Лиана',           emoji: '🌿', defaultColor: '#228B22', tags: ['лиана','liana','джунгли','виноградник','свисает'], hint: 'Свисающая лиана с листьями' },
+      { kind: 'parrot-b36',    label: 'Попугай',         emoji: '🦜', defaultColor: '#ff4400', tags: ['попугай','parrot','птица','крылья','тропический'], hint: 'Яркий попугай расправляет крылья' },
+      { kind: 'water-fall-b36',label: 'Водопад',         emoji: '💧', defaultColor: '#4499cc', tags: ['водопад','waterfall','вода','джунгли','река'], hint: 'Шумный тропический водопад' },
+      { kind: 'fern-b36',      label: 'Папоротник',      emoji: '🌿', defaultColor: '#228B22', tags: ['папоротник','fern','листья','тропический','зелёный'], hint: 'Раскидистый тропический папоротник' },
+      { kind: 'jaguar-b36',    label: 'Ягуар',           emoji: '🐆', defaultColor: '#c8a000', tags: ['ягуар','jaguar','кошка','пятна','джунгли'], hint: 'Ягуар охотится в джунглях' },
+    ],
+  },
+  {
+    id: 'space-exploration', name: 'Космос', icon: '🚀',
+    items: [
+      { kind: 'rocket-ship-b36',   label: 'Ракета',            emoji: '🚀', defaultColor: '#f0f0f0', tags: ['ракета','rocket','космос','взлёт','двигатель'], hint: 'Трёхступенчатая космическая ракета' },
+      { kind: 'space-suit-b36',    label: 'Скафандр',          emoji: '👨‍🚀', defaultColor: '#ffffff', tags: ['скафандр','spacesuit','космонавт','астронавт','шлем'], hint: 'Полный космический скафандр' },
+      { kind: 'lunar-lander-b36',  label: 'Лунный модуль',     emoji: '🛸', defaultColor: '#d4c87a', tags: ['луна','lunar lander','модуль','посадка','луноход'], hint: 'Посадочный лунный модуль' },
+      { kind: 'star-map-b36',      label: 'Звёздная карта',    emoji: '⭐', defaultColor: '#ffcc00', tags: ['звёзды','star map','карта','галактика','созвездие'], hint: 'Сфера с созвездиями' },
+      { kind: 'moon-rover-b36',    label: 'Луноход',           emoji: '🚗', defaultColor: '#aaaaaa', tags: ['луноход','moon rover','марсоход','планетоход','колёса'], hint: 'Шестиколёсный луноход с панелью' },
+      { kind: 'asteroid-b36',      label: 'Астероид',          emoji: '☄️', defaultColor: '#888866', tags: ['астероид','asteroid','камень','орбита','космос'], hint: 'Вращающийся каменный астероид' },
+      { kind: 'space-antenna-b36', label: 'Космическая антенна',emoji: '📡', defaultColor: '#cccccc', tags: ['антенна','antenna','спутник','связь','блюдо'], hint: 'Параболическая антенна на стойке' },
+      { kind: 'nebula-crystal-b36',label: 'Кристалл туманности',emoji: '💎', defaultColor: '#cc44ff', tags: ['туманность','nebula crystal','кристалл','фиолетовый','светится'], hint: 'Светящийся кристалл туманности' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
