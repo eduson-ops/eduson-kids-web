@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1280,initial-scale=1" />
+<title>KubiK — презентация для коммерческого директора</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#15141B; --ink-soft:#2B2A36;
+  --paper:#FFFBF3; --paper-2:#F4EFE3; --paper-3:#ECE4D2;
+  --yellow:#FFD43C; --yellow-ink:#7A5900; --yellow-soft:#FFF0B0; --yellow-deep:#C99E00;
+  --violet:#6B5CE7; --violet-deep:#4A3DC9; --violet-soft:#E4E0FC; --violet-ink:#2A1F8C;
+  --mint:#9FE8C7; --mint-deep:#3DB07A; --mint-soft:#E1F7EC; --mint-ink:#0C4E2E;
+  --pink:#FFB4C8; --pink-deep:#E8517B; --pink-soft:#FFE4EC; --pink-ink:#6A1A33;
+  --sky:#A9D8FF; --sky-deep:#3E87E8; --sky-soft:#DFF0FF; --sky-ink:#1A3A6E;
+  --orange:#FF9454; --orange-deep:#D96A24; --orange-soft:#FFE2CE; --orange-ink:#6B2A05;
+  --r-block:14px; --r-card:22px; --r-card-lg:32px; --r-pill:999px;
+  --sh-1:0 1px 0 rgba(21,20,27,.08), 0 2px 6px rgba(21,20,27,.06);
+  --sh-2:0 2px 0 rgba(21,20,27,.10), 0 8px 20px rgba(21,20,27,.08);
+  --sh-3:0 3px 0 rgba(21,20,27,.14), 0 16px 40px rgba(21,20,27,.10);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--paper);color:var(--ink);font-family:'Nunito',system-ui,sans-serif;overflow:hidden}
+body{
+  background-image:radial-gradient(circle at 16px 16px,rgba(21,20,27,.05) 1.4px,transparent 1.4px);
+  background-size:32px 32px;
+}
+code,.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+
+/* Slide container */
+.deck{position:fixed;inset:0;overflow:hidden}
+.slide{
+  position:absolute;inset:0;padding:64px 88px;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transform:translateY(24px) scale(.98);
+  transition:opacity .55s var(--ease), transform .55s var(--ease);
+}
+.slide.active{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+.slide.leaving{opacity:0;transform:translateY(-18px) scale(.985)}
+
+/* Typography */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-deep)}
+h1.display{font-weight:900;font-size:clamp(56px,8vw,132px);letter-spacing:-.045em;line-height:.92}
+h2{font-weight:800;font-size:clamp(32px,3.4vw,56px);letter-spacing:-.02em;line-height:1.05;margin-bottom:16px}
+h3{font-weight:800;font-size:22px;letter-spacing:-.015em}
+h4{font-weight:800;font-size:16px}
+p{font-size:16px;line-height:1.55;font-weight:500;color:var(--ink-soft)}
+.lede{font-size:22px;line-height:1.4;font-weight:600;color:var(--ink)}
+.muted{color:var(--ink-soft);opacity:.75}
+
+/* Cards */
+.card{background:#fff;border-radius:var(--r-card);box-shadow:var(--sh-2);padding:24px;border:1px solid rgba(21,20,27,.06)}
+.card.hero{border-radius:var(--r-card-lg);box-shadow:var(--sh-3);padding:32px}
+
+/* Block (LEGO-like) */
+.block{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:12px 18px 14px;border-radius:14px;
+  font-weight:700;color:#fff;font-size:15px;
+  box-shadow:0 4px 0 0 var(--_edge,rgba(0,0,0,.2));
+  position:relative;
+}
+.block::before,.block::after{
+  content:'';position:absolute;width:18px;height:6px;background:inherit;border-radius:3px;
+}
+.block::before{top:-4px;left:14px}
+.block::after{bottom:-10px;left:14px}
+.b-move{background:var(--violet);--_edge:var(--violet-deep)}
+.b-logic{background:var(--yellow);color:var(--yellow-ink);--_edge:var(--yellow-deep)}
+.b-data{background:var(--mint);color:var(--mint-ink);--_edge:var(--mint-deep)}
+.b-event{background:var(--pink);color:var(--pink-ink);--_edge:var(--pink-deep)}
+.b-world{background:var(--sky);color:var(--sky-ink);--_edge:var(--sky-deep)}
+.b-sound{background:var(--orange);color:#fff;--_edge:var(--orange-deep)}
+
+/* Pill */
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--r-pill);background:var(--violet-soft);color:var(--violet-ink);font-weight:700;font-size:13px}
+.pill.mint{background:var(--mint-soft);color:var(--mint-ink)}
+.pill.yellow{background:var(--yellow-soft);color:var(--yellow-ink)}
+.pill.pink{background:var(--pink-soft);color:var(--pink-ink)}
+.pill.sky{background:var(--sky-soft);color:var(--sky-ink)}
+
+/* Grid helpers */
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g6{grid-template-columns:repeat(6,1fr)}
+.flex{display:flex;gap:16px;align-items:center}
+.flex-wrap{flex-wrap:wrap}
+.space-between{justify-content:space-between}
+.col{display:flex;flex-direction:column;gap:12px}
+
+/* Big numbers */
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat .num{font-weight:900;font-size:clamp(40px,5vw,80px);letter-spacing:-.035em;line-height:.95}
+.stat .unit{font-size:15px;font-weight:600;color:var(--ink-soft)}
+.stat .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet-deep);font-weight:600}
+
+/* Progress + nav */
+.progress{position:fixed;top:0;left:0;right:0;height:4px;background:transparent;z-index:50}
+.progress .bar{height:100%;background:linear-gradient(90deg,var(--violet),var(--pink-deep));width:0%;transition:width .5s var(--ease)}
+.nav{position:fixed;bottom:24px;right:32px;display:flex;gap:8px;z-index:50}
+.navbtn{width:44px;height:44px;border-radius:50%;border:0;background:#fff;box-shadow:var(--sh-2);cursor:pointer;font-size:20px;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .2s var(--ease)}
+.navbtn:hover{transform:translateY(-2px)}
+.navbtn:active{transform:translateY(1px)}
+.counter{position:fixed;bottom:32px;left:32px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--ink-soft);background:#fff;padding:8px 14px;border-radius:var(--r-pill);box-shadow:var(--sh-1);z-index:50}
+
+/* Mascot penguin — SVG-style with CSS */
+.niksel{width:90px;height:110px;position:relative;display:inline-block}
+.niksel .body{position:absolute;inset:10px 0 0;background:var(--ink);border-radius:45%/50% 50% 45% 45%}
+.niksel .belly{position:absolute;top:28px;left:18px;right:18px;bottom:10px;background:#fff;border-radius:50% 50% 45% 45%}
+.niksel .eye{position:absolute;top:28px;width:10px;height:10px;background:#fff;border-radius:50%}
+.niksel .eye::after{content:'';position:absolute;inset:2px 0 2px 2px;width:6px;height:6px;background:var(--ink);border-radius:50%}
+.niksel .eye.l{left:24px}.niksel .eye.r{right:24px}
+.niksel .beak{position:absolute;top:42px;left:50%;transform:translateX(-50%);width:16px;height:10px;background:var(--orange);border-radius:50% 50% 40% 40%}
+.niksel .foot{position:absolute;bottom:0;width:20px;height:10px;background:var(--orange);border-radius:50%}
+.niksel .foot.l{left:10px}.niksel .foot.r{right:10px}
+
+/* Title slide */
+.title-slide{align-items:center;justify-content:center;text-align:center}
+.title-slide .wordmark{
+  font-weight:900;font-size:clamp(90px,13vw,220px);letter-spacing:-.055em;line-height:.88;
+  background:linear-gradient(180deg,var(--ink) 0%,var(--violet-deep) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.title-slide .sub{font-size:22px;font-weight:600;color:var(--ink-soft);max-width:720px;margin-top:16px}
+.title-slide .meta{margin-top:40px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+/* Bar chart (budget comparison) */
+.bars{display:flex;gap:32px;align-items:flex-end;height:380px;padding:16px}
+.bar{display:flex;flex-direction:column;align-items:center;gap:12px;flex:1;max-width:200px}
+.bar .fill{width:100%;border-radius:var(--r-block) var(--r-block) 0 0;box-shadow:0 4px 0 0 var(--_edge),var(--sh-2);position:relative;transition:height 1.2s var(--ease)}
+.bar .fill.theory{background:var(--violet);--_edge:var(--violet-deep)}
+.bar .fill.real{background:var(--mint);--_edge:var(--mint-deep)}
+.bar .tag{font-weight:800;font-size:14px;padding:6px 12px;border-radius:var(--r-pill);background:#fff;box-shadow:var(--sh-1)}
+.bar .val{font-weight:900;font-size:32px;letter-spacing:-.02em}
+
+/* Funnel */
+.funnel{display:flex;flex-direction:column;gap:10px;max-width:640px;margin:24px auto}
+.funnel-step{padding:18px 24px;border-radius:var(--r-card);color:#fff;font-weight:700;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--sh-2)}
+.funnel-step .title{display:flex;flex-direction:column;gap:4px}
+.funnel-step .title .t1{font-size:18px}
+.funnel-step .title .t2{font-size:12px;opacity:.85;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+.funnel-step .rev{font-size:20px;font-weight:900;font-family:'JetBrains Mono',monospace}
+.fs-1{background:var(--sky-deep);width:100%}
+.fs-2{background:var(--violet);width:92%;margin-left:auto;margin-right:auto}
+.fs-3{background:var(--mint-deep);width:82%;margin-left:auto;margin-right:auto}
+.fs-4{background:var(--orange-deep);width:70%;margin-left:auto;margin-right:auto}
+.fs-5{background:var(--pink-deep);width:58%;margin-left:auto;margin-right:auto}
+
+/* Competitor table */
+.ctable{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+.ctable th,.ctable td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(21,20,27,.07)}
+.ctable th{background:var(--paper-2);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--violet-deep);font-family:'JetBrains Mono',monospace}
+.ctable tr:first-child td{font-weight:800;background:var(--violet-soft)}
+.ctable .ok{color:var(--mint-deep);font-weight:800}
+.ctable .no{color:var(--ink-soft);opacity:.45}
+.ctable .warn{color:var(--orange-deep);font-weight:700}
+.ctable .high{background:var(--yellow-soft)}
+
+/* Timeline */
+.timeline{position:relative;display:flex;gap:24px;align-items:stretch;padding:20px 0;overflow-x:auto}
+.timeline::before{content:'';position:absolute;top:60px;left:0;right:0;height:3px;background:var(--paper-3);border-radius:2px}
+.tl-step{flex:1;min-width:220px;display:flex;flex-direction:column;gap:12px;position:relative}
+.tl-step .dot{width:24px;height:24px;border-radius:50%;background:var(--violet);border:4px solid var(--paper);box-shadow:var(--sh-1);margin:48px auto 16px;position:relative;z-index:1}
+.tl-step.now .dot{background:var(--pink-deep)}
+.tl-step.later .dot{background:var(--mint-deep)}
+.tl-step.far .dot{background:var(--yellow);border-color:var(--paper)}
+.tl-step h4{text-align:center}
+.tl-step .arr{text-align:center;font-weight:900;font-size:20px;color:var(--violet-deep);margin-top:8px}
+.tl-step .desc{text-align:center;font-size:13px;color:var(--ink-soft);padding:0 8px}
+
+/* Revenue ladder */
+.ladder{display:flex;flex-direction:column;gap:12px}
+.rung{display:flex;align-items:center;gap:16px;padding:16px 24px;background:#fff;border-radius:var(--r-card);box-shadow:var(--sh-1);border-left:6px solid var(--violet)}
+.rung.r2{border-color:var(--sky-deep)}
+.rung.r3{border-color:var(--mint-deep)}
+.rung.r4{border-color:var(--orange-deep)}
+.rung.r5{border-color:var(--pink-deep)}
+.rung .when{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--ink-soft);min-width:100px}
+.rung .what{flex:1;font-weight:700;font-size:15px}
+.rung .arr{font-weight:900;font-size:22px;font-family:'JetBrains Mono',monospace;color:var(--violet-deep)}
+
+/* Feature cards grid */
+.feat{background:#fff;border-radius:var(--r-card);padding:20px;box-shadow:var(--sh-1);border:1px solid rgba(21,20,27,.06);display:flex;flex-direction:column;gap:10px;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.slide.active .feat{animation:pop .6s var(--ease) backwards}
+.slide.active .feat:nth-child(1){animation-delay:.1s}
+.slide.active .feat:nth-child(2){animation-delay:.18s}
+.slide.active .feat:nth-child(3){animation-delay:.26s}
+.slide.active .feat:nth-child(4){animation-delay:.34s}
+.slide.active .feat:nth-child(5){animation-delay:.42s}
+.slide.active .feat:nth-child(6){animation-delay:.5s}
+.feat .ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 0 0 var(--_edge,rgba(0,0,0,.15))}
+.feat .ic.v{background:var(--violet-soft);color:var(--violet-deep)}
+.feat .ic.y{background:var(--yellow-soft);color:var(--yellow-ink)}
+.feat .ic.m{background:var(--mint-soft);color:var(--mint-ink)}
+.feat .ic.p{background:var(--pink-soft);color:var(--pink-ink)}
+.feat .ic.s{background:var(--sky-soft);color:var(--sky-ink)}
+.feat .ic.o{background:var(--orange-soft);color:var(--orange-ink)}
+.feat h3{font-size:17px}
+.feat p{font-size:14px}
+
+/* Animations */
+@keyframes pop{
+  from{opacity:0;transform:translateY(20px) scale(.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+@keyframes wobble{
+  0%,100%{transform:rotate(-3deg)}
+  50%{transform:rotate(3deg)}
+}
+@keyframes slideInLeft{
+  from{opacity:0;transform:translateX(-40px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes slideInRight{
+  from{opacity:0;transform:translateX(40px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{
+  0%,100%{box-shadow:0 4px 0 0 var(--_edge,rgba(0,0,0,.2)),0 0 0 0 rgba(107,92,231,.4)}
+  50%{box-shadow:0 4px 0 0 var(--_edge,rgba(0,0,0,.2)),0 0 0 14px rgba(107,92,231,0)}
+}
+.slide.active .anim-up{animation:fadeUp .7s var(--ease) backwards}
+.slide.active .anim-up.d1{animation-delay:.1s}
+.slide.active .anim-up.d2{animation-delay:.22s}
+.slide.active .anim-up.d3{animation-delay:.34s}
+.slide.active .anim-up.d4{animation-delay:.46s}
+.slide.active .anim-up.d5{animation-delay:.58s}
+.slide.active .anim-up.d6{animation-delay:.70s}
+.slide.active .anim-left{animation:slideInLeft .7s var(--ease) backwards}
+.slide.active .anim-right{animation:slideInRight .7s var(--ease) backwards}
+.floating{animation:float 3s ease-in-out infinite}
+.wobbling{animation:wobble 2.5s ease-in-out infinite}
+.pulsing{animation:pulse 2s infinite}
+
+/* Decorative floating blocks in background */
+.decor{position:absolute;pointer-events:none;opacity:.85}
+.decor.top-right{top:40px;right:40px}
+.decor.bottom-left{bottom:80px;left:40px}
+
+/* Python code preview */
+.pycode{background:var(--ink);color:var(--paper);padding:18px 22px;border-radius:var(--r-card);font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.7;box-shadow:var(--sh-2);overflow-x:auto}
+.pycode .kw{color:var(--pink)}
+.pycode .fn{color:var(--yellow)}
+.pycode .str{color:var(--mint)}
+.pycode .co{color:var(--sky);opacity:.7}
+.pycode .nm{color:var(--orange)}
+
+/* Ask slide */
+.ask-list{display:flex;flex-direction:column;gap:14px;margin-top:20px}
+.ask-item{display:flex;gap:20px;align-items:center;padding:20px 24px;background:#fff;border-radius:var(--r-card);box-shadow:var(--sh-2);border-left:6px solid var(--violet)}
+.ask-item .n{font-weight:900;font-size:40px;color:var(--violet-deep);font-family:'JetBrains Mono',monospace;min-width:56px;line-height:1}
+.ask-item .txt{font-weight:600;font-size:16px;line-height:1.4}
+
+.kbd{display:inline-block;padding:2px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;border-radius:6px;background:#fff;border:1px solid rgba(21,20,27,.12);box-shadow:0 2px 0 rgba(21,20,27,.08);font-weight:600}
+
+/* Rings / orbit (scale slide) */
+.ring-scene{position:relative;width:420px;height:420px;margin:auto}
+.ring{position:absolute;inset:0;border:2px dashed var(--violet-soft);border-radius:50%}
+.ring.r2{inset:40px;border-color:var(--mint-soft);animation:spin 30s linear infinite}
+.ring.r3{inset:80px;border-color:var(--pink-soft);animation:spin 22s linear reverse infinite}
+.ring-core{position:absolute;inset:140px;background:linear-gradient(135deg,var(--violet),var(--pink-deep));border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-3);color:#fff;font-weight:900;font-size:36px;letter-spacing:-.02em;text-align:center}
+.orbit{position:absolute;top:50%;left:50%;width:0;height:0}
+.orbit .dot{position:absolute;transform:translate(-50%,-50%);padding:8px 14px;border-radius:var(--r-pill);background:#fff;font-weight:700;font-size:12px;box-shadow:var(--sh-2);white-space:nowrap}
+
+/* Big number reveal */
+.bignum{font-weight:900;font-size:clamp(80px,10vw,180px);letter-spacing:-.05em;line-height:.9;background:linear-gradient(135deg,var(--violet) 0%,var(--pink-deep) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* Save ribbon */
+.ribbon{display:inline-block;padding:8px 18px;background:var(--mint-deep);color:#fff;font-weight:800;font-size:13px;border-radius:var(--r-pill);box-shadow:var(--sh-1);transform:rotate(-2deg)}
+
+/* Scale slide specific */
+.stat-card{background:#fff;padding:28px;border-radius:var(--r-card);box-shadow:var(--sh-2);display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:-40px;right:-40px;width:140px;height:140px;background:var(--_accent,var(--violet-soft));border-radius:50%;opacity:.6;z-index:0}
+.stat-card>*{position:relative;z-index:1}
+.stat-card .bignumber{font-weight:900;font-size:64px;letter-spacing:-.035em;line-height:1;color:var(--_dark,var(--violet-deep))}
+
+/* Compare panels */
+.compare{display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:stretch}
+.compare .vs{display:flex;align-items:center;justify-content:center;font-weight:900;font-size:32px;color:var(--pink-deep)}
+.compare .panel{background:#fff;border-radius:var(--r-card);padding:28px;box-shadow:var(--sh-2);display:flex;flex-direction:column;gap:12px}
+.compare .panel.bad{border-top:6px solid var(--pink-deep)}
+.compare .panel.good{border-top:6px solid var(--mint-deep)}
+.compare .panel h3{font-size:20px}
+.compare .panel .num{font-weight:900;font-size:48px;letter-spacing:-.03em}
+.compare .panel .num.bad{color:var(--pink-deep)}
+.compare .panel .num.good{color:var(--mint-deep)}
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="bar" id="bar"></div></div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 — TITLE -->
+<section class="slide title-slide">
+  <div class="decor top-right wobbling"><span class="block b-logic">if прогресс &gt; 0</span></div>
+  <div class="decor bottom-left floating"><span class="block b-move">двигаться вперёд</span></div>
+
+  <div class="niksel floating" style="margin-bottom:32px">
+    <div class="body"></div><div class="belly"></div>
+    <div class="eye l"></div><div class="eye r"></div>
+    <div class="beak"></div>
+    <div class="foot l"></div><div class="foot r"></div>
+  </div>
+
+  <span class="eyebrow anim-up">Eduson Kids · цифровая платформа детского творчества</span>
+  <h1 class="wordmark anim-up d1">KubiK</h1>
+  <p class="sub anim-up d2">Замена Roblox для школ РФ. Готова к пилоту. Эквивалентная стоимость разработки командой — <b>113 млн ₽</b>. Факт — <b>0 ₽ на ФОТ</b>.</p>
+  <div class="meta anim-up d3">
+    <span class="pill">Презентация для Коммерческого директора</span>
+    <span class="pill mint">23 апреля 2026</span>
+    <span class="pill yellow">12 слайдов · ~8 минут</span>
+  </div>
+  <p class="muted anim-up d4" style="margin-top:40px;font-size:14px">
+    <span class="kbd">→</span> далее · <span class="kbd">←</span> назад · <span class="kbd">Space</span> дальше · <span class="kbd">F</span> fullscreen
+  </p>
+</section>
+
+<!-- SLIDE 2 — WHAT IS IT -->
+<section class="slide">
+  <span class="eyebrow anim-up">Одной фразой</span>
+  <h2 class="anim-up d1">Готовый продукт,<br>а не презентация продукта.</h2>
+  <div class="grid g3" style="margin-top:40px">
+    <div class="card anim-up d2">
+      <div class="block b-event" style="margin-bottom:16px">когда урок начнётся</div>
+      <h3>Что внутри</h3>
+      <p>3D-песочница в браузере, где дети делают игры блоками и Python. Плюс веб-конструктор. Плюс курсы. Один продукт — пять модулей.</p>
+    </div>
+    <div class="card anim-up d3">
+      <div class="block b-logic" style="margin-bottom:16px">если школа закупает</div>
+      <h3>Для кого</h3>
+      <p>Школы РФ 7-9 класс (информатика ФГОС). Дети 9-15 лет. Родители-плательщики. Учителя, которым нужен готовый практикум, а не только учебник.</p>
+    </div>
+    <div class="card anim-up d4">
+      <div class="block b-data" style="margin-bottom:16px">канал = Просвещение</div>
+      <h3>Через кого продаём</h3>
+      <p>Не холодные звонки. Канал «Просвещение» = 40 000 школ. У них нет игрового конструктора. Мы закрываем пустую клетку их портфеля.</p>
+    </div>
+  </div>
+  <div style="flex:1"></div>
+  <p class="lede anim-up d5" style="margin-top:24px;max-width:900px">
+    Продукт готов, канал известен, регуляторный ров защищён.
+    Мы не просим денег на код. Мы просим решение по коммерциализации.
+  </p>
+</section>
+
+<!-- SLIDE 3 — SCALE -->
+<section class="slide">
+  <span class="eyebrow anim-up">Масштаб — что уже написано</span>
+  <h2 class="anim-up d1">Код платформы в цифрах</h2>
+  <div class="grid g4" style="margin-top:28px">
+    <div class="stat-card anim-up d1" style="--_accent:var(--violet-soft);--_dark:var(--violet-deep)">
+      <span class="label mono" style="font-size:11px;font-weight:600;color:var(--violet-deep);letter-spacing:.14em;text-transform:uppercase">TS / TSX</span>
+      <div class="bignumber" data-target="45000" data-suffix="">0</div>
+      <span class="unit">строк production-кода</span>
+    </div>
+    <div class="stat-card anim-up d2" style="--_accent:var(--mint-soft);--_dark:var(--mint-deep)">
+      <span class="label mono" style="font-size:11px;font-weight:600;color:var(--mint-deep);letter-spacing:.14em;text-transform:uppercase">UI</span>
+      <div class="bignumber" data-target="18" data-suffix="">0</div>
+      <span class="unit">экранов · 62 компонента</span>
+    </div>
+    <div class="stat-card anim-up d3" style="--_accent:var(--pink-soft);--_dark:var(--pink-deep)">
+      <span class="label mono" style="font-size:11px;font-weight:600;color:var(--pink-deep);letter-spacing:.14em;text-transform:uppercase">3D</span>
+      <div class="bignumber" data-target="287" data-suffix="">0</div>
+      <span class="unit">пропсов · 59 категорий</span>
+    </div>
+    <div class="stat-card anim-up d4" style="--_accent:var(--sky-soft);--_dark:var(--sky-deep)">
+      <span class="label mono" style="font-size:11px;font-weight:600;color:var(--sky-deep);letter-spacing:.14em;text-transform:uppercase">Методика</span>
+      <div class="bignumber" data-target="125" data-suffix="">0</div>
+      <span class="unit">MD-файлов · 24k строк</span>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:28px;gap:24px">
+    <div class="card anim-up d5">
+      <h3 style="margin-bottom:8px">📦 Production deploy</h3>
+      <p>Платформа уже работает. GitHub Pages: <span class="mono" style="color:var(--violet-deep);font-weight:700">eduson-ops.github.io/eduson-kids-web/</span></p>
+    </div>
+    <div class="card anim-up d6">
+      <h3 style="margin-bottom:8px">🧱 Рыночный эквивалент кода</h3>
+      <p>По бенчмарку 3,5–5 ₽ / строку производственного EdTech → <b>150-225 млн ₽</b> только движок. Аналоги на рынке — команды 15-25 FTE и раунд А 200-400 млн ₽.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4 — COST COMPARISON -->
+<section class="slide">
+  <span class="eyebrow anim-up">Экономика разработки</span>
+  <h2 class="anim-up d1">113 млн ₽ vs 600 тыс. ₽</h2>
+  <p class="lede anim-up d2" style="max-width:760px">Сколько стоило бы нанять команду на 24 месяца — против того, что фактически потрачено на проект.</p>
+
+  <div class="compare anim-up d3" style="margin-top:40px;flex:1;align-items:center">
+    <div class="panel bad">
+      <span class="eyebrow" style="color:var(--pink-deep)">Theoretical — нанять команду</span>
+      <div class="num bad">113 млн ₽</div>
+      <p><b>11→19 FTE</b> за 24 мес:<br>ФОТ 65M · инфра 14M · маркетинг 18M · юр. 2M · методика 1,85M · прочее 12M</p>
+    </div>
+    <div class="vs">→</div>
+    <div class="panel good">
+      <span class="eyebrow" style="color:var(--mint-deep)">Factual — один founder + AI</span>
+      <div class="num good">≈ 600 тыс. ₽</div>
+      <p><b>1 человек + Claude Code Max</b>:<br>AI-подписка + инфра + домены + базовый юр.пакет. Без ФОТ.</p>
+    </div>
+  </div>
+
+  <div class="anim-up d4" style="text-align:center;margin-top:30px">
+    <span class="ribbon pulsing" style="font-size:18px;padding:12px 28px">Экономия ≈ 99,5% · для инвестора читается как раунд А, встроенный в продукт</span>
+  </div>
+</section>
+
+<!-- SLIDE 5 — B2G CHANNEL -->
+<section class="slide">
+  <span class="eyebrow anim-up">Канал = «Просвещение»</span>
+  <h2 class="anim-up d1">Не продукт — дистрибуция решает</h2>
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:48px;margin-top:20px;flex:1;align-items:center">
+    <div class="ring-scene anim-up d2">
+      <div class="ring"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <div class="ring-core">40 000<br><span style="font-size:14px;letter-spacing:.1em;font-weight:700;opacity:.85">школ РФ</span></div>
+      <div class="orbit"><div class="dot" style="background:var(--yellow);left:200px;top:0">📘 LECTA 1000+ ЭФУ</div></div>
+      <div class="orbit"><div class="dot" style="background:var(--mint);left:62px;top:190px">🎓 Академия</div></div>
+      <div class="orbit"><div class="dot" style="background:var(--sky);left:-162px;top:117px">📱 Сферум · 30М</div></div>
+      <div class="orbit"><div class="dot" style="background:var(--pink);left:-162px;top:-117px">✏️ УМК Босовой</div></div>
+      <div class="orbit"><div class="dot" style="background:var(--orange);color:#fff;left:62px;top:-190px">🧩 Медиатека</div></div>
+    </div>
+
+    <div class="col">
+      <div class="card anim-up d3">
+        <h3 style="margin-bottom:8px">Что есть у «Просвещения»</h3>
+        <p>Монопольный канал в школы. 1000+ электронных учебников. Своя академия обучения учителей. Сотрудничество со Сферум (30 млн пользователей).</p>
+      </div>
+      <div class="card anim-up d4" style="background:var(--yellow-soft)">
+        <h3 style="margin-bottom:8px">Чего у них НЕТ</h3>
+        <p><b>Игрового конструктора. UGC-платформы. Среды программирования. Мультиплеерной учебной среды.</b> Пустая клетка в портфеле, которую мы закрываем — без их CAPEX.</p>
+      </div>
+      <div class="card anim-up d5" style="background:var(--violet-soft)">
+        <h3 style="margin-bottom:8px;color:var(--violet-ink)">Для нас это значит</h3>
+        <p>CAC в B2G-модели стремится к нулю. Дистрибуцию платит партнёр, мы отдаём royalty. LTV школы × количество школ × доля — это миллиарды.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 6 — FUNNEL -->
+<section class="slide">
+  <span class="eyebrow anim-up">8-квартальная воронка сделки с Просвещением</span>
+  <h2 class="anim-up d1">От виджета в ЭФУ до white-label</h2>
+  <p class="anim-up d2" style="max-width:820px">5 путей сделки, каждый уровень — отдельная сделка, не блокирует предыдущий. Идём последовательно, увеличивая долю и маржу.</p>
+
+  <div class="funnel" style="margin-top:32px;max-width:820px">
+    <div class="funnel-step fs-1 anim-up d1">
+      <div class="title"><span class="t2">Q1-Q2 · путь 4.4</span><span class="t1">LECTA-виджет</span></div>
+      <div class="rev">5-10 млн ₽/год</div>
+    </div>
+    <div class="funnel-step fs-2 anim-up d2">
+      <div class="title"><span class="t2">Q2-Q3 · путь 4.5</span><span class="t1">Академия — сертификация учителей</span></div>
+      <div class="rev">+доход + промоутеры</div>
+    </div>
+    <div class="funnel-step fs-3 anim-up d3">
+      <div class="title"><span class="t2">Q3-Q5 · путь 4.3</span><span class="t1">OEM к УМК Босовой/Полякова</span></div>
+      <div class="rev">50-250 млн ₽/год</div>
+    </div>
+    <div class="funnel-step fs-4 anim-up d4">
+      <div class="title"><span class="t2">Q5-Q7 · путь 4.2</span><span class="t1">Co-brand «Просвещение × KubiK»</span></div>
+      <div class="rev">200-500 млн ₽/год</div>
+    </div>
+    <div class="funnel-step fs-5 anim-up d5">
+      <div class="title"><span class="t2">Q7-Q8 · путь 4.1</span><span class="t1">White-label + royalty 15-20%</span></div>
+      <div class="rev">1-3 млрд ₽/год</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7 — THREE MODES -->
+<section class="slide">
+  <span class="eyebrow anim-up">Уникальная конкурентная фича</span>
+  <h2 class="anim-up d1">Три режима программирования в одной платформе</h2>
+  <p class="anim-up d2" style="max-width:820px">То, чего нет ни у Scratch, ни у Code.org, ни у Tynker. Платформа растёт вместе с ребёнком: от 9 до 15 лет, LTV 5-6 лет вместо 1-2.</p>
+
+  <div class="grid g3" style="margin-top:36px;flex:1;align-items:center">
+    <div class="card hero anim-left">
+      <span class="pill">Режим 1 · 9-11 лет</span>
+      <h3 style="margin:14px 0">Classic Blockly</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;margin:16px 0">
+        <span class="block b-event">когда старт</span>
+        <span class="block b-move" style="margin-left:14px">идти вперёд на 5</span>
+        <span class="block b-logic" style="margin-left:14px">если коснулся монеты</span>
+        <span class="block b-data" style="margin-left:28px">очки = очки + 1</span>
+      </div>
+      <p>40+ блоков с русскими подписями. Вход без языкового барьера.</p>
+    </div>
+
+    <div class="card hero anim-up d2" style="background:linear-gradient(135deg,var(--violet-soft),var(--mint-soft))">
+      <span class="pill pink">Режим 2 · 11-13 лет · МОСТ</span>
+      <h3 style="margin:14px 0">Python-blocks</h3>
+      <div style="display:flex;gap:10px;margin:16px 0">
+        <div style="flex:1">
+          <span class="block b-move">повторить 10 раз</span>
+        </div>
+        <div style="align-self:center;font-weight:900;color:var(--violet-deep)">→</div>
+        <div style="flex:1;font-size:12px">
+          <div class="pycode" style="font-size:11px;padding:8px 10px"><span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">10</span>):</div>
+        </div>
+      </div>
+      <p>Блоки показывают сгенерированный Python-код рядом. Ребёнок видит связь «блок = строка кода». Плавный переход.</p>
+    </div>
+
+    <div class="card hero anim-right">
+      <span class="pill mint">Режим 3 · 13-15 лет</span>
+      <h3 style="margin:14px 0">Pure Python 3</h3>
+      <div class="pycode" style="margin:16px 0;font-size:12px">
+<span class="kw">from</span> world <span class="kw">import</span> spawn, on_collide<br>
+<br>
+<span class="kw">def</span> <span class="fn">start</span>():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;coin = <span class="fn">spawn</span>(<span class="str">"coin"</span>, x=<span class="nm">5</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">on_collide</span>(coin, <span class="fn">collect</span>)
+      </div>
+      <p><b>Реальный Python 3.11 в браузере через Pyodide WASM.</b> Не симулятор. <code>import math</code>, list comprehension, классы — всё работает.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8 — COMPETITOR TABLE -->
+<section class="slide">
+  <span class="eyebrow anim-up">Конкурентная позиция</span>
+  <h2 class="anim-up d1">Мы не догоняем — у нас шире поле</h2>
+  <p class="anim-up d2" style="max-width:820px">Blockly — это не конкурент, а библиотека Google, которую мы используем. Мы надстраиваем над ней 3D + Python + ФГОС + русский канал.</p>
+
+  <div class="card anim-up d3" style="margin-top:24px;overflow-x:auto">
+    <table class="ctable">
+      <thead>
+        <tr><th>Функция</th><th>KubiK</th><th>Scratch</th><th>Tynker</th><th>Блоксели</th><th>Roblox</th></tr>
+      </thead>
+      <tbody>
+        <tr class="high"><td>3D-миры (browser)</td><td class="ok">✓ R3F + physics</td><td class="no">—</td><td class="warn">2.5D</td><td class="no">2D</td><td class="ok">AAA</td></tr>
+        <tr><td>Python в браузере</td><td class="ok">✓ Pyodide</td><td class="no">—</td><td class="ok">✓</td><td class="no">—</td><td class="no">Luau</td></tr>
+        <tr class="high"><td>Python-blocks (мост)</td><td class="ok">✓ уникально</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Веб-конструктор</td><td class="ok">✓ 22 секции</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>UGC / share</td><td class="ok">✓ share-link</td><td class="warn">частично</td><td class="no">—</td><td class="no">—</td><td class="ok">✓</td></tr>
+        <tr class="high"><td>Работает в РФ легально</td><td class="ok">✓</td><td class="ok">✓</td><td class="warn">оплата сломана</td><td class="ok">✓</td><td style="color:#E8517B;font-weight:800">заблокирован</td></tr>
+        <tr><td>Русский первично</td><td class="ok">✓</td><td>локализация</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr class="high"><td>ФГОС-методика 7-9 кл</td><td class="ok">✓ 48 уроков</td><td class="no">—</td><td class="no">—</td><td class="ok">✓</td><td class="no">—</td></tr>
+        <tr><td>Реестр ПО Минцифры</td><td>в процессе</td><td class="no">—</td><td class="no">—</td><td class="ok">✓</td><td class="no">—</td></tr>
+        <tr><td>Цена для школы</td><td class="ok">25-50k ₽/год</td><td>free</td><td class="no">недоступно</td><td>30-40k ₽</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="anim-up d4" style="margin-top:20px;font-weight:700">
+    <span class="pill pink">Вывод</span>&nbsp;&nbsp; Белое пятно ровно формы KubiK: 11-15 лет + 3D + Python + ФГОС + РФ-хостинг + self-serve. Каждый конкурент теряет минимум 2 из 6.
+  </p>
+</section>
+
+<!-- SLIDE 9 — CONTENT -->
+<section class="slide">
+  <span class="eyebrow anim-up">Контент — мы продаём не движок, а решение</span>
+  <h2 class="anim-up d1">У нас есть и редактор, и уроки</h2>
+  <p class="anim-up d2" style="max-width:820px">У большинства конкурентов либо движок без методики, либо методика без живого продукта. Мы единственные, у кого всё вместе, под ФГОС, к учебнику Босовой.</p>
+
+  <div class="grid g3" style="margin-top:28px">
+    <div class="feat"><div class="ic v">📚</div><h3>48-урочный план</h3><p>2 года информатики 7-9 кл. от алгоритмики через блоки к Python. Готов.</p></div>
+    <div class="feat"><div class="ic y">🎓</div><h3>96-урочный full-CS</h3><p>Для элективов и углублёнки. Готов.</p></div>
+    <div class="feat"><div class="ic m">📝</div><h3>6 HTML-уроков + 6 методичек</h3><p>Первая игра → Python mode. Технокарты, ответы, критерии.</p></div>
+    <div class="feat"><div class="ic p">🐍</div><h3>20+ курсов Eduson Kids</h3><p>Python, Scratch — уже работают. Переупаковка под ФГОС.</p></div>
+    <div class="feat"><div class="ic s">📋</div><h3>KubiK-lang v1.0 spec</h3><p>Полная спецификация блочного языка. Основа для IP-защиты.</p></div>
+    <div class="feat"><div class="ic o">⚖️</div><h3>10 юр. документов</h3><p>Политика ПД, Реестр ПО, 152-ФЗ, товарный знак, согласие родителя.</p></div>
+  </div>
+
+  <div class="card anim-up d6" style="margin-top:28px;background:var(--mint-soft);border-left:6px solid var(--mint-deep)">
+    <h3 style="color:var(--mint-ink)">Коммерческий эффект</h3>
+    <p style="color:var(--mint-ink)">
+      Школа закупает не «редактор за 30к ₽/год», а <b>готовый ФГОС-практикум под учебник Босовой/Полякова</b>.
+      Это превращает продукт-инструмент в продукт-решение, что поднимает средний чек в 2-3 раза.
+    </p>
+  </div>
+</section>
+
+<!-- SLIDE 10 — ROADMAP -->
+<section class="slide">
+  <span class="eyebrow anim-up">Roadmap и выручка</span>
+  <h2 class="anim-up d1">Путь от 0 до миллиарда за 36 месяцев</h2>
+
+  <div class="ladder" style="margin-top:28px">
+    <div class="rung anim-up d1">
+      <div class="when">Q2-Q3 2026</div>
+      <div class="what">Сферум SSO · ЮKassa · Реестр ПО · рецензия МПГУ · 3-5 пилотных школ</div>
+      <div class="arr">pilot</div>
+    </div>
+    <div class="rung r2 anim-up d2">
+      <div class="when">Q3-Q4 2026</div>
+      <div class="what">50-100 школ · B2C через мастер-классы Eduson · 40 уроков</div>
+      <div class="arr">5-10 млн ₽</div>
+    </div>
+    <div class="rung r3 anim-up d3">
+      <div class="when">Q1-Q2 2027</div>
+      <div class="what">LECTA-виджет · ФПУ-заявка · нацпроект ЦОС · 1-3 тыс. школ</div>
+      <div class="arr">30-90 млн ₽</div>
+    </div>
+    <div class="rung r4 anim-up d4">
+      <div class="when">Q3 2027 — Q2 2028</div>
+      <div class="what">OEM к УМК Босовой · co-brand · 2-5 тыс. школ · нацпроект «Кадры»</div>
+      <div class="arr">60-250 млн ₽</div>
+    </div>
+    <div class="rung r5 anim-up d5">
+      <div class="when">2029-2030</div>
+      <div class="what">White-label «Просвещение.Кибер» · 30-40 тыс. школ · экспорт в СНГ</div>
+      <div class="arr">1-3 млрд ₽</div>
+    </div>
+  </div>
+
+  <div class="grid g4 anim-up d6" style="margin-top:24px">
+    <div class="card" style="border-top:4px solid var(--violet)"><span class="eyebrow">Нацпроект ЦОС</span><h3 style="margin-top:4px">100-500 млн ₽/год</h3><p style="font-size:13px">Школьные лицензии 44-ФЗ</p></div>
+    <div class="card" style="border-top:4px solid var(--mint-deep)"><span class="eyebrow">Нацпроект «Кадры»</span><h3 style="margin-top:4px">200-700 млн ₽</h3><p style="font-size:13px">ИТ-практикум 2025-2030</p></div>
+    <div class="card" style="border-top:4px solid var(--orange-deep)"><span class="eyebrow">Экономика данных</span><h3 style="margin-top:4px">Косвенно</h3><p style="font-size:13px">ИИ-инструменты учителя</p></div>
+    <div class="card" style="border-top:4px solid var(--pink-deep)"><span class="eyebrow">Региональные гранты</span><h3 style="margin-top:4px">50-150 млн ₽</h3><p style="font-size:13px">Обучение учителей, 10-15 регионов</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 11 — UNIT ECONOMICS -->
+<section class="slide">
+  <span class="eyebrow anim-up">Юнит-экономика</span>
+  <h2 class="anim-up d1">Все три сегмента в плюс с первого месяца</h2>
+
+  <div class="grid g3" style="margin-top:36px">
+    <div class="card hero anim-up d1" style="border-top:8px solid var(--sky-deep)">
+      <span class="pill sky">B2C родитель</span>
+      <h3 style="margin:12px 0;font-size:18px">990 ₽ / мес</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0">
+        <div class="flex space-between"><span class="muted">ARPU</span><b>11 880 ₽/год</b></div>
+        <div class="flex space-between"><span class="muted">CAC (через МК Eduson)</span><b>1 500 ₽</b></div>
+        <div class="flex space-between"><span class="muted">LTV (3 года)</span><b>35 640 ₽</b></div>
+      </div>
+      <div class="bignum" style="font-size:72px">24×</div>
+      <p class="muted">LTV / CAC</p>
+    </div>
+
+    <div class="card hero anim-up d2" style="border-top:8px solid var(--violet-deep)">
+      <span class="pill">B2B школа</span>
+      <h3 style="margin:12px 0;font-size:18px">25-50к ₽ / год</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0">
+        <div class="flex space-between"><span class="muted">ARPU</span><b>37 500 ₽/год</b></div>
+        <div class="flex space-between"><span class="muted">CAC (прямая продажа)</span><b>20 000 ₽</b></div>
+        <div class="flex space-between"><span class="muted">LTV (4 года)</span><b>150 000 ₽</b></div>
+      </div>
+      <div class="bignum" style="font-size:72px">7,5×</div>
+      <p class="muted">LTV / CAC</p>
+    </div>
+
+    <div class="card hero anim-up d3" style="border-top:8px solid var(--mint-deep);background:linear-gradient(135deg,#fff,var(--mint-soft))">
+      <span class="pill mint">B2G через Просвещение</span>
+      <h3 style="margin:12px 0;font-size:18px">royalty 15%</h3>
+      <div style="display:flex;flex-direction:column;gap:10px;margin:16px 0">
+        <div class="flex space-between"><span class="muted">Доход нам</span><b>7 500 ₽/школа/год</b></div>
+        <div class="flex space-between"><span class="muted">CAC (их канал)</span><b>≈ 0</b></div>
+        <div class="flex space-between"><span class="muted">LTV (4 года)</span><b>30 000 ₽</b></div>
+      </div>
+      <div class="bignum" style="font-size:72px">∞</div>
+      <p class="muted">LTV / CAC</p>
+    </div>
+  </div>
+
+  <div class="card anim-up d4" style="margin-top:28px;background:var(--yellow-soft)">
+    <p style="color:var(--yellow-ink);font-weight:600;font-size:16px">
+      💡 <b>Payback minimal.</b> Минимальный коммерческий штат Q3-Q4 2026 (1 B2B sales + 1 B2G AM + методист part-time + маркетинг) = <b>≈ 4 млн ₽</b>.
+      ARR цель к концу Q4: <b>5-10 млн ₽</b>. Окупаемость ≤ 6 месяцев.
+    </p>
+  </div>
+</section>
+
+<!-- SLIDE 12 — NEAR-TERM IMPROVEMENTS -->
+<section class="slide">
+  <span class="eyebrow anim-up">Что усилим в ближайшие 2-4 недели</span>
+  <h2 class="anim-up d1">10 улучшений под продажи</h2>
+  <p class="anim-up d2" style="max-width:820px">Ранжировано по impact на коммерческий результат. Всё можно сделать одним оператором с AI за 4-5 недель. Рыночная стоимость: 4-6 млн ₽.</p>
+
+  <div class="grid g2" style="margin-top:24px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="rung anim-up d1"><div class="when">P0 · 1 нед</div><div class="what">Сферум SSO (VK ID Education)</div><div class="arr">школы</div></div>
+      <div class="rung r2 anim-up d2"><div class="when">P0 · 3 дня</div><div class="what">Brand-kit Eduson по всем экранам</div><div class="arr">trust</div></div>
+      <div class="rung r3 anim-up d3"><div class="when">P0 · 3 дня</div><div class="what">Видео-демо 90 сек для лендинга</div><div class="arr">CTR</div></div>
+      <div class="rung r4 anim-up d4"><div class="when">P1 · 1 нед</div><div class="what">Parent Dashboard v2 — отчёты родителю</div><div class="arr">retention</div></div>
+      <div class="rung r5 anim-up d5"><div class="when">P1 · 2 нед</div><div class="what">Marketplace миров + кнопка «remix»</div><div class="arr">UGC-стрим</div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="rung anim-up d1"><div class="when">P1 · 1,5 нед</div><div class="what">Mobile PWA — планшет в школе</div><div class="arr">охват</div></div>
+      <div class="rung r2 anim-up d2"><div class="when">P1 · 1 нед</div><div class="what">12 новых Blockly-блоков для Y2</div><div class="arr">depth</div></div>
+      <div class="rung r3 anim-up d3"><div class="when">P2 · 2 дня</div><div class="what">PDF-сертификаты ученика</div><div class="arr">emotion</div></div>
+      <div class="rung r4 anim-up d4"><div class="when">P2 · 3-5 дней</div><div class="what">White-label скин «Просвещение.Кибер»</div><div class="arr">пилот</div></div>
+      <div class="rung r5 anim-up d5"><div class="when">P2 · 1 нед</div><div class="what">Экспорт оценок в Сферум</div><div class="arr">teacher</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 13 — ASK -->
+<section class="slide">
+  <span class="eyebrow anim-up">Что мы просим</span>
+  <h2 class="anim-up d1">5 решений от Коммерческого</h2>
+
+  <div class="ask-list">
+    <div class="ask-item anim-up d1"><div class="n">01</div><div class="txt">Зелёный свет на коммерциализацию с Q3 2026. Не ждём «идеального продукта» — продукт готов.</div></div>
+    <div class="ask-item anim-up d2" style="border-color:var(--mint-deep)"><div class="n" style="color:var(--mint-deep)">02</div><div class="txt">Бюджет <b>≈ 4 млн ₽</b> на Q3-Q4: B2B sales + B2G Account Manager + методист-фрилансер + маркетинг.</div></div>
+    <div class="ask-item anim-up d3" style="border-color:var(--pink-deep)"><div class="n" style="color:var(--pink-deep)">03</div><div class="txt">Координацию с B2C-командой Eduson Kids — выделить 3-5 человек на школьный B2B-трек.</div></div>
+    <div class="ask-item anim-up d4" style="border-color:var(--orange-deep)"><div class="n" style="color:var(--orange-deep)">04</div><div class="txt">Поддержку по входу в «Просвещение» — intro через EdTech-сеть, общих знакомых, ОТ PRO.</div></div>
+    <div class="ask-item anim-up d5" style="border-color:var(--sky-deep)"><div class="n" style="color:var(--sky-deep)">05</div><div class="txt">Решение по бренду под white-label — KubiK / Eduson Kids / Просвещение.Кибер.</div></div>
+  </div>
+</section>
+
+<!-- SLIDE 14 — CLOSE -->
+<section class="slide title-slide">
+  <div class="decor top-right floating"><span class="block b-data">окно = Q2-Q3 2026</span></div>
+  <div class="decor bottom-left wobbling"><span class="block b-event">если принимаем сейчас</span></div>
+
+  <div class="niksel floating" style="margin-bottom:32px">
+    <div class="body"></div><div class="belly"></div>
+    <div class="eye l"></div><div class="eye r"></div>
+    <div class="beak"></div>
+    <div class="foot l"></div><div class="foot r"></div>
+  </div>
+
+  <span class="eyebrow anim-up">Итог</span>
+  <h1 class="wordmark anim-up d1" style="font-size:clamp(60px,9vw,140px)">Актив, не проект</h1>
+
+  <div class="grid g3 anim-up d2" style="margin-top:40px;max-width:960px;gap:20px">
+    <div class="card" style="background:var(--violet-soft);border:0">
+      <span class="eyebrow" style="color:var(--violet-ink)">Продукт</span>
+      <p style="color:var(--violet-ink);font-weight:700;font-size:15px;margin-top:6px">Готов. 45k строк кода, 287 пропсов, production deploy. Не MVP — продукт.</p>
+    </div>
+    <div class="card" style="background:var(--mint-soft);border:0">
+      <span class="eyebrow" style="color:var(--mint-ink)">Канал</span>
+      <p style="color:var(--mint-ink);font-weight:700;font-size:15px;margin-top:6px">Просвещение + Eduson + Сферум. 40 000 школ без холодного старта.</p>
+    </div>
+    <div class="card" style="background:var(--pink-soft);border:0">
+      <span class="eyebrow" style="color:var(--pink-ink)">Ров</span>
+      <p style="color:var(--pink-ink);font-weight:700;font-size:15px;margin-top:6px">152-ФЗ + Реестр + ФГОС + Роспатент. Иностранцу 12-18 мес, Roblox не вернётся.</p>
+    </div>
+  </div>
+
+  <p class="anim-up d3" style="margin-top:48px;font-size:22px;font-weight:800;color:var(--violet-deep);max-width:720px">
+    Окно для залога лидерства — <u>Q2-Q3 2026</u>.<br>Каждый месяц промедления — потеря доли, которую не вернуть.
+  </p>
+
+  <div class="anim-up d4" style="margin-top:32px">
+    <span class="ribbon" style="font-size:16px;padding:12px 28px">Спасибо · готовы к вопросам</span>
+  </div>
+</section>
+
+</div>
+
+<div class="counter" id="counter">1 / 14</div>
+<div class="nav">
+  <button class="navbtn" id="prev" aria-label="назад">‹</button>
+  <button class="navbtn" id="next" aria-label="далее">›</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const bar=document.getElementById('bar');
+const counter=document.getElementById('counter');
+let i=0;
+
+function show(n){
+  const old=i;
+  i=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,idx)=>{
+    s.classList.remove('active','leaving');
+    if(idx===i) s.classList.add('active');
+    else if(idx===old) s.classList.add('leaving');
+  });
+  bar.style.width=((i+1)/slides.length*100)+'%';
+  counter.textContent=(i+1)+' / '+slides.length;
+  if(i===2) animateCounters(); // scale slide
+}
+
+function animateCounters(){
+  document.querySelectorAll('.slide.active [data-target]').forEach(el=>{
+    const target=parseInt(el.dataset.target,10);
+    const suffix=el.dataset.suffix||'';
+    const duration=1400;
+    const start=performance.now();
+    function step(t){
+      const p=Math.min(1,(t-start)/duration);
+      const eased=1-Math.pow(1-p,3);
+      const v=Math.floor(target*eased);
+      el.textContent=v.toLocaleString('ru-RU')+suffix;
+      if(p<1) requestAnimationFrame(step);
+      else el.textContent=target.toLocaleString('ru-RU')+suffix;
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+document.getElementById('next').onclick=()=>show(i+1);
+document.getElementById('prev').onclick=()=>show(i-1);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown') {e.preventDefault();show(i+1)}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp') {e.preventDefault();show(i-1)}
+  else if(e.key==='Home') show(0)
+  else if(e.key==='End') show(slides.length-1)
+  else if(e.key.toLowerCase()==='f') {
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+
+// swipe on touch
+let tx=0;
+document.addEventListener('touchstart',e=>tx=e.touches[0].clientX);
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tx;
+  if(Math.abs(dx)>60) show(i + (dx<0?1:-1));
+});
+
+show(0);
+</script>
+</body>
+</html>
