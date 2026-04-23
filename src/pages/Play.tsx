@@ -172,7 +172,7 @@ export default function Play() {
       {edit && (
         <div className="edit-mode-hint">
           <strong>⚡ Режим редактирования.</strong>
-          Клик по жёлтой ауре объекта → редактор блоков. <kbd>Q</kbd> — меню спавна.
+          Клик по объекту → меню (покрасить / дублировать / убрать / скрипт). <kbd>Q</kbd> — спавн пропсов.
           {editsCount > 0 && !confirmReset && (
             <button
               className="edit-mode-exit"
