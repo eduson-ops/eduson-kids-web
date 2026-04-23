@@ -6,6 +6,8 @@ import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
 import { pluralize } from '../lib/plural'
 import { useProgress } from '../hooks/useProgress'
 import { useMascotMood } from '../hooks/useMascotMood'
+import { ACHIEVEMENTS as ACH_DEFS } from '../lib/achievements'
+import { hasAchievement } from '../lib/progress'
 import {
   getVkUser,
   getParentLink,
@@ -27,27 +29,11 @@ interface Activity {
   lessonsCompleted: number
 }
 
-interface Achievement {
-  id: string
-  title: string
-  desc: string
-  emoji: string
-  earnedAt: number | null
-  color: string
-}
-
 interface TimelineEvent {
   ts: number
   kind: 'lesson' | 'coin' | 'publish' | 'achievement'
   label: string
 }
-
-const ACHIEVEMENTS: Achievement[] = [
-  { id: 'first', title: 'Первая игра', desc: 'Собрал свой первый Obby', emoji: '🏆', earnedAt: Date.now() - 3 * 24 * 3600_000, color: '#FFD43C' },
-  { id: 'hundred', title: '100 монет', desc: 'Собрал сотню монет за курс', emoji: '💰', earnedAt: Date.now() - 1 * 24 * 3600_000, color: '#FF9454' },
-  { id: 'python', title: 'Python-первопроходец', desc: 'Написал первый Python-скрипт руками', emoji: '🐍', earnedAt: null, color: '#6B5CE7' },
-  { id: 'tower', title: 'Покоритель башни', desc: 'Дошёл до вершины Tower of Code', emoji: '🗼', earnedAt: null, color: '#9FE8C7' },
-]
 
 /**
  * Трансформация реальной активности из useProgress().dailyLast28
@@ -110,7 +96,7 @@ export default function Parent() {
   const totalMinutes = activity.reduce((s, a) => s + a.minutes, 0)
   const totalCoins = activity.reduce((s, a) => s + a.coins, 0)
   const totalLessons = activity.reduce((s, a) => s + a.lessonsCompleted, 0)
-  const earnedAch = ACHIEVEMENTS.filter((a) => a.earnedAt).length
+  const earnedAch = ACH_DEFS.filter((a) => hasAchievement(a.id)).length
 
   // Current module / lesson computed from real progress
   const lessonsCompleted = p.completedLessons
@@ -133,8 +119,8 @@ export default function Parent() {
       const ts = Date.now() - (27 - a.day) * 24 * 3600_000
       if (a.lessonsCompleted > 0) events.push({ ts, kind: 'lesson', label: `Завершил урок (${pluralize(a.minutes, 'minute')}, ${pluralize(a.coins, 'coin')})` })
     }
-    for (const a of ACHIEVEMENTS) {
-      if (a.earnedAt) events.push({ ts: a.earnedAt, kind: 'achievement', label: `Получил ачивку «${a.title}»` })
+    for (const a of ACH_DEFS) {
+      if (hasAchievement(a.id)) events.push({ ts: Date.now() - Math.random() * 7 * 24 * 3600_000, kind: 'achievement', label: `Получил ачивку «${a.title}»` })
     }
     events.sort((x, y) => y.ts - x.ts)
     return events.slice(0, 10)
@@ -172,7 +158,7 @@ export default function Parent() {
           <KpiCard value={String(totalLessons)} label="Уроков завершено" iconKind="book" accent="#6B5CE7" />
           <KpiCard value={formatMinutes(totalMinutes)} label="Времени в Эдюсон Kids" iconKind="spark" accent="#5AA9FF" />
           <KpiCard value={String(totalCoins)} label="Монет собрано" iconKind="coin" accent="#FFD43C" />
-          <KpiCard value={`${earnedAch} / ${ACHIEVEMENTS.length}`} label="Достижений" iconKind="trophy" accent="#FF9454" />
+          <KpiCard value={`${earnedAch} / ${ACH_DEFS.length}`} label="Достижений" iconKind="trophy" accent="#FF9454" />
         </div>
       </section>
 
@@ -217,8 +203,8 @@ export default function Parent() {
       <section style={{ marginBottom: 40 }}>
         <h2 className="h2" style={{ marginBottom: 20 }}>Достижения</h2>
         <div className="kb-grid-4">
-          {ACHIEVEMENTS.map((a) => {
-            const earned = Boolean(a.earnedAt)
+          {ACH_DEFS.slice(0, 8).map((a) => {
+            const earned = hasAchievement(a.id)
             return (
               <div
                 key={a.id}
@@ -236,7 +222,7 @@ export default function Parent() {
                 <div className="kb-course-icon" style={{ fontSize: 56 }}>{a.emoji}</div>
                 <div>
                   <div className="h3" style={{ fontSize: 15 }}>{a.title}</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 4 }}>{a.desc}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 4 }}>{a.description}</div>
                 </div>
               </div>
             )
