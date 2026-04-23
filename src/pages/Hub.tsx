@@ -33,41 +33,6 @@ const MODULES: Array<{ n: number; title: string; accent: string; lessons: number
   { n: 8, title: 'Публикация + авторство',     accent: 'yellow', lessons: 6, icon: 'trophy' },
 ]
 
-const TIPS: Array<{ emoji: string; title: string; code: string; tag: string }> = [
-  { emoji: '🐍', tag: 'Python', title: 'Переменные',     code: 'x = 5\nprint(x * 2)  # 10' },
-  { emoji: '🔁', tag: 'Блоки',  title: 'Цикл for',       code: 'for i in range(5):\n    say(i)' },
-  { emoji: '❓', tag: 'Логика', title: 'Условие if',      code: 'if score > 10:\n    say("Победа!")' },
-  { emoji: '🎯', tag: 'Python', title: 'Функции',         code: 'def jump():\n    player.jump()' },
-  { emoji: '📦', tag: 'Python', title: 'Списки',          code: 'items = [1, 2, 3]\nfor x in items:\n    print(x)' },
-  { emoji: '🎲', tag: 'Python', title: 'Random',          code: 'import random\nx = random.randint(1, 6)' },
-  { emoji: '🏃', tag: 'Events', title: 'Касание',         code: 'def on_touch():\n    add_score(10)' },
-  { emoji: '🧮', tag: 'Математика', title: 'Операторы',   code: '5 + 3   # 8\n10 // 3 # 3\n10 % 3  # 1' },
-  { emoji: '🗣️', tag: 'Python', title: 'Строки',          code: 'name = "Никита"\nsay(f"Привет, {name}!")' },
-  { emoji: '🔀', tag: 'Логика', title: 'Сравнение',       code: 'a = 5; b = 3\nprint(a > b)  # True' },
-  { emoji: '🏗', tag: 'Блоки',  title: 'Башня',           code: 'tower(5, x=0, color="red")' },
-  { emoji: '🌈', tag: 'Декор',  title: 'Цвет объекта',   code: 'set_color("red")\n# blue, green, yellow...' },
-]
-
-function DailyTip({ lessonsCompleted }: { lessonsCompleted: number }) {
-  const idx = (Math.floor(Date.now() / 86400000) + lessonsCompleted) % TIPS.length
-  const tip = TIPS[idx]
-  return (
-    <section style={{ marginBottom: 40 }}>
-      <div className="kb-card" style={{ display: 'flex', gap: 20, alignItems: 'flex-start', padding: '18px 20px' }}>
-        <div style={{ fontSize: 36, flexShrink: 0, lineHeight: 1.2 }}>{tip.emoji}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-            <span className="eyebrow">Совет дня</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--violet)', background: 'var(--violet-soft)', padding: '2px 8px', borderRadius: 6 }}>{tip.tag}</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink)' }}>{tip.title}</span>
-          </div>
-          <pre style={{ margin: 0, fontFamily: 'var(--f-mono)', fontSize: 13, background: 'var(--paper-2)', borderRadius: 8, padding: '10px 14px', overflowX: 'auto', color: 'var(--ink)', lineHeight: 1.6 }}>{tip.code}</pre>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 const ACCENT_MAP: Record<string, { color: string; soft: string; ink: string }> = {
   violet: { color: '#6B5CE7', soft: '#E4E0FC', ink: '#2A1F8C' },
   yellow: { color: '#FFD43C', soft: '#FFF0B0', ink: '#7A5900' },
@@ -289,9 +254,6 @@ export default function Hub() {
           </div>
         </section>
       )}
-
-      {/* Daily Python tip */}
-      <DailyTip lessonsCompleted={lessonsCompleted} />
 
       {/* Two tracks CTA — Games + Sites */}
       <section>
