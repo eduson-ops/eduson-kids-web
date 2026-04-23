@@ -4804,7 +4804,7 @@ function BoxingGloves({ pos, color, size }: { pos: [number, number, number]; col
   )
 }
 
-function ArcheryTarget({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+function ArcheryTarget({ pos, size }: { pos: [number, number, number]; color: string; size: number }) {
   const rings = [
     '#ff5464', '#ff8c1a', '#ffd644', '#48c774', '#4c97ff',
   ]
@@ -5038,7 +5038,7 @@ function Croissant({ pos, color, size }: { pos: [number, number, number]; color:
         </mesh>
       ))}
       {/* layers highlight */}
-      {[-1, 0, 1].map((y, i) => (
+      {[-1, 0, 1].map((_, i) => (
         <mesh key={i} position={[0, size * (0.02 + i * 0.04), 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
           <torusGeometry args={[size * 0.28, size * 0.015, 4, 14, Math.PI * 1.1]} />
           <meshStandardMaterial color="#b08030" roughness={0.8} />
@@ -5492,7 +5492,7 @@ function Buoy({ pos, color, size }: { pos: [number, number, number]; color: stri
   )
 }
 
-function SurfboardRack({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+function SurfboardRack({ pos, size }: { pos: [number, number, number]; color: string; size: number }) {
   const boards = ['#ff5464', '#4c97ff', '#48c774']
   return (
     <group position={pos}>
@@ -6159,7 +6159,7 @@ function TicketBooth({ pos, color, size }: { pos: [number, number, number]; colo
   )
 }
 
-function BalloonArch({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+function BalloonArch({ pos, size }: { pos: [number, number, number]; color: string; size: number }) {
   const bobRef = useRef<THREE.Group>(null!)
   useFrame(({ clock }) => {
     if (bobRef.current) {
