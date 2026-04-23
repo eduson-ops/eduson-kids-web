@@ -178,6 +178,24 @@ export type PropKind =
   // Underwater Lab
   | 'submarine-hatch' | 'pressure-dome' | 'sonar-tower' | 'deep-probe' | 'bubble-vent'
   | 'coral-lab' | 'specimen-tank' | 'depth-gauge' | 'torpedo-bay' | 'biolume-tank'
+  // Desert Oasis
+  | 'sand-dune' | 'oasis-pool' | 'date-palm' | 'desert-tent' | 'camel-statue'
+  | 'mirage-pillar' | 'desert-scorpion' | 'nomad-brazier' | 'sandstone-arch' | 'desert-skull'
+  // Medieval Castle
+  | 'castle-door' | 'drawbridge' | 'knight-armor' | 'catapult-prop' | 'dungeon-door'
+  | 'heraldic-banner' | 'arrow-slit' | 'wall-torch' | 'moat-water' | 'portcullis'
+  // Rainforest
+  | 'jungle-canopy' | 'lianas' | 'tree-frog' | 'toucan-perch' | 'jungle-waterfall'
+  | 'orchid-bloom' | 'jaguar-statue' | 'vine-ladder' | 'leaf-platform' | 'jungle-hut'
+  // Arctic Research
+  | 'igloo-lab' | 'ice-drill' | 'polar-buoy' | 'snowcat' | 'blizzard-shield'
+  | 'aurora-post' | 'ice-core-rack' | 'penguin-prop' | 'walrus-statue' | 'arctic-tent'
+  // Pirate Cove
+  | 'pirate-ship' | 'ship-cannon' | 'treasure-map' | 'jolly-roger' | 'plank-bridge'
+  | 'pirate-chest' | 'anchor-prop' | 'sea-mine' | 'crow-nest' | 'pirate-tavern'
+  // Candy Land
+  | 'candy-tree' | 'lollipop-tower' | 'gingerbread-house' | 'candy-cane-gate' | 'cupcake-throne'
+  | 'cotton-candy-cloud' | 'chocolate-river' | 'donut-arch' | 'jellybean-path' | 'sugar-castle'
 
 export interface SpawnedPart {
   id: string

@@ -323,7 +323,7 @@ export default function Settings() {
                   if (!confirm('Удалить аккаунт? Это действие необратимо после 30 дней.')) return
                   if (!confirm('Точно уверены? Прогресс, миры и покупки будут помечены на удаление.')) return
                   localStorage.setItem('ek_delete_requested_at', String(Date.now()))
-                  showToast('Запрос на удаление принят. У вас 30 дней чтобы передумать.', 'info')
+                  showToast('Запрос на удаление принят. У вас 30 дней чтобы передумать.', 'default')
                 }}
                 style={{ borderColor: '#e53', color: '#e53' }}
               >
