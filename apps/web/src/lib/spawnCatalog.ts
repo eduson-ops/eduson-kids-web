@@ -1911,6 +1911,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'game-bell-b49',      label: 'Колокол силы',       emoji: '🔔', defaultColor: '#ffcc00', tags: ['колокол','game bell','сила','карнавал','игра'], hint: 'Аттракцион «проверь силу» с молотом' },
     ],
   },
+  {
+    id: 'robot-factory-b50', name: '🤖 Завод роботов', icon: '🤖',
+    items: [
+      { kind: 'assembly-arm-b50',   label: 'Сборочный манипулятор', emoji: '🦾', defaultColor: '#aaaaaa', tags: ['манипулятор','assembly arm','завод','робот','механизм'], hint: 'Роботизированная рука на конвейере' },
+      { kind: 'robot-crate-b50',    label: 'Ящик с роботом',     emoji: '📦', defaultColor: '#ffcc00', tags: ['ящик','robot crate','упаковка','завод','робот'], hint: 'Деревянный ящик с мигающим роботом внутри' },
+      { kind: 'circuit-panel-b50',  label: 'Схемная панель',     emoji: '🔌', defaultColor: '#00aacc', tags: ['панель','circuit panel','схема','завод','электроника'], hint: 'Светящаяся панель управления' },
+      { kind: 'power-cell-b50',     label: 'Энергетический блок', emoji: '🔋', defaultColor: '#44ff88', tags: ['батарея','power cell','энергия','завод','зарядка'], hint: 'Светящийся куб с энергией' },
+      { kind: 'factory-drone-b50',  label: 'Фабричный дрон',     emoji: '🚁', defaultColor: '#888888', tags: ['дрон','factory drone','летающий','завод','доставка'], hint: 'Четырёхвинтовой фабричный дрон' },
+    ],
+  },
+  {
+    id: 'magical-library-b50', name: '📚 Магическая библиотека', icon: '📚',
+    items: [
+      { kind: 'spell-book-b50',     label: 'Книга заклинаний',   emoji: '📖', defaultColor: '#663399', tags: ['книга','spell book','заклинание','магия','библиотека'], hint: 'Открытая книга с мерцающими рунами' },
+      { kind: 'floating-candle-b50',label: 'Парящая свеча',      emoji: '🕯️', defaultColor: '#ffeeaa', tags: ['свеча','floating candle','огонь','магия','свет'], hint: 'Свеча, левитирующая в воздухе' },
+      { kind: 'potion-rack-b50',    label: 'Стойка с зельями',   emoji: '⚗️', defaultColor: '#44ccaa', tags: ['зелье','potion rack','алхимия','магия','бутылка'], hint: 'Полка с разноцветными склянками' },
+      { kind: 'scroll-chest-b50',   label: 'Сундук со свитками', emoji: '📜', defaultColor: '#8B4513', tags: ['сундук','scroll chest','свиток','магия','хранилище'], hint: 'Дубовый сундук с торчащими свитками' },
+      { kind: 'magic-mirror-b50',   label: 'Волшебное зеркало',  emoji: '🪞', defaultColor: '#8844cc', tags: ['зеркало','magic mirror','волшебство','отражение','магия'], hint: 'Зеркало с мерцающей рамой' },
+    ],
+  },
+  {
+    id: 'underwater-city-b50', name: '🌊 Подводный город', icon: '🌊',
+    items: [
+      { kind: 'atlantis-pillar-b50',label: 'Столп Атлантиды',    emoji: '🏛️', defaultColor: '#88aacc', tags: ['столп','atlantis pillar','атлантида','подводный','руины'], hint: 'Древний каменный столп с водорослями' },
+      { kind: 'bubble-dome-b50',    label: 'Пузырьковый купол',  emoji: '🫧', defaultColor: '#88ddff', tags: ['купол','bubble dome','пузырь','подводный','город'], hint: 'Стеклянный купол с воздушными пузырями' },
+      { kind: 'sea-gate-b50',       label: 'Морские ворота',     emoji: '🌊', defaultColor: '#4488aa', tags: ['ворота','sea gate','подводный','арка','город'], hint: 'Ворота из ракушек и кораллов' },
+      { kind: 'trident-statue-b50', label: 'Статуя с трезубцем', emoji: '🔱', defaultColor: '#aaaacc', tags: ['трезубец','trident statue','Посейдон','подводный','статуя'], hint: 'Величественная статуя морского бога' },
+      { kind: 'biolume-globe-b50',  label: 'Биолюминесцентный шар', emoji: '✨', defaultColor: '#44ffcc', tags: ['шар','biolume globe','светится','подводный','биология'], hint: 'Светящийся шар из биолюминесцентных существ' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

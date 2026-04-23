@@ -395,6 +395,12 @@ export type PropKind =
   | 'submarine-pod-b49' | 'deep-probe-b49' | 'coral-arch-b49' | 'specimen-jar-b49' | 'sonar-dish-b49'
   // Carnival Midway
   | 'ring-toss-b49' | 'popcorn-cart-b49' | 'carnival-sign-b49' | 'prize-balloon-b49' | 'game-bell-b49'
+  // Robot Factory
+  | 'assembly-arm-b50' | 'robot-crate-b50' | 'circuit-panel-b50' | 'power-cell-b50' | 'factory-drone-b50'
+  // Magical Library
+  | 'spell-book-b50' | 'floating-candle-b50' | 'potion-rack-b50' | 'scroll-chest-b50' | 'magic-mirror-b50'
+  // Underwater City
+  | 'atlantis-pillar-b50' | 'bubble-dome-b50' | 'sea-gate-b50' | 'trident-statue-b50' | 'biolume-globe-b50'
 
 export interface SpawnedPart {
   id: string
