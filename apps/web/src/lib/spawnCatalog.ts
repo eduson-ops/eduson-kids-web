@@ -1671,6 +1671,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'candle-b41',         label: 'Свеча',               emoji: '🕯️', defaultColor: '#f5deb3', tags: ['свеча','candle','огонь','пламя','рождество'], hint: 'Мерцающая рождественская свеча' },
     ],
   },
+  {
+    id: 'futuristic-kitchen', name: 'Кухня будущего', icon: '🤖',
+    items: [
+      { kind: 'smart-fridge-b42',   label: 'Умный холодильник', emoji: '🧊', defaultColor: '#a0c4ff', tags: ['холодильник','fridge','умный','будущее','техника'], hint: 'Холодильник с голографическим дисплеем' },
+      { kind: 'food-printer-b42',   label: 'Принтер еды',       emoji: '🖨️', defaultColor: '#c8f7c5', tags: ['принтер','food printer','3d еда','tech','будущее'], hint: '3D-принтер для печати еды' },
+      { kind: 'robot-chef-b42',     label: 'Робот-повар',       emoji: '🤖', defaultColor: '#e8e8e8', tags: ['робот','chef robot','повар','кухня','автоматика'], hint: 'Роботизированный повар с руками-манипуляторами' },
+      { kind: 'nutrient-pod-b42',   label: 'Капсула питания',   emoji: '💊', defaultColor: '#b5e8ff', tags: ['капсула','nutrient','питание','sci-fi','будущее'], hint: 'Прозрачная капсула с питательным раствором' },
+      { kind: 'holo-menu-b42',      label: 'Голо-меню',         emoji: '📋', defaultColor: '#7ef7e8', tags: ['меню','holographic menu','голограмма','будущее','синий'], hint: 'Парящее голографическое меню ресторана' },
+    ],
+  },
+  {
+    id: 'archaeology-site', name: 'Раскопки', icon: '⛏️',
+    items: [
+      { kind: 'excavation-pit-b42',  label: 'Раскоп',           emoji: '⛏️', defaultColor: '#c4973d', tags: ['раскоп','excavation','яма','археология','грунт'], hint: 'Аккуратный раскоп с пластами грунта' },
+      { kind: 'fossil-dig-b42',      label: 'Ископаемое',       emoji: '🦴', defaultColor: '#e8d5a0', tags: ['кость','fossil','ископаемое','скелет','динозавр'], hint: 'Кость ископаемого, торчащая из земли' },
+      { kind: 'field-tent-b42',      label: 'Полевая палатка',  emoji: '⛺', defaultColor: '#8fbc8f', tags: ['палатка','tent','поле','раскопки','лагерь'], hint: 'Экспедиционная палатка с навесом' },
+      { kind: 'specimen-table-b42',  label: 'Стол образцов',    emoji: '🔬', defaultColor: '#d4c89a', tags: ['стол','specimen','образцы','лаборатория','анализ'], hint: 'Складной стол с находками и инструментами' },
+      { kind: 'rope-barrier-b42',    label: 'Верёвочный барьер',emoji: '🚧', defaultColor: '#d4a017', tags: ['барьер','rope','верёвка','ограждение','раскопки'], hint: 'Ограждение из кольев и верёвки' },
+    ],
+  },
+  {
+    id: 'bazaar-market', name: 'Восточный базар', icon: '🏪',
+    items: [
+      { kind: 'spice-jar-b42',       label: 'Баночка специй',   emoji: '🫙', defaultColor: '#e07030', tags: ['специи','spice','банка','базар','восток'], hint: 'Глиняная баночка с ароматными специями' },
+      { kind: 'fabric-roll-b42',     label: 'Рулон ткани',      emoji: '🧵', defaultColor: '#9b59b6', tags: ['ткань','fabric','рулон','шёлк','базар'], hint: 'Яркий рулон шёлковой ткани' },
+      { kind: 'merchant-scale-b42',  label: 'Весы торговца',    emoji: '⚖️', defaultColor: '#c8a000', tags: ['весы','scale','торговец','золото','базар'], hint: 'Старинные чашечные весы' },
+      { kind: 'fruit-basket-b42',    label: 'Корзина фруктов',  emoji: '🧺', defaultColor: '#c87941', tags: ['корзина','fruit basket','фрукты','базар','плетёная'], hint: 'Плетёная корзина с горкой экзотических фруктов' },
+      { kind: 'hanging-lantern-b42', label: 'Фонарь',           emoji: '🏮', defaultColor: '#e03030', tags: ['фонарь','lantern','красный','базар','свет'], hint: 'Подвесной восточный фонарь с орнаментом' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

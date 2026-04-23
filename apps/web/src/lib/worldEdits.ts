@@ -347,6 +347,12 @@ export type PropKind =
   // Christmas
   | 'christmas-tree-b41' | 'snowman-b41' | 'gift-box-b41' | 'reindeer-b41'
   | 'santa-hat-b41' | 'bell-b41' | 'candle-b41'
+  // Futuristic Kitchen
+  | 'smart-fridge-b42' | 'food-printer-b42' | 'robot-chef-b42' | 'nutrient-pod-b42' | 'holo-menu-b42'
+  // Archaeology Site
+  | 'excavation-pit-b42' | 'fossil-dig-b42' | 'field-tent-b42' | 'specimen-table-b42' | 'rope-barrier-b42'
+  // Bazaar Market
+  | 'spice-jar-b42' | 'fabric-roll-b42' | 'merchant-scale-b42' | 'fruit-basket-b42' | 'hanging-lantern-b42'
 
 export interface SpawnedPart {
   id: string
