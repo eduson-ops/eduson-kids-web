@@ -1488,6 +1488,33 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'industrial-chimney',  label: 'Промышленная труба',    emoji: '🏭', defaultColor: '#887766', tags: ['труба','industrial chimney','дым','красные полосы','завод'], hint: 'Высокая промышленная труба с красными полосами' },
     ],
   },
+  {
+    id: 'ancient-greece', name: 'Древняя Греция', icon: '🏛️',
+    items: [
+      { kind: 'greek-pillar',    label: 'Греческая колонна',  emoji: '🏛️', defaultColor: '#f5f0e8', tags: ['колонна','greek pillar','мрамор','дорический','античность'], hint: 'Дорическая колонна с канелюрами' },
+      { kind: 'greek-urn-b34',   label: 'Греческая урна',     emoji: '🏺', defaultColor: '#cc7722', tags: ['урна','греческий','ваза','pottery','амфора'], hint: 'Расписная амфора с ручками' },
+      { kind: 'greek-shield',    label: 'Греческий щит',      emoji: '🛡️', defaultColor: '#8B6914', tags: ['щит','hoplon','гоплит','бронза','sparta'], hint: 'Гоплонский щит с золотым умбоном' },
+      { kind: 'olive-tree-b34',  label: 'Оливковое дерево',   emoji: '🫒', defaultColor: '#7a9a2e', tags: ['олива','olive tree','греция','ветки','плоды'], hint: 'Оливковое дерево с серебристой листвой' },
+      { kind: 'greek-lyre',      label: 'Лира',               emoji: '🎵', defaultColor: '#c8a000', tags: ['лира','lyre','музыка','орфей','струны'], hint: 'Античная лира с золотыми струнами' },
+      { kind: 'athens-owl-b34',  label: 'Сова Афины',         emoji: '🦉', defaultColor: '#8B7355', tags: ['сова','owl','афина','мудрость','птица'], hint: 'Мудрая сова — символ Афины' },
+      { kind: 'trireme-b34',     label: 'Триера',             emoji: '⛵', defaultColor: '#8B4513', tags: ['триера','trireme','корабль','греция','парус'], hint: 'Боевая триера с парусом' },
+      { kind: 'parthenon-cap',   label: 'Парфенон',           emoji: '🏯', defaultColor: '#e8dcc8', tags: ['парфенон','parthenon','храм','колонны','греция'], hint: 'Портик Парфенона с колоннами' },
+    ],
+  },
+  {
+    id: 'cyberpunk-city', name: 'Киберпанк', icon: '🌆',
+    items: [
+      { kind: 'neon-sign-b34',       label: 'Неоновая вывеска',   emoji: '💡', defaultColor: '#ff00cc', tags: ['неон','neon sign','вывеска','киберпанк','свечение'], hint: 'Мигающая неоновая вывеска' },
+      { kind: 'cyber-tower-b34',     label: 'Кибер-башня',        emoji: '🏙️', defaultColor: '#00e5ff', tags: ['башня','cyber tower','небоскрёб','неон','мегаполис'], hint: 'Высотная башня с неоновыми поясами' },
+      { kind: 'hover-car-b34',       label: 'Летающий автомобиль',emoji: '🚗', defaultColor: '#cc00ff', tags: ['машина','hover car','летающая','левитация','киберпанк'], hint: 'Парящий автомобиль с двигателями' },
+      { kind: 'data-terminal-b34',   label: 'Дата-терминал',      emoji: '💻', defaultColor: '#00ff88', tags: ['терминал','data terminal','экран','интерфейс','хакер'], hint: 'Голографический информационный терминал' },
+      { kind: 'cyber-blade-b34',     label: 'Кибер-клинок',       emoji: '⚔️', defaultColor: '#00e5ff', tags: ['клинок','cyber blade','меч','плазма','оружие'], hint: 'Плазменный кибернетический клинок' },
+      { kind: 'synth-plant-b34',     label: 'Синт-растение',      emoji: '🌿', defaultColor: '#00ff44', tags: ['растение','synth plant','биомех','светящееся','зелёное'], hint: 'Биомеханическое синтетическое растение' },
+      { kind: 'cyber-drone-b34',     label: 'Кибер-дрон',         emoji: '🚁', defaultColor: '#ff4444', tags: ['дрон','cyber drone','робот','летающий','разведка'], hint: 'Автономный боевой дрон' },
+      { kind: 'power-core-b34',      label: 'Энергетическое ядро',emoji: '⚡', defaultColor: '#ffcc00', tags: ['ядро','power core','энергия','кристалл','пульсирует'], hint: 'Пульсирующее энергетическое ядро' },
+      { kind: 'cyber-bridge-b34',    label: 'Кибер-мост',         emoji: '🌉', defaultColor: '#00ccff', tags: ['мост','cyber bridge','неон','переход','киберпанк'], hint: 'Неоновый мост с подсветкой опор' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

@@ -305,6 +305,12 @@ export type PropKind =
   // Industrial Port
   | 'port-crane' | 'shipping-container' | 'dock-cleat' | 'storage-tank-b33' | 'fork-lift'
   | 'fishing-boat' | 'lighthouse-port-b33' | 'coal-conveyor' | 'industrial-chimney'
+  // Ancient Greece
+  | 'greek-pillar' | 'greek-urn-b34' | 'greek-shield' | 'olive-tree-b34' | 'greek-lyre'
+  | 'athens-owl-b34' | 'trireme-b34' | 'parthenon-cap'
+  // Cyberpunk City
+  | 'neon-sign-b34' | 'cyber-tower-b34' | 'hover-car-b34' | 'data-terminal-b34'
+  | 'cyber-blade-b34' | 'synth-plant-b34' | 'cyber-drone-b34' | 'power-core-b34' | 'cyber-bridge-b34'
 
 export interface SpawnedPart {
   id: string
