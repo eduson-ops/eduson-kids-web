@@ -4,6 +4,7 @@ import {
   SCENE_PRESETS,
   deletePart,
   duplicatePart,
+  selectPart,
   setLightingPreset,
   updatePart,
 } from './editorState'
@@ -228,7 +229,12 @@ export default function PropertiesPanel({ state }: Props) {
             <h4>Всё в сцене</h4>
             <ul className="scene-list">
               {state.parts.map((p) => (
-                <li key={p.id} className={p.scripts ? 'has-script' : ''}>
+                <li
+                  key={p.id}
+                  className={`${p.scripts ? 'has-script' : ''} ${state.selectedId === p.id ? 'selected' : ''}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => selectPart(p.id)}
+                >
                   <span className="scene-dot" style={{ background: p.color }} />
                   <span>{p.name}</span>
                   {p.scripts && <span className="scene-item-badge" title="Запрограммирован">⚡</span>}

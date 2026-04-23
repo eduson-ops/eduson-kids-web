@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMuted, setMuted, SFX } from '../lib/audio'
+import { getMuted, setMuted, getVolume, setVolume, SFX } from '../lib/audio'
 
 interface Props {
   gameTitle: string
@@ -15,7 +15,8 @@ export default function EscapeMenu({ gameTitle }: Props) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [muted, setMutedState] = useState(getMuted())
-  const [sfxVol, setSfxVol] = useState(35)
+  const [sfxVol, setSfxVol] = useState(Math.round(getVolume() * 100))
+  const [quality, setQuality] = useState(() => localStorage.getItem('ek_quality') ?? 'high')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -65,7 +66,11 @@ export default function EscapeMenu({ gameTitle }: Props) {
               min={0}
               max={100}
               value={sfxVol}
-              onChange={(e) => setSfxVol(parseInt(e.target.value, 10))}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10)
+                setSfxVol(v)
+                setVolume(v / 100)
+              }}
             />
             <small>{sfxVol}%</small>
           </label>
@@ -74,15 +79,19 @@ export default function EscapeMenu({ gameTitle }: Props) {
         <section className="escape-section">
           <h4>Графика</h4>
           <label className="escape-row">
-            <span>Тени</span>
-            <input type="checkbox" defaultChecked />
-          </label>
-          <label className="escape-row">
-            <span>Качество</span>
-            <select defaultValue="high">
-              <option value="low">Низкое</option>
+            <span>Качество рендера</span>
+            <select
+              value={quality}
+              onChange={(e) => {
+                const q = e.target.value
+                setQuality(q)
+                localStorage.setItem('ek_quality', q)
+                window.dispatchEvent(new CustomEvent('ek:quality-change', { detail: { quality: q } }))
+              }}
+            >
+              <option value="low">Низкое (быстро)</option>
               <option value="med">Среднее</option>
-              <option value="high">Высокое</option>
+              <option value="high">Высокое (по умолч.)</option>
             </select>
           </label>
         </section>

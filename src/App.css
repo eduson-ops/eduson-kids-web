@@ -1599,6 +1599,7 @@ body:has(.lobby-v2) {
   box-shadow: inset 2px 0 0 rgba(255, 212, 60, 0.5);
 }
 .scene-list li.has-script:hover { background: rgba(255, 212, 60, 0.12); }
+.scene-list li.selected { background: rgba(108, 92, 231, 0.18); outline: 1px solid rgba(108, 92, 231, 0.4); border-radius: 6px; }
 .scene-item-badge {
   margin-left: auto;
   font-size: 13px;
@@ -3962,15 +3963,25 @@ body:has(.lobby-v2) {
   background: rgba(11, 10, 17, 0.95);
   backdrop-filter: blur(12px);
   border: 2px solid #FFD43C;
-  border-radius: 999px;
+  border-radius: 16px;
   color: #ffffff;
   font-family: var(--f-ui);
   font-size: 13px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 212, 60, 0.25);
   animation: pulseLive 1.6s ease-in-out infinite;
-  pointer-events: none;
+  pointer-events: all;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 .spawn-placement-hint b { color: #FFD43C; }
+.spawn-hint-colors { display: flex; gap: 5px; }
+.spawn-hint-swatch {
+  width: 20px; height: 20px; border-radius: 50%; border: none;
+  cursor: pointer; transition: transform 0.1s; outline-offset: 2px;
+}
+.spawn-hint-swatch:hover { transform: scale(1.2); }
 
 /* Scriptable label над объектом (Html из drei) */
 .scriptable-label {

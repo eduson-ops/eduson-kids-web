@@ -217,6 +217,154 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'lamp-floor', label: 'Торшер',     emoji: '💡', defaultColor: '#FFD43C', tags: ['торшер','lamp','лампа','свет','интерьер'], hint: 'Напольный торшер' },
     ],
   },
+  {
+    id: 'transportation', name: 'Транспорт', icon: '✈️',
+    items: [
+      { kind: 'airplane', label: 'Самолёт', emoji: '✈️', defaultColor: '#88d4ff', tags: ['самолёт','airplane','авиация','летит','небо'], hint: 'Пассажирский самолёт' },
+      { kind: 'boat',     label: 'Лодка',   emoji: '⛵', defaultColor: '#ff8c1a', tags: ['лодка','boat','ship','корабль','море','вода'], hint: 'Парусная лодка' },
+      { kind: 'train',    label: 'Поезд',   emoji: '🚂', defaultColor: '#e53', tags: ['поезд','train','локомотив','железная','дорога'], hint: 'Паровоз' },
+    ],
+  },
+  {
+    id: 'playground', name: 'Площадка', icon: '🛝',
+    items: [
+      { kind: 'swing',   label: 'Качели',   emoji: '🪁', defaultColor: '#4c97ff', tags: ['качели','swing','детская','площадка'], hint: 'Детские качели' },
+      { kind: 'slide',   label: 'Горка',    emoji: '🛝', defaultColor: '#ff5464', tags: ['горка','slide','спуск','детская','площадка'], hint: 'Детская горка' },
+      { kind: 'seesaw',  label: 'Качалка',  emoji: '⚖️', defaultColor: '#48c774', tags: ['качалка','seesaw','балансир','детская','площадка'], hint: 'Качалка-балансир' },
+    ],
+  },
+  {
+    id: 'space', name: 'Космос', icon: '🪐',
+    items: [
+      { kind: 'planet',        label: 'Планета',   emoji: '🪐', defaultColor: '#a855f7', tags: ['планета','planet','космос','space','орбита'], hint: 'Полосатая газовая планета' },
+      { kind: 'asteroid',      label: 'Астероид',  emoji: '☄️', defaultColor: '#8b8b8b', tags: ['астероид','asteroid','метеор','камень','космос'], hint: 'Неровный космический булыжник' },
+      { kind: 'space-station', label: 'Станция',   emoji: '🛸', defaultColor: '#c0c0c0', tags: ['станция','station','космос','space','МКС'], hint: 'Модульная космическая станция' },
+    ],
+  },
+  {
+    id: 'school', name: 'Школа', icon: '📚',
+    items: [
+      { kind: 'book-stack', label: 'Книги',     emoji: '📚', defaultColor: '#FF9454', tags: ['книги','books','стопка','школа','library'], hint: 'Стопка разноцветных книг' },
+      { kind: 'globe',      label: 'Глобус',    emoji: '🌍', defaultColor: '#4c97ff', tags: ['глобус','globe','земля','карта','geography'], hint: 'Вращающийся глобус' },
+      { kind: 'microscope', label: 'Микроскоп', emoji: '🔬', defaultColor: '#6B5CE7', tags: ['микроскоп','microscope','наука','science','лаборатория'], hint: 'Лабораторный микроскоп' },
+    ],
+  },
+  {
+    id: 'medieval', name: 'Средневековье', icon: '⚔️',
+    items: [
+      { kind: 'sword',        label: 'Меч',    emoji: '⚔️', defaultColor: '#c0c0c0', tags: ['меч','sword','рыцарь','фэнтези','оружие'], hint: 'Двуручный рыцарский меч' },
+      { kind: 'shield',       label: 'Щит',    emoji: '🛡️', defaultColor: '#8b5a2b', tags: ['щит','shield','рыцарь','фэнтези','защита'], hint: 'Деревянный щит с гербом' },
+      { kind: 'knight-statue',label: 'Рыцарь', emoji: '🏰', defaultColor: '#8b8b8b', tags: ['рыцарь','knight','доспех','средневековье','статуя'], hint: 'Каменная статуя рыцаря' },
+    ],
+  },
+  {
+    id: 'ocean', name: 'Океан', icon: '🌊',
+    items: [
+      { kind: 'coral',     label: 'Коралл',    emoji: '🪸', defaultColor: '#ff5464', tags: ['коралл','coral','море','подводный','ocean'], hint: 'Коралловый куст' },
+      { kind: 'submarine', label: 'Подлодка',  emoji: '🛸', defaultColor: '#FFD43C', tags: ['подлодка','submarine','море','флот','underwater'], hint: 'Жёлтая подводная лодка' },
+      { kind: 'anchor',    label: 'Якорь',     emoji: '⚓', defaultColor: '#2a3340', tags: ['якорь','anchor','корабль','море','порт'], hint: 'Морской якорь' },
+    ],
+  },
+  {
+    id: 'winter', name: 'Зима', icon: '❄️',
+    items: [
+      { kind: 'igloo',         label: 'Иглу',     emoji: '🏔️', defaultColor: '#88d4ff', tags: ['иглу','igloo','зима','снег','эскимос'], hint: 'Снежный иглу-домик' },
+      { kind: 'sled',          label: 'Санки',    emoji: '🛷', defaultColor: '#ff5464', tags: ['санки','sled','снег','зима','кататься'], hint: 'Деревянные санки' },
+      { kind: 'snowflake-deco',label: 'Снежинка', emoji: '❄️', defaultColor: '#88d4ff', tags: ['снежинка','snowflake','зима','мороз','декор'], hint: 'Декоративная 3D-снежинка' },
+    ],
+  },
+  {
+    id: 'circus', name: 'Ярмарка', icon: '🎡',
+    items: [
+      { kind: 'circus-tent',    label: 'Шатёр',        emoji: '🎪', defaultColor: '#ff5464', tags: ['шатёр','цирк','circus','tent','ярмарка'], hint: 'Полосатый цирковой шатёр' },
+      { kind: 'ferris-wheel',   label: 'Колесо',       emoji: '🎡', defaultColor: '#6B5CE7', tags: ['колесо','ferris','wheel','аттракцион','ярмарка'], hint: 'Вращающееся колесо обозрения' },
+      { kind: 'hot-air-balloon',label: 'Аэростат',     emoji: '🎈', defaultColor: '#ff8c1a', tags: ['аэростат','balloon','воздушный шар','летит','небо'], hint: 'Воздушный шар с корзиной' },
+      { kind: 'pinwheel',       label: 'Вертушка',     emoji: '🌀', defaultColor: '#FFD43C', tags: ['вертушка','pinwheel','ветер','игрушка','спиннер'], hint: 'Крутящаяся вертушка-ветряк' },
+      { kind: 'lantern',        label: 'Фонарь',       emoji: '🏮', defaultColor: '#FF9454', tags: ['фонарь','lantern','свет','азиатский','декор'], hint: 'Декоративный фонарик' },
+    ],
+  },
+  {
+    id: 'kitchen', name: 'Кухня', icon: '🍔',
+    items: [
+      { kind: 'burger', label: 'Бургер', emoji: '🍔', defaultColor: '#c8841a', tags: ['бургер','burger','еда','food','фаст-фуд'], hint: 'Высокий трёхэтажный бургер' },
+      { kind: 'pizza',  label: 'Пицца',  emoji: '🍕', defaultColor: '#ff5464', tags: ['пицца','pizza','еда','итальянская','круглая'], hint: 'Круглая пицца с начинкой' },
+      { kind: 'sushi',  label: 'Суши',   emoji: '🍣', defaultColor: '#2a3340', tags: ['суши','sushi','японская','рис','рыба'], hint: 'Нигири суши на деревянной доске' },
+    ],
+  },
+  {
+    id: 'camping', name: 'Кемпинг', icon: '🏕️',
+    items: [
+      { kind: 'tent',     label: 'Палатка',  emoji: '⛺', defaultColor: '#48c774', tags: ['палатка','tent','поход','кемпинг','лес'], hint: 'Туристическая палатка' },
+      { kind: 'backpack', label: 'Рюкзак',   emoji: '🎒', defaultColor: '#FF9454', tags: ['рюкзак','backpack','поход','туризм','сумка'], hint: 'Туристический рюкзак' },
+      { kind: 'compass',  label: 'Компас',   emoji: '🧭', defaultColor: '#c0c0c0', tags: ['компас','compass','навигация','ориентир','север'], hint: 'Старинный компас со стрелкой' },
+    ],
+  },
+  {
+    id: 'halloween', name: 'Хэллоуин', icon: '🎃',
+    items: [
+      { kind: 'witch-hat',  label: 'Шляпа ведьмы', emoji: '🧙', defaultColor: '#2a3340', tags: ['шляпа','witch','ведьма','хэллоуин','halloween'], hint: 'Остроконечная шляпа ведьмы' },
+      { kind: 'ghost',      label: 'Призрак',        emoji: '👻', defaultColor: '#e8e8f0', tags: ['призрак','ghost','хэллоуин','приведение','пугать'], hint: 'Летящий призрак' },
+      { kind: 'spider-web', label: 'Паутина',         emoji: '🕸️', defaultColor: '#c0c0c0', tags: ['паутина','spider','web','паук','хэллоуин'], hint: 'Декоративная паутина' },
+    ],
+  },
+  {
+    id: 'toys', name: 'Игрушки', icon: '🧸',
+    items: [
+      { kind: 'teddy-bear', label: 'Медвежонок', emoji: '🧸', defaultColor: '#c8841a', tags: ['мишка','teddy','медведь','игрушка','мягкий'], hint: 'Плюшевый медвежонок' },
+      { kind: 'lego-brick', label: 'Кубик Лего', emoji: '🧱', defaultColor: '#ff5464', tags: ['лего','lego','кубик','конструктор','детский'], hint: 'Кубик из конструктора' },
+      { kind: 'yo-yo',      label: 'Йо-йо',       emoji: '🪀', defaultColor: '#6B5CE7', tags: ['йо-йо','yo-yo','игрушка','юла','крутить'], hint: 'Классическое йо-йо' },
+    ],
+  },
+  {
+    id: 'lab', name: 'Лаборатория', icon: '⚗️',
+    items: [
+      { kind: 'flask', label: 'Колба',  emoji: '⚗️', defaultColor: '#48c774', tags: ['колба','flask','химия','наука','lab'], hint: 'Химическая колба с жидкостью' },
+      { kind: 'atom',  label: 'Атом',   emoji: '⚛️', defaultColor: '#88d4ff', tags: ['атом','atom','физика','наука','электроны'], hint: 'Модель атома с орбитами' },
+      { kind: 'gear',  label: 'Шестерня', emoji: '⚙️', defaultColor: '#8b8b8b', tags: ['шестерня','gear','механика','технику','robot'], hint: 'Металлическая шестерня' },
+    ],
+  },
+  {
+    id: 'weather', name: 'Погода', icon: '⛈️',
+    items: [
+      { kind: 'rain-cloud',     label: 'Туча',       emoji: '⛈️', defaultColor: '#6b8099', tags: ['туча','cloud','дождь','rain','погода'], hint: 'Дождевое облако с молнией' },
+      { kind: 'lightning-bolt', label: 'Молния',     emoji: '⚡', defaultColor: '#FFD43C', tags: ['молния','lightning','гроза','электричество','погода'], hint: 'Зигзаг молнии' },
+      { kind: 'rainbow-arch',   label: 'Радуга',     emoji: '🌈', defaultColor: '#ff5464', tags: ['радуга','rainbow','цвета','погода','красиво'], hint: 'Семицветная радуга' },
+      { kind: 'snowdrift',      label: 'Сугроб',     emoji: '🌨️', defaultColor: '#daeeff', tags: ['сугроб','снег','snow','зима','сугроб'], hint: 'Пушистый сугроб' },
+      { kind: 'sun-deco',       label: 'Солнышко',   emoji: '☀️', defaultColor: '#FFD43C', tags: ['солнце','sun','лучи','тепло','желтый'], hint: 'Декоративное солнышко с лучами' },
+    ],
+  },
+  {
+    id: 'egypt', name: 'Египет', icon: '🏛️',
+    items: [
+      { kind: 'pyramid',  label: 'Пирамида', emoji: '🔺', defaultColor: '#e8c97a', tags: ['пирамида','pyramid','египет','egypt','древний'], hint: 'Египетская пирамида' },
+      { kind: 'sphinx',   label: 'Сфинкс',   emoji: '🦁', defaultColor: '#c8a84e', tags: ['сфинкс','sphinx','египет','лев','статуя'], hint: 'Великий Сфинкс' },
+      { kind: 'obelisk',  label: 'Обелиск',  emoji: '🗽', defaultColor: '#d4c060', tags: ['обелиск','obelisk','колонна','египет','иероглифы'], hint: 'Каменный обелиск' },
+    ],
+  },
+  {
+    id: 'candy', name: 'Конфеты', icon: '🍬',
+    items: [
+      { kind: 'lollipop',    label: 'Леденец',   emoji: '🍭', defaultColor: '#ff5ab1', tags: ['леденец','lollipop','конфета','сладкое','candy'], hint: 'Разноцветный леденец на палочке' },
+      { kind: 'candy-cane',  label: 'Трость',    emoji: '🎄', defaultColor: '#ff5464', tags: ['трость','candy cane','полосатый','новый год','рождество'], hint: 'Леденцовая трость' },
+      { kind: 'gingerbread', label: 'Пряник',    emoji: '🏠', defaultColor: '#c8841a', tags: ['пряник','gingerbread','домик','новый год','имбирь'], hint: 'Пряничный домик' },
+    ],
+  },
+  {
+    id: 'workshop', name: 'Мастерская', icon: '🔧',
+    items: [
+      { kind: 'toolbox',    label: 'Ящик',      emoji: '🧰', defaultColor: '#ff8c1a', tags: ['ящик','toolbox','инструменты','мастерская','красный'], hint: 'Чемодан с инструментами' },
+      { kind: 'anvil',      label: 'Наковальня',emoji: '⚒️', defaultColor: '#3a3a3a', tags: ['наковальня','anvil','кузня','молот','тяжёлый'], hint: 'Кузнечная наковальня' },
+      { kind: 'barrel-fire',label: 'Костёр-бочка',emoji: '🔥', defaultColor: '#ff5464', tags: ['бочка','barrel','огонь','fire','тепло'], hint: 'Бочка с огнём' },
+    ],
+  },
+  {
+    id: 'art', name: 'Искусство', icon: '🎨',
+    items: [
+      { kind: 'easel',      label: 'Мольберт',  emoji: '🖼️', defaultColor: '#c8841a', tags: ['мольберт','easel','рисование','арт','живопись'], hint: 'Деревянный мольберт с холстом' },
+      { kind: 'sculpture',  label: 'Скульптура',emoji: '🗿', defaultColor: '#b0b0b0', tags: ['скульптура','sculpture','статуя','арт','камень'], hint: 'Абстрактная скульптура' },
+      { kind: 'vase-ancient',label: 'Ваза',     emoji: '🏺', defaultColor: '#c8841a', tags: ['ваза','vase','амфора','античная','глина'], hint: 'Греческая амфора' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

@@ -46,6 +46,42 @@ export type PropKind =
   | 'duck' | 'cat-statue' | 'fish-tank'
   // Household
   | 'table' | 'bookshelf' | 'lamp-floor'
+  // Transportation
+  | 'airplane' | 'boat' | 'train'
+  // Playground
+  | 'swing' | 'slide' | 'seesaw'
+  // Space
+  | 'planet' | 'asteroid' | 'space-station'
+  // School
+  | 'book-stack' | 'globe' | 'microscope'
+  // Medieval
+  | 'sword' | 'shield' | 'knight-statue'
+  // Ocean
+  | 'coral' | 'submarine' | 'anchor'
+  // Winter
+  | 'igloo' | 'sled' | 'snowflake-deco'
+  // Circus
+  | 'circus-tent' | 'ferris-wheel' | 'hot-air-balloon' | 'pinwheel' | 'lantern'
+  // Kitchen/Food2
+  | 'burger' | 'pizza' | 'sushi'
+  // Camping
+  | 'tent' | 'backpack' | 'compass'
+  // Halloween
+  | 'witch-hat' | 'ghost' | 'spider-web'
+  // Toys
+  | 'teddy-bear' | 'lego-brick' | 'yo-yo'
+  // Lab
+  | 'flask' | 'atom' | 'gear'
+  // Weather
+  | 'rain-cloud' | 'lightning-bolt' | 'rainbow-arch' | 'snowdrift' | 'sun-deco'
+  // Egypt
+  | 'pyramid' | 'sphinx' | 'obelisk'
+  // Candy
+  | 'lollipop' | 'candy-cane' | 'gingerbread'
+  // Workshop
+  | 'toolbox' | 'anvil' | 'barrel-fire'
+  // Art
+  | 'easel' | 'sculpture' | 'vase-ancient'
 
 export interface SpawnedPart {
   id: string

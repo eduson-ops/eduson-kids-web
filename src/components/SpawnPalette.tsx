@@ -69,6 +69,72 @@ const CATEGORIES: Array<{ name: string; items: PaletteItem[] }> = [
       { kind: 'torch', emoji: '🔥', label: 'Факел', defaultColor: '#ff9454' },
     ],
   },
+  {
+    name: '✈️ Транспорт',
+    items: [
+      { kind: 'airplane', emoji: '✈️', label: 'Самолёт', defaultColor: '#88d4ff' },
+      { kind: 'boat', emoji: '⛵', label: 'Лодка', defaultColor: '#ff8c1a' },
+      { kind: 'train', emoji: '🚂', label: 'Поезд', defaultColor: '#e53' },
+    ],
+  },
+  {
+    name: '🛝 Площадка',
+    items: [
+      { kind: 'swing', emoji: '🪁', label: 'Качели', defaultColor: '#4c97ff' },
+      { kind: 'slide', emoji: '🛝', label: 'Горка', defaultColor: '#ff5464' },
+      { kind: 'seesaw', emoji: '⚖️', label: 'Качалка', defaultColor: '#48c774' },
+    ],
+  },
+  {
+    name: '🪐 Космос',
+    items: [
+      { kind: 'planet', emoji: '🪐', label: 'Планета', defaultColor: '#a855f7' },
+      { kind: 'asteroid', emoji: '☄️', label: 'Астероид', defaultColor: '#8b8b8b' },
+      { kind: 'space-station', emoji: '🛸', label: 'Станция', defaultColor: '#c0c0c0' },
+    ],
+  },
+  {
+    name: '📚 Школа',
+    items: [
+      { kind: 'book-stack', emoji: '📚', label: 'Книги', defaultColor: '#FF9454' },
+      { kind: 'globe', emoji: '🌍', label: 'Глобус', defaultColor: '#4c97ff' },
+      { kind: 'microscope', emoji: '🔬', label: 'Микроскоп', defaultColor: '#6B5CE7' },
+    ],
+  },
+  {
+    name: '⚔️ Рыцари',
+    items: [
+      { kind: 'sword', emoji: '⚔️', label: 'Меч', defaultColor: '#c0c0c0' },
+      { kind: 'shield', emoji: '🛡️', label: 'Щит', defaultColor: '#8b5a2b' },
+      { kind: 'knight-statue', emoji: '🏰', label: 'Рыцарь', defaultColor: '#8b8b8b' },
+    ],
+  },
+  {
+    name: '🌊 Океан',
+    items: [
+      { kind: 'coral', emoji: '🪸', label: 'Коралл', defaultColor: '#ff5464' },
+      { kind: 'submarine', emoji: '🛸', label: 'Подлодка', defaultColor: '#FFD43C' },
+      { kind: 'anchor', emoji: '⚓', label: 'Якорь', defaultColor: '#2a3340' },
+    ],
+  },
+  {
+    name: '❄️ Зима',
+    items: [
+      { kind: 'igloo', emoji: '🏔️', label: 'Иглу', defaultColor: '#88d4ff' },
+      { kind: 'sled', emoji: '🛷', label: 'Санки', defaultColor: '#ff5464' },
+      { kind: 'snowflake-deco', emoji: '❄️', label: 'Снежинка', defaultColor: '#88d4ff' },
+    ],
+  },
+  {
+    name: '🎡 Ярмарка',
+    items: [
+      { kind: 'circus-tent', emoji: '🎪', label: 'Шатёр', defaultColor: '#ff5464' },
+      { kind: 'ferris-wheel', emoji: '🎡', label: 'Колесо', defaultColor: '#6B5CE7' },
+      { kind: 'hot-air-balloon', emoji: '🎈', label: 'Аэростат', defaultColor: '#ff8c1a' },
+      { kind: 'pinwheel', emoji: '🌀', label: 'Вертушка', defaultColor: '#FFD43C' },
+      { kind: 'lantern', emoji: '🏮', label: 'Фонарь', defaultColor: '#FF9454' },
+    ],
+  },
 ]
 
 export default function SpawnPalette() {

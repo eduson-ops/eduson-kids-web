@@ -55,8 +55,10 @@ export default function Hub() {
 
   // Unlock modules based on progress: module N unlocks after finishing lesson (N-1)*6
   const lessonsCompleted = p.completedLessons
+  const courseComplete = lessonsCompleted >= 48
+  const safeLesson = Math.min(currentLesson, 48)
   const unlockedModuleN = Math.max(1, Math.ceil((lessonsCompleted + 1) / 6))
-  const currentModuleN = Math.min(8, Math.ceil(currentLesson / 6))
+  const currentModuleN = Math.min(8, Math.ceil(safeLesson / 6))
   const currentModuleTitle = MODULES[currentModuleN - 1]?.title ?? 'Первые шаги в Эдюсон Kids'
 
   const featuredGames = GAMES.filter((g) => g.featured).slice(0, 3)
@@ -87,8 +89,15 @@ export default function Hub() {
           }
         </p>
         <div className="kb-cover-actions">
-          <Link to={`/learn/${currentLesson}`} className="kb-btn kb-btn--lg kb-btn--secondary">
-            {lessonsCompleted === 0 ? '🚀 Начать урок 1' : `▶ Продолжить урок ${currentLesson}`}
+          <Link
+            to={courseComplete ? '/studio' : `/learn/lesson/${safeLesson}`}
+            className="kb-btn kb-btn--lg kb-btn--secondary"
+          >
+            {courseComplete
+              ? '🏆 Курс пройден! Открыть Студию'
+              : lessonsCompleted === 0
+                ? '🚀 Начать урок 1'
+                : `▶ Продолжить урок ${safeLesson}`}
           </Link>
           <Link to="/learn" className="kb-btn kb-btn--lg kb-btn--ghost" style={{ color: 'var(--paper)', boxShadow: 'inset 0 0 0 2px rgba(255,251,243,.6)' }}>
             Все уроки
@@ -102,7 +111,7 @@ export default function Hub() {
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Прогресс</span>
-            <strong>{lessonsCompleted} / 48 {plural(48, 'lesson')}</strong>
+            <strong>{lessonsCompleted} / 48 {plural(lessonsCompleted, 'lesson')}</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Стрик</span>

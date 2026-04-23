@@ -209,6 +209,68 @@ export const ACHIEVEMENTS: Achievement[] = [
     emoji: '💎', color: '#88d4ff', rarity: 'legendary',
     check: () => getStreak().current >= 30,
   },
+  {
+    id: 'spawn-first',
+    title: 'Первый пропс',
+    description: 'Поставил первый объект в мире через Spawn-палитру',
+    emoji: '🏗', color: '#FF9454', rarity: 'common',
+    check: () => {
+      try {
+        const raw = localStorage.getItem('ek_world_edits_v2')
+        if (!raw) return false
+        const s = JSON.parse(raw) as { additions?: unknown[] }
+        return (s.additions ?? []).length >= 1
+      } catch { return false }
+    },
+  },
+  {
+    id: 'spawn-ten',
+    title: 'Строитель миров',
+    description: 'Поставил 10 объектов в мирах',
+    emoji: '🏙', color: '#6B5CE7', rarity: 'rare',
+    check: () => {
+      try {
+        const raw = localStorage.getItem('ek_world_edits_v2')
+        if (!raw) return false
+        const s = JSON.parse(raw) as { additions?: unknown[] }
+        return (s.additions ?? []).length >= 10
+      } catch { return false }
+    },
+  },
+  {
+    id: 'painter',
+    title: 'Художник',
+    description: 'Перекрасил объект в мире',
+    emoji: '🎨', color: '#FFB4C8', rarity: 'common',
+    check: () => {
+      try {
+        const raw = localStorage.getItem('ek_world_edits_v2')
+        if (!raw) return false
+        const s = JSON.parse(raw) as { recolored?: Record<string, unknown> }
+        return Object.keys(s.recolored ?? {}).length > 0
+      } catch { return false }
+    },
+  },
+  {
+    id: 'quiz-first',
+    title: 'Пробный ответ',
+    description: 'Прошёл первый квиз',
+    emoji: '✏️', color: '#9FE8C7', rarity: 'common',
+    check: () => {
+      try {
+        const raw = localStorage.getItem('ek_quiz_results_v1')
+        if (!raw) return false
+        return Object.keys(JSON.parse(raw)).length >= 1
+      } catch { return false }
+    },
+  },
+  {
+    id: 'module-2',
+    title: 'В движении',
+    description: 'Завершил модуль 2 «Движение и события»',
+    emoji: '🏃', color: '#A9D8FF', rarity: 'common',
+    check: () => completedModule(2),
+  },
 ]
 
 // ─── Achievement unlock notification bus ─────────────
