@@ -1110,6 +1110,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'lava-crack',           label: 'Трещина лавы',         emoji: '🔥', defaultColor: '#ff5500', tags: ['трещина','lava crack','лава','горячая','красная'], hint: 'Трещина в полу, светящаяся лавой' },
     ],
   },
+  {
+    id: 'dinosaur-park', name: 'Парк динозавров', icon: '🦕',
+    items: [
+      { kind: 'dino-skeleton',      label: 'Скелет динозавра',     emoji: '🦴', defaultColor: '#ddccaa', tags: ['скелет','dino skeleton','динозавр','кости','музей'], hint: 'Скелет огромного ящера' },
+      { kind: 't-rex-roar',         label: 'Тираннозавр',          emoji: '🦖', defaultColor: '#556633', tags: ['тиранозавр','t-rex','рычит','зелёный','опасный'], hint: 'T-Rex в позе рыка' },
+      { kind: 'dino-egg-b21',       label: 'Яйцо динозавра',       emoji: '🥚', defaultColor: '#aabb88', tags: ['яйцо','dino egg','динозавр','зелёное','вылупление'], hint: 'Яйцо, готовое вылупиться' },
+      { kind: 'stegosaurus-spike',  label: 'Стегозавр',            emoji: '🦕', defaultColor: '#447733', tags: ['стегозавр','stegosaurus','шипы','пластины','травоядный'], hint: 'Стегозавр с костяными пластинами' },
+      { kind: 'velociraptor-nest',  label: 'Гнездо раптора',       emoji: '🪺', defaultColor: '#aabb88', tags: ['гнездо','velociraptor nest','раптор','яйца','опасно'], hint: 'Гнездо с яйцами велоцираптора' },
+      { kind: 'fern-jurassic',      label: 'Юрский папоротник',    emoji: '🌿', defaultColor: '#336633', tags: ['папоротник','fern jurassic','юрский','зелёный','пальма'], hint: 'Гигантский папоротник юрского периода' },
+      { kind: 'dino-track-b21',     label: 'Следы динозавра',      emoji: '👣', defaultColor: '#887766', tags: ['следы','dino track','динозавр','почва','история'], hint: 'Окаменевшие следы в земле' },
+      { kind: 'pterodactyl-perch',  label: 'Птеродактиль',         emoji: '🦅', defaultColor: '#664433', tags: ['птеродактиль','pterodactyl','летает','перч','крылья'], hint: 'Птеродактиль сидит на шесте' },
+      { kind: 'volcano-mud-pit',    label: 'Грязевой вулкан',      emoji: '🌋', defaultColor: '#cc4400', tags: ['вулкан','volcano mud pit','грязь','горячий','опасный'], hint: 'Бурлящий грязевой котёл' },
+      { kind: 'dino-info-sign',     label: 'Инфотабличка',         emoji: '📋', defaultColor: '#4466aa', tags: ['табличка','dino info sign','музей','информация','знак'], hint: 'Табличка с информацией о динозавре' },
+    ],
+  },
+  {
+    id: 'atlantis-city', name: 'Атлантида', icon: '🔱',
+    items: [
+      { kind: 'atlantis-temple',       label: 'Храм Атлантиды',        emoji: '🏛', defaultColor: '#44bbcc', tags: ['храм','atlantis temple','атлантида','подводный','синий'], hint: 'Древний храм затонувшей цивилизации' },
+      { kind: 'trident-monument',      label: 'Трезубец',              emoji: '🔱', defaultColor: '#aabbcc', tags: ['трезубец','trident','нептун','посейдон','золотой'], hint: 'Монументальный трезубец Посейдона' },
+      { kind: 'coral-pillar',          label: 'Коралловая колонна',    emoji: '🪸', defaultColor: '#ff6688', tags: ['колонна','coral pillar','коралл','подводный','розовый'], hint: 'Высокая колонна из кораллов' },
+      { kind: 'seahorse-statue',       label: 'Морской конёк',         emoji: '🐴', defaultColor: '#ffaa44', tags: ['морской конёк','seahorse statue','золотой','статуя','вращается'], hint: 'Статуя морского конька' },
+      { kind: 'bubble-chamber',        label: 'Камера пузырей',        emoji: '🫧', defaultColor: '#88ccff', tags: ['пузырь','bubble chamber','прозрачный','вода','светится'], hint: 'Стеклянная камера с пузырями воздуха' },
+      { kind: 'atlantis-gate',         label: 'Врата Атлантиды',       emoji: '🚪', defaultColor: '#44bbcc', tags: ['врата','atlantis gate','ворота','арка','подводный'], hint: 'Монументальные ворота города' },
+      { kind: 'ocean-floor-ruin',      label: 'Руины дна океана',      emoji: '🏚', defaultColor: '#556677', tags: ['руины','ocean floor ruin','обломки','дно','загадочный'], hint: 'Руины древней постройки на дне' },
+      { kind: 'atlantis-crystal-spire',label: 'Кристальный шпиль',     emoji: '💎', defaultColor: '#44ddcc', tags: ['шпиль','atlantis crystal spire','кристалл','светится','острый'], hint: 'Светящийся кристальный шпиль' },
+      { kind: 'mermaid-fountain',      label: 'Фонтан русалки',        emoji: '🧜', defaultColor: '#44ccaa', tags: ['фонтан','mermaid fountain','русалка','вода','красота'], hint: 'Фонтан с фигурой русалки' },
+      { kind: 'neptune-idol',          label: 'Идол Нептуна',          emoji: '🔱', defaultColor: '#334455', tags: ['нептун','neptune idol','идол','морской бог','трезубец'], hint: 'Каменный идол бога морей' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

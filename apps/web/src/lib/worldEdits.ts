@@ -226,6 +226,12 @@ export type PropKind =
   // Crystal Cave
   | 'stalactite' | 'crystal-cluster' | 'cave-pool' | 'glow-worm' | 'mineral-vein'
   | 'cave-mushroom' | 'echo-stone' | 'underground-waterfall' | 'gem-geode' | 'lava-crack'
+  // Dinosaur Park
+  | 'dino-skeleton' | 't-rex-roar' | 'dino-egg-b21' | 'stegosaurus-spike' | 'velociraptor-nest'
+  | 'fern-jurassic' | 'dino-track-b21' | 'pterodactyl-perch' | 'volcano-mud-pit' | 'dino-info-sign'
+  // Atlantis City
+  | 'atlantis-temple' | 'trident-monument' | 'coral-pillar' | 'seahorse-statue' | 'bubble-chamber'
+  | 'atlantis-gate' | 'ocean-floor-ruin' | 'atlantis-crystal-spire' | 'mermaid-fountain' | 'neptune-idol'
 
 export interface SpawnedPart {
   id: string
