@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
+import { useToast } from '../hooks/useToast'
 import {
   getBilling,
   subscribeBilling,
   buyInstallment48,
   buyPack10,
+  startTrial,
   startSubscription,
   cancelSubscription,
   lessonsRemaining,
   formatRub,
+  applyPromo,
+  PLAN_INFO,
+  type SubscriptionPlan,
 } from '../lib/billing'
 
 function isDebug(): boolean {
@@ -24,10 +29,29 @@ function isDebug(): boolean {
  */
 export default function Billing() {
   const [, force] = useState(0)
+  const { toast, show } = useToast()
+  const [promoInput, setPromoInput] = useState('')
   useEffect(() => subscribeBilling(() => force((x) => x + 1)), [])
 
   const b = getBilling()
   const remaining = lessonsRemaining()
+
+  const applyPromoCode = () => {
+    if (!promoInput.trim()) return
+    const res = applyPromo(promoInput)
+    show(res.message, res.ok ? 'success' : 'info')
+    if (res.ok) setPromoInput('')
+  }
+
+  const referralLink = `https://eduson-ops.github.io/eduson-kids-web/?ref=${b.referralCode}`
+  const copyReferral = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink)
+      show('✓ Ссылка скопирована', 'success')
+    } catch {
+      show('Не получилось скопировать — выдели вручную', 'info')
+    }
+  }
 
   return (
     <PlatformShell activeKey="billing">
@@ -94,49 +118,193 @@ export default function Billing() {
         )}
       </section>
 
-      {/* Subscription */}
-      <section style={{ marginBottom: 32 }}>
-        <header style={{ marginBottom: 16 }}>
-          <span className="eyebrow">Подписка с автосписанием</span>
-          <h2 className="h2" style={{ marginTop: 6 }}>Безлимит уроков · 5 937 ₽/мес</h2>
-        </header>
-        <div className="kb-card kb-card--feature">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+      {/* Active subscription banner (only if active) */}
+      {b.subscription.active && (
+        <section style={{ marginBottom: 24 }}>
+          <div className="kb-card kb-card--feature" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 340px' }}>
-              <h3 className="h3" style={{ marginBottom: 8 }}>
-                {b.subscription.active
-                  ? `Активна — ${formatRub(b.subscription.pricePerMonthRub)}/мес`
-                  : 'Не подключена'}
+              <span className="eyebrow" style={{ color: 'var(--mint-deep)' }}>
+                {b.subscription.plan === 'trial' ? '🎁 Пробный период активен' : '✓ Подписка активна'}
+              </span>
+              <h3 className="h3" style={{ margin: '6px 0 6px' }}>
+                {PLAN_INFO[b.subscription.plan === 'none' ? 'monthly' : b.subscription.plan].label}
+                {b.subscription.plan !== 'trial' && ` — ${formatRub(b.subscription.pricePerMonthRub)}/мес`}
               </h3>
-              {b.subscription.active && b.subscription.nextChargeAt && (
-                <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--ink-soft)' }}>
+              {b.subscription.plan === 'trial' && b.subscription.trialEndsAt && (
+                <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-soft)' }}>
+                  Бесплатно до <strong>{new Date(b.subscription.trialEndsAt).toLocaleDateString('ru-RU')}</strong>.
+                  Автопереход на месячную подписку ({formatRub(5937)}/мес) после — отмени заранее если не подходит.
+                </p>
+              )}
+              {b.subscription.plan !== 'trial' && b.subscription.nextChargeAt && (
+                <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-soft)' }}>
                   Следующее списание: <strong>{new Date(b.subscription.nextChargeAt).toLocaleDateString('ru-RU')}</strong>.
-                  Отменить можно в&nbsp;один клик — без звонков и&nbsp;объяснений.
+                  Отмена в 1 клик, email-уведомление за 3 дня.
                 </p>
               )}
-              {!b.subscription.active && (
-                <p style={{ margin: '0 0 8px', fontSize: 14, color: 'var(--ink-soft)' }}>
-                  Подписка даёт доступ ко&nbsp;всем 48 урокам + обновлениям. Право отказа в&nbsp;любой момент
-                  (ст.&nbsp;32 ЗоЗПП). 14 дней охлаждения с&nbsp;возвратом неиспользованного.
-                </p>
-              )}
-              <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: 'var(--ink-soft)' }}>
-                <li>✓ Автоматическое списание раз в месяц</li>
-                <li>✓ Отмена в 1 клик — без контактов с поддержкой</li>
-                <li>✓ 14 дней на возврат по закону</li>
-                <li>✓ Email-уведомление за 3 дня до списания</li>
+            </div>
+            <button className="kb-btn kb-btn--ghost kb-btn--lg" onClick={cancelSubscription}>
+              Отменить
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* Plan picker — 4 плана + Trial primary CTA */}
+      {!b.subscription.active && (
+        <section style={{ marginBottom: 32 }}>
+          <header style={{ marginBottom: 16 }}>
+            <span className="eyebrow">Подписка · выбери план</span>
+            <h2 className="h2" style={{ marginTop: 6 }}>7 дней бесплатно · отмена в 1 клик</h2>
+          </header>
+
+          {/* Trial — primary */}
+          <div
+            className="kb-card kb-card--feature"
+            style={{
+              background: 'linear-gradient(135deg, #6B5CE7, #4A3DB5)',
+              color: 'var(--paper)',
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 24,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ flex: '1 1 340px' }}>
+              <span className="eyebrow" style={{ color: '#FFD43C', fontWeight: 700 }}>РЕКОМЕНДУЕМ · ПРОБНО</span>
+              <h3 className="h3" style={{ color: '#fff', margin: '8px 0 8px' }}>Начни с 7 дней бесплатно</h3>
+              <p style={{ color: '#fff', opacity: 0.92, fontSize: 14, marginBottom: 10, maxWidth: 480, lineHeight: 1.55 }}>
+                Без кода и картой — просто попробуй все 48 уроков, 3D-Studio, Никселя-помощника и родительский кабинет.
+                Карта не списывается до 8-го дня. Не понравится — отменишь в 1 клик.
+              </p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: 13, color: '#fff', opacity: 0.9, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <li>✓ Полный доступ все 7 дней</li>
+                <li>✓ Email-уведомление за 3 дня до первого списания</li>
+                <li>✓ 14 дней на возврат по закону (ст. 32 ЗоЗПП)</li>
               </ul>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {b.subscription.active ? (
-                <button className="kb-btn kb-btn--ghost kb-btn--lg" onClick={cancelSubscription}>
-                  Отменить подписку
-                </button>
-              ) : (
-                <button className="kb-btn kb-btn--secondary kb-btn--lg" onClick={startSubscription}>
-                  Подключить за {formatRub(5937)}/мес
-                </button>
-              )}
+            <button className="kb-btn kb-btn--lg" style={{ background: '#FFD43C', color: '#15141b', fontWeight: 900 }} onClick={startTrial}>
+              🎁 Попробовать бесплатно
+            </button>
+          </div>
+
+          {/* Plans grid */}
+          <div className="kb-grid-4" style={{ gap: 16 }}>
+            <PlanCard
+              plan="monthly"
+              title="Месячная"
+              priceLine={`${formatRub(5937)}/мес`}
+              subLine="Привычный формат"
+              bullets={['1 ребёнок', 'Отмена в 1 клик', 'Email-уведомления']}
+              onPick={() => startSubscription('monthly')}
+            />
+            <PlanCard
+              plan="annual"
+              title="Годовая"
+              priceLine={`${formatRub(49900)}/год`}
+              subLine={`≈ ${formatRub(4158)}/мес · −30%`}
+              bullets={['1 ребёнок', 'Экономия 21 344 ₽', 'Можно отменить, вернём остаток']}
+              badge="Выгодно"
+              onPick={() => startSubscription('annual')}
+            />
+            <PlanCard
+              plan="family-2"
+              title="Семейная · 2"
+              priceLine={`${formatRub(8937)}/мес`}
+              subLine={`−25% vs 2× monthly`}
+              bullets={['2 ребёнка', 'Один родитель · /parent', 'Отмена в 1 клик']}
+              onPick={() => startSubscription('family-2')}
+            />
+            <PlanCard
+              plan="family-3"
+              title="Семейная · 3"
+              priceLine={`${formatRub(11937)}/мес`}
+              subLine={`−33% vs 3× monthly`}
+              bullets={['3 ребёнка', 'Max выгода для семьи', 'Отмена в 1 клик']}
+              badge="Лучшее"
+              onPick={() => startSubscription('family-3')}
+            />
+          </div>
+
+          <p style={{ margin: '14px 0 0', fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
+            Все подписки — с правом отказа в любой момент без объяснений (ст. 32 ЗоЗПП).
+            14 дней охлаждения с возвратом неиспользованного. Email-уведомление приходит за 3 дня до списания.
+          </p>
+        </section>
+      )}
+
+      {/* Promo code */}
+      <section style={{ marginBottom: 32 }}>
+        <div className="kb-card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 28 }} aria-hidden>🎟</span>
+          <div style={{ flex: '1 1 200px' }}>
+            <div style={{ fontWeight: 800, fontSize: 14 }}>Есть промокод?</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+              Попробуй <code style={{ background: 'var(--paper-2)', padding: '1px 5px', borderRadius: 4 }}>FRIEND14</code> — +14 дней к пробному периоду
+            </div>
+          </div>
+          <input
+            type="text"
+            value={promoInput}
+            onChange={(e) => setPromoInput(e.target.value)}
+            placeholder="PROMO-CODE"
+            style={{
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: '1.5px solid rgba(21,20,27,.15)',
+              fontFamily: 'var(--f-mono)',
+              fontSize: 14,
+              textTransform: 'uppercase',
+              minWidth: 160,
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') applyPromoCode() }}
+          />
+          <button className="kb-btn kb-btn--secondary" onClick={applyPromoCode} disabled={!promoInput.trim()}>
+            Применить
+          </button>
+        </div>
+      </section>
+
+      {/* Referral */}
+      <section style={{ marginBottom: 32 }}>
+        <header style={{ marginBottom: 16 }}>
+          <span className="eyebrow">Приведи друга</span>
+          <h2 className="h2" style={{ marginTop: 6 }}>Ты получаешь месяц бесплатно · друг — 14 дней</h2>
+        </header>
+        <div className="kb-card kb-card--feature" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 56, flexShrink: 0 }} aria-hidden>🤝</div>
+          <div style={{ flex: '1 1 300px' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 14, lineHeight: 1.55 }}>
+              За каждого друга, который оплатит подписку по твоей ссылке — мы добавим тебе <strong>1 месяц бесплатно</strong>.
+              Друг получает <strong>14 дней бесплатно</strong> вместо стандартных 7.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginTop: 10 }}>
+              <code style={{
+                flex: '1 1 280px',
+                background: 'var(--paper-2)',
+                padding: '10px 14px',
+                borderRadius: 10,
+                fontFamily: 'var(--f-mono)',
+                fontSize: 12,
+                userSelect: 'all',
+                wordBreak: 'break-all',
+              }}>
+                {referralLink}
+              </code>
+              <button className="kb-btn kb-btn--secondary" onClick={copyReferral}>
+                📋 Копировать
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 18, marginTop: 12, fontSize: 13 }}>
+              <div>
+                <strong style={{ fontSize: 20, color: 'var(--violet)' }}>{b.referralConverts}</strong>{' '}
+                <span style={{ color: 'var(--ink-soft)' }}>друзей оплатили</span>
+              </div>
+              <div>
+                <strong style={{ fontSize: 20, color: 'var(--mint-deep, #2E8C5F)' }}>{b.referralBonusMonths}</strong>{' '}
+                <span style={{ color: 'var(--ink-soft)' }}>мес в запасе</span>
+              </div>
             </div>
           </div>
         </div>
@@ -236,6 +404,75 @@ export default function Billing() {
           14&nbsp;дней на&nbsp;возврат (ЗоЗПП&nbsp;ст.32). Данные ребёнка — по&nbsp;ФЗ-152.
         </p>
       </section>
+
+      {toast && (
+        <div key={toast.key} className={`kb-ui-toast kb-ui-toast--${toast.kind}`}>
+          {toast.msg}
+        </div>
+      )}
     </PlatformShell>
+  )
+}
+
+/** Одна карточка плана в grid-сетке на Billing */
+function PlanCard({
+  title,
+  priceLine,
+  subLine,
+  bullets,
+  onPick,
+  badge,
+}: {
+  plan: SubscriptionPlan
+  title: string
+  priceLine: string
+  subLine: string
+  bullets: string[]
+  onPick: () => void
+  badge?: string
+}) {
+  return (
+    <div
+      className="kb-card"
+      style={{
+        borderTop: '4px solid var(--violet)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        position: 'relative',
+        padding: 18,
+      }}
+    >
+      {badge && (
+        <span
+          style={{
+            position: 'absolute',
+            top: -10,
+            right: 12,
+            background: 'var(--yellow)',
+            color: 'var(--ink)',
+            padding: '3px 10px',
+            borderRadius: 12,
+            fontSize: 11,
+            fontWeight: 900,
+            fontFamily: 'var(--f-display)',
+            boxShadow: '0 2px 0 var(--ink)',
+          }}
+        >
+          {badge}
+        </span>
+      )}
+      <h3 className="h3" style={{ margin: 0, fontSize: 17 }}>{title}</h3>
+      <div style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 24, lineHeight: 1, color: 'var(--violet)' }}>
+        {priceLine}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{subLine}</div>
+      <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0', display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--ink-soft)', flex: 1 }}>
+        {bullets.map((b) => <li key={b}>✓ {b}</li>)}
+      </ul>
+      <button className="kb-btn kb-btn--secondary" onClick={onPick}>
+        Выбрать
+      </button>
+    </div>
   )
 }

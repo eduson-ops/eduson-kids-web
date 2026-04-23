@@ -6,8 +6,11 @@ import { MODULES, ALL_LESSONS, getLesson } from '../lib/curriculum'
 import {
   countDoneInModule,
   getQuizResult,
+  buyStreakFreeze,
+  getStreak,
 } from '../lib/progress'
 import { useProgress } from '../hooks/useProgress'
+import { useToast } from '../hooks/useToast'
 import {
   ACHIEVEMENTS,
   RARITY_COLOR,
@@ -383,6 +386,9 @@ export default function StudentPortfolio() {
         </p>
       </section>
 
+      {/* Streak Freeze shop */}
+      <StreakFreezeShop />
+
       {/* Achievements */}
       <section style={{ marginBottom: 40 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
@@ -487,5 +493,74 @@ function KPI({ label, value, emoji, color }: { label: string; value: string; emo
       <div className="portfolio-kpi-value">{value}</div>
       <div className="portfolio-kpi-label">{label}</div>
     </div>
+  )
+}
+
+/**
+ * StreakFreezeShop — магазин заморозок стрика.
+ * 200 монет = 1 заморозка. Максимум 3 в запасе.
+ * Монеты сейчас не трекаются отдельно (placeholder: 15 за урок).
+ */
+function StreakFreezeShop() {
+  const p = useProgress()
+  const { show } = useToast()
+  const [s, setS] = useState(() => getStreak())
+
+  useEffect(() => {
+    // Обновляем состояние при изменении прогресса (пройден урок → мог начислиться стрик)
+    setS(getStreak())
+  }, [p.streak, p.streakFreezes])
+
+  // Placeholder монет — 15 за каждый урок (тот же расчёт что в Hub)
+  const coins = p.completedLessons * 15
+  const FREEZE_PRICE = 200
+  const canAfford = coins >= FREEZE_PRICE
+  const canBuy = s.freezes < 3
+
+  const onBuy = () => {
+    if (!canBuy) return show('Максимум 3 заморозки в запасе', 'info')
+    if (!canAfford) return show(`Нужно ${FREEZE_PRICE} монет, а у тебя ${coins}`, 'info')
+    if (!buyStreakFreeze()) return show('Не получилось купить', 'info')
+    setS(getStreak())
+    show('✓ Заморозка куплена!', 'success')
+  }
+
+  return (
+    <section style={{ marginBottom: 40 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+        <h2 className="h2">Защита стрика</h2>
+        <span className="eyebrow">❄ {s.freezes} / 3 в запасе</span>
+      </div>
+      <div className="kb-card kb-card--feature" style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ fontSize: 64, flexShrink: 0 }} aria-hidden>❄</div>
+        <div style={{ flex: '1 1 320px' }}>
+          <h3 className="h3" style={{ margin: '0 0 8px' }}>
+            Заморозка стрика
+          </h3>
+          <p style={{ color: 'var(--ink-soft)', fontSize: 14, margin: '0 0 10px', lineHeight: 1.55 }}>
+            Пропустил день? Заморозка сама спасёт твой стрик —{' '}
+            <strong>🔥 {s.current} дн.</strong> не сгорит. Одна заморозка бесплатно каждую неделю, остальные можно купить за монеты.
+          </p>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
+            У тебя: <strong>{coins}</strong> 💰 · Цена: <strong>{FREEZE_PRICE}</strong> 💰 за штуку
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 180 }}>
+          <button
+            className="kb-btn kb-btn--lg"
+            onClick={onBuy}
+            disabled={!canBuy || !canAfford}
+            style={{ opacity: canBuy && canAfford ? 1 : 0.5 }}
+          >
+            ❄ Купить за {FREEZE_PRICE}
+          </button>
+          <div style={{ fontSize: 11, color: 'var(--ink-soft)', textAlign: 'center' }}>
+            {s.freezes === 0 && 'Начни стрик — начислим одну бесплатно'}
+            {s.freezes > 0 && s.freezes < 3 && `Есть ${s.freezes}. Можно купить ещё.`}
+            {s.freezes >= 3 && '🎉 Максимум, больше не купить'}
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }

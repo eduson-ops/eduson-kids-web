@@ -214,6 +214,30 @@ export type PropKind =
   // Haunted Mansion
   | 'ghost-lantern' | 'gravestone' | 'haunted-tree' | 'cauldron-bubble' | 'bat-swarm'
   | 'cobweb-arch' | 'coffin-lid' | 'potion-shelf' | 'cursed-mirror' | 'spirit-flame'
+  // Robot Factory
+  | 'assembly-arm' | 'conveyor-belt' | 'robot-drone' | 'gear-column' | 'spark-welder'
+  | 'circuit-panel' | 'power-core' | 'sensor-tower' | 'cargo-claw' | 'bot-chassis'
+  // Underwater City
+  | 'kelp-tower' | 'bubble-dome' | 'sea-arch' | 'clam-throne' | 'whirlpool-gate'
+  | 'glowing-jellyfish' | 'sunken-statue' | 'treasure-chest-sea' | 'anglerfish-lamp' | 'submarine-dock'
+  // Sky Kingdom
+  | 'cloud-castle' | 'rainbow-bridge' | 'sky-balloon' | 'wind-mill-sky' | 'floating-island'
+  | 'sun-dial' | 'cloud-throne' | 'sky-crystal' | 'wind-chime' | 'storm-eye'
+  // Crystal Cave
+  | 'stalactite' | 'crystal-cluster' | 'cave-pool' | 'glow-worm' | 'mineral-vein'
+  | 'cave-mushroom' | 'echo-stone' | 'underground-waterfall' | 'gem-geode' | 'lava-crack'
+  // Dinosaur Park
+  | 'dino-skeleton' | 't-rex-roar' | 'dino-egg-b21' | 'stegosaurus-spike' | 'velociraptor-nest'
+  | 'fern-jurassic' | 'dino-track-b21' | 'pterodactyl-perch' | 'volcano-mud-pit' | 'dino-info-sign'
+  // Atlantis City
+  | 'atlantis-temple' | 'trident-monument' | 'coral-pillar' | 'seahorse-statue' | 'bubble-chamber'
+  | 'atlantis-gate' | 'ocean-floor-ruin' | 'atlantis-crystal-spire' | 'mermaid-fountain' | 'neptune-idol'
+  // Magic School
+  | 'spell-cauldron' | 'wizard-desk' | 'spell-book-stand' | 'astro-lab-table' | 'magic-mirror-school'
+  | 'graduation-podium' | 'wand-rack' | 'hourglass-school' | 'star-map' | 'magic-chalkboard'
+  // Jungle Temple
+  | 'jungle-pillar' | 'moss-altar' | 'vine-gate' | 'temple-idol' | 'giant-leaf'
+  | 'temple-fire-brazier' | 'serpent-carving' | 'hidden-trap-door' | 'ancient-gong' | 'jungle-shrine'
 
 export interface SpawnedPart {
   id: string
