@@ -401,6 +401,12 @@ export type PropKind =
   | 'spell-book-b50' | 'floating-candle-b50' | 'potion-rack-b50' | 'scroll-chest-b50' | 'magic-mirror-b50'
   // Underwater City
   | 'atlantis-pillar-b50' | 'bubble-dome-b50' | 'sea-gate-b50' | 'trident-statue-b50' | 'biolume-globe-b50'
+  // Ancient Egypt
+  | 'obelisk-b51' | 'scarab-statue-b51' | 'papyrus-roll-b51' | 'anubis-head-b51' | 'pyramid-small-b51'
+  // Dinosaur Park
+  | 'dino-skull-b51' | 'fossil-print-b51' | 'egg-nest-b51' | 'info-sign-b51' | 'dino-footprint-b51'
+  // Cloud Kingdom
+  | 'cloud-platform-b51' | 'rainbow-bridge-b51' | 'lightning-rod-b51' | 'wind-spiral-b51' | 'sky-lantern-b51'
 
 export interface SpawnedPart {
   id: string

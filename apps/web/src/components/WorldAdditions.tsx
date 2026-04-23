@@ -1808,6 +1808,25 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'trident-statue-b50': return <TridentStatueB50 pos={pos} color={color} size={size} />
     case 'biolume-globe-b50': return <BiolumeGlobeB50 pos={pos} color={color} size={size} />
 
+    // Batch 51 — Ancient Egypt
+    case 'obelisk-b51': return <ObeliskB51 pos={pos} color={color} size={size} />
+    case 'scarab-statue-b51': return <ScarabStatueB51 pos={pos} color={color} size={size} />
+    case 'papyrus-roll-b51': return <PapyrusRollB51 pos={pos} color={color} size={size} />
+    case 'anubis-head-b51': return <AnubisHeadB51 pos={pos} color={color} size={size} />
+    case 'pyramid-small-b51': return <PyramidSmallB51 pos={pos} color={color} size={size} />
+    // Batch 51 — Dinosaur Park
+    case 'dino-skull-b51': return <DinoSkullB51 pos={pos} color={color} size={size} />
+    case 'fossil-print-b51': return <FossilPrintB51 pos={pos} color={color} size={size} />
+    case 'egg-nest-b51': return <EggNestB51 pos={pos} color={color} size={size} />
+    case 'info-sign-b51': return <InfoSignB51 pos={pos} color={color} size={size} />
+    case 'dino-footprint-b51': return <DinoFootprintB51 pos={pos} color={color} size={size} />
+    // Batch 51 — Cloud Kingdom
+    case 'cloud-platform-b51': return <CloudPlatformB51 pos={pos} color={color} size={size} />
+    case 'rainbow-bridge-b51': return <RainbowBridgeB51 pos={pos} color={color} size={size} />
+    case 'lightning-rod-b51': return <LightningRodB51 pos={pos} color={color} size={size} />
+    case 'wind-spiral-b51': return <WindSpiralB51 pos={pos} color={color} size={size} />
+    case 'sky-lantern-b51': return <SkyLanternB51 pos={pos} color={color} size={size} />
+
     default:
       return null
   }
@@ -33547,6 +33566,319 @@ function BiolumeGlobeB50({ pos, color, size: s }: P50) {
       <mesh position={[0, 0.08, 0]}>
         <cylinderGeometry args={[0.04, 0.06, 0.16, 6]} />
         <meshStandardMaterial color="#444466" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+interface P51 { pos: [number,number,number]; color: string; size: number }
+
+function ObeliskB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.06, 0]}>
+        <boxGeometry args={[0.28, 0.12, 0.28]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[0.16, 0.76, 0.16]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 0.93, 0]}>
+        <coneGeometry args={[0.09, 0.22, 4]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function ScarabStatueB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.22, 0]}>
+        <sphereGeometry args={[0.2, 9, 7]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.2} />
+      </mesh>
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.3, 0.1, 0.2]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      {[-1, 1].map((ss, i) => (
+        <mesh key={i} position={[ss * 0.2, 0.14, 0.08]} rotation={[0, ss * 0.5, 0]}>
+          <boxGeometry args={[0.14, 0.04, 0.08]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.04, 0]}>
+        <boxGeometry args={[0.34, 0.08, 0.26]} />
+        <meshStandardMaterial color="#888" roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function PapyrusRollB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.2, 0]} rotation={[Math.PI / 2, 0, 0.15]}>
+        <cylinderGeometry args={[0.12, 0.12, 0.45, 10]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {[-0.22, 0.22].map((x, i) => (
+        <mesh key={i} position={[x, 0.2, 0]} rotation={[Math.PI / 2, 0, 0.15]}>
+          <cylinderGeometry args={[0.06, 0.07, 0.46, 8]} />
+          <meshStandardMaterial color="#8B4513" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function AnubisHeadB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[0.28, 0.45, 0.22]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 0.8, 0]}>
+        <boxGeometry args={[0.24, 0.22, 0.2]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 0.92, -0.02]}>
+        <coneGeometry args={[0.05, 0.28, 5]} rotation={[Math.PI / 12, 0, 0]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      {[-0.08, 0.08].map((x, i) => (
+        <mesh key={i} position={[x, 0.82, 0.12]}>
+          <sphereGeometry args={[0.04, 5, 4]} />
+          <meshStandardMaterial color="#cc8800" emissive="#cc8800" emissiveIntensity={0.5} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.12, 0]}>
+        <boxGeometry args={[0.32, 0.24, 0.26]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function PyramidSmallB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.3, 0]}>
+        <coneGeometry args={[0.42, 0.6, 4]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 0.04, 0]}>
+        <boxGeometry args={[0.84, 0.08, 0.84]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function DinoSkullB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.35, 0]}>
+        <sphereGeometry args={[0.3, 9, 7]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0.22, 0.28, 0]}>
+        <boxGeometry args={[0.44, 0.16, 0.2]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {[-0.08, 0.08].map((x, i) => (
+        <mesh key={i} position={[x, 0.42, 0.26]}>
+          <sphereGeometry args={[0.06, 6, 5]} />
+          <meshStandardMaterial color="#111" roughness={0.5} />
+        </mesh>
+      ))}
+      {[-0.15, -0.05, 0.05, 0.15, 0.28, 0.38].map((x, i) => (
+        <mesh key={i} position={[x, 0.24, 0.08]}>
+          <coneGeometry args={[0.02, 0.06 + (i % 3) * 0.02, 4]} />
+          <meshStandardMaterial color={color} roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function FossilPrintB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.44, 12]} />
+        <meshStandardMaterial color="#888877" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ellipseCurve />
+        <ringGeometry args={[0.14, 0.24, 10]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      {[0.08, 0.16, 0.24].map((r, i) => (
+        <mesh key={i} position={[0, 0.07, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[r, r + 0.025, 10]} />
+          <meshStandardMaterial color={color} roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function EggNestB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.08, 0]}>
+        <torusGeometry args={[0.3, 0.08, 6, 12]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.8} />
+      </mesh>
+      {[[0, 0.26, 0], [-0.14, 0.22, 0.1], [0.16, 0.24, -0.1]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <sphereGeometry args={[0.1, 7, 6, 0, Math.PI * 2, 0, Math.PI * 0.75]} />
+          <meshStandardMaterial color={color} roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function InfoSignB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[0.6, 0.45, 0.06]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 0.5, 0.04]}>
+        <boxGeometry args={[0.52, 0.38, 0.02]} />
+        <meshStandardMaterial color="#f5f5f0" roughness={0.6} />
+      </mesh>
+      {[0.62, 0.5, 0.38, 0.26].map((y, i) => (
+        <mesh key={i} position={[0, y, 0.055]}>
+          <boxGeometry args={[0.4, 0.025, 0.01]} />
+          <meshStandardMaterial color="#888" roughness={0.5} />
+        </mesh>
+      ))}
+      {[-1, 1].map((ss, i) => (
+        <mesh key={i} position={[ss * 0.28, 0.15, 0]}>
+          <cylinderGeometry args={[0.02, 0.025, 0.3, 5]} />
+          <meshStandardMaterial color="#888" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function DinoFootprintB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ellipseCurve />
+        <circleGeometry args={[0.18, 8]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {[[-0.1, 0.03, -0.22], [0.08, 0.03, -0.26], [0.24, 0.03, -0.18]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.07, 6]} />
+          <meshStandardMaterial color={color} roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function CloudPlatformB51({ pos, color, size: s }: P51) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 0.6) * 0.05
+  })
+  return (
+    <group ref={ref} position={pos} scale={s}>
+      {[[0, 0.18, 0], [-0.25, 0.14, 0.08], [0.28, 0.12, -0.06], [-0.1, 0.12, -0.22], [0.18, 0.16, 0.2]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <sphereGeometry args={[0.15 + i * 0.02, 7, 6]} />
+          <meshStandardMaterial color={color} roughness={0.4} transparent opacity={0.92} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function RainbowBridgeB51({ pos, color, size: s }: P51) {
+  return (
+    <group position={pos} scale={s}>
+      {(['#ff2200','#ff8800','#ffdd00','#44cc00','#0088ff','#6600ff'] as string[]).map((c, i) => (
+        <mesh key={i} position={[0, 0.5 + i * 0.04, 0]}>
+          <torusGeometry args={[0.38 + i * 0.03, 0.028, 5, 16, Math.PI]} />
+          <meshStandardMaterial color={c} roughness={0.3} emissive={c} emissiveIntensity={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function LightningRodB51({ pos, color, size: s }: P51) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ;(ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = Math.random() > 0.97 ? 3 : 0.2
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.4, 0]}>
+        <cylinderGeometry args={[0.025, 0.04, 0.8, 6]} />
+        <meshStandardMaterial color={color} metalness={0.7} roughness={0.2} />
+      </mesh>
+      <mesh ref={ref} position={[0, 0.84, 0]}>
+        <sphereGeometry args={[0.06, 6, 5]} />
+        <meshStandardMaterial color="#ffff44" emissive="#ffff44" emissiveIntensity={0.3} />
+      </mesh>
+      <mesh position={[0, 0.06, 0]}>
+        <cylinderGeometry args={[0.08, 0.1, 0.12, 6]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+function WindSpiralB51({ pos, color, size: s }: P51) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ref.current.rotation.y = clock.getElapsedTime() * 1.5
+  })
+  return (
+    <group ref={ref} position={pos} scale={s}>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <mesh key={i} position={[Math.cos((i / 5) * Math.PI * 2) * (0.15 + i * 0.04), 0.1 + i * 0.14, Math.sin((i / 5) * Math.PI * 2) * (0.15 + i * 0.04)]}>
+          <sphereGeometry args={[0.06 - i * 0.006, 6, 5]} />
+          <meshStandardMaterial color={color} transparent opacity={0.7 - i * 0.1} roughness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SkyLanternB51({ pos, color, size: s }: P51) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const t = clock.getElapsedTime()
+    ref.current.position.y = pos[1] + 0.4 + Math.sin(t * 0.7) * 0.1
+    ref.current.rotation.y = t * 0.3
+  })
+  return (
+    <group ref={ref} position={[pos[0], pos[1] + 0.4, pos[2]]} scale={s}>
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.2, 9, 7, 0, Math.PI * 2, 0, Math.PI * 0.85]} />
+        <meshStandardMaterial color={color} transparent opacity={0.75} roughness={0.3} emissive={color} emissiveIntensity={0.3} />
+      </mesh>
+      <mesh position={[0, -0.18, 0]}>
+        <circleGeometry args={[0.12, 8]} />
+        <meshStandardMaterial color="#ff8800" emissive="#ff8800" emissiveIntensity={1.2} transparent opacity={0.8} />
       </mesh>
     </group>
   )

@@ -1941,6 +1941,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'biolume-globe-b50',  label: 'Биолюминесцентный шар', emoji: '✨', defaultColor: '#44ffcc', tags: ['шар','biolume globe','светится','подводный','биология'], hint: 'Светящийся шар из биолюминесцентных существ' },
     ],
   },
+  {
+    id: 'ancient-egypt-b51', name: '🏺 Древний Египет', icon: '🏺',
+    items: [
+      { kind: 'obelisk-b51',       label: 'Обелиск',              emoji: '🗿', defaultColor: '#cc9944', tags: ['обелиск','obelisk','египет','древний','камень'], hint: 'Высокий гранитный обелиск с иероглифами' },
+      { kind: 'scarab-statue-b51', label: 'Статуя скарабея',      emoji: '🪲', defaultColor: '#4466cc', tags: ['скарабей','scarab statue','египет','жук','удача'], hint: 'Священный синий скарабей — символ удачи' },
+      { kind: 'papyrus-roll-b51',  label: 'Папирусный свиток',    emoji: '📜', defaultColor: '#deb887', tags: ['папирус','papyrus roll','свиток','египет','рукопись'], hint: 'Свёрнутый папирус с иероглифами' },
+      { kind: 'anubis-head-b51',   label: 'Голова Анубиса',       emoji: '🐺', defaultColor: '#222222', tags: ['анубис','anubis head','египет','бог','шакал'], hint: 'Чёрная голова бога смерти Анубиса' },
+      { kind: 'pyramid-small-b51', label: 'Мини-пирамида',        emoji: '🔺', defaultColor: '#cc9944', tags: ['пирамида','pyramid','египет','древний','чудо'], hint: 'Золотистая каменная пирамида' },
+    ],
+  },
+  {
+    id: 'dinosaur-park-b51', name: '🦕 Парк динозавров', icon: '🦕',
+    items: [
+      { kind: 'dino-skull-b51',    label: 'Череп динозавра',      emoji: '🦴', defaultColor: '#eeeecc', tags: ['череп','dino skull','динозавр','кости','музей'], hint: 'Огромный череп тираннозавра' },
+      { kind: 'fossil-print-b51',  label: 'Отпечаток окаменелости', emoji: '🦕', defaultColor: '#aaaaaa', tags: ['отпечаток','fossil print','окаменелость','динозавр','история'], hint: 'Каменный отпечаток древней рыбы' },
+      { kind: 'egg-nest-b51',      label: 'Гнездо с яйцами',      emoji: '🥚', defaultColor: '#8B8B6B', tags: ['яйцо','egg nest','гнездо','динозавр','рождение'], hint: 'Гнездо с пятнистыми яйцами динозавра' },
+      { kind: 'info-sign-b51',     label: 'Информационный стенд',  emoji: '📋', defaultColor: '#4488aa', tags: ['стенд','info sign','информация','парк','музей'], hint: 'Стенд с описанием динозавра' },
+      { kind: 'dino-footprint-b51',label: 'След динозавра',       emoji: '🐾', defaultColor: '#888877', tags: ['след','dino footprint','отпечаток','динозавр','дорожка'], hint: 'Гигантский трёхпалый отпечаток лапы' },
+    ],
+  },
+  {
+    id: 'cloud-kingdom-b51', name: '☁️ Небесное королевство', icon: '☁️',
+    items: [
+      { kind: 'cloud-platform-b51',label: 'Облачная платформа',   emoji: '☁️', defaultColor: '#eeeeff', tags: ['облако','cloud platform','небо','платформа','парение'], hint: 'Мягкая облачная площадка в небесах' },
+      { kind: 'rainbow-bridge-b51',label: 'Радужный мост',        emoji: '🌈', defaultColor: '#ff6644', tags: ['радуга','rainbow bridge','мост','цвет','небо'], hint: 'Переливающийся арочный мост из радуги' },
+      { kind: 'lightning-rod-b51', label: 'Громоотвод',           emoji: '⚡', defaultColor: '#ffcc00', tags: ['молния','lightning rod','гром','небо','металл'], hint: 'Золотой громоотвод на облачной башне' },
+      { kind: 'wind-spiral-b51',   label: 'Вихрь ветра',         emoji: '🌀', defaultColor: '#88aaff', tags: ['вихрь','wind spiral','ветер','небо','стихия'], hint: 'Закрученный столб ветра' },
+      { kind: 'sky-lantern-b51',   label: 'Небесный фонарь',     emoji: '🏮', defaultColor: '#ff8844', tags: ['фонарь','sky lantern','небо','свет','парение'], hint: 'Бумажный фонарь летящий в небо' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
