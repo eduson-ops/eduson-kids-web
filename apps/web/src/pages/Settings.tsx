@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import { useToast } from '../hooks/useToast'
 import { getMuted, setMuted, setVolume, getVolume } from '../lib/audio'
 import { resetOnboarding } from '../components/OnboardingOverlay'
+import {
+  isStreakReminderEnabled,
+  setStreakReminderEnabled,
+  requestNotificationPermission,
+} from '../lib/streakReminder'
 
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
@@ -42,6 +47,8 @@ export default function Settings() {
   const [quality, setQuality] = useState(getQuality())
   const [avatarColor, setAvatarColorState] = useState(getAvatarColor())
   const [dailyGoal, setDailyGoalState] = useState(getDailyGoal())
+  const [deleteStep, setDeleteStep] = useState(0)
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const n = localStorage.getItem('ek_child_name') ?? ''
@@ -317,18 +324,48 @@ export default function Settings() {
               <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 8px' }}>
                 Удаление навсегда после 30 дней льготного периода. Можно восстановить до истечения.
               </p>
-              <button
-                className="kb-btn"
-                onClick={() => {
-                  if (!confirm('Удалить аккаунт? Это действие необратимо после 30 дней.')) return
-                  if (!confirm('Точно уверены? Прогресс, миры и покупки будут помечены на удаление.')) return
-                  localStorage.setItem('ek_delete_requested_at', String(Date.now()))
-                  showToast('Запрос на удаление принят. У вас 30 дней чтобы передумать.', 'default')
-                }}
-                style={{ borderColor: '#e53', color: '#e53' }}
-              >
-                Удалить навсегда
-              </button>
+              {deleteStep === 0 && (
+                <button
+                  className="kb-btn"
+                  onClick={() => {
+                    setDeleteStep(1)
+                    deleteTimerRef.current = setTimeout(() => setDeleteStep(0), 8000)
+                  }}
+                  style={{ borderColor: '#e53', color: '#e53' }}
+                >
+                  Удалить аккаунт
+                </button>
+              )}
+              {deleteStep === 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <p style={{ fontSize: 13, color: '#e53', margin: 0 }}>
+                    ⚠️ Прогресс, миры и покупки будут помечены на удаление. Необратимо через 30 дней.
+                  </p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      className="kb-btn"
+                      onClick={() => {
+                        if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+                        setDeleteStep(0)
+                      }}
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      className="kb-btn"
+                      onClick={() => {
+                        if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+                        localStorage.setItem('ek_delete_requested_at', String(Date.now()))
+                        setDeleteStep(0)
+                        showToast('Запрос на удаление принят. У вас 30 дней чтобы передумать.', 'default')
+                      }}
+                      style={{ borderColor: '#e53', color: '#e53' }}
+                    >
+                      Да, удалить
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
@@ -365,6 +402,9 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Напоминание о стрике — рабочее */}
+        <StreakReminderCard onToast={showToast} />
+
         {/* Уведомления */}
         <div className="kb-card" style={{ opacity: 0.7 }}>
           <h2 className="h2" style={{ marginBottom: 16 }}>Уведомления <span className="eyebrow" style={{ marginLeft: 8 }}>скоро</span></h2>
@@ -397,5 +437,64 @@ export default function Settings() {
 
       </div>
     </PlatformShell>
+  )
+}
+
+/** Карточка настройки вечернего напоминания о стрике. */
+function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'success' | 'info' | 'error') => void }) {
+  const [enabled, setEnabled] = useState(() => isStreakReminderEnabled())
+  const [perm, setPerm] = useState<NotificationPermission>(
+    typeof Notification === 'undefined' ? 'denied' : Notification.permission
+  )
+
+  const toggle = async () => {
+    if (!enabled) {
+      // Включаем — спросим разрешение браузера
+      if (typeof Notification === 'undefined') {
+        onToast('Твой браузер не поддерживает уведомления', 'error')
+        return
+      }
+      const p = await requestNotificationPermission()
+      setPerm(p)
+      if (p !== 'granted') {
+        onToast('Разрешение на уведомления не получено', 'error')
+        return
+      }
+      setStreakReminderEnabled(true)
+      setEnabled(true)
+      onToast('✓ Напоминание включено — после 20:00 пришлю уведомление если не занимался', 'success')
+    } else {
+      setStreakReminderEnabled(false)
+      setEnabled(false)
+      onToast('Напоминание выключено', 'info')
+    }
+  }
+
+  return (
+    <div className="kb-card">
+      <h2 className="h2" style={{ marginBottom: 10 }}>
+        Напоминание о стрике <span className="eyebrow" style={{ marginLeft: 8, color: 'var(--mint-deep)' }}>🔥 работает</span>
+      </h2>
+      <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.55 }}>
+        Если после 20:00 вечером ещё не занимался — пришлём тёплое браузерное уведомление.
+        Не спамим: не чаще раза в день, не беспокоим если урок уже пройден.
+      </p>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', userSelect: 'none' }}>
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={toggle}
+          style={{ width: 18, height: 18, cursor: 'pointer' }}
+        />
+        <span style={{ fontSize: 15, fontWeight: 600 }}>
+          {enabled ? 'Включено' : 'Включить вечернее напоминание'}
+        </span>
+      </label>
+      {perm === 'denied' && (
+        <p style={{ fontSize: 12, color: '#c33', margin: '10px 0 0' }}>
+          ⚠ Уведомления заблокированы в настройках браузера. Разреши их для этого сайта, чтобы включить.
+        </p>
+      )}
+    </div>
   )
 }
