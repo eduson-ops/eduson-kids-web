@@ -407,6 +407,12 @@ export type PropKind =
   | 'dino-skull-b51' | 'fossil-print-b51' | 'egg-nest-b51' | 'info-sign-b51' | 'dino-footprint-b51'
   // Cloud Kingdom
   | 'cloud-platform-b51' | 'rainbow-bridge-b51' | 'lightning-rod-b51' | 'wind-spiral-b51' | 'sky-lantern-b51'
+  // Viking Village
+  | 'longship-prow-b52' | 'runestone-b52' | 'mead-hall-b52' | 'viking-shield-b52' | 'axe-rack-b52'
+  // Futuristic City
+  | 'hover-car-b52' | 'sky-tower-b52' | 'ad-billboard-b52' | 'tube-pod-b52' | 'energy-fountain-b52'
+  // Zen Garden
+  | 'sand-rake-b52' | 'stepping-stones-b52' | 'bonsai-tree-b52' | 'zen-bowl-b52' | 'incense-stick-b52'
 
 export interface SpawnedPart {
   id: string

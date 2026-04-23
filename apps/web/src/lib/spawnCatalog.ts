@@ -1971,6 +1971,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'sky-lantern-b51',   label: 'Небесный фонарь',     emoji: '🏮', defaultColor: '#ff8844', tags: ['фонарь','sky lantern','небо','свет','парение'], hint: 'Бумажный фонарь летящий в небо' },
     ],
   },
+  {
+    id: 'viking-village-b52', name: '⚔️ Деревня викингов', icon: '⚔️',
+    items: [
+      { kind: 'longship-prow-b52', label: 'Нос драккара',         emoji: '🚢', defaultColor: '#8B4513', tags: ['драккар','longship prow','викинги','корабль','нос'], hint: 'Резной нос боевого корабля викингов' },
+      { kind: 'runestone-b52',     label: 'Рунный камень',        emoji: '🪨', defaultColor: '#888888', tags: ['руны','runestone','камень','викинги','надпись'], hint: 'Серый камень с рунической надписью' },
+      { kind: 'mead-hall-b52',     label: 'Пиршественный зал',    emoji: '🏚️', defaultColor: '#8B6914', tags: ['зал','mead hall','пир','викинги','дом'], hint: 'Длинный деревянный зал для пиров' },
+      { kind: 'viking-shield-b52', label: 'Щит викинга',          emoji: '🛡️', defaultColor: '#cc4400', tags: ['щит','viking shield','оружие','викинги','защита'], hint: 'Круглый раскрашенный щит на стойке' },
+      { kind: 'axe-rack-b52',      label: 'Стойка с топорами',    emoji: '🪓', defaultColor: '#888888', tags: ['топор','axe rack','оружие','викинги','металл'], hint: 'Деревянная стойка с боевыми топорами' },
+    ],
+  },
+  {
+    id: 'futuristic-city-b52', name: '🌆 Город будущего', icon: '🌆',
+    items: [
+      { kind: 'hover-car-b52',     label: 'Летающий автомобиль',  emoji: '🚗', defaultColor: '#4488cc', tags: ['машина','hover car','летающий','будущее','транспорт'], hint: 'Обтекаемый антигравитационный автомобиль' },
+      { kind: 'sky-tower-b52',     label: 'Небоскрёб',            emoji: '🏙️', defaultColor: '#88aacc', tags: ['небоскрёб','sky tower','здание','будущее','город'], hint: 'Стеклянная башня уходящая в облака' },
+      { kind: 'ad-billboard-b52',  label: 'Голографическая реклама', emoji: '📺', defaultColor: '#00aaff', tags: ['реклама','ad billboard','голограмма','будущее','город'], hint: 'Мерцающий рекламный щит в небе' },
+      { kind: 'tube-pod-b52',      label: 'Транспортный тюбопод', emoji: '🚀', defaultColor: '#aaaaaa', tags: ['тюб','tube pod','капсула','будущее','транспорт'], hint: 'Капсула в пневматической трубе' },
+      { kind: 'energy-fountain-b52',label: 'Энергетический фонтан', emoji: '⚡', defaultColor: '#00ffcc', tags: ['фонтан','energy fountain','энергия','будущее','светится'], hint: 'Фонтан из чистой энергии' },
+    ],
+  },
+  {
+    id: 'zen-garden-b52', name: '🧘 Дзен-сад', icon: '🧘',
+    items: [
+      { kind: 'sand-rake-b52',     label: 'Грабли в песке',       emoji: '🌾', defaultColor: '#deb887', tags: ['грабли','sand rake','дзен','песок','узор'], hint: 'Деревянные грабли с узором в белом песке' },
+      { kind: 'stepping-stones-b52',label: 'Камни-ступеньки',     emoji: '🪨', defaultColor: '#888888', tags: ['камни','stepping stones','дорожка','дзен','сад'], hint: 'Дорожка из плоских камней' },
+      { kind: 'bonsai-tree-b52',   label: 'Бонсай',               emoji: '🌳', defaultColor: '#228822', tags: ['бонсай','bonsai tree','дерево','дзен','японский'], hint: 'Идеально подстриженное миниатюрное дерево' },
+      { kind: 'zen-bowl-b52',      label: 'Чаша для медитации',   emoji: '🏮', defaultColor: '#cc8800', tags: ['чаша','zen bowl','медитация','дзен','звук'], hint: 'Бронзовая чаша издающая чистый звук' },
+      { kind: 'incense-stick-b52', label: 'Благовония',           emoji: '🕯️', defaultColor: '#88aacc', tags: ['благовония','incense stick','дым','дзен','ароматы'], hint: 'Тонкие палочки с голубым дымком' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

@@ -1827,6 +1827,25 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'wind-spiral-b51': return <WindSpiralB51 pos={pos} color={color} size={size} />
     case 'sky-lantern-b51': return <SkyLanternB51 pos={pos} color={color} size={size} />
 
+    // Batch 52 — Viking Village
+    case 'longship-prow-b52': return <LongshipProwB52 pos={pos} color={color} size={size} />
+    case 'runestone-b52': return <RunestoneB52 pos={pos} color={color} size={size} />
+    case 'mead-hall-b52': return <MeadHallB52 pos={pos} color={color} size={size} />
+    case 'viking-shield-b52': return <VikingShieldB52 pos={pos} color={color} size={size} />
+    case 'axe-rack-b52': return <AxeRackB52 pos={pos} color={color} size={size} />
+    // Batch 52 — Futuristic City
+    case 'hover-car-b52': return <HoverCarB52 pos={pos} color={color} size={size} />
+    case 'sky-tower-b52': return <SkyTowerB52 pos={pos} color={color} size={size} />
+    case 'ad-billboard-b52': return <AdBillboardB52 pos={pos} color={color} size={size} />
+    case 'tube-pod-b52': return <TubePodB52 pos={pos} color={color} size={size} />
+    case 'energy-fountain-b52': return <EnergyFountainB52 pos={pos} color={color} size={size} />
+    // Batch 52 — Zen Garden
+    case 'sand-rake-b52': return <SandRakeB52 pos={pos} color={color} size={size} />
+    case 'stepping-stones-b52': return <SteppingStonesB52 pos={pos} color={color} size={size} />
+    case 'bonsai-tree-b52': return <BonsaiTreeB52 pos={pos} color={color} size={size} />
+    case 'zen-bowl-b52': return <ZenBowlB52 pos={pos} color={color} size={size} />
+    case 'incense-stick-b52': return <IncenseStickB52 pos={pos} color={color} size={size} />
+
     default:
       return null
   }
@@ -33880,6 +33899,362 @@ function SkyLanternB51({ pos, color, size: s }: P51) {
         <circleGeometry args={[0.12, 8]} />
         <meshStandardMaterial color="#ff8800" emissive="#ff8800" emissiveIntensity={1.2} transparent opacity={0.8} />
       </mesh>
+    </group>
+  )
+}
+
+interface P52 { pos: [number,number,number]; color: string; size: number }
+
+function LongshipProwB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.22, 0]}>
+        <boxGeometry args={[0.18, 0.44, 0.6]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.36, -0.38]} rotation={[-0.4, 0, 0]}>
+        <boxGeometry args={[0.14, 0.08, 0.32]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.6, -0.52]} rotation={[-0.8, 0, 0]}>
+        <boxGeometry args={[0.12, 0.06, 0.24]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.82, -0.62]}>
+        <sphereGeometry args={[0.1, 7, 5]} />
+        <meshStandardMaterial color="#cc4400" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function RunestoneB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.38, 0]}>
+        <boxGeometry args={[0.3, 0.76, 0.12]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.06, 0]}>
+        <boxGeometry args={[0.36, 0.12, 0.18]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {[0.55, 0.4, 0.28, 0.16].map((y, i) => (
+        <mesh key={i} position={[0, y, 0.07]}>
+          <boxGeometry args={[0.18, 0.024, 0.01]} />
+          <meshStandardMaterial color="#cc4400" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function MeadHallB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.22, 0]}>
+        <boxGeometry args={[0.9, 0.44, 0.55]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.52, 0]}>
+        <boxGeometry args={[0.96, 0.08, 0.62]} />
+        <meshStandardMaterial color="#5c3317" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.72, 0]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[0.9, 0.04, 0.62]} />
+        <meshStandardMaterial color="#5c3317" roughness={0.7} />
+      </mesh>
+      {[-1, 1].map((ss, i) => (
+        <mesh key={i} position={[ss * 0.46, 0.72, 0]} rotation={[0, 0, ss * 0.7]}>
+          <boxGeometry args={[0.04, 0.44, 0.62]} />
+          <meshStandardMaterial color="#5c3317" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function VikingShieldB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, -0.08]}>
+        <cylinderGeometry args={[0.28, 0.28, 0.04, 14]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {[0, 1, 2, 3].map((i) => (
+        <mesh key={i} position={[0, 0.5, -0.06]} rotation={[0, 0, (i / 4) * Math.PI * 2]}>
+          <boxGeometry args={[0.55, 0.025, 0.02]} />
+          <meshStandardMaterial color="#8B4513" roughness={0.7} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.5, -0.04]}>
+        <cylinderGeometry args={[0.06, 0.06, 0.04, 8]} />
+        <meshStandardMaterial color="#888" metalness={0.5} roughness={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+function AxeRackB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      {[-1, 1].map((ss, i) => (
+        <mesh key={i} position={[ss * 0.25, 0.4, -0.1]}>
+          <cylinderGeometry args={[0.025, 0.03, 0.8, 5]} />
+          <meshStandardMaterial color="#8B4513" roughness={0.8} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.72, -0.1]}>
+        <boxGeometry args={[0.6, 0.04, 0.06]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.7} />
+      </mesh>
+      {[-0.16, 0.16].map((x, i) => (
+        <group key={i} position={[x, 0.7, -0.06]}>
+          <mesh>
+            <boxGeometry args={[0.03, 0.22, 0.03]} />
+            <meshStandardMaterial color="#8B4513" roughness={0.7} />
+          </mesh>
+          <mesh position={[0.07, 0.06, 0]}>
+            <boxGeometry args={[0.12, 0.14, 0.04]} />
+            <meshStandardMaterial color={color} metalness={0.5} roughness={0.3} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function HoverCarB52({ pos, color, size: s }: P52) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ref.current.position.y = pos[1] + 0.25 + Math.sin(clock.getElapsedTime() * 1.8) * 0.05
+  })
+  return (
+    <group ref={ref} position={[pos[0], pos[1] + 0.25, pos[2]]} scale={s}>
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[0.7, 0.14, 0.35]} />
+        <meshStandardMaterial color={color} metalness={0.4} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[0.45, 0.12, 0.3]} />
+        <meshStandardMaterial color={color} metalness={0.3} roughness={0.3} />
+      </mesh>
+      <mesh position={[0.12, 0.12, 0]}>
+        <boxGeometry args={[0.22, 0.1, 0.28]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.65} roughness={0.1} />
+      </mesh>
+      {[-0.28, 0.28].map((x, i) => (
+        <mesh key={i} position={[x, -0.1, 0]}>
+          <cylinderGeometry args={[0.07, 0.07, 0.04, 8]} />
+          <meshStandardMaterial color="#00ddff" emissive="#00ddff" emissiveIntensity={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SkyTowerB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[0.28, 1.0, 0.28]} />
+        <meshStandardMaterial color={color} transparent opacity={0.85} roughness={0.1} metalness={0.3} />
+      </mesh>
+      {[0.25, 0.5, 0.75].map((y, i) => (
+        <mesh key={i} position={[0, y, 0]}>
+          <boxGeometry args={[0.3, 0.02, 0.3]} />
+          <meshStandardMaterial color={color} roughness={0.3} />
+        </mesh>
+      ))}
+      <mesh position={[0, 1.05, 0]}>
+        <coneGeometry args={[0.16, 0.18, 4]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, 1.16, 0]}>
+        <sphereGeometry args={[0.04, 5, 4]} />
+        <meshStandardMaterial color="#00ffcc" emissive="#00ffcc" emissiveIntensity={1.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function AdBillboardB52({ pos, color, size: s }: P52) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ;(ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.abs(Math.sin(clock.getElapsedTime() * 1.5)) * 0.5
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.22, 0]}>
+        <cylinderGeometry args={[0.025, 0.04, 0.44, 5]} />
+        <meshStandardMaterial color="#888" roughness={0.5} />
+      </mesh>
+      <mesh ref={ref} position={[0, 0.6, 0]}>
+        <boxGeometry args={[0.65, 0.35, 0.05]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function TubePodB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.16, 0.16, 0.8, 10]} />
+        <meshStandardMaterial color="#cccccc" transparent opacity={0.5} roughness={0.1} metalness={0.1} />
+      </mesh>
+      <mesh position={[0, 0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <capsuleGeometry args={[0.12, 0.45, 6, 10]} />
+        <meshStandardMaterial color={color} metalness={0.4} roughness={0.3} />
+      </mesh>
+      <mesh position={[0.12, 0.3, 0]}>
+        <boxGeometry args={[0.1, 0.1, 0.1]} />
+        <meshStandardMaterial color="#88aacc" transparent opacity={0.7} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function EnergyFountainB52({ pos, color, size: s }: P52) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const t = clock.getElapsedTime()
+    ref.current.children.forEach((c, i) => {
+      if (c instanceof THREE.Mesh && i > 0) {
+        c.position.y = 0.3 + i * 0.1 + Math.sin(t * 3 + i * 0.8) * 0.08
+        ;(c.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(t * 2 + i) * 0.4
+      }
+    })
+  })
+  return (
+    <group ref={ref} position={pos} scale={s}>
+      <mesh position={[0, 0.08, 0]}>
+        <cylinderGeometry args={[0.22, 0.26, 0.16, 10]} />
+        <meshStandardMaterial color="#444466" roughness={0.5} />
+      </mesh>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <mesh key={i} position={[Math.cos((i / 5) * Math.PI * 2) * 0.1, 0.3 + i * 0.08, Math.sin((i / 5) * Math.PI * 2) * 0.1]}>
+          <sphereGeometry args={[0.04 - i * 0.005, 5, 4]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} transparent opacity={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SandRakeB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.7, 0.55]} />
+        <meshStandardMaterial color="#f5e6c8" roughness={0.9} />
+      </mesh>
+      {[-0.28, -0.14, 0, 0.14, 0.28].map((x, i) => (
+        <mesh key={i} position={[x, 0.05, i % 2 === 0 ? 0.04 : -0.04]} rotation={[-Math.PI / 2, 0, 0]}>
+          <boxGeometry args={[0.012, 0.25, 0.008]} />
+          <meshStandardMaterial color="#ddd4aa" roughness={0.9} />
+        </mesh>
+      ))}
+      <mesh position={[0.22, 0.2, 0.12]} rotation={[0.4, 0.3, 0]}>
+        <cylinderGeometry args={[0.015, 0.02, 0.55, 5]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function SteppingStonesB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      {[[-0.32, 0.04, 0.1], [-0.12, 0.04, -0.06], [0.08, 0.04, 0.12], [0.28, 0.04, -0.08]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <cylinderGeometry args={[0.1 + i * 0.01, 0.1 + i * 0.01, 0.06, 7]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function BonsaiTreeB52({ pos, color, size: s }: P52) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.08, 0]}>
+        <cylinderGeometry args={[0.14, 0.16, 0.12, 8]} />
+        <meshStandardMaterial color="#aa8844" roughness={0.7} />
+      </mesh>
+      <mesh position={[0.04, 0.3, 0]}>
+        <cylinderGeometry args={[0.025, 0.04, 0.44, 7]} />
+        <meshStandardMaterial color="#5c3317" roughness={0.8} />
+      </mesh>
+      {[[0.04, 0.58, 0], [-0.12, 0.5, 0.08], [0.2, 0.52, -0.06]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <sphereGeometry args={[0.12 + i * 0.02, 7, 6]} />
+          <meshStandardMaterial color={color} roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function ZenBowlB52({ pos, color, size: s }: P52) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ;(ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.1 + Math.sin(clock.getElapsedTime() * 0.5) * 0.08
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.12, 0]}>
+        <sphereGeometry args={[0.22, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.3} side={2} />
+      </mesh>
+      <mesh ref={ref} position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.19, 12]} />
+        <meshStandardMaterial color="#88aacc" emissive="#88aacc" emissiveIntensity={0.1} transparent opacity={0.6} roughness={0.05} />
+      </mesh>
+      <mesh position={[0, 0.04, 0]}>
+        <cylinderGeometry args={[0.06, 0.1, 0.08, 8]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function IncenseStickB52({ pos, color, size: s }: P52) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const t = clock.getElapsedTime()
+    ref.current.children.forEach((c, i) => {
+      if (i > 1 && c instanceof THREE.Mesh) {
+        c.position.y = 0.55 + i * 0.08 + Math.sin(t * 1.2 + i * 0.5) * 0.04
+        ;(c.material as THREE.MeshStandardMaterial).opacity = 0.4 - i * 0.08 + Math.sin(t * 1.5 + i) * 0.05
+      }
+    })
+  })
+  return (
+    <group ref={ref} position={pos} scale={s}>
+      <mesh position={[0, 0.04, 0]}>
+        <cylinderGeometry args={[0.06, 0.08, 0.06, 6]} />
+        <meshStandardMaterial color="#888" roughness={0.6} />
+      </mesh>
+      {[-0.06, 0, 0.06].map((x, i) => (
+        <mesh key={i} position={[x, 0.28, 0]}>
+          <cylinderGeometry args={[0.006, 0.008, 0.5, 4]} />
+          <meshStandardMaterial color={color} roughness={0.5} />
+        </mesh>
+      ))}
+      {[0, 1, 2, 3].map((i) => (
+        <mesh key={i} position={[0, 0.55 + i * 0.08, 0]}>
+          <sphereGeometry args={[0.025 + i * 0.008, 4, 3]} />
+          <meshStandardMaterial color="#aaccee" transparent opacity={0.35 - i * 0.07} roughness={0.1} />
+        </mesh>
+      ))}
     </group>
   )
 }
