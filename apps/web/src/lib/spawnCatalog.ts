@@ -1377,6 +1377,35 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'time-portal',      label: 'Портал времени',         emoji: '🌀', defaultColor: '#44aaff', tags: ['портал','time portal','вихрь','кольцо','путешествие'], hint: 'Мерцающий портал для путешествий во времени' },
     ],
   },
+  {
+    id: 'space-station', name: 'Космическая станция', icon: '🛸',
+    items: [
+      { kind: 'space-station-hub',  label: 'Станционный модуль',    emoji: '🛸', defaultColor: '#aabbcc', tags: ['станция','space station hub','солнечные панели','орбита','модуль'], hint: 'Орбитальный модуль с солнечными панелями' },
+      { kind: 'space-oxy-tank',     label: 'Кислородный баллон',    emoji: '🫧', defaultColor: '#aaddff', tags: ['баллон','space oxy tank','кислород','красная метка','скафандр'], hint: 'Кислородный баллон с клапаном' },
+      { kind: 'asteroid-b30',       label: 'Астероид',              emoji: '🪨', defaultColor: '#887766', tags: ['астероид','asteroid','камень','вращается','космос'], hint: 'Вращающийся каменный астероид' },
+      { kind: 'space-airlock',      label: 'Шлюзовая камера',       emoji: '🚪', defaultColor: '#aabbcc', tags: ['шлюз','space airlock','дверь','иллюминатор','открытый космос'], hint: 'Шлюзовая камера с иллюминатором' },
+      { kind: 'space-sat-dish',     label: 'Спутниковая тарелка',   emoji: '📡', defaultColor: '#aabbcc', tags: ['тарелка','space sat dish','спутник','сигнал','вращается'], hint: 'Поворачивающаяся спутниковая тарелка' },
+      { kind: 'space-pod',          label: 'Спасательная капсула',  emoji: '🛸', defaultColor: '#cc8800', tags: ['капсула','space pod','спасение','люк','тепловой щит'], hint: 'Спасательная капсула с тепловым щитом' },
+      { kind: 'space-helmet',       label: 'Шлем космонавта',       emoji: '🪖', defaultColor: '#e8e8e8', tags: ['шлем','space helmet','визор','космонавт','защита'], hint: 'Сферический шлем космонавта с визором' },
+      { kind: 'b30-space-debris',   label: 'Космический мусор',     emoji: '💥', defaultColor: '#aabbcc', tags: ['мусор','space debris','обломки','вращается','орбита'], hint: 'Вращающийся обломок космической техники' },
+      { kind: 'nebula-clouds',      label: 'Туманность',            emoji: '🌌', defaultColor: '#aa44ff', tags: ['туманность','nebula clouds','облако','цветное','космос'], hint: 'Разноцветные облака туманности' },
+    ],
+  },
+  {
+    id: 'underwater-castle', name: 'Подводный замок', icon: '🏰',
+    items: [
+      { kind: 'underwater-castle',  label: 'Подводный замок',        emoji: '🏰', defaultColor: '#4488aa', tags: ['замок','underwater castle','башни','водоросли','подводный'], hint: 'Величественный замок на морском дне' },
+      { kind: 'coral-spire',        label: 'Коралловый шпиль',       emoji: '🪸', defaultColor: '#ff4488', tags: ['коралл','coral spire','шпиль','разноцветный','риф'], hint: 'Высокий коралловый шпиль' },
+      { kind: 'mermaid-statue',     label: 'Статуя русалки',         emoji: '🧜', defaultColor: '#d2956f', tags: ['русалка','mermaid statue','хвост','камень','морской'], hint: 'Каменная статуя русалки' },
+      { kind: 'underwater-anchor',  label: 'Якорь',                  emoji: '⚓', defaultColor: '#555544', tags: ['якорь','underwater anchor','металл','ржавый','цепь'], hint: 'Тяжёлый морской якорь с кольцом' },
+      { kind: 'bubble-stream',      label: 'Поток пузырей',          emoji: '🫧', defaultColor: '#88aaff', tags: ['пузыри','bubble stream','поднимаются','прозрачные','подводный'], hint: 'Непрерывный поток воздушных пузырей' },
+      { kind: 'ocean-treasure-map', label: 'Карта сокровищ',         emoji: '🗺️', defaultColor: '#e8d5a0', tags: ['карта','ocean treasure map','свиток','x-метка','пиратский'], hint: 'Пожелтевшая карта с отметкой Х' },
+      { kind: 'b30-sea-turtle',     label: 'Морская черепаха',       emoji: '🐢', defaultColor: '#4a7a2a', tags: ['черепаха','b30 sea turtle','панцирь','ласты','медленная'], hint: 'Медленная морская черепаха с узорным панцирем' },
+      { kind: 'wreck-cannon',       label: 'Пушка с обломков',       emoji: '💣', defaultColor: '#665533', tags: ['пушка','wreck cannon','ржавая','обломки','коралл'], hint: 'Пушка с пиратского корабля, покрытая кораллами' },
+      { kind: 'aqua-gargoyle',      label: 'Водный горгулья',        emoji: '🐲', defaultColor: '#446688', tags: ['горгулья','aqua gargoyle','крылья','светится','страшный'], hint: 'Каменная горгулья с биолюминесцентным акцентом' },
+      { kind: 'underwater-gate',    label: 'Подводные врата',        emoji: '🚪', defaultColor: '#4488aa', tags: ['врата','underwater gate','арка','водоросли','проход'], hint: 'Каменные арочные врата на морском дне' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

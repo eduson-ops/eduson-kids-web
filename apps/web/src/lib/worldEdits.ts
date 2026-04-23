@@ -281,6 +281,12 @@ export type PropKind =
   // Tech Lab
   | 'tech-hologram' | 'tech-robot-arm' | 'dna-helix' | 'quantum-computer' | 'laser-cutter'
   | 'nanodrone-swarm' | 'plasma-reactor' | 'cloning-pod' | 'lab-beaker' | 'time-portal'
+  // Space Station
+  | 'space-station-hub' | 'space-oxy-tank' | 'asteroid-b30' | 'space-airlock' | 'space-sat-dish'
+  | 'space-pod' | 'space-helmet' | 'b30-space-debris' | 'nebula-clouds'
+  // Underwater Castle
+  | 'underwater-castle' | 'coral-spire' | 'mermaid-statue' | 'underwater-anchor' | 'bubble-stream'
+  | 'ocean-treasure-map' | 'b30-sea-turtle' | 'wreck-cannon' | 'aqua-gargoyle' | 'underwater-gate'
 
 export interface SpawnedPart {
   id: string
