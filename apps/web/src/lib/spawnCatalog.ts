@@ -900,6 +900,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'portcullis',       label: 'Решётка-опускник',    emoji: '🔓', defaultColor: '#556677', tags: ['решётка','portcullis','опускник','замок','железо'], hint: 'Опущенная решётка ворот замка' },
     ],
   },
+  {
+    id: 'rainforest', name: 'Тропический лес', icon: '🌿',
+    items: [
+      { kind: 'jungle-canopy',   label: 'Лесной полог',          emoji: '🌳', defaultColor: '#228B22', tags: ['полог','jungle canopy','крона','тень','джунгли'], hint: 'Густой зелёный полог тропического леса' },
+      { kind: 'lianas',          label: 'Лианы',                  emoji: '🌿', defaultColor: '#3aaa44', tags: ['лианы','lianas','лоза','джунгли','вьюн'], hint: 'Свисающие лианы с дерева' },
+      { kind: 'tree-frog',       label: 'Древесная лягушка',      emoji: '🐸', defaultColor: '#22cc44', tags: ['лягушка','tree frog','зелёная','ядовитая','джунгли'], hint: 'Яркая ядовитая лягушка на листе' },
+      { kind: 'toucan-perch',    label: 'Жёрдочка тукана',        emoji: '🐦', defaultColor: '#ff8800', tags: ['тукан','toucan perch','птица','экзотическая','джунгли'], hint: 'Тукан сидит на ветке' },
+      { kind: 'jungle-waterfall',label: 'Тропический водопад',    emoji: '💦', defaultColor: '#44aadd', tags: ['водопад','jungle waterfall','вода','тропики','поток'], hint: 'Небольшой водопад с мхом' },
+      { kind: 'orchid-bloom',    label: 'Орхидея',                emoji: '🌸', defaultColor: '#cc44aa', tags: ['орхидея','orchid bloom','цветок','тропический','редкий'], hint: 'Экзотическая орхидея' },
+      { kind: 'jaguar-statue',   label: 'Статуя ягуара',          emoji: '🐆', defaultColor: '#cc9900', tags: ['ягуар','jaguar statue','статуя','майя','пятнистый'], hint: 'Каменная статуя ягуара в стиле майя' },
+      { kind: 'vine-ladder',     label: 'Верёвочная лестница',    emoji: '🪜', defaultColor: '#8b5a1a', tags: ['лестница','vine ladder','лоза','лианы','вверх'], hint: 'Лестница из лиан между деревьями' },
+      { kind: 'leaf-platform',   label: 'Платформа-лист',         emoji: '🍃', defaultColor: '#44aa44', tags: ['лист','leaf platform','платформа','зелёный','джунгли'], hint: 'Огромный лист как игровая платформа' },
+      { kind: 'jungle-hut',      label: 'Хижина в джунглях',      emoji: '🛖', defaultColor: '#8b6020', tags: ['хижина','jungle hut','шалаш','деревянный','джунгли'], hint: 'Деревянная хижина на сваях' },
+    ],
+  },
+  {
+    id: 'arctic-research', name: 'Арктическая база', icon: '🧊',
+    items: [
+      { kind: 'igloo-lab',       label: 'Иглу-лаборатория',      emoji: '🏔', defaultColor: '#aaddff', tags: ['иглу','igloo lab','снег','лёд','лаборатория'], hint: 'Иглу с научным оборудованием внутри' },
+      { kind: 'ice-drill',       label: 'Ледовый бур',            emoji: '⚙', defaultColor: '#778899', tags: ['бур','ice drill','сверло','лёд','добыча'], hint: 'Большой бур для бурения льда' },
+      { kind: 'polar-buoy',      label: 'Полярный буй',           emoji: '🟠', defaultColor: '#ff6600', tags: ['буй','polar buoy','оранжевый','маяк','море'], hint: 'Оранжевый буй в ледяных водах' },
+      { kind: 'snowcat',         label: 'Снегоход-гусеница',      emoji: '🚛', defaultColor: '#cc8833', tags: ['снегоход','snowcat','гусеницы','оранжевый','арктика'], hint: 'Гусеничный снегоход для льда' },
+      { kind: 'blizzard-shield', label: 'Ветровой щит',           emoji: '🛡', defaultColor: '#aabbcc', tags: ['щит','blizzard shield','ветер','метель','защита'], hint: 'Барьер от метели и ветра' },
+      { kind: 'aurora-post',     label: 'Мачта Авроры',           emoji: '🌌', defaultColor: '#44ffcc', tags: ['аврора','aurora post','северное сияние','мачта','свет'], hint: 'Научная мачта для наблюдения Авроры' },
+      { kind: 'ice-core-rack',   label: 'Стеллаж кернов льда',    emoji: '🧪', defaultColor: '#bbddff', tags: ['керны','ice core rack','образцы','лёд','наука'], hint: 'Полка с образцами ледяных кернов' },
+      { kind: 'penguin-prop',    label: 'Пингвин',                emoji: '🐧', defaultColor: '#112233', tags: ['пингвин','penguin prop','птица','антарктида','чёрно-белый'], hint: 'Пингвин в натуральную величину' },
+      { kind: 'walrus-statue',   label: 'Морж-статуя',            emoji: '🦭', defaultColor: '#888899', tags: ['морж','walrus statue','статуя','клыки','арктика'], hint: 'Каменная статуя моржа' },
+      { kind: 'arctic-tent',     label: 'Полярная палатка',       emoji: '⛺', defaultColor: '#ff4444', tags: ['палатка','arctic tent','красная','экспедиция','арктика'], hint: 'Ярко-красная полярная палатка' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

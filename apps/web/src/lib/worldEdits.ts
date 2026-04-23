@@ -184,6 +184,12 @@ export type PropKind =
   // Medieval Castle
   | 'castle-door' | 'drawbridge' | 'knight-armor' | 'catapult-prop' | 'dungeon-door'
   | 'heraldic-banner' | 'arrow-slit' | 'wall-torch' | 'moat-water' | 'portcullis'
+  // Rainforest
+  | 'jungle-canopy' | 'lianas' | 'tree-frog' | 'toucan-perch' | 'jungle-waterfall'
+  | 'orchid-bloom' | 'jaguar-statue' | 'vine-ladder' | 'leaf-platform' | 'jungle-hut'
+  // Arctic Research
+  | 'igloo-lab' | 'ice-drill' | 'polar-buoy' | 'snowcat' | 'blizzard-shield'
+  | 'aurora-post' | 'ice-core-rack' | 'penguin-prop' | 'walrus-statue' | 'arctic-tent'
 
 export interface SpawnedPart {
   id: string
