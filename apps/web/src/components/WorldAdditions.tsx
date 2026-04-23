@@ -1573,6 +1573,21 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'asteroid-b36': return <AsteroidB36 pos={pos} color={color} size={size} />
     case 'space-antenna-b36': return <SpaceAntennaB36 pos={pos} color={color} size={size} />
     case 'nebula-crystal-b36': return <NebulaCrystalB36 pos={pos} color={color} size={size} />
+    // Batch 37 — Candy Land
+    case 'giant-lollipop-b37': return <GiantLollipopB37 pos={pos} color={color} size={size} />
+    case 'candy-cane-b37': return <CandyCaneB37 pos={pos} color={color} size={size} />
+    case 'gingerbread-house-b37': return <GingerbreadHouseB37 pos={pos} color={color} size={size} />
+    case 'gumdrop-b37': return <GumdropB37 pos={pos} color={color} size={size} />
+    case 'cotton-candy-b37': return <CottonCandyB37 pos={pos} color={color} size={size} />
+    case 'chocolate-fountain-b37': return <ChocolateFountainB37 pos={pos} color={color} size={size} />
+    // Batch 37 — Egyptian Pyramids
+    case 'pyramid-b37': return <PyramidB37 pos={pos} color={color} size={size} />
+    case 'sphinx-b37': return <SphinxB37 pos={pos} color={color} size={size} />
+    case 'obelisk-b37': return <ObeliskB37 pos={pos} color={color} size={size} />
+    case 'egyptian-vase-b37': return <EgyptianVaseB37 pos={pos} color={color} size={size} />
+    case 'anubis-statue-b37': return <AnubisStatueB37 pos={pos} color={color} size={size} />
+    case 'scarab-b37': return <ScarabB37 pos={pos} color={color} size={size} />
+    case 'tomb-entrance-b37': return <TombEntranceB37 pos={pos} color={color} size={size} />
 
     default:
       return null
@@ -28181,6 +28196,329 @@ function NebulaCrystalB36({ pos, color, size }: P36) {
         <mesh key={i} position={[Math.sin(i*1.57)*size*0.55, 0, Math.cos(i*1.57)*size*0.55]}>
           <tetrahedronGeometry args={[size*0.12, 0]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} roughness={0.1} transparent opacity={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// === BATCH 37: Candy Land + Egyptian Pyramids ===
+interface P37 { pos: [number,number,number]; color: string; size: number }
+
+function GiantLollipopB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.z = Math.sin(clock.getElapsedTime() * 1.2) * 0.1
+  })
+  return (
+    <group position={pos}>
+      <mesh ref={ref} position={[0, size*0.4, 0]} castShadow>
+        <sphereGeometry args={[size*0.42, 12, 10]} />
+        <meshStandardMaterial color={color} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.0, 0]}>
+        <cylinderGeometry args={[size*0.06, size*0.08, size*0.95, 6]} />
+        <meshStandardMaterial color="#f5f5f5" roughness={0.4} />
+      </mesh>
+      {([0, 1, 2] as number[]).map((i) => (
+        <mesh key={i} position={[0, size*0.4, 0]} rotation={[0, i * 2.094, 0]}>
+          <torusGeometry args={[size*0.28, size*0.04, 6, 20, Math.PI*0.5]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function CandyCaneB37({ pos, color, size }: P37) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <cylinderGeometry args={[size*0.08, size*0.08, size*1.4, 8]} />
+        <meshStandardMaterial color={color} roughness={0.3} />
+      </mesh>
+      <mesh position={[size*0.12, size*0.72, 0]}>
+        <torusGeometry args={[size*0.12, size*0.08, 8, 16, Math.PI]} />
+        <meshStandardMaterial color={color} roughness={0.3} />
+      </mesh>
+      {([0.3, 0.6, 0.9, 1.2] as number[]).map((y, i) => (
+        <mesh key={i} position={[0, y*size - size*0.3, 0]}>
+          <torusGeometry args={[size*0.09, size*0.085, 6, 16, Math.PI*0.25]} />
+          <meshStandardMaterial color="#ffffff" roughness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GingerbreadHouseB37({ pos, color, size }: P37) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, -size*0.1, 0]} castShadow>
+        <boxGeometry args={[size*0.85, size*0.55, size*0.65]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.32, 0]}>
+        <boxGeometry args={[size*0.95, size*0.02, size*0.02]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.4} />
+      </mesh>
+      <mesh position={[0, size*0.28, 0]}>
+        <coneGeometry args={[size*0.58, size*0.45, 4]} />
+        <meshStandardMaterial color="#cc4400" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, -size*0.12, size*0.34]}>
+        <boxGeometry args={[size*0.28, size*0.42, size*0.06]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+      {([-0.28, 0.28] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, -size*0.02, size*0.34]}>
+          <sphereGeometry args={[size*0.07, 6, 5]} />
+          <meshStandardMaterial color="#ff4488" roughness={0.4} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GumdropB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    ref.current.position.y = pos[1] + Math.abs(Math.sin(clock.getElapsedTime() * 1.5)) * size * 0.12
+  })
+  return (
+    <mesh ref={ref} position={pos} castShadow>
+      <sphereGeometry args={[size*0.38, 10, 8, 0, Math.PI*2, 0, Math.PI*0.65]} />
+      <meshStandardMaterial color={color} roughness={0.25} />
+    </mesh>
+  )
+}
+
+function CottonCandyB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.5
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, -size*0.2, 0]}>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.6, 5]} />
+        <meshStandardMaterial color="#f5deb3" roughness={0.7} />
+      </mesh>
+      {([0, 1, 2, 3, 4] as number[]).map((i) => (
+        <mesh key={i} position={[
+          Math.sin(i*1.257)*size*0.18,
+          size*0.15 + Math.cos(i*0.8)*size*0.1,
+          Math.cos(i*1.257)*size*0.18
+        ]}>
+          <sphereGeometry args={[size*0.22 - i*size*0.01, 7, 6]} />
+          <meshStandardMaterial color={color} roughness={0.9} transparent opacity={0.85} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function ChocolateFountainB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.1 + Math.sin(clock.getElapsedTime() * 2) * 0.05
+  })
+  return (
+    <group position={pos}>
+      {([0.55, 0.25, -0.08] as number[]).map((y, i) => (
+        <mesh key={i} position={[0, y*size, 0]}>
+          <cylinderGeometry args={[size*(0.45-i*0.12), size*(0.48-i*0.12), size*0.08, 12]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+      ))}
+      <mesh ref={ref} position={[0, size*0.14, 0]}>
+        <cylinderGeometry args={[size*0.55, size*0.55, size*0.12, 14]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.1} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, size*0.72, 0]}>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.25, 6]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function PyramidB37({ pos, color, size }: P37) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <coneGeometry args={[size*0.75, size*1.15, 4]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, -size*0.54, 0]}>
+        <boxGeometry args={[size*1.55, size*0.08, size*1.55]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.52, 0]}>
+        <sphereGeometry args={[size*0.06, 6, 5]} />
+        <meshStandardMaterial color="#c8a000" roughness={0.2} metalness={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function SphinxB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.3) * 0.08
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, -size*0.12, 0]} castShadow>
+        <boxGeometry args={[size*1.2, size*0.38, size*0.45]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[size*0.5, -size*0.06, 0]}>
+        <sphereGeometry args={[size*0.26, 10, 8]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[size*0.5, size*0.08, 0]}>
+        <boxGeometry args={[size*0.18, size*0.3, size*0.2]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[-size*0.45, -size*0.3, s*size*0.2]}>
+          <boxGeometry args={[size*0.18, size*0.25, size*0.08]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function ObeliskB37({ pos, color, size }: P37) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*0.24, size*1.8, size*0.24]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size*0.95, 0]}>
+        <coneGeometry args={[size*0.14, size*0.26, 4]} />
+        <meshStandardMaterial color="#c8a000" roughness={0.2} metalness={0.8} />
+      </mesh>
+      <mesh position={[0, -size*0.92, 0]}>
+        <boxGeometry args={[size*0.38, size*0.08, size*0.38]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function EgyptianVaseB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.4
+  })
+  return (
+    <group position={pos}>
+      <mesh ref={ref} position={[0, 0, 0]} castShadow>
+        <cylinderGeometry args={[size*0.28, size*0.18, size*0.65, 10]} />
+        <meshStandardMaterial color={color} roughness={0.6} metalness={0.2} />
+      </mesh>
+      <mesh position={[0, size*0.36, 0]}>
+        <cylinderGeometry args={[size*0.14, size*0.28, size*0.14, 10]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size*0.45, 0]}>
+        <cylinderGeometry args={[size*0.16, size*0.14, size*0.08, 10]} />
+        <meshStandardMaterial color="#c8a000" roughness={0.3} metalness={0.7} />
+      </mesh>
+      <mesh position={[0, -size*0.35, 0]}>
+        <cylinderGeometry args={[size*0.08, size*0.1, size*0.16, 8]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function AnubisStatueB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.4) * 0.1
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, -size*0.15, 0]} castShadow>
+        <boxGeometry args={[size*0.32, size*0.58, size*0.22]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, size*0.32, 0]}>
+        <sphereGeometry args={[size*0.2, 8, 7]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, size*0.44, size*0.08]}>
+        <boxGeometry args={[size*0.08, size*0.28, size*0.04]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.3} />
+      </mesh>
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.06, size*0.52, 0]}>
+          <coneGeometry args={[size*0.04, size*0.15, 4]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+      ))}
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.22, -size*0.15, 0]}>
+          <boxGeometry args={[size*0.1, size*0.55, size*0.18]} />
+          <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function ScarabB37({ pos, color, size }: P37) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.7
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 2) * size * 0.05
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <sphereGeometry args={[size*0.28, 10, 7]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.6} />
+      </mesh>
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.28, size*0.04, 0]} rotation={[0, 0, s * 0.4]}>
+          <boxGeometry args={[size*0.28, size*0.05, size*0.2]} />
+          <meshStandardMaterial color={color} roughness={0.3} metalness={0.5} />
+        </mesh>
+      ))}
+      {([0, 1, 2, 3] as number[]).map((i) => (
+        <mesh key={i} position={[(i<2 ? -1 : 1)*size*0.16, -size*0.12, (i%2*2-1)*size*0.12]}>
+          <cylinderGeometry args={[size*0.02, size*0.02, size*0.22, 4]} />
+          <meshStandardMaterial color="#222" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function TombEntranceB37({ pos, color, size }: P37) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, -size*0.05, 0]} castShadow>
+        <boxGeometry args={[size*1.0, size*1.0, size*0.22]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.42, 0]}>
+        <coneGeometry args={[size*0.52, size*0.28, 4]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, -size*0.05, size*0.13]}>
+        <boxGeometry args={[size*0.38, size*0.68, size*0.04]} />
+        <meshStandardMaterial color="#1a1008" roughness={0.9} />
+      </mesh>
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.38, size*0.06, 0]}>
+          <cylinderGeometry args={[size*0.07, size*0.09, size*0.85, 8]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
         </mesh>
       ))}
     </group>

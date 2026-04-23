@@ -322,6 +322,12 @@ export type PropKind =
   // Space Exploration
   | 'rocket-ship-b36' | 'space-suit-b36' | 'lunar-lander-b36' | 'star-map-b36'
   | 'moon-rover-b36' | 'asteroid-b36' | 'space-antenna-b36' | 'nebula-crystal-b36'
+  // Candy Land
+  | 'giant-lollipop-b37' | 'candy-cane-b37' | 'gingerbread-house-b37' | 'gumdrop-b37'
+  | 'cotton-candy-b37' | 'chocolate-fountain-b37'
+  // Egyptian Pyramids
+  | 'pyramid-b37' | 'sphinx-b37' | 'obelisk-b37' | 'egyptian-vase-b37'
+  | 'anubis-statue-b37' | 'scarab-b37' | 'tomb-entrance-b37'
 
 export interface SpawnedPart {
   id: string

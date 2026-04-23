@@ -1564,6 +1564,29 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'nebula-crystal-b36',label: 'Кристалл туманности',emoji: '💎', defaultColor: '#cc44ff', tags: ['туманность','nebula crystal','кристалл','фиолетовый','светится'], hint: 'Светящийся кристалл туманности' },
     ],
   },
+  {
+    id: 'candy-land', name: 'Сладкая страна', icon: '🍭',
+    items: [
+      { kind: 'giant-lollipop-b37',     label: 'Гигантский леденец',   emoji: '🍭', defaultColor: '#ff4488', tags: ['леденец','lollipop','конфета','сладкий','spiral'], hint: 'Огромный закрученный леденец на палочке' },
+      { kind: 'candy-cane-b37',         label: 'Леденцовая трость',    emoji: '🎄', defaultColor: '#ff2222', tags: ['трость','candy cane','полоски','рождество','белый'], hint: 'Полосатая леденцовая трость' },
+      { kind: 'gingerbread-house-b37',  label: 'Пряничный домик',      emoji: '🏠', defaultColor: '#c87432', tags: ['пряник','gingerbread house','домик','сладкий','конфеты'], hint: 'Уютный пряничный домик' },
+      { kind: 'gumdrop-b37',            label: 'Жемчужина-мармелад',   emoji: '🟢', defaultColor: '#44cc44', tags: ['мармелад','gumdrop','прыгает','желе','конфета'], hint: 'Прыгающая желейная конфетка' },
+      { kind: 'cotton-candy-b37',       label: 'Сахарная вата',        emoji: '🌸', defaultColor: '#ffaabb', tags: ['вата','cotton candy','розовая','пушистая','ярмарка'], hint: 'Пышная розовая сахарная вата' },
+      { kind: 'chocolate-fountain-b37', label: 'Шоколадный фонтан',    emoji: '🍫', defaultColor: '#5c2a00', tags: ['фонтан','chocolate fountain','шоколад','течёт','сладкий'], hint: 'Многоуровневый шоколадный фонтан' },
+    ],
+  },
+  {
+    id: 'egyptian-pyramids', name: 'Древний Египет', icon: '🏜️',
+    items: [
+      { kind: 'pyramid-b37',        label: 'Пирамида',          emoji: '🔺', defaultColor: '#d4a855', tags: ['пирамида','pyramid','египет','камень','фараон'], hint: 'Великая пирамида фараона' },
+      { kind: 'sphinx-b37',         label: 'Сфинкс',            emoji: '🦁', defaultColor: '#c4944a', tags: ['сфинкс','sphinx','лев','голова','egypt'], hint: 'Величественный сфинкс в пустыне' },
+      { kind: 'obelisk-b37',        label: 'Обелиск',           emoji: '📐', defaultColor: '#d4c87a', tags: ['обелиск','obelisk','колонна','египет','золото'], hint: 'Высокий обелиск с золотым навершием' },
+      { kind: 'egyptian-vase-b37',  label: 'Египетская ваза',   emoji: '🏺', defaultColor: '#c4704a', tags: ['ваза','egyptian vase','канопа','иероглифы','золото'], hint: 'Расписная египетская канопа' },
+      { kind: 'anubis-statue-b37',  label: 'Статуя Анубиса',    emoji: '🐺', defaultColor: '#2a2a2a', tags: ['анубис','anubis','бог','смерть','египет'], hint: 'Статуя Анубиса — бога мёртвых' },
+      { kind: 'scarab-b37',         label: 'Скарабей',          emoji: '🪲', defaultColor: '#2244aa', tags: ['скарабей','scarab','жук','амулет','египет'], hint: 'Священный скарабей — символ удачи' },
+      { kind: 'tomb-entrance-b37',  label: 'Вход в гробницу',   emoji: '🚪', defaultColor: '#b8924a', tags: ['гробница','tomb entrance','вход','пирамида','мрак'], hint: 'Таинственный вход в гробницу фараона' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
