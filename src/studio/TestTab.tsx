@@ -8,6 +8,7 @@ import Player from '../components/Player'
 import VoxelClouds from '../components/VoxelClouds'
 import LiveOverlay from '../components/LiveOverlay'
 import CoinHud from '../components/CoinHud'
+import SayBubble from '../components/SayBubble'
 import CameraController from '../components/CameraController'
 import BuildModeController, { PieceGeometry } from '../components/BuildModeController'
 import BuildModeHud from '../components/BuildModeHud'
@@ -327,6 +328,7 @@ export default function TestTab({ state }: { state: EditorState }) {
       <div className="test-help">
         <strong>WASD</strong> — ходить · <strong>Space</strong> — прыжок · <strong>B</strong> — стройка · клик — захват мыши
       </div>
+      <SayBubble />
       <CoinHud />
       <BuildModeHud />
       <LiveOverlay />

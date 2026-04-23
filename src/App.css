@@ -2113,6 +2113,42 @@ body:has(.lobby-v2) {
   pointer-events: none;
 }
 
+/* Say Bubble — Python say() speech balloon */
+.say-bubble {
+  position: absolute;
+  bottom: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 320px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a1a2e;
+  font-family: var(--f-ui);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.22);
+  text-align: center;
+  pointer-events: none;
+  z-index: 60;
+  animation: sayBubblePop 0.18s var(--ease) both;
+  word-break: break-word;
+}
+.say-bubble-arrow {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid rgba(255,255,255,0.95);
+}
+@keyframes sayBubblePop {
+  from { opacity: 0; transform: translateX(-50%) scale(0.85); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
 /* Coin HUD — DOM overlay, прибит к правому верху вьюпорта */
 .coin-hud {
   position: absolute;
