@@ -1319,6 +1319,35 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'aztec-serpent',       label: 'Пернатый змей',         emoji: '🐍', defaultColor: '#00aa44', tags: ['змей','aztec serpent','кецалькоатль','свернулся','ацтеки'], hint: 'Пернатый змей Кецалькоатль' },
     ],
   },
+  {
+    id: 'deep-sea', name: 'Морская глубь', icon: '🐙',
+    items: [
+      { kind: 'anglerfish-b28',    label: 'Удильщик',             emoji: '🐡', defaultColor: '#334455', tags: ['удильщик','anglerfish','рыба','глубина','огонёк'], hint: 'Жуткая рыба с фосфоресцирующей приманкой' },
+      { kind: 'ocean-trench',      label: 'Океанская впадина',    emoji: '🌊', defaultColor: '#1a2233', tags: ['впадина','ocean trench','глубина','гидротерм','тёмный'], hint: 'Тёмная океанская впадина с гидротермальным источником' },
+      { kind: 'giant-squid',       label: 'Гигантский кальмар',   emoji: '🦑', defaultColor: '#884488', tags: ['кальмар','giant squid','щупальца','огромный','океан'], hint: 'Гигантский кальмар с восемью щупальцами' },
+      { kind: 'deep-sea-jellyfish',label: 'Медуза бездны',        emoji: '🪼', defaultColor: '#88aaff', tags: ['медуза','deep sea jellyfish','светится','прозрачная','нежная'], hint: 'Светящаяся медуза из глубин океана' },
+      { kind: 'sunken-ship-b28',   label: 'Затонувший корабль',   emoji: '⚓', defaultColor: '#5c3a1e', tags: ['корабль','sunken ship','обломки','морской','коралл'], hint: 'Обломки корабля с кораллами' },
+      { kind: 'coral-garden',      label: 'Коралловый сад',       emoji: '🪸', defaultColor: '#ff6688', tags: ['коралл','coral garden','цветной','риф','подводный'], hint: 'Яркий коралловый сад' },
+      { kind: 'deep-sub-mini',     label: 'Подводная лодка',      emoji: '🚢', defaultColor: '#ffcc00', tags: ['лодка','deep sub mini','желтая','подводная','пропеллер'], hint: 'Маленькая жёлтая подводная лодка' },
+    ],
+  },
+  {
+    id: 'wild-west', name: 'Дикий Запад', icon: '🤠',
+    items: [
+      { kind: 'saloon-b28',          label: 'Салун',                emoji: '🍺', defaultColor: '#8B6914', tags: ['салун','saloon','бар','запад','двери'], hint: 'Деревянный салун с качающимися дверями' },
+      { kind: 'wild-west-wagon',     label: 'Фургон',               emoji: '🪵', defaultColor: '#8B4513', tags: ['фургон','wagon','колёса','запад','крытый'], hint: 'Крытый фургон первопроходцев' },
+      { kind: 'west-sheriff-star',   label: 'Звезда шерифа',        emoji: '⭐', defaultColor: '#FFD700', tags: ['шериф','west sheriff star','звезда','значок','запад'], hint: 'Вращающаяся звезда-значок шерифа' },
+      { kind: 'tumbleweed-b28',      label: 'Перекати-поле',        emoji: '🌿', defaultColor: '#8B6914', tags: ['перекати','tumbleweed','катится','ветер','сухой'], hint: 'Крутящееся перекати-поле' },
+      { kind: 'water-tower-west',    label: 'Водонапорная башня',   emoji: '🪣', defaultColor: '#8B4513', tags: ['башня','water tower west','вода','запад','деревянная'], hint: 'Деревянная водонапорная башня' },
+      { kind: 'west-gold-nugget',    label: 'Золотой самородок',    emoji: '💰', defaultColor: '#FFD700', tags: ['самородок','west gold nugget','золото','блестит','ценный'], hint: 'Блестящий золотой самородок' },
+      { kind: 'cactus-big',          label: 'Большой кактус',       emoji: '🌵', defaultColor: '#228833', tags: ['кактус','cactus big','зелёный','пустыня','запад'], hint: 'Большой кактус с руками' },
+      { kind: 'bandit-campfire',     label: 'Костёр бандита',       emoji: '🔥', defaultColor: '#ff6600', tags: ['костёр','bandit campfire','огонь','лагерь','ночь'], hint: 'Лагерный костёр со скрещенными брёвнами' },
+      { kind: 'oil-derrick',         label: 'Нефтяная вышка',       emoji: '🏗️', defaultColor: '#888888', tags: ['вышка','oil derrick','нефть','металл','запад'], hint: 'Металлическая нефтяная вышка' },
+      { kind: 'barn-west',           label: 'Амбар',                emoji: '🏚', defaultColor: '#cc3322', tags: ['амбар','barn west','красный','ферма','запад'], hint: 'Красный западный амбар с X-дверью' },
+      { kind: 'west-street-lanterns',label: 'Уличные фонари',       emoji: '🏮', defaultColor: '#ffcc44', tags: ['фонари','west street lanterns','улица','запад','два'], hint: 'Два уличных фонаря на столбе' },
+      { kind: 'gold-mine-cart',      label: 'Вагонетка с золотом',  emoji: '⛏️', defaultColor: '#555544', tags: ['вагонетка','gold mine cart','золото','шахта','рельсы'], hint: 'Шахтная вагонетка с золотыми самородками' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

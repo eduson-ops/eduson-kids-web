@@ -1400,6 +1400,27 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'tepee-hut': return <TepeeHut pos={pos} color={color} size={size} />
     case 'aztec-warrior': return <AztecWarrior pos={pos} color={color} size={size} />
     case 'aztec-serpent': return <AztecSerpent pos={pos} color={color} size={size} />
+    // Batch 28 · Deep Sea
+    case 'anglerfish-b28': return <AnglerfishB28 pos={pos} color={color} size={size} />
+    case 'ocean-trench': return <OceanTrench pos={pos} color={color} size={size} />
+    case 'giant-squid': return <GiantSquid pos={pos} color={color} size={size} />
+    case 'deep-sea-jellyfish': return <DeepSeaJellyfish pos={pos} color={color} size={size} />
+    case 'sunken-ship-b28': return <SunkenShipB28 pos={pos} color={color} size={size} />
+    case 'coral-garden': return <CoralGarden pos={pos} color={color} size={size} />
+    case 'deep-sub-mini': return <DeepSubMini pos={pos} color={color} size={size} />
+    // Batch 28 · Wild West
+    case 'saloon-b28': return <SaloonB28 pos={pos} color={color} size={size} />
+    case 'wild-west-wagon': return <WildWestWagon pos={pos} color={color} size={size} />
+    case 'west-sheriff-star': return <WestSheriffStar pos={pos} color={color} size={size} />
+    case 'tumbleweed-b28': return <TumbleweedB28 pos={pos} color={color} size={size} />
+    case 'water-tower-west': return <WaterTowerWest pos={pos} color={color} size={size} />
+    case 'west-gold-nugget': return <WestGoldNugget pos={pos} color={color} size={size} />
+    case 'cactus-big': return <CactusBig pos={pos} color={color} size={size} />
+    case 'bandit-campfire': return <BanditCampfire pos={pos} color={color} size={size} />
+    case 'oil-derrick': return <OilDerrick pos={pos} color={color} size={size} />
+    case 'barn-west': return <BarnWest pos={pos} color={color} size={size} />
+    case 'west-street-lanterns': return <PressBothLanterns pos={pos} color={color} size={size} />
+    case 'gold-mine-cart': return <GoldMineCart pos={pos} color={color} size={size} />
 
     default:
       return null
@@ -23593,6 +23614,514 @@ function TeaHouseJapanese({ pos, color, size }: P27) {
         <boxGeometry args={[size*0.28, size*0.45, size*0.02]} />
         <meshStandardMaterial color="#8B4513" roughness={0.9} />
       </mesh>
+    </group>
+  )
+}
+
+// ── BATCH 28 · Deep Sea + Wild West ─────────────────────────────────────────
+
+interface P28 { pos: [number,number,number]; color: string; size: number }
+
+function AnglerfishB28({ pos, color, size }: P28) {
+  const ref = useRef<THREE.Group>(null!)
+  const lightRef = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    if (ref.current) {
+      ref.current.position.y = pos[1] + Math.sin(t * 0.7) * size * 0.12
+      ref.current.rotation.z = Math.sin(t * 0.5) * 0.08
+    }
+    if (lightRef.current) (lightRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      0.8 + Math.sin(t * 3) * 0.4
+  })
+  return (
+    <group ref={ref} position={pos}>
+      {/* body */}
+      <mesh>
+        <sphereGeometry args={[size*0.4, 10, 8]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* lower jaw */}
+      <mesh position={[size*0.28, -size*0.18, 0]} rotation={[0,0,0.4]}>
+        <boxGeometry args={[size*0.35, size*0.1, size*0.25]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* lure rod */}
+      <mesh position={[size*0.15, size*0.42, 0]} rotation={[0,0,-0.3]}>
+        <cylinderGeometry args={[size*0.02, size*0.02, size*0.5, 5]} />
+        <meshStandardMaterial color="#333" roughness={0.9} />
+      </mesh>
+      {/* lure light */}
+      <mesh ref={lightRef} position={[size*0.32, size*0.75, 0]}>
+        <sphereGeometry args={[size*0.08, 6, 6]} />
+        <meshStandardMaterial color="#88ffcc" emissive="#88ffcc" emissiveIntensity={0.9} />
+      </mesh>
+      {/* fins */}
+      <mesh position={[0, -size*0.1, size*0.4]} rotation={[0.3, 0, 0]}>
+        <coneGeometry args={[size*0.18, size*0.35, 4]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function OceanTrench({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* trench floor */}
+      <mesh position={[0, -size*0.1, 0]}>
+        <boxGeometry args={[size*1.8, size*0.2, size*0.9]} />
+        <meshStandardMaterial color="#1a2233" roughness={0.9} />
+      </mesh>
+      {/* trench walls */}
+      <mesh position={[-size*0.9, size*0.3, 0]}>
+        <boxGeometry args={[size*0.15, size*0.8, size*0.9]} />
+        <meshStandardMaterial color="#223344" roughness={0.9} />
+      </mesh>
+      <mesh position={[size*0.9, size*0.3, 0]}>
+        <boxGeometry args={[size*0.15, size*0.8, size*0.9]} />
+        <meshStandardMaterial color="#223344" roughness={0.9} />
+      </mesh>
+      {/* hydrothermal vent */}
+      <mesh position={[0.2*size, size*0.1, 0]}>
+        <coneGeometry args={[size*0.12, size*0.35, 6]} />
+        <meshStandardMaterial color="#333" roughness={0.8} />
+      </mesh>
+      {/* vent glow */}
+      <mesh position={[0.2*size, size*0.3, 0]}>
+        <sphereGeometry args={[size*0.1, 6, 6]} />
+        <meshStandardMaterial color="#ff6600" emissive="#ff6600" emissiveIntensity={0.8} transparent opacity={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function GiantSquid({ pos, color, size }: P28) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    if (ref.current) {
+      ref.current.position.y = pos[1] + Math.sin(t * 0.5) * size * 0.1
+      ref.current.rotation.y = t * 0.2
+    }
+  })
+  return (
+    <group ref={ref} position={pos}>
+      {/* mantle */}
+      <mesh position={[0, size*0.5, 0]}>
+        <coneGeometry args={[size*0.35, size*0.9, 8]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* head */}
+      <mesh>
+        <sphereGeometry args={[size*0.32, 8, 8]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      {/* tentacles */}
+      {Array.from({ length: 8 }, (_, i) => {
+        const a = (i / 8) * Math.PI * 2
+        return (
+          <mesh key={i} position={[Math.cos(a)*size*0.2, -size*0.35, Math.sin(a)*size*0.2]} rotation={[Math.cos(a)*0.4, 0, Math.sin(a)*0.4]}>
+            <cylinderGeometry args={[size*0.04, size*0.015, size*0.7, 5]} />
+            <meshStandardMaterial color={color} roughness={0.7} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
+function DeepSeaJellyfish({ pos, color, size }: P28) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    if (ref.current) {
+      ref.current.position.y = pos[1] + Math.sin(t * 1.2) * size * 0.15;
+      (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(t * 2) * 0.3
+    }
+  })
+  return (
+    <group position={pos}>
+      <mesh ref={ref} position={[0, size*0.2, 0]}>
+        <sphereGeometry args={[size*0.35, 10, 8]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} transparent opacity={0.75} roughness={0.3} />
+      </mesh>
+      {/* tentacles */}
+      {Array.from({ length: 6 }, (_, i) => {
+        const a = (i / 6) * Math.PI * 2
+        return (
+          <mesh key={i} position={[Math.cos(a)*size*0.2, -size*0.15, Math.sin(a)*size*0.2]}>
+            <cylinderGeometry args={[size*0.02, size*0.005, size*0.8, 4]} />
+            <meshStandardMaterial color={color} transparent opacity={0.6} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
+function SunkenShipB28({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* hull */}
+      <mesh position={[0, size*0.1, 0]} rotation={[0,0,0.25]}>
+        <boxGeometry args={[size*1.6, size*0.45, size*0.55]} />
+        <meshStandardMaterial color="#5c3a1e" roughness={0.95} />
+      </mesh>
+      {/* mast remains */}
+      <mesh position={[-size*0.3, size*0.55, 0]} rotation={[0,0,0.35]}>
+        <cylinderGeometry args={[size*0.05, size*0.05, size*0.8, 6]} />
+        <meshStandardMaterial color="#3d2810" roughness={0.9} />
+      </mesh>
+      {/* coral growth */}
+      <mesh position={[size*0.4, size*0.25, size*0.25]}>
+        <coneGeometry args={[size*0.12, size*0.25, 5]} />
+        <meshStandardMaterial color="#ff6688" roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function SaloonB28({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* building */}
+      <mesh position={[0, size*0.5, 0]}>
+        <boxGeometry args={[size*1.4, size*1.0, size*0.8]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {/* false front / facade */}
+      <mesh position={[0, size*1.2, -size*0.42]}>
+        <boxGeometry args={[size*1.4, size*0.45, size*0.06]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {/* sign */}
+      <mesh position={[0, size*1.35, -size*0.46]}>
+        <boxGeometry args={[size*0.8, size*0.18, size*0.04]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+      {/* swing doors */}
+      <mesh position={[size*0.12, size*0.3, -size*0.42]}>
+        <boxGeometry args={[size*0.22, size*0.45, size*0.04]} />
+        <meshStandardMaterial color="#c8a46e" roughness={0.8} />
+      </mesh>
+      <mesh position={[-size*0.12, size*0.3, -size*0.42]}>
+        <boxGeometry args={[size*0.22, size*0.45, size*0.04]} />
+        <meshStandardMaterial color="#c8a46e" roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function WildWestWagon({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* body */}
+      <mesh position={[0, size*0.55, 0]}>
+        <boxGeometry args={[size*1.1, size*0.5, size*0.6]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {/* wheels */}
+      {([-0.45, 0.45] as number[]).map((x, i) =>
+        ([-0.35, 0.35] as number[]).map((z, j) => (
+          <mesh key={`${i}${j}`} position={[x*size, size*0.2, z*size]} rotation={[Math.PI/2, 0, 0]}>
+            <torusGeometry args={[size*0.2, size*0.04, 6, 12]} />
+            <meshStandardMaterial color="#4a2e0a" roughness={0.9} />
+          </mesh>
+        ))
+      )}
+      {/* cover arch */}
+      <mesh position={[0, size*0.88, 0]}>
+        <coneGeometry args={[size*0.35, size*0.45, 4]} />
+        <meshStandardMaterial color="#e8d5b0" roughness={0.85} />
+      </mesh>
+    </group>
+  )
+}
+
+function WestSheriffStar({ pos, color, size }: P28) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (ref.current) ref.current.rotation.y = Math.sin(clock.getElapsedTime() * 1.2) * 0.4
+  })
+  return (
+    <group ref={ref} position={pos}>
+      {([0, 1, 2] as number[]).map((i) => (
+        <mesh key={i} rotation={[0, 0, (i * Math.PI) / 3]}>
+          <boxGeometry args={[size*0.85, size*0.18, size*0.06]} />
+          <meshStandardMaterial color={color} metalness={0.8} roughness={0.2} />
+        </mesh>
+      ))}
+      <mesh>
+        <cylinderGeometry args={[size*0.12, size*0.12, size*0.08, 6]} />
+        <meshStandardMaterial color={color} metalness={0.9} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function TumbleweedB28({ pos, color, size }: P28) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      ref.current.rotation.x = clock.getElapsedTime() * 1.5
+      ref.current.rotation.z = clock.getElapsedTime() * 1.1
+    }
+  })
+  return (
+    <group ref={ref} position={pos}>
+      {Array.from({ length: 8 }, (_, i) => {
+        const a = (i / 8) * Math.PI * 2
+        const b = (i / 8) * Math.PI
+        return (
+          <mesh key={i} position={[Math.cos(a)*Math.sin(b)*size*0.3, Math.cos(b)*size*0.3, Math.sin(a)*Math.sin(b)*size*0.3]}>
+            <sphereGeometry args={[size*0.08, 5, 5]} />
+            <meshStandardMaterial color={color} roughness={0.95} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
+function WaterTowerWest({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* legs */}
+      {([[-0.3,-0.3],[0.3,-0.3],[-0.3,0.3],[0.3,0.3]] as [number,number][]).map(([x,z], i) => (
+        <mesh key={i} position={[x*size, size*0.5, z*size]}>
+          <cylinderGeometry args={[size*0.04, size*0.04, size*1.0, 5]} />
+          <meshStandardMaterial color="#5c3a1e" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* tank */}
+      <mesh position={[0, size*1.2, 0]}>
+        <cylinderGeometry args={[size*0.45, size*0.45, size*0.7, 10]} />
+        <meshStandardMaterial color={color} roughness={0.85} />
+      </mesh>
+      {/* roof */}
+      <mesh position={[0, size*1.6, 0]}>
+        <coneGeometry args={[size*0.5, size*0.3, 10]} />
+        <meshStandardMaterial color="#5c3a1e" roughness={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function CoralGarden({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {([[-0.3,0,0.1],[0.2,0,-0.2],[0,0,0.3],[-0.15,0,-0.1],[0.35,0,0.1]] as [number,number,number][]).map(([x,y,z], i) => (
+        <mesh key={i} position={[x*size, y, z*size]}>
+          <coneGeometry args={[size*(0.08+i*0.02), size*(0.25+i*0.06), 5+i]} />
+          <meshStandardMaterial color={i % 2 === 0 ? color : '#ff6688'} roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function DeepSubMini({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* hull */}
+      <mesh position={[0, size*0.1, 0]} rotation={[0, 0, 0]}>
+        <cylinderGeometry args={[size*0.28, size*0.28, size*1.2, 10]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+      </mesh>
+      {/* nose */}
+      <mesh position={[0, size*0.1, size*0.65]}>
+        <sphereGeometry args={[size*0.28, 8, 8]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+      </mesh>
+      {/* conning tower */}
+      <mesh position={[0, size*0.45, -size*0.1]}>
+        <boxGeometry args={[size*0.22, size*0.3, size*0.35]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+      </mesh>
+      {/* propeller */}
+      <mesh position={[0, size*0.1, -size*0.65]}>
+        <torusGeometry args={[size*0.18, size*0.04, 5, 6]} />
+        <meshStandardMaterial color="#888" metalness={0.7} roughness={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+function WestGoldNugget({ pos, color, size }: P28) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (ref.current) {
+      ref.current.rotation.y = clock.getElapsedTime() * 0.8;
+      (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.2 + Math.sin(clock.getElapsedTime() * 2) * 0.1
+    }
+  })
+  return (
+    <mesh ref={ref} position={pos}>
+      <dodecahedronGeometry args={[size*0.35, 0]} />
+      <meshStandardMaterial color="#FFD700" emissive="#FF8C00" emissiveIntensity={0.25} metalness={0.85} roughness={0.15} />
+    </mesh>
+  )
+}
+
+function CactusBig({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* main trunk */}
+      <mesh position={[0, size*0.7, 0]}>
+        <cylinderGeometry args={[size*0.18, size*0.22, size*1.4, 8]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      {/* left arm */}
+      <mesh position={[-size*0.38, size*0.9, 0]} rotation={[0,0,-1.1]}>
+        <cylinderGeometry args={[size*0.11, size*0.11, size*0.55, 6]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[-size*0.58, size*1.18, 0]}>
+        <cylinderGeometry args={[size*0.11, size*0.11, size*0.4, 6]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      {/* right arm */}
+      <mesh position={[size*0.38, size*1.1, 0]} rotation={[0,0,1.0]}>
+        <cylinderGeometry args={[size*0.11, size*0.11, size*0.5, 6]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[size*0.56, size*1.42, 0]}>
+        <cylinderGeometry args={[size*0.11, size*0.11, size*0.38, 6]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function BanditCampfire({ pos, color, size }: P28) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (ref.current) (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      0.7 + Math.sin(clock.getElapsedTime() * 4) * 0.3
+  })
+  return (
+    <group position={pos}>
+      {/* log ring */}
+      {([0, 1, 2] as number[]).map((i) => (
+        <mesh key={i} position={[0,0,0]} rotation={[0, (i/3)*Math.PI*2, 0.4]}>
+          <cylinderGeometry args={[size*0.05, size*0.07, size*0.7, 6]} />
+          <meshStandardMaterial color="#5c3a1e" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* flame */}
+      <mesh ref={ref} position={[0, size*0.2, 0]}>
+        <coneGeometry args={[size*0.15, size*0.45, 6]} />
+        <meshStandardMaterial color="#ff6600" emissive="#ff4400" emissiveIntensity={0.8} transparent opacity={0.85} />
+      </mesh>
+    </group>
+  )
+}
+
+function OilDerrick({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* legs A-frame */}
+      {([-1,1] as number[]).map((side, i) => (
+        <mesh key={i} position={[side*size*0.45, size*0.75, 0]} rotation={[0,0,-side*0.45]}>
+          <cylinderGeometry args={[size*0.05, size*0.05, size*1.5, 5]} />
+          <meshStandardMaterial color={color} roughness={0.7} />
+        </mesh>
+      ))}
+      {/* cross beam */}
+      <mesh position={[0, size*1.25, 0]}>
+        <boxGeometry args={[size*0.8, size*0.08, size*0.08]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {/* top pulley */}
+      <mesh position={[0, size*1.55, 0]}>
+        <torusGeometry args={[size*0.12, size*0.04, 6, 8]} />
+        <meshStandardMaterial color="#888" metalness={0.7} roughness={0.3} />
+      </mesh>
+      {/* drill pipe */}
+      <mesh position={[0, size*0.4, 0]}>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.9, 6]} />
+        <meshStandardMaterial color="#666" metalness={0.6} roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function BarnWest({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* walls */}
+      <mesh position={[0, size*0.5, 0]}>
+        <boxGeometry args={[size*1.4, size*1.0, size*1.0]} />
+        <meshStandardMaterial color="#cc3322" roughness={0.9} />
+      </mesh>
+      {/* roof */}
+      <mesh position={[0, size*1.12, 0]} rotation={[0, Math.PI/4, 0]}>
+        <coneGeometry args={[size*0.82, size*0.5, 4]} />
+        <meshStandardMaterial color="#8B1a1a" roughness={0.9} />
+      </mesh>
+      {/* door */}
+      <mesh position={[0, size*0.3, size*0.51]}>
+        <boxGeometry args={[size*0.38, size*0.55, size*0.03]} />
+        <meshStandardMaterial color="#5c3a1e" roughness={0.9} />
+      </mesh>
+      {/* X-brace on door */}
+      <mesh position={[0, size*0.3, size*0.53]} rotation={[0,0,0.7]}>
+        <boxGeometry args={[size*0.45, size*0.05, size*0.02]} />
+        <meshStandardMaterial color="#4a2e0a" roughness={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function PressBothLanterns({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* post */}
+      <mesh position={[0, size*0.6, 0]}>
+        <cylinderGeometry args={[size*0.04, size*0.06, size*1.2, 6]} />
+        <meshStandardMaterial color="#5c3a1e" roughness={0.9} />
+      </mesh>
+      {/* crossbar */}
+      <mesh position={[0, size*1.22, 0]}>
+        <boxGeometry args={[size*0.7, size*0.06, size*0.06]} />
+        <meshStandardMaterial color="#5c3a1e" roughness={0.9} />
+      </mesh>
+      {/* two lanterns */}
+      {([-0.3, 0.3] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, size*1.1, 0]}>
+          <boxGeometry args={[size*0.18, size*0.25, size*0.18]} />
+          <meshStandardMaterial color="#ffcc44" emissive="#ffaa00" emissiveIntensity={0.7} transparent opacity={0.9} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GoldMineCart({ pos, color, size }: P28) {
+  return (
+    <group position={pos}>
+      {/* cart body */}
+      <mesh position={[0, size*0.35, 0]}>
+        <boxGeometry args={[size*0.9, size*0.5, size*0.55]} />
+        <meshStandardMaterial color={color} roughness={0.7} metalness={0.3} />
+      </mesh>
+      {/* wheels */}
+      {([-0.38, 0.38] as number[]).map((x, i) =>
+        ([-0.22, 0.22] as number[]).map((z, j) => (
+          <mesh key={`${i}${j}`} position={[x*size, size*0.12, z*size]} rotation={[Math.PI/2, 0, 0]}>
+            <torusGeometry args={[size*0.14, size*0.035, 6, 10]} />
+            <meshStandardMaterial color="#555" metalness={0.7} roughness={0.3} />
+          </mesh>
+        ))
+      )}
+      {/* nuggets inside */}
+      {([[-0.2,0.6,0.1],[0.15,0.65,-0.08],[0,0.68,0.15]] as [number,number,number][]).map(([x,y,z], i) => (
+        <mesh key={i} position={[x*size, y*size, z*size]}>
+          <dodecahedronGeometry args={[size*0.1, 0]} />
+          <meshStandardMaterial color="#FFD700" metalness={0.8} roughness={0.2} />
+        </mesh>
+      ))}
     </group>
   )
 }

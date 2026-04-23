@@ -268,6 +268,13 @@ export type PropKind =
   // Aztec Empire
   | 'aztec-pyramid' | 'aztec-sun-stone' | 'quetzal-bird' | 'aztec-water-fountain' | 'jade-mask'
   | 'obsidian-altar' | 'tepee-hut' | 'aztec-warrior' | 'aztec-serpent'
+  // Deep Sea
+  | 'anglerfish-b28' | 'ocean-trench' | 'giant-squid' | 'deep-sea-jellyfish' | 'sunken-ship-b28'
+  | 'coral-garden' | 'deep-sub-mini'
+  // Wild West
+  | 'saloon-b28' | 'wild-west-wagon' | 'west-sheriff-star' | 'tumbleweed-b28' | 'water-tower-west'
+  | 'west-gold-nugget' | 'cactus-big' | 'bandit-campfire' | 'oil-derrick' | 'barn-west'
+  | 'west-street-lanterns' | 'gold-mine-cart'
 
 export interface SpawnedPart {
   id: string
