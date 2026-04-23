@@ -392,9 +392,6 @@ export default function Settings() {
             <button className="kb-btn kb-btn--secondary" onClick={handleSignOut}>
               🚪 Выйти
             </button>
-            <button className="kb-btn" disabled style={{ opacity: 0.4, cursor: 'not-allowed', color: '#e53', borderColor: '#e53' }}>
-              Удалить аккаунт
-            </button>
           </div>
         </div>
 
