@@ -232,7 +232,7 @@ function ModulePage({ m, course }: { m: Module; course: Course }) {
       </Link>
       <header className="curric-module-hero" style={{ '--accent': m.accent } as React.CSSProperties}>
         <div>
-          <span className="eyebrow">Модуль {m.n} · 6 уроков · возраст {m.ageAnchor}</span>
+          <span className="eyebrow">Модуль {m.n} · {pluralize(m.lessons.length, 'lesson')} · возраст {m.ageAnchor}</span>
           <h1 className="h1" style={{ margin: '10px 0 12px', display: 'flex', gap: 14, alignItems: 'center' }}>
             <span style={{ fontSize: 48 }}>{m.emoji}</span> {m.title}
           </h1>
