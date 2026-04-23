@@ -30,6 +30,9 @@ import {
   formatRub,
 } from '../lib/billing'
 
+const TOTAL_LESSONS = 48
+const QUIZ_RESULTS_LIMIT = 12
+
 /**
  * StudentPortfolio — личный кабинет ученика.
  *
@@ -65,7 +68,7 @@ export default function StudentPortfolio() {
   const avgScore = prog.avgQuizScore
   const achievements = prog.achievements
   const unlocked = new Set(prog.unlocked)
-  const progressPct = (lessonsDone / 48) * 100
+  const progressPct = (lessonsDone / TOTAL_LESSONS) * 100
 
   // Capstones status — memo so MODULES loop doesn't run on every render
   const capstones = useMemo(() => MODULES.map((m) => {
@@ -106,7 +109,7 @@ export default function StudentPortfolio() {
         <div className="kb-cover-footer">
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Уроков</span>
-            <strong>{lessonsDone} / 48</strong>
+            <strong>{lessonsDone} / {TOTAL_LESSONS}</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Стрик</span>
@@ -152,7 +155,7 @@ export default function StudentPortfolio() {
 
       {/* KPIs */}
       <section className="portfolio-kpis">
-        <KPI label="Уроков" value={`${lessonsDone}/48`} emoji="🎓" color="#6B5CE7" />
+        <KPI label="Уроков" value={`${lessonsDone}/${TOTAL_LESSONS}`} emoji="🎓" color="#6B5CE7" />
         <KPI label="Капстонов" value={`${capstonesDone}/8`} emoji="🏆" color="#FFD43C" />
         <KPI label="Идеальных квизов" value={`${perfectQuizzes}`} emoji="🧠" color="#FFB4C8" />
         <KPI label="Средний балл" value={`${Math.round(avgScore * 100)}%`} emoji="📊" color="#9FE8C7" />
@@ -422,7 +425,7 @@ export default function StudentPortfolio() {
       <section style={{ marginBottom: 40 }}>
         <h2 className="h2" style={{ marginBottom: 16 }}>Результаты квизов</h2>
         <div className="portfolio-quizzes">
-          {ALL_LESSONS.filter((l) => getQuizResult(l.n)).slice(0, 12).map((l) => {
+          {ALL_LESSONS.filter((l) => getQuizResult(l.n)).slice(0, QUIZ_RESULTS_LIMIT).map((l) => {
             const r = getQuizResult(l.n)!
             const pct = Math.round(r.bestScore * 100)
             return (
