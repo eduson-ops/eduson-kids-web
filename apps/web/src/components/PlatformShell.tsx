@@ -4,6 +4,7 @@ import { NikselMini } from '../design/mascot/Niksel'
 import NikselChat from './NikselChat'
 import StreakWidget from './StreakWidget'
 import MobileBottomTabs from './MobileBottomTabs'
+import { useToast } from '../hooks/useToast'
 
 /**
  * Platform shell v2 — dark left sidenav (Designbook pattern).
@@ -16,7 +17,7 @@ interface Props {
   activeKey?: NavKey
 }
 
-type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing' | 'settings'
+type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing' | 'settings' | 'teacher' | 'leagues'
 
 interface NavItem {
   key: NavKey
@@ -34,9 +35,10 @@ const GROUPS: NavGroup[] = [
   {
     label: 'Обучение',
     items: [
-      { key: 'hub',       label: 'Главная',       to: '/',      emoji: '🏠' },
-      { key: 'learn',     label: 'Уроки',         to: '/learn', emoji: '📚' },
-      { key: 'portfolio', label: 'Мой прогресс',  to: '/me',    emoji: '📊' },
+      { key: 'hub',       label: 'Главная',       to: '/',        emoji: '🏠' },
+      { key: 'learn',     label: 'Уроки',         to: '/learn',   emoji: '📚' },
+      { key: 'portfolio', label: 'Мой прогресс',  to: '/me',      emoji: '📊' },
+      { key: 'leagues',   label: 'Лиги',          to: '/leagues', emoji: '🏆' },
     ],
   },
   {
@@ -51,6 +53,7 @@ const GROUPS: NavGroup[] = [
     label: 'Аккаунт',
     items: [
       { key: 'parent',   label: 'Родителям', to: '/parent',   emoji: '👨‍👩‍👦' },
+      { key: 'teacher',  label: 'Учителям',  to: '/teacher',  emoji: '🎓' },
       { key: 'billing',  label: 'Оплата',    to: '/billing',  emoji: '💳' },
       { key: 'settings', label: 'Настройки', to: '/settings', emoji: '⚙️' },
       { key: 'profile',  label: 'Аватар',    to: '/profile',  emoji: '🎭' },
@@ -67,6 +70,7 @@ const GROUPS: NavGroup[] = [
 export default function PlatformShell({ children, activeKey }: Props) {
   const loc = useLocation()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const active = activeKey ?? inferKey(loc.pathname)
   const isAdmin = typeof window !== 'undefined' && (
     localStorage.getItem('ek_admin') === '1' ||
@@ -95,12 +99,16 @@ export default function PlatformShell({ children, activeKey }: Props) {
     localStorage.removeItem('ek_child_name')
     localStorage.removeItem('ek_child_code')
     setChildName(null)
-    navigate('/login')
+    showToast('До свидания! Ты вышел из аккаунта.', 'info')
+    setTimeout(() => navigate('/login'), 800)
   }
 
   return (
     <div className={`brand-shell brand-shell--sidenav${collapsed ? ' brand-shell--collapsed' : ''}`}>
-      <aside className={`kb-sidenav${collapsed ? ' kb-sidenav--collapsed' : ''}`}>
+      <a href="#kb-main-content" className="kb-skip-link">
+        Перейти к содержимому
+      </a>
+      <aside className={`kb-sidenav${collapsed ? ' kb-sidenav--collapsed' : ''}`} aria-label="Основная навигация">
         <Link to="/" className="kb-shell-brand" aria-label="Эдюсон Kids — главная">
           <NikselMini size={36} />
           {!collapsed && (
@@ -178,7 +186,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
         )}
       </aside>
 
-      <main className="kb-shell-main">{children}</main>
+      <main className="kb-shell-main" id="kb-main-content" tabIndex={-1}>{children}</main>
       <StreakWidget />
       <NikselChat />
       <MobileBottomTabs />
@@ -198,5 +206,7 @@ function inferKey(path: string): NavKey | undefined {
   if (path.startsWith('/billing')) return 'billing'
   if (path.startsWith('/settings')) return 'settings'
   if (path.startsWith('/designbook')) return 'designbook'
+  if (path.startsWith('/teacher')) return 'teacher'
+  if (path.startsWith('/leagues')) return 'leagues'
   return undefined
 }
