@@ -425,6 +425,12 @@ export type PropKind =
   | 'saloon-sign-b54' | 'barrel-cactus-b54' | 'wanted-poster-b54' | 'sheriff-badge-b54' | 'hitching-post-b54'
   // Space Station
   | 'airlock-door-b54' | 'solar-panel-b54' | 'antennae-array-b54' | 'docking-arm-b54' | 'habitat-module-b54'
+  // Rainforest Canopy
+  | 'hanging-vine-b55' | 'tropical-flower-b55' | 'macaw-perch-b55' | 'jungle-drum-b55' | 'leaf-boat-b55'
+  // Greek Agora
+  | 'marble-column-b55' | 'amphora-pot-b55' | 'olive-branch-b55' | 'agora-stoa-b55' | 'laurel-wreath-b55'
+  // Candy Factory
+  | 'candy-conveyor-b55' | 'sugar-vat-b55' | 'lollipop-tree-b55' | 'candy-crusher-b55' | 'sweet-dispenser-b55'
 
 export interface SpawnedPart {
   id: string

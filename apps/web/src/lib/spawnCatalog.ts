@@ -2061,6 +2061,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'habitat-module-b54',label: 'Жилой модуль',          emoji: '🏠', defaultColor: '#aaaacc', tags: ['модуль','habitat module','жильё','космос','станция'], hint: 'Цилиндрический жилой отсек станции' },
     ],
   },
+  {
+    id: 'rainforest-canopy-b55', name: '🦜 Полог джунглей', icon: '🦜',
+    items: [
+      { kind: 'hanging-vine-b55',  label: 'Свисающая лиана',      emoji: '🌿', defaultColor: '#228822', tags: ['лиана','hanging vine','джунгли','растение','свисает'], hint: 'Толстая лиана свисающая с кроны' },
+      { kind: 'tropical-flower-b55',label: 'Тропический цветок',  emoji: '🌺', defaultColor: '#ff4422', tags: ['цветок','tropical flower','джунгли','яркий','природа'], hint: 'Огромный экзотический цветок джунглей' },
+      { kind: 'macaw-perch-b55',   label: 'Жёрдочка попугая',     emoji: '🦜', defaultColor: '#cc4400', tags: ['попугай','macaw perch','жёрдочка','птица','джунгли'], hint: 'Деревянная жёрдочка с ярким попугаем' },
+      { kind: 'jungle-drum-b55',   label: 'Барабан джунглей',     emoji: '🥁', defaultColor: '#8B4513', tags: ['барабан','jungle drum','музыка','племя','джунгли'], hint: 'Деревянный племенной барабан' },
+      { kind: 'leaf-boat-b55',     label: 'Лодка из листа',       emoji: '🍃', defaultColor: '#228833', tags: ['лодка','leaf boat','листок','джунгли','вода'], hint: 'Маленькая лодочка из гигантского листа' },
+    ],
+  },
+  {
+    id: 'greek-agora-b55', name: '🏛️ Греческая агора', icon: '🏛️',
+    items: [
+      { kind: 'marble-column-b55', label: 'Мраморная колонна',    emoji: '🏛️', defaultColor: '#f5f5dc', tags: ['колонна','marble column','греция','мрамор','античность'], hint: 'Высокая белая мраморная колонна с капителью' },
+      { kind: 'amphora-pot-b55',   label: 'Амфора',               emoji: '🏺', defaultColor: '#cc6600', tags: ['амфора','amphora pot','сосуд','греция','вино'], hint: 'Расписная греческая амфора для вина' },
+      { kind: 'olive-branch-b55',  label: 'Оливковая ветвь',      emoji: '🌿', defaultColor: '#558833', tags: ['олива','olive branch','мир','греция','символ'], hint: 'Символ мира — ветвь оливы' },
+      { kind: 'agora-stoa-b55',    label: 'Стоя агоры',           emoji: '🏛️', defaultColor: '#f5f0e8', tags: ['стоя','agora stoa','галерея','греция','архитектура'], hint: 'Крытая колоннада для философских бесед' },
+      { kind: 'laurel-wreath-b55', label: 'Лавровый венок',       emoji: '🏅', defaultColor: '#558833', tags: ['венок','laurel wreath','победа','греция','награда'], hint: 'Венок из лавра — символ победителя' },
+    ],
+  },
+  {
+    id: 'candy-factory-b55', name: '🍬 Конфетная фабрика', icon: '🍬',
+    items: [
+      { kind: 'candy-conveyor-b55',label: 'Конфетный конвейер',   emoji: '🍬', defaultColor: '#ff4488', tags: ['конвейер','candy conveyor','конфеты','фабрика','сладкое'], hint: 'Движущаяся лента с разноцветными конфетами' },
+      { kind: 'sugar-vat-b55',     label: 'Чан с сахаром',        emoji: '🍯', defaultColor: '#ffcc00', tags: ['чан','sugar vat','сахар','фабрика','сладкое'], hint: 'Большой котёл с жидким карамельным сахаром' },
+      { kind: 'lollipop-tree-b55', label: 'Дерево-леденец',       emoji: '🍭', defaultColor: '#ff2288', tags: ['леденец','lollipop tree','дерево','конфеты','сладкое'], hint: 'Дерево с огромными леденцами вместо плодов' },
+      { kind: 'candy-crusher-b55', label: 'Конфетомолот',         emoji: '🔨', defaultColor: '#cc4400', tags: ['молот','candy crusher','дробилка','фабрика','механизм'], hint: 'Большая машина дробящая карамель' },
+      { kind: 'sweet-dispenser-b55',label: 'Сладкий диспенсер',   emoji: '🎰', defaultColor: '#ff6600', tags: ['диспенсер','sweet dispenser','автомат','конфеты','фабрика'], hint: 'Автомат выдающий разноцветные конфеты' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
