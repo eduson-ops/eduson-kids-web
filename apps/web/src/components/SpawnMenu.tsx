@@ -95,9 +95,9 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
         setOpen((v) => !v)
       }
       if (e.key === 'Escape') {
-        if (open) setOpen(false)
-        else if (placement) setPlacement(null)
-        else if (tool) setActiveTool(null)
+        if (open) { e.stopImmediatePropagation(); setOpen(false) }
+        else if (placement) { e.stopImmediatePropagation(); setPlacement(null) }
+        else if (tool) { e.stopImmediatePropagation(); setActiveTool(null) }
       }
     }
     window.addEventListener('keydown', onKey)

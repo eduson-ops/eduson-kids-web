@@ -30,7 +30,7 @@ export default function WorldContextMenu({ worldId }: Props) {
 
   useEffect(() => {
     if (!ctx) return
-    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); close() } }
     window.addEventListener('keydown', onEsc)
     return () => window.removeEventListener('keydown', onEsc)
   }, [ctx])
