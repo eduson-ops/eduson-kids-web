@@ -293,6 +293,12 @@ export type PropKind =
   // Anime Dojo
   | 'dojo-punching-dummy' | 'katana-blade' | 'dojo-scroll-board' | 'ninja-tower' | 'anime-energy-orb'
   | 'tako-yaki-cart' | 'dojo-mat' | 'breaking-boards' | 'training-bell'
+  // Enchanted Forest
+  | 'fairy-ring-b32' | 'glowing-tree-b32' | 'pixie-dust' | 'ancient-tree-spirit' | 'enchanted-mushroom'
+  | 'crystal-cave-32' | 'druid-stone' | 'wisteria-arch' | 'willow-tree'
+  // Post-Apocalypse
+  | 'ruined-skyscraper' | 'rusted-car-wreck' | 'radiation-barrel' | 'scavenger-tower' | 'wasteland-turret'
+  | 'bunker-entrance' | 'apoc-solar-panel' | 'post-apoc-telephone'
 
 export interface SpawnedPart {
   id: string

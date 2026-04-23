@@ -1434,6 +1434,33 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'training-bell',      label: 'Тренировочный колокол',  emoji: '🔔', defaultColor: '#b8860b', tags: ['колокол','training bell','бронза','качается','звук'], hint: 'Бронзовый тренировочный колокол' },
     ],
   },
+  {
+    id: 'enchanted-forest', name: 'Волшебный лес', icon: '🌿',
+    items: [
+      { kind: 'fairy-ring-b32',     label: 'Кольцо фей',            emoji: '🍄', defaultColor: '#ff4488', tags: ['кольцо фей','fairy ring','грибы','магия','круг'], hint: 'Магическое кольцо из светящихся грибов' },
+      { kind: 'glowing-tree-b32',   label: 'Светящееся дерево',     emoji: '🌳', defaultColor: '#44ff88', tags: ['дерево','glowing tree','светится','магия','лес'], hint: 'Дерево с пульсирующим магическим светом' },
+      { kind: 'pixie-dust',         label: 'Пыльца фей',            emoji: '✨', defaultColor: '#ffcc44', tags: ['пыльца','pixie dust','фея','летит','частицы'], hint: 'Кружащиеся светящиеся частицы пыльцы фей' },
+      { kind: 'ancient-tree-spirit',label: 'Дух древнего дерева',   emoji: '🌲', defaultColor: '#228833', tags: ['дух','ancient tree spirit','глаза','огромный','мудрый'], hint: 'Огромное живое дерево с зелёными глазами' },
+      { kind: 'enchanted-mushroom', label: 'Зачарованный гриб',     emoji: '🍄', defaultColor: '#ff4488', tags: ['гриб','enchanted mushroom','светится','белые точки','магия'], hint: 'Светящийся гриб с белыми пятнами' },
+      { kind: 'crystal-cave-32',    label: 'Кристальная пещера',    emoji: '💎', defaultColor: '#88aaff', tags: ['кристаллы','crystal cave','пещера','светятся','острые'], hint: 'Пещерный пол с остроконечными кристаллами' },
+      { kind: 'druid-stone',        label: 'Камень друида',         emoji: '🪨', defaultColor: '#888877', tags: ['камень','druid stone','руны','светятся','мох'], hint: 'Стоячий камень с рунами и мхом' },
+      { kind: 'wisteria-arch',      label: 'Арка глицинии',         emoji: '🌸', defaultColor: '#cc88ff', tags: ['арка','wisteria arch','глициния','цветы','романтик'], hint: 'Каменная арка с цветами глицинии' },
+      { kind: 'willow-tree',        label: 'Плакучая ива',          emoji: '🌿', defaultColor: '#228833', tags: ['ива','willow tree','плакучая','ветки','качаются'], hint: 'Ива с качающимися на ветру ветками' },
+    ],
+  },
+  {
+    id: 'post-apocalypse', name: 'Постапокалипсис', icon: '☢️',
+    items: [
+      { kind: 'ruined-skyscraper',  label: 'Разрушенный небоскрёб', emoji: '🏚', defaultColor: '#667788', tags: ['небоскрёб','ruined skyscraper','разрушен','арматура','апокалипсис'], hint: 'Покосившийся небоскрёб с арматурой' },
+      { kind: 'rusted-car-wreck',   label: 'Ржавая машина',         emoji: '🚗', defaultColor: '#884422', tags: ['машина','rusted car wreck','ржавчина','колёса','брошена'], hint: 'Брошенная ржавая машина на спущенных шинах' },
+      { kind: 'radiation-barrel',   label: 'Бочка с отходами',      emoji: '☢️', defaultColor: '#44bb44', tags: ['бочка','radiation barrel','радиация','светится','опасно'], hint: 'Радиоактивная бочка с символом опасности' },
+      { kind: 'scavenger-tower',    label: 'Башня мародёров',       emoji: '🗼', defaultColor: '#667744', tags: ['башня','scavenger tower','прожектор','наблюдение','апокалипсис'], hint: 'Металлическая башня-наблюдательный пункт' },
+      { kind: 'wasteland-turret',   label: 'Турель пустоши',        emoji: '🎯', defaultColor: '#667744', tags: ['турель','wasteland turret','поворачивается','пушка','охрана'], hint: 'Вращающаяся автоматическая турель' },
+      { kind: 'bunker-entrance',    label: 'Вход в бункер',         emoji: '🚪', defaultColor: '#558844', tags: ['бункер','bunker entrance','дверь','холм','апокалипсис'], hint: 'Замаскированный бункерный люк в холме' },
+      { kind: 'apoc-solar-panel',   label: 'Солнечная панель',      emoji: '☀️', defaultColor: '#4466aa', tags: ['панель','apoc solar panel','энергия','постапок','поворачивается'], hint: 'Самодельная вращающаяся солнечная панель' },
+      { kind: 'post-apoc-telephone',label: 'Телефонная будка',      emoji: '📞', defaultColor: '#cc3322', tags: ['будка','post apoc telephone','телефон','разбита','плющ'], hint: 'Разбитая телефонная будка, увитая плющом' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
