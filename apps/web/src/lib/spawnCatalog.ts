@@ -990,6 +990,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'signal-array',    label: 'Антенный массив',     emoji: '📡', defaultColor: '#cccccc', tags: ['антенна','signal array','связь','башня','сигнал'], hint: 'Массив антенн для связи' },
     ],
   },
+  {
+    id: 'ancient-egypt', name: 'Древний Египет', icon: '🏺',
+    items: [
+      { kind: 'pyramid-block',  label: 'Пирамида',             emoji: '🔺', defaultColor: '#c8a84b', tags: ['пирамида','pyramid','египет','золотая','песок'], hint: 'Египетская пирамида из песчаника' },
+      { kind: 'sphinx-head',    label: 'Голова сфинкса',       emoji: '🗿', defaultColor: '#c4a35a', tags: ['сфинкс','sphinx','голова','египет','статуя'], hint: 'Монументальная голова сфинкса' },
+      { kind: 'obelisk',        label: 'Обелиск',              emoji: '📐', defaultColor: '#d4b060', tags: ['обелиск','obelisk','гранит','высокий','иероглифы'], hint: 'Высокий египетский обелиск' },
+      { kind: 'sarcophagus',    label: 'Саркофаг',             emoji: '⚰', defaultColor: '#b89040', tags: ['саркофаг','sarcophagus','мумия','золотой','гробница'], hint: 'Золотой саркофаг фараона' },
+      { kind: 'ankh-idol',      label: 'Анкх',                 emoji: '☥', defaultColor: '#ffcc44', tags: ['анкх','ankh','крест','жизнь','символ'], hint: 'Символ вечной жизни — анкх' },
+      { kind: 'canopic-jar',    label: 'Канопа',               emoji: '🏺', defaultColor: '#88aacc', tags: ['канопа','canopic jar','кувшин','бальзамирование','египет'], hint: 'Кувшин для хранения органов' },
+      { kind: 'scarab-gem',     label: 'Скарабей-амулет',      emoji: '💎', defaultColor: '#44bbcc', tags: ['скарабей','scarab','амулет','жук','бирюзовый'], hint: 'Бирюзовый амулет в форме жука' },
+      { kind: 'papyrus-scroll', label: 'Папирус',              emoji: '📜', defaultColor: '#d4b878', tags: ['папирус','papyrus','свиток','иероглифы','письмо'], hint: 'Свёрнутый папирус с иероглифами' },
+      { kind: 'eye-of-ra',      label: 'Глаз Ра',              emoji: '👁', defaultColor: '#ffaa00', tags: ['глаз ра','eye of ra','символ','золото','магия'], hint: 'Сияющий символ ока Ра' },
+      { kind: 'desert-torch',   label: 'Египетский факел',     emoji: '🔦', defaultColor: '#ff8800', tags: ['факел','torch','огонь','египет','свет'], hint: 'Факел на каменном постаменте' },
+    ],
+  },
+  {
+    id: 'fairy-garden', name: 'Волшебный сад', icon: '🧚',
+    items: [
+      { kind: 'fairy-mushroom',   label: 'Сказочный гриб',     emoji: '🍄', defaultColor: '#ee4444', tags: ['гриб','fairy mushroom','красный','точки','сказка'], hint: 'Мухомор из сказки' },
+      { kind: 'dewdrop-flower',   label: 'Цветок с росой',     emoji: '🌼', defaultColor: '#ffeeaa', tags: ['цветок','dewdrop','роса','утро','нежный'], hint: 'Нежный цветок с каплями росы' },
+      { kind: 'butterfly-perch',  label: 'Жёрдочка бабочки',  emoji: '🦋', defaultColor: '#8844ff', tags: ['бабочка','butterfly','жёрдочка','фиолетовая','сад'], hint: 'Сидящая бабочка на ветке' },
+      { kind: 'fern-curl',        label: 'Свёрнутый папоротник',emoji: '🌿', defaultColor: '#44aa44', tags: ['папоротник','fern','зелёный','листья','спираль'], hint: 'Молодой завитой лист папоротника' },
+      { kind: 'acorn-house',      label: 'Домик из жёлудя',   emoji: '🏠', defaultColor: '#8b5a1a', tags: ['домик','acorn','жёлудь','маленький','эльф'], hint: 'Крошечный домик из жёлудя' },
+      { kind: 'spider-web',       label: 'Паутина',            emoji: '🕸', defaultColor: '#cccccc', tags: ['паутина','spider web','серебряная','капли','утро'], hint: 'Серебряная паутина с росой' },
+      { kind: 'fairy-ring',       label: 'Кольцо фей',         emoji: '⭕', defaultColor: '#cc44cc', tags: ['кольцо фей','fairy ring','круг','магический','грибы'], hint: 'Волшебный круг из грибов' },
+      { kind: 'pebble-path',      label: 'Дорожка из камней',  emoji: '🪨', defaultColor: '#999999', tags: ['дорожка','pebble path','камни','тропинка','сад'], hint: 'Извилистая тропинка из камешков' },
+      { kind: 'moss-log',         label: 'Замшелое бревно',    emoji: '🪵', defaultColor: '#5a7a30', tags: ['бревно','moss log','мох','лес','зелёный'], hint: 'Старое бревно покрытое мхом' },
+      { kind: 'wish-well',        label: 'Колодец желаний',    emoji: '🪣', defaultColor: '#7a5a3a', tags: ['колодец','wish well','желание','монетки','деревянный'], hint: 'Сказочный колодец с монетками' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

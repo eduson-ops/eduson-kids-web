@@ -1177,6 +1177,27 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'cyber-gate': return <CyberGate pos={pos} color={color} size={size} />
     case 'signal-array': return <SignalArray pos={pos} color={color} size={size} />
 
+    case 'pyramid-block': return <PyramidBlock pos={pos} color={color} size={size} />
+    case 'sphinx-head': return <SphinxHead pos={pos} color={color} size={size} />
+    case 'obelisk': return <EgyptObelisk pos={pos} color={color} size={size} />
+    case 'sarcophagus': return <EgyptSarcophagus pos={pos} color={color} size={size} />
+    case 'ankh-idol': return <AnkhIdol pos={pos} color={color} size={size} />
+    case 'canopic-jar': return <CanopicJar pos={pos} color={color} size={size} />
+    case 'scarab-gem': return <ScarabGem pos={pos} color={color} size={size} />
+    case 'papyrus-scroll': return <PapyrusScroll pos={pos} color={color} size={size} />
+    case 'eye-of-ra': return <EyeOfRa pos={pos} color={color} size={size} />
+    case 'desert-torch': return <DesertTorch pos={pos} color={color} size={size} />
+    case 'fairy-mushroom': return <FairyMushroom pos={pos} color={color} size={size} />
+    case 'dewdrop-flower': return <DewdropFlower pos={pos} color={color} size={size} />
+    case 'butterfly-perch': return <ButterflyPerch pos={pos} color={color} size={size} />
+    case 'fern-curl': return <FernCurl pos={pos} color={color} size={size} />
+    case 'acorn-house': return <AcornHouse pos={pos} color={color} size={size} />
+    case 'spider-web': return <FairySpiderWeb pos={pos} color={color} size={size} />
+    case 'fairy-ring': return <FairyRingCircle pos={pos} color={color} size={size} />
+    case 'pebble-path': return <PebblePath pos={pos} color={color} size={size} />
+    case 'moss-log': return <MossLog pos={pos} color={color} size={size} />
+    case 'wish-well': return <WishWell pos={pos} color={color} size={size} />
+
     default:
       return null
   }
@@ -17662,6 +17683,518 @@ function SignalArray({ pos, color, size }: P16) {
           <meshStandardMaterial color="#ff4444" emissive="#ff2222" emissiveIntensity={0.5} />
         </mesh>
       ))}
+    </group>
+  )
+}
+
+// ── BATCH 17: Ancient Egypt + Fairy Garden ───────────────────────────────────
+interface P17 { pos: [number,number,number]; color: string; size: number }
+
+function PyramidBlock({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.5, 0]} castShadow>
+        <coneGeometry args={[size*0.8, size, 4]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      {[0,1,2,3].map(i => (
+        <mesh key={i} position={[0, size*(0.15+i*0.18), 0]}>
+          <boxGeometry args={[size*(1.0-i*0.2), size*0.03, size*(1.0-i*0.2)]} />
+          <meshStandardMaterial color="#b89030" roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SphinxHead({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.28, 0]} castShadow>
+        <boxGeometry args={[size*0.7, size*0.55, size*0.65]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.7, 0]} castShadow>
+        <sphereGeometry args={[size*0.32, 8, 6]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.5, -size*0.3]} castShadow>
+        <boxGeometry args={[size*0.7, size*0.62, size*0.1]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      {[[-0.12,0.74,0.26],[0.12,0.74,0.26]].map((p,i) => (
+        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+          <sphereGeometry args={[size*0.07, 6,5]} />
+          <meshStandardMaterial color="#333311" />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.6, size*0.3]} castShadow>
+        <boxGeometry args={[size*0.2, size*0.05, size*0.1]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function EgyptObelisk({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.65, 0]} castShadow>
+        <boxGeometry args={[size*0.26, size*1.3, size*0.26]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*1.38, 0]} castShadow>
+        <coneGeometry args={[size*0.16, size*0.25, 4]} />
+        <meshStandardMaterial color="#ffcc44" metalness={0.6} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, size*0.06, 0]}>
+        <boxGeometry args={[size*0.38, size*0.12, size*0.38]} />
+        <meshStandardMaterial color="#9a7a30" roughness={0.8} />
+      </mesh>
+      {[0.2, 0.5, 0.8, 1.1].map((y, i) => (
+        <mesh key={i} position={[size*0.14, y*size, 0]}>
+          <boxGeometry args={[size*0.02, size*0.06, size*0.22]} />
+          <meshStandardMaterial color="#c8a030" roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function EgyptSarcophagus({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.2, 0]} castShadow>
+        <boxGeometry args={[size*0.55, size*0.25, size*1.1]} />
+        <meshStandardMaterial color="#5a4010" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.38, 0]} castShadow>
+        <boxGeometry args={[size*0.52, size*0.38, size*1.06]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.4} />
+      </mesh>
+      <mesh position={[0, size*0.38, size*0.28]} castShadow>
+        <sphereGeometry args={[size*0.2, 7,5]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.2} />
+      </mesh>
+      {[-0.18,0.18].map((x,i) => (
+        <mesh key={i} position={[x*size, size*0.38, -size*0.1]} castShadow>
+          <boxGeometry args={[size*0.12, size*0.22, size*0.08]} />
+          <meshStandardMaterial color={color} metalness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.42, 0]}>
+        <boxGeometry args={[size*0.08, size*0.03, size*0.85]} />
+        <meshStandardMaterial color="#ffcc44" emissive="#ffaa00" emissiveIntensity={0.3} metalness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function AnkhIdol({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.25, 0]} castShadow>
+        <cylinderGeometry args={[size*0.06, size*0.06, size*0.5, 7]} />
+        <meshStandardMaterial color={color} metalness={0.7} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, size*0.65, 0]} rotation={[0, 0, Math.PI/2]} castShadow>
+        <cylinderGeometry args={[size*0.05, size*0.05, size*0.45, 7]} />
+        <meshStandardMaterial color={color} metalness={0.7} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, size*0.85, 0]} castShadow>
+        <torusGeometry args={[size*0.14, size*0.055, 6, 14]} />
+        <meshStandardMaterial color={color} metalness={0.7} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, size*0.02, 0]}>
+        <cylinderGeometry args={[size*0.1, size*0.12, size*0.06, 8]} />
+        <meshStandardMaterial color="#8b7030" roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function CanopicJar({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.3, 0]} castShadow>
+        <cylinderGeometry args={[size*0.22, size*0.18, size*0.6, 8]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.2} />
+      </mesh>
+      <mesh position={[0, size*0.05, 0]}>
+        <cylinderGeometry args={[size*0.18, size*0.2, size*0.1, 8]} />
+        <meshStandardMaterial color="#8b7030" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.66, 0]} castShadow>
+        <sphereGeometry args={[size*0.18, 7,5]} />
+        <meshStandardMaterial color="#cc9040" roughness={0.5} />
+      </mesh>
+      {[[-0.18,0.3,0.18],[0.18,0.3,0.18],[-0.18,0.3,-0.18],[0.18,0.3,-0.18]].map((p,i) => (
+        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+          <boxGeometry args={[size*0.03, size*0.5, size*0.03]} />
+          <meshStandardMaterial color="#7a5a20" roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function ScarabGem({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.16, 0]} castShadow>
+        <boxGeometry args={[size*0.32, size*0.08, size*0.44]} />
+        <meshStandardMaterial color="#8b7030" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.24, 0]} castShadow>
+        <sphereGeometry args={[size*0.2, 7,5]} />
+        <meshStandardMaterial color={color} roughness={0.1} metalness={0.3} />
+      </mesh>
+      {[-0.18, 0.18].map((x,i) => (
+        <mesh key={i} position={[x*size, size*0.26, size*0.12]} rotation={[0.5, x*2, 0]} castShadow>
+          <boxGeometry args={[size*0.14, size*0.04, size*0.24]} />
+          <meshStandardMaterial color={color} roughness={0.15} metalness={0.2} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.2, -size*0.2]} castShadow>
+        <cylinderGeometry args={[size*0.04, size*0.02, size*0.22, 5]} />
+        <meshStandardMaterial color={color} roughness={0.15} />
+      </mesh>
+    </group>
+  )
+}
+
+function PapyrusScroll({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.35, 0]} rotation={[0, 0, Math.PI/2]} castShadow>
+        <cylinderGeometry args={[size*0.24, size*0.24, size*0.7, 8]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {[-0.38, 0.38].map((x,i) => (
+        <mesh key={i} position={[x*size, size*0.35, 0]} rotation={[0, 0, Math.PI/2]} castShadow>
+          <cylinderGeometry args={[size*0.1, size*0.1, size*0.74, 8]} />
+          <meshStandardMaterial color="#8b5a1a" roughness={0.8} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.22, 0]} castShadow>
+        <boxGeometry args={[size*0.65, size*0.28, size*0.06]} />
+        <meshStandardMaterial color="#c9a050" roughness={0.85} />
+      </mesh>
+      {[-0.22, -0.08, 0.08, 0.22].map((y,i) => (
+        <mesh key={i} position={[0, (0.12+y)*size, size*0.04]}>
+          <boxGeometry args={[size*0.44, size*0.02, size*0.02]} />
+          <meshStandardMaterial color="#8b5a1a" roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function EyeOfRa({ pos, color, size }: P17) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (ref.current) (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4 + Math.sin(clock.getElapsedTime() * 1.5) * 0.35
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.08, 0]}>
+        <cylinderGeometry args={[size*0.5, size*0.55, size*0.12, 8]} />
+        <meshStandardMaterial color="#8b7030" roughness={0.8} />
+      </mesh>
+      <mesh ref={ref} position={[0, size*0.28, 0]} castShadow>
+        <torusGeometry args={[size*0.28, size*0.08, 6, 16]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} metalness={0.4} />
+      </mesh>
+      <mesh position={[0, size*0.28, 0]} castShadow>
+        <sphereGeometry args={[size*0.16, 8, 6]} />
+        <meshStandardMaterial color="#111111" />
+      </mesh>
+      <mesh position={[0, size*0.28, size*0.1]} castShadow>
+        <sphereGeometry args={[size*0.08, 6, 5]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
+      </mesh>
+      {[-0.35, 0.35].map((x,i) => (
+        <mesh key={i} position={[x*size, size*0.2, 0]} rotation={[0, 0, x*0.6]} castShadow>
+          <boxGeometry args={[size*0.06, size*0.18, size*0.04]} />
+          <meshStandardMaterial color={color} metalness={0.4} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function DesertTorch({ pos, color, size }: P17) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (ref.current) (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.6 + Math.sin(clock.getElapsedTime() * 4) * 0.3
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.35, 0]} castShadow>
+        <cylinderGeometry args={[size*0.06, size*0.09, size*0.7, 7]} />
+        <meshStandardMaterial color="#9a7030" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.12, 0]}>
+        <cylinderGeometry args={[size*0.22, size*0.26, size*0.24, 8]} />
+        <meshStandardMaterial color="#7a5020" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, size*0.78, 0]} castShadow>
+        <cylinderGeometry args={[size*0.08, size*0.1, size*0.12, 7]} />
+        <meshStandardMaterial color="#555555" roughness={0.7} />
+      </mesh>
+      <mesh ref={ref} position={[0, size*0.92, 0]} castShadow>
+        <sphereGeometry args={[size*0.1, 6,5]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+// ── Fairy Garden ──────────────────────────────────────────────────────────────
+
+function FairyMushroom({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.22, 0]} castShadow>
+        <cylinderGeometry args={[size*0.12, size*0.15, size*0.44, 7]} />
+        <meshStandardMaterial color="#f5f0e8" roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size*0.55, 0]} castShadow>
+        <sphereGeometry args={[size*0.4, 8, 5, 0, Math.PI*2, 0, Math.PI*0.55]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {[0,1,2,3,4].map(i => (
+        <mesh key={i} position={[Math.cos(i*Math.PI*2/5)*size*0.22, size*0.5, Math.sin(i*Math.PI*2/5)*size*0.22]}>
+          <sphereGeometry args={[size*0.06, 5,4]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function DewdropFlower({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.3, 0]} castShadow>
+        <cylinderGeometry args={[size*0.03, size*0.04, size*0.6, 5]} />
+        <meshStandardMaterial color="#4a8a30" roughness={0.7} />
+      </mesh>
+      {[0,1,2,3,4,5].map(i => (
+        <mesh key={i} position={[Math.cos(i*Math.PI/3)*size*0.22, size*0.62, Math.sin(i*Math.PI/3)*size*0.22]} rotation={[0.3, i*Math.PI/3, 0]} castShadow>
+          <sphereGeometry args={[size*0.14, 5,4]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.62, 0]} castShadow>
+        <sphereGeometry args={[size*0.1, 6,5]} />
+        <meshStandardMaterial color="#ffdd44" />
+      </mesh>
+      {[[-0.15,0.62,0.18],[0.12,0.58,0.2]].map((p,i) => (
+        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+          <sphereGeometry args={[size*0.04, 4,3]} />
+          <meshStandardMaterial color="#aaddff" transparent opacity={0.8} roughness={0.05} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function ButterflyPerch({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.3, 0]} castShadow>
+        <cylinderGeometry args={[size*0.03, size*0.05, size*0.6, 6]} />
+        <meshStandardMaterial color="#6b3a1f" roughness={0.8} />
+      </mesh>
+      <mesh position={[-size*0.12, size*0.62, 0]} rotation={[0.1, 0, 0.4]} castShadow>
+        <sphereGeometry args={[size*0.2, 6,4]} />
+        <meshStandardMaterial color={color} transparent opacity={0.8} roughness={0.2} />
+      </mesh>
+      <mesh position={[size*0.12, size*0.62, 0]} rotation={[0.1, 0, -0.4]} castShadow>
+        <sphereGeometry args={[size*0.2, 6,4]} />
+        <meshStandardMaterial color={color} transparent opacity={0.8} roughness={0.2} />
+      </mesh>
+      <mesh position={[-size*0.06, size*0.52, 0]} rotation={[0.1, 0, 0.2]} castShadow>
+        <sphereGeometry args={[size*0.12, 5,4]} />
+        <meshStandardMaterial color="#cc88ff" transparent opacity={0.7} roughness={0.2} />
+      </mesh>
+      <mesh position={[size*0.06, size*0.52, 0]} rotation={[0.1, 0, -0.2]} castShadow>
+        <sphereGeometry args={[size*0.12, 5,4]} />
+        <meshStandardMaterial color="#cc88ff" transparent opacity={0.7} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, size*0.6, 0]} castShadow>
+        <cylinderGeometry args={[size*0.025, size*0.025, size*0.28, 5]} />
+        <meshStandardMaterial color="#111111" />
+      </mesh>
+    </group>
+  )
+}
+
+function FernCurl({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.2, 0]} rotation={[0.2, 0, 0]} castShadow>
+        <cylinderGeometry args={[size*0.025, size*0.04, size*0.4, 5]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {[0,1,2,3,4,5,6].map(i => (
+        <mesh key={i} position={[Math.sin(i*0.8)*size*0.15, size*(0.15+i*0.07), Math.cos(i*0.8)*size*0.1]} rotation={[0, i*0.5, 0.3]}>
+          <boxGeometry args={[size*0.12, size*0.03, size*0.06]} />
+          <meshStandardMaterial color={color} roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function AcornHouse({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.22, 0]} castShadow>
+        <cylinderGeometry args={[size*0.28, size*0.28, size*0.44, 8]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.5, 0]} castShadow>
+        <sphereGeometry args={[size*0.32, 8,5, 0, Math.PI*2, 0, Math.PI*0.6]} />
+        <meshStandardMaterial color="#8b5a1a" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.22, size*0.29]} castShadow>
+        <boxGeometry args={[size*0.1, size*0.2, size*0.06]} />
+        <meshStandardMaterial color="#5a3010" />
+      </mesh>
+      {[-0.14, 0.14].map((x,i) => (
+        <mesh key={i} position={[x*size, size*0.26, size*0.29]}>
+          <circleGeometry args={[size*0.07, 6]} />
+          <meshStandardMaterial color="#ffeeaa" transparent opacity={0.6} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.62, 0]} castShadow>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.16, 5]} />
+        <meshStandardMaterial color="#4a8a30" />
+      </mesh>
+    </group>
+  )
+}
+
+function FairySpiderWeb({ pos, color, size }: P17) {
+  return (
+    <group position={pos} rotation={[-0.1, 0, 0.05]}>
+      {[0.1, 0.22, 0.34, 0.46].map((r,i) => (
+        <mesh key={i} position={[0, size*0.5, 0]}>
+          <torusGeometry args={[r*size, size*0.008, 4, i%2===0 ? 6 : 8]} />
+          <meshStandardMaterial color={color} transparent opacity={0.7} roughness={0.1} />
+        </mesh>
+      ))}
+      {[0,1,2,3,4,5].map(i => (
+        <mesh key={i} position={[0, size*0.5, 0]} rotation={[0, 0, i*Math.PI/3]}>
+          <cylinderGeometry args={[size*0.006, size*0.006, size*0.95, 4]} />
+          <meshStandardMaterial color={color} transparent opacity={0.65} roughness={0.1} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.5, 0]}>
+        <sphereGeometry args={[size*0.025, 5,4]} />
+        <meshStandardMaterial color="#111111" />
+      </mesh>
+    </group>
+  )
+}
+
+function FairyRingCircle({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      {[0,1,2,3,4,5,6,7].map(i => (
+        <group key={i} position={[Math.cos(i*Math.PI/4)*size*0.55, 0, Math.sin(i*Math.PI/4)*size*0.55]}>
+          <mesh position={[0, size*0.18, 0]} castShadow>
+            <cylinderGeometry args={[size*0.06, size*0.08, size*0.36, 6]} />
+            <meshStandardMaterial color={i%2===0 ? color : '#dddddd'} roughness={0.6} />
+          </mesh>
+          <mesh position={[0, size*0.44, 0]} castShadow>
+            <sphereGeometry args={[size*0.14, 6,4]} />
+            <meshStandardMaterial color={i%2===0 ? color : '#ff6699'} roughness={0.5} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[0, size*0.02, 0]}>
+        <torusGeometry args={[size*0.55, size*0.04, 4, 20]} />
+        <meshStandardMaterial color="#44aa44" roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function PebblePath({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      {[[-0.45,0.05,0.1],[-0.2,0.04,-0.12],[0.05,0.05,0.15],[0.28,0.04,-0.08],[0.5,0.05,0.1],
+        [-0.35,0.04,-0.05],[-0.1,0.05,0.02],[0.15,0.04,-0.15],[0.4,0.05,0.05]].map((p, i) => (
+        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} castShadow>
+          <sphereGeometry args={[size*(0.06+i%3*0.02), 5, 4]} />
+          <meshStandardMaterial color={i%3===0 ? color : i%3===1 ? '#aaaaaa' : '#888888'} roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function MossLog({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.2, 0]} rotation={[0, 0.3, 0]} castShadow>
+        <cylinderGeometry args={[size*0.22, size*0.28, size*1.1, 8]} rotation={[0, 0, Math.PI/2]} />
+        <meshStandardMaterial color="#5a3a15" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, size*0.28, 0]} rotation={[0, 0.3, 0]} castShadow>
+        <cylinderGeometry args={[size*0.23, size*0.24, size*1.08, 7, 1, true]} rotation={[0, 0, Math.PI/2]} />
+        <meshStandardMaterial color={color} roughness={0.8} transparent opacity={0.7} />
+      </mesh>
+      {[-0.3, 0, 0.3].map((x,i) => (
+        <mesh key={i} position={[x*size, size*0.44, 0]} rotation={[0, 0.3*i, 0]} castShadow>
+          <sphereGeometry args={[size*0.1, 5,4]} />
+          <meshStandardMaterial color={color} roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function WishWell({ pos, color, size }: P17) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, size*0.25, 0]} castShadow>
+        <cylinderGeometry args={[size*0.38, size*0.4, size*0.5, 10]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.14, 0]}>
+        <cylinderGeometry args={[size*0.3, size*0.3, size*0.1, 10]} />
+        <meshStandardMaterial color="#445544" roughness={0.4} />
+      </mesh>
+      {[-0.42, 0.42].map((x,i) => (
+        <mesh key={i} position={[x*size, size*0.75, 0]} castShadow>
+          <cylinderGeometry args={[size*0.06, size*0.07, size*1.0, 6]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*1.26, 0]} castShadow>
+        <boxGeometry args={[size*1.0, size*0.06, size*0.22]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*1.35, 0]} castShadow>
+        <coneGeometry args={[size*0.55, size*0.28, 6]} />
+        <meshStandardMaterial color="#8b5a1a" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*1.28, 0]}>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.55, 5]} />
+        <meshStandardMaterial color="#888888" metalness={0.5} />
+      </mesh>
+      <mesh position={[size*0.12, size*0.8, 0]}>
+        <cylinderGeometry args={[size*0.02, size*0.02, size*0.7, 4]} />
+        <meshStandardMaterial color="#888888" metalness={0.4} />
+      </mesh>
+      <mesh position={[size*0.12, size*0.44, 0]} castShadow>
+        <boxGeometry args={[size*0.14, size*0.12, size*0.1]} />
+        <meshStandardMaterial color="#8b5a1a" roughness={0.8} />
+      </mesh>
     </group>
   )
 }
