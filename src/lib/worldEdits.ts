@@ -311,6 +311,23 @@ export type PropKind =
   // Cyberpunk City
   | 'neon-sign-b34' | 'cyber-tower-b34' | 'hover-car-b34' | 'data-terminal-b34'
   | 'cyber-blade-b34' | 'synth-plant-b34' | 'cyber-drone-b34' | 'power-core-b34' | 'cyber-bridge-b34'
+  // Arctic Tundra
+  | 'igloo-b35' | 'polar-bear-b35' | 'arctic-fox-b35' | 'snow-drift-b35' | 'walrus-b35'
+  | 'iceberg-b35' | 'northern-lights-b35' | 'penguin-b35'
+  // Medieval Castle
+  | 'castle-tower-b35' | 'drawbridge-b35' | 'knight-armor-b35' | 'catapult-b35'
+  | 'medieval-well-b35' | 'torch-b35' | 'banner-b35'
+  // Rainforest
+  | 'toucan-b36' | 'liana-b36' | 'parrot-b36' | 'water-fall-b36' | 'fern-b36' | 'jaguar-b36'
+  // Space Exploration
+  | 'rocket-ship-b36' | 'space-suit-b36' | 'lunar-lander-b36' | 'star-map-b36'
+  | 'moon-rover-b36' | 'asteroid-b36' | 'space-antenna-b36' | 'nebula-crystal-b36'
+  // Candy Land
+  | 'giant-lollipop-b37' | 'candy-cane-b37' | 'gingerbread-house-b37' | 'gumdrop-b37'
+  | 'cotton-candy-b37' | 'chocolate-fountain-b37'
+  // Egyptian Pyramids
+  | 'pyramid-b37' | 'sphinx-b37' | 'obelisk-b37' | 'egyptian-vase-b37'
+  | 'anubis-statue-b37' | 'scarab-b37' | 'tomb-entrance-b37'
 
 export interface SpawnedPart {
   id: string

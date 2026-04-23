@@ -26,6 +26,9 @@ const Settings = lazy(() => import('./pages/Settings'))
 const Legal = lazy(() => import('./pages/Legal'))
 const Teacher = lazy(() => import('./pages/Teacher'))
 const Leagues = lazy(() => import('./pages/Leagues'))
+const AuthSSO = lazy(() => import('./pages/AuthSSO'))
+const Enterprise = lazy(() => import('./pages/Enterprise'))
+const Certificate = lazy(() => import('./pages/Certificate'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -260,6 +263,30 @@ export default function App() {
           element={
             <Suspense fallback={<RouteLoader label="Открываю лиги…" />}>
               <Leagues />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/auth/sso"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю SSO…" />}>
+              <AuthSSO />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/enterprise"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю для школ…" />}>
+              <Enterprise />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/cert/:id"
+          element={
+            <Suspense fallback={<RouteLoader label="Загружаю сертификат…" />}>
+              <Certificate />
             </Suspense>
           }
         />
