@@ -1587,6 +1587,29 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'tomb-entrance-b37',  label: 'Вход в гробницу',   emoji: '🚪', defaultColor: '#b8924a', tags: ['гробница','tomb entrance','вход','пирамида','мрак'], hint: 'Таинственный вход в гробницу фараона' },
     ],
   },
+  {
+    id: 'pirate-cove', name: 'Пиратская бухта', icon: '🏴‍☠️',
+    items: [
+      { kind: 'pirate-ship-b38',     label: 'Пиратский корабль',  emoji: '⛵', defaultColor: '#8B4513', tags: ['корабль','pirate ship','парус','пират','море'], hint: 'Грозный пиратский корабль с парусами' },
+      { kind: 'treasure-chest-b38',  label: 'Сундук с сокровищами',emoji: '📦', defaultColor: '#8B4513', tags: ['сундук','treasure chest','золото','сокровища','пират'], hint: 'Деревянный сундук с золотым замком' },
+      { kind: 'cannon-b38',          label: 'Пушка',              emoji: '💥', defaultColor: '#333', tags: ['пушка','cannon','выстрел','ядро','пират'], hint: 'Корабельная пушка на лафете' },
+      { kind: 'anchor-b38',          label: 'Якорь',              emoji: '⚓', defaultColor: '#444', tags: ['якорь','anchor','море','корабль','металл'], hint: 'Тяжёлый морской якорь' },
+      { kind: 'skull-flag-b38',      label: 'Флаг черепа',        emoji: '🏴', defaultColor: '#f0f0f0', tags: ['флаг','skull flag','череп','пират','jolly roger'], hint: 'Пиратский флаг с черепом' },
+      { kind: 'pirate-barrel-b38',   label: 'Бочка',              emoji: '🛢️', defaultColor: '#8B4513', tags: ['бочка','barrel','дерево','порох','пират'], hint: 'Дубовая бочка с металлическими обручами' },
+    ],
+  },
+  {
+    id: 'fairy-tale-forest', name: 'Сказочный лес', icon: '🧚',
+    items: [
+      { kind: 'fairy-mushroom-b38', label: 'Волшебный гриб',    emoji: '🍄', defaultColor: '#ff4444', tags: ['гриб','fairy mushroom','мухомор','белый','сказка'], hint: 'Большой красный мухомор с белыми точками' },
+      { kind: 'fairy-lantern-b38',  label: 'Феерический фонарик', emoji: '✨', defaultColor: '#88ffcc', tags: ['фонарик','fairy lantern','свет','фея','светится'], hint: 'Светящийся магический фонарик феи' },
+      { kind: 'enchanted-tree-b38', label: 'Заколдованное дерево', emoji: '🌳', defaultColor: '#228B22', tags: ['дерево','enchanted tree','магия','светится','лес'], hint: 'Дерево с магическими огоньками' },
+      { kind: 'fairy-wing-b38',     label: 'Крылья феи',        emoji: '🧚', defaultColor: '#cc88ff', tags: ['крылья','fairy wing','фея','прозрачные','летит'], hint: 'Переливающиеся крылья феи' },
+      { kind: 'pixie-dust-b38',     label: 'Пыльца пикси',      emoji: '✨', defaultColor: '#ffdd44', tags: ['пыльца','pixie dust','золотая','пикси','вращается'], hint: 'Кружащиеся золотые искры пикси' },
+      { kind: 'magic-wand-b38',     label: 'Волшебная палочка', emoji: '🪄', defaultColor: '#cc00ff', tags: ['палочка','magic wand','звезда','заклинание','магия'], hint: 'Волшебная палочка со звёздным навершием' },
+      { kind: 'story-book-b38',     label: 'Сказочная книга',   emoji: '📖', defaultColor: '#8B0000', tags: ['книга','story book','сказка','страницы','открытая'], hint: 'Волшебная открытая книга сказок' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

@@ -328,6 +328,12 @@ export type PropKind =
   // Egyptian Pyramids
   | 'pyramid-b37' | 'sphinx-b37' | 'obelisk-b37' | 'egyptian-vase-b37'
   | 'anubis-statue-b37' | 'scarab-b37' | 'tomb-entrance-b37'
+  // Pirate Cove
+  | 'pirate-ship-b38' | 'treasure-chest-b38' | 'cannon-b38' | 'anchor-b38'
+  | 'skull-flag-b38' | 'pirate-barrel-b38'
+  // Fairy Tale Forest
+  | 'fairy-mushroom-b38' | 'fairy-lantern-b38' | 'enchanted-tree-b38' | 'fairy-wing-b38'
+  | 'pixie-dust-b38' | 'magic-wand-b38' | 'story-book-b38'
 
 export interface SpawnedPart {
   id: string
