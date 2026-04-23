@@ -3520,29 +3520,31 @@ body:has(.lobby-v2) {
 .spawn-menu-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 190px 1fr;
   min-height: 0;
 }
 .spawn-menu-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 10px 8px;
+  gap: 1px;
+  padding: 8px 6px;
   background: #0b1021;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
 }
 .spawn-menu-cat {
   display: grid;
-  grid-template-columns: 22px 1fr auto;
+  grid-template-columns: 20px 1fr auto;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  gap: 8px;
+  padding: 6px 10px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 13px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
   cursor: pointer;
   text-align: left;
   font-family: inherit;

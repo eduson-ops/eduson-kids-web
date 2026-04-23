@@ -436,7 +436,7 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
-    id: 'vehicles', name: 'Транспорт', icon: '🚗',
+    id: 'vehicles', name: 'Машины', icon: '🚗',
     items: [
       { kind: 'helicopter',    label: 'Вертолёт',    emoji: '🚁', defaultColor: '#5b8dee', tags: ['вертолёт','helicopter','летит','лопасти','авиация'], hint: 'Вертолёт с вращающимися лопастями' },
       { kind: 'bicycle',       label: 'Велосипед',   emoji: '🚲', defaultColor: '#e84040', tags: ['велосипед','bicycle','колёса','спорт','езда'], hint: 'Двухколёсный велосипед' },
@@ -456,7 +456,7 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
-    id: 'ancient', name: 'Древность', icon: '🏛️',
+    id: 'ancient', name: 'Древность', icon: '⚱️',
     items: [
       { kind: 'catapult',          label: 'Катапульта',   emoji: '🪨', defaultColor: '#8b5a2b', tags: ['катапульта','catapult','осада','средневековье','деревянная'], hint: 'Деревянная катапульта' },
       { kind: 'broken-column',     label: 'Колонна',      emoji: '🏛️', defaultColor: '#d4c4a0', tags: ['колонна','column','руины','ancient','рим','греция'], hint: 'Сломанная мраморная колонна' },
@@ -466,7 +466,7 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
-    id: 'underwater', name: 'Подводный', icon: '🌊',
+    id: 'underwater', name: 'Подводный', icon: '🤿',
     items: [
       { kind: 'shipwreck',         label: 'Кораблекрушение',emoji: '🚢', defaultColor: '#4a6a5a', tags: ['кораблекрушение','shipwreck','затонул','океан','ржавый'], hint: 'Затонувший корабль' },
       { kind: 'treasure-chest-open',label: 'Открытый сундук',emoji: '💎', defaultColor: '#8b5a2b', tags: ['сундук','клад','treasure','открытый','сокровища'], hint: 'Открытый сундук с сокровищами' },
@@ -476,7 +476,7 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
-    id: 'fairground', name: 'Аттракционы', icon: '🎡',
+    id: 'fairground', name: 'Аттракционы', icon: '🎠',
     items: [
       { kind: 'popcorn-stand',    label: 'Попкорн',      emoji: '🍿', defaultColor: '#e84040', tags: ['попкорн','popcorn','ларёк','кино','аттракцион'], hint: 'Ларёк с попкорном' },
       { kind: 'bumper-car',       label: 'Машина-бамper', emoji: '🎠', defaultColor: '#ffd644', tags: ['машинка','бамper','bumper car','аттракцион','парк'], hint: 'Аттракцион машинка-бампер' },
