@@ -275,6 +275,12 @@ export type PropKind =
   | 'saloon-b28' | 'wild-west-wagon' | 'west-sheriff-star' | 'tumbleweed-b28' | 'water-tower-west'
   | 'west-gold-nugget' | 'cactus-big' | 'bandit-campfire' | 'oil-derrick' | 'barn-west'
   | 'west-street-lanterns' | 'gold-mine-cart'
+  // Medieval Market
+  | 'b29-market-stall' | 'medieval-well' | 'medieval-catapult' | 'herald-banner' | 'smithy-anvil'
+  | 'medieval-tavern' | 'medieval-knight-statue' | 'medieval-crossbow' | 'merchant-chest'
+  // Tech Lab
+  | 'tech-hologram' | 'tech-robot-arm' | 'dna-helix' | 'quantum-computer' | 'laser-cutter'
+  | 'nanodrone-swarm' | 'plasma-reactor' | 'cloning-pod' | 'lab-beaker' | 'time-portal'
 
 export interface SpawnedPart {
   id: string

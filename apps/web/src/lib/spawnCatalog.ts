@@ -1348,6 +1348,35 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'gold-mine-cart',      label: 'Вагонетка с золотом',  emoji: '⛏️', defaultColor: '#555544', tags: ['вагонетка','gold mine cart','золото','шахта','рельсы'], hint: 'Шахтная вагонетка с золотыми самородками' },
     ],
   },
+  {
+    id: 'medieval-market', name: 'Средневековый рынок', icon: '🏺',
+    items: [
+      { kind: 'b29-market-stall',      label: 'Рыночный прилавок',    emoji: '🛖', defaultColor: '#cc4422', tags: ['прилавок','market stall','торговля','навес','средневековый'], hint: 'Прилавок с товарами под навесом' },
+      { kind: 'medieval-well',         label: 'Средневековый колодец', emoji: '🪣', defaultColor: '#888877', tags: ['колодец','medieval well','камень','вода','бревно'], hint: 'Каменный колодец с деревянным воротом' },
+      { kind: 'medieval-catapult',     label: 'Катапульта',            emoji: '⚔️', defaultColor: '#8B4513', tags: ['катапульта','medieval catapult','осада','дерево','колёса'], hint: 'Боевая катапульта с раскачивающимся рычагом' },
+      { kind: 'herald-banner',         label: 'Геральдический стяг',   emoji: '🚩', defaultColor: '#cc2222', tags: ['стяг','herald banner','герб','золото','рыцарь'], hint: 'Стяг с золотым крестом на шесте' },
+      { kind: 'smithy-anvil',          label: 'Наковальня кузнеца',    emoji: '🔨', defaultColor: '#555544', tags: ['наковальня','smithy anvil','металл','кузнец','тяжёлая'], hint: 'Тяжёлая стальная наковальня' },
+      { kind: 'medieval-tavern',       label: 'Средневековая таверна', emoji: '🍺', defaultColor: '#5c3a1e', tags: ['таверна','medieval tavern','постоялый двор','дерево','крыша'], hint: 'Двухэтажная таверна с вывеской' },
+      { kind: 'medieval-knight-statue',label: 'Статуя рыцаря',         emoji: '🗽', defaultColor: '#888888', tags: ['статуя','medieval knight statue','рыцарь','меч','щит'], hint: 'Каменная статуя рыцаря в доспехах' },
+      { kind: 'medieval-crossbow',     label: 'Арбалет',               emoji: '🏹', defaultColor: '#5c3a1e', tags: ['арбалет','medieval crossbow','оружие','болт','дерево'], hint: 'Готовый к стрельбе арбалет' },
+      { kind: 'merchant-chest',        label: 'Купеческий сундук',     emoji: '💼', defaultColor: '#8B4513', tags: ['сундук','merchant chest','замок','полосы','торговец'], hint: 'Купеческий сундук с золотым замком' },
+    ],
+  },
+  {
+    id: 'tech-lab', name: 'Техно-лаборатория', icon: '🔬',
+    items: [
+      { kind: 'tech-hologram',    label: 'Голограмма',             emoji: '🔷', defaultColor: '#44aaff', tags: ['голограмма','tech hologram','синяя','вращается','wireframe'], hint: 'Вращающаяся голографическая проекция' },
+      { kind: 'tech-robot-arm',   label: 'Роботизированная рука',  emoji: '🦾', defaultColor: '#4488cc', tags: ['рука','tech robot arm','манипулятор','механизм','лаборатория'], hint: 'Промышленный роботизированный манипулятор' },
+      { kind: 'dna-helix',        label: 'ДНК спираль',            emoji: '🧬', defaultColor: '#44aaff', tags: ['днк','dna helix','двойная спираль','молекула','биология'], hint: 'Вращающаяся двойная спираль ДНК' },
+      { kind: 'quantum-computer', label: 'Квантовый компьютер',    emoji: '💻', defaultColor: '#44ffaa', tags: ['компьютер','quantum computer','квантовый','светится','техно'], hint: 'Квантовый компьютер с пульсирующим ядром' },
+      { kind: 'laser-cutter',     label: 'Лазерный резак',         emoji: '⚡', defaultColor: '#4488cc', tags: ['лазер','laser cutter','луч','красный','резка'], hint: 'Лазерный резак с красным лучом' },
+      { kind: 'nanodrone-swarm',  label: 'Рой нанодронов',         emoji: '🚁', defaultColor: '#44aaff', tags: ['дроны','nanodrone swarm','рой','летят','кружатся'], hint: 'Шесть миниатюрных дронов в хороводе' },
+      { kind: 'plasma-reactor',   label: 'Плазменный реактор',     emoji: '⚛️', defaultColor: '#ff44aa', tags: ['реактор','plasma reactor','плазма','кольца','пульсирует'], hint: 'Плазменный реактор с магнитными кольцами' },
+      { kind: 'cloning-pod',      label: 'Клонирующая камера',     emoji: '🧪', defaultColor: '#4488cc', tags: ['камера','cloning pod','стекло','клон','лаборатория'], hint: 'Стеклянная капсула для клонирования' },
+      { kind: 'lab-beaker',       label: 'Колба с реагентом',      emoji: '⚗️', defaultColor: '#44ff88', tags: ['колба','lab beaker','реагент','светится','химия'], hint: 'Светящаяся лабораторная колба' },
+      { kind: 'time-portal',      label: 'Портал времени',         emoji: '🌀', defaultColor: '#44aaff', tags: ['портал','time portal','вихрь','кольцо','путешествие'], hint: 'Мерцающий портал для путешествий во времени' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
