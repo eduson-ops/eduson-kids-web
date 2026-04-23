@@ -7997,6 +7997,35 @@ body:has(.lobby-v2) {
   pointer-events: none;
   user-select: none;
 }
+
+/* Lightweight CTA link — для случаев где вторая кнопка должна быть меньше веса */
+.kb-cover-link-lite {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: 14px;
+  color: rgba(255,251,243,.8);
+  text-decoration: none;
+  padding: 8px 4px;
+  transition: color 0.15s;
+  margin-left: 4px;
+}
+.kb-cover-link-lite:hover {
+  color: var(--paper, #fffbf3);
+  text-decoration: underline;
+}
+.kb-cover--yellow .kb-cover-link-lite { color: rgba(21,20,27,.6); }
+.kb-cover--yellow .kb-cover-link-lite:hover { color: var(--ink); }
+
+/* Plashki fade-out on scroll — добавляется классом */
+.kb-cover-deco--top-row {
+  transition: opacity 0.3s ease;
+}
+.kb-cover-deco--top-row.is-scrolled {
+  opacity: 0;
+  pointer-events: none;
+}
 .kb-cover-deco-block.b-move   { background: var(--violet-soft); color: var(--violet-ink); }
 .kb-cover-deco-block.b-logic  { background: var(--yellow); color: var(--yellow-ink); }
 .kb-cover-deco-block.b-data   { background: var(--mint); color: var(--mint-ink); }
@@ -8434,6 +8463,107 @@ body:has(.lobby-v2) {
 }
 @keyframes ach-out {
   to { opacity: 0; transform: translateX(40px) scale(0.95); }
+}
+
+/* ═══ StreakWidget — правый верх, Duolingo-style ═══ */
+.kb-streak-widget {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 6px;
+  z-index: 9400;
+  pointer-events: none;
+}
+.kb-streak-chip {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  background: var(--paper, #fffbf3);
+  border: 2px solid var(--ink, #15141b);
+  border-radius: 20px;
+  box-shadow: 0 2px 0 var(--ink, #15141b);
+  text-decoration: none;
+  color: var(--ink, #15141b);
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 14px;
+  transition: transform 0.12s ease;
+  position: relative;
+}
+.kb-streak-chip:hover {
+  transform: translateY(-1px);
+}
+.kb-streak-chip:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 0 var(--ink);
+}
+.kb-streak-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.kb-streak-val {
+  font-family: var(--f-mono, monospace);
+  font-size: 13px;
+  letter-spacing: -.5px;
+}
+.kb-streak-chip--goal {
+  padding-right: 6px;
+}
+.kb-streak-ring {
+  display: inline-flex;
+  width: 22px; height: 22px;
+  margin-left: 2px;
+}
+
+/* На мобилке — скрываем чипы, они перекрывают меню */
+@media (max-width: 720px) {
+  .kb-streak-widget { top: 10px; right: 10px; gap: 4px; }
+  .kb-streak-chip { padding: 4px 8px; font-size: 12px; }
+  .kb-streak-val { font-size: 11px; }
+}
+
+/* ═══ Mobile bottom-tab bar (<768px) ═══ */
+.kb-bottom-tabs {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--ink, #15141b);
+  border-top: 1px solid rgba(255,251,243,.08);
+  padding: 6px 4px 8px;
+  z-index: 9300;
+  justify-content: space-around;
+  align-items: center;
+}
+.kb-bottom-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px;
+  text-decoration: none;
+  color: rgba(255,251,243,.55);
+  font-family: var(--f-ui);
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color .15s;
+}
+.kb-bottom-tab-emoji { font-size: 20px; line-height: 1; }
+.kb-bottom-tab.active {
+  color: var(--yellow, #FFD43C);
+}
+.kb-bottom-tab:active { background: rgba(255,251,243,.06); }
+
+@media (max-width: 768px) {
+  .kb-bottom-tabs { display: flex; }
+  .brand-shell--sidenav { padding-bottom: 64px; }
+  /* На мобилке скрываем streak chips когда он поверх кнопок */
+  .nk-chat-fab { bottom: 76px; }
+  .nk-chat-panel { bottom: 148px; }
 }
 
 /* ═══ NikselChat — плавающий помощник на Kimi ═══ */

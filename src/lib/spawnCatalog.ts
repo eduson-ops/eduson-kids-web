@@ -960,6 +960,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'sugar-castle',        label: 'Сахарный замок',       emoji: '🏰', defaultColor: '#ffeedd', tags: ['замок','sugar castle','сахарный','башни','сладкий'], hint: 'Замок из сахара и глазури' },
     ],
   },
+  {
+    id: 'volcano-world', name: 'Мир вулканов', icon: '🌋',
+    items: [
+      { kind: 'lava-pool',       label: 'Лавовый бассейн',     emoji: '🌋', defaultColor: '#ff4400', tags: ['лава','lava pool','огонь','магма','горячий'], hint: 'Пузырящийся бассейн лавы' },
+      { kind: 'volcano-rock',    label: 'Вулканическая скала', emoji: '🪨', defaultColor: '#333333', tags: ['скала','volcano rock','базальт','горячая','тёмная'], hint: 'Тёмная вулканическая порода' },
+      { kind: 'fire-geyser',     label: 'Огненный гейзер',     emoji: '🔥', defaultColor: '#ff6600', tags: ['гейзер','fire geyser','фонтан','огонь','взрыв'], hint: 'Столб огня из земли' },
+      { kind: 'obsidian-pillar', label: 'Обсидиановая колонна',emoji: '🗿', defaultColor: '#1a0a2e', tags: ['колонна','obsidian pillar','блестящая','чёрная','вулкан'], hint: 'Блестящая чёрная колонна из обсидиана' },
+      { kind: 'lava-bridge',     label: 'Лавовый мост',        emoji: '🌉', defaultColor: '#884422', tags: ['мост','lava bridge','переход','лава','скалы'], hint: 'Каменный мост над лавой' },
+      { kind: 'magma-crystal',   label: 'Магматический кристалл', emoji: '💎', defaultColor: '#ff2244', tags: ['кристалл','magma crystal','светящийся','красный','горячий'], hint: 'Светящийся красный кристалл' },
+      { kind: 'fire-shrine',     label: 'Огненный алтарь',     emoji: '⛩', defaultColor: '#cc3300', tags: ['алтарь','fire shrine','жертвенник','огонь','ритуал'], hint: 'Каменный алтарь с вечным огнём' },
+      { kind: 'ash-tree',        label: 'Пепельное дерево',    emoji: '🌳', defaultColor: '#555555', tags: ['дерево','ash tree','пепел','мёртвое','вулкан'], hint: 'Дерево, покрытое пеплом' },
+      { kind: 'ember-lantern',   label: 'Огненный фонарь',     emoji: '🏮', defaultColor: '#ff8800', tags: ['фонарь','ember lantern','угли','жар','светит'], hint: 'Фонарь с раскалёнными углями' },
+      { kind: 'lava-golem',      label: 'Лавовый голем',       emoji: '🗿', defaultColor: '#cc2200', tags: ['голем','lava golem','фигура','магма','страж'], hint: 'Каменная фигура из застывшей лавы' },
+    ],
+  },
+  {
+    id: 'neon-city', name: 'Неоновый город', icon: '🌆',
+    items: [
+      { kind: 'neon-tower',      label: 'Неоновая башня',      emoji: '🏙', defaultColor: '#00ffcc', tags: ['башня','neon tower','неон','высокая','город'], hint: 'Высокая башня с неоновой подсветкой' },
+      { kind: 'hologram-kiosk',  label: 'Голо-киоск',          emoji: '📡', defaultColor: '#44aaff', tags: ['киоск','hologram','голограмма','информация','синий'], hint: 'Информационный голографический киоск' },
+      { kind: 'cyber-pod',       label: 'Кибер-капсула',       emoji: '🫧', defaultColor: '#00ccff', tags: ['капсула','cyber pod','кибер','прозрачная','сон'], hint: 'Прозрачная кибер-капсула для сна' },
+      { kind: 'neon-fountain',   label: 'Неоновый фонтан',     emoji: '⛲', defaultColor: '#ff44ff', tags: ['фонтан','neon fountain','вода','неон','розовый'], hint: 'Фонтан со светящейся водой' },
+      { kind: 'hover-platform',  label: 'Парящая платформа',   emoji: '🛸', defaultColor: '#aaddff', tags: ['платформа','hover','парить','левитация','будущее'], hint: 'Парящая в воздухе платформа' },
+      { kind: 'data-pillar',     label: 'Столп данных',        emoji: '🔮', defaultColor: '#4444ff', tags: ['столп','data pillar','данные','синий','поток'], hint: 'Столп из потоков цифровых данных' },
+      { kind: 'glitch-box',      label: 'Глитч-куб',           emoji: '📦', defaultColor: '#ff00ff', tags: ['куб','glitch','глитч','мерцает','пикселей'], hint: 'Куб с эффектом глитча' },
+      { kind: 'neon-bench',      label: 'Неоновая скамья',     emoji: '🪑', defaultColor: '#ff8800', tags: ['скамья','neon bench','сидеть','неон','оранжевый'], hint: 'Скамья с неоновой подсветкой' },
+      { kind: 'cyber-gate',      label: 'Кибер-ворота',        emoji: '🚪', defaultColor: '#00ff88', tags: ['ворота','cyber gate','портал','зелёный','вход'], hint: 'Электронные ворота будущего' },
+      { kind: 'signal-array',    label: 'Антенный массив',     emoji: '📡', defaultColor: '#cccccc', tags: ['антенна','signal array','связь','башня','сигнал'], hint: 'Массив антенн для связи' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

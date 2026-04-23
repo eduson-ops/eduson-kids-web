@@ -48,9 +48,17 @@ export default function Hub() {
   const currentLesson = p.currentLesson
   const coins = p.completedLessons * 15 // placeholder: 15 coins per lesson
   const mood = useMascotMood('hub')
+  const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     setName(localStorage.getItem('ek_child_name'))
+  }, [])
+
+  // Плашки растворяются после 200px скролла — чтобы не отвлекали при чтении модулей
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 200)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Unlock modules based on progress: module N unlocks after finishing lesson (N-1)*6
@@ -99,7 +107,7 @@ export default function Hub() {
                 ? '🚀 Начать урок 1'
                 : `▶ Продолжить урок ${safeLesson}`}
           </Link>
-          <Link to="/learn" className="kb-btn kb-btn--lg kb-btn--ghost" style={{ color: 'var(--paper)', boxShadow: 'inset 0 0 0 2px rgba(255,251,243,.6)' }}>
+          <Link to="/learn" className="kb-cover-link-lite">
             Все уроки
           </Link>
         </div>
@@ -129,7 +137,7 @@ export default function Hub() {
         </div>
 
         {/* Plashki встают РЯДОМ в верхний ряд над title, НЕ над пингвином и не в его зоне. */}
-        <div className="kb-cover-deco kb-cover-deco--top-row" aria-hidden>
+        <div className={`kb-cover-deco kb-cover-deco--top-row${scrolled ? ' is-scrolled' : ''}`} aria-hidden>
           <div className="kb-cover-deco-block b-logic" style={{ transform: 'rotate(-4deg)' }}>Если</div>
           <div className="kb-cover-deco-block b-data" style={{ transform: 'rotate(3deg)' }}>Повтори</div>
           <div className="kb-cover-deco-block b-event" style={{ transform: 'rotate(-2deg)' }}>Клик</div>
