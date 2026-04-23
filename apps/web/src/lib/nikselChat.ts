@@ -56,10 +56,11 @@ export async function askNiksel(
   })
 
   let data: ProxyResponse = {}
+  const cloned = resp.clone()
   try {
     data = (await resp.json()) as ProxyResponse
   } catch {
-    const text = await resp.text().catch(() => '')
+    const text = await cloned.text().catch(() => '')
     throw new Error(`Прокси вернул не-JSON (${resp.status}): ${text.slice(0, 200)}`)
   }
 
