@@ -376,6 +376,16 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
+    id: 'garden', name: 'Сад', icon: '🌷',
+    items: [
+      { kind: 'watering-can', label: 'Лейка',        emoji: '🪣', defaultColor: '#4c97ff', tags: ['лейка','watering can','сад','вода','полив'], hint: 'Садовая лейка с носиком' },
+      { kind: 'bird-bath',    label: 'Купальня птиц', emoji: '🐦', defaultColor: '#a9d8ff', tags: ['купальня','bird bath','птицы','сад','фонтан'], hint: 'Каменная купальня для птиц' },
+      { kind: 'garden-gnome', label: 'Гном',          emoji: '🧙', defaultColor: '#ff5464', tags: ['гном','gnome','садовый','декор','шляпа'], hint: 'Милый садовый гном' },
+      { kind: 'flower-bed',   label: 'Клумба',        emoji: '🌸', defaultColor: '#ff5ab1', tags: ['клумба','flower bed','цветы','сад','декор'], hint: 'Цветочная клумба' },
+      { kind: 'trellis',      label: 'Шпалера',       emoji: '🪟', defaultColor: '#8b5a2b', tags: ['шпалера','trellis','решётка','сад','вьюн'], hint: 'Деревянная решётка-шпалера' },
+    ],
+  },
+  {
     id: 'jungle', name: 'Джунгли', icon: '🌴',
     items: [
       { kind: 'palm-tree',   label: 'Пальма',      emoji: '🌴', defaultColor: '#34C38A', tags: ['пальма','palm','дерево','тропики','пляж'], hint: 'Тропическая пальма с листьями' },

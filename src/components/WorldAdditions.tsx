@@ -526,6 +526,18 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'well':
       return <Well pos={pos} color={color} size={size} />
 
+    // ─── Garden ───
+    case 'watering-can':
+      return <WateringCan pos={pos} color={color} size={size} />
+    case 'bird-bath':
+      return <BirdBath pos={pos} color={color} size={size} />
+    case 'garden-gnome':
+      return <GardenGnome pos={pos} color={color} size={size} />
+    case 'flower-bed':
+      return <FlowerBed pos={pos} color={color} size={size} />
+    case 'trellis':
+      return <Trellis pos={pos} color={color} size={size} />
+
     // ─── Jungle ───
     case 'palm-tree':
       return <PalmTree pos={pos} color={color} size={size} />
@@ -4407,6 +4419,218 @@ function PhoneBooth({ pos, color, size }: { pos: [number, number, number]; color
         <boxGeometry args={[size * 0.12, size * 0.02, size * 0.02]} />
         <meshStandardMaterial color="#2a2a2a" roughness={0.9} />
       </mesh>
+    </group>
+  )
+}
+
+// ─── Garden ───────────────────────────────────────────────────────────────
+
+function WateringCan({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const c = color || '#4c97ff'
+  return (
+    <group position={pos}>
+      {/* main body (oval-ish box) */}
+      <mesh position={[0, size * 0.18, 0]} castShadow>
+        <boxGeometry args={[size * 0.55, size * 0.38, size * 0.32]} />
+        <meshStandardMaterial color={c} roughness={0.6} metalness={0.2} />
+      </mesh>
+      {/* spout pipe */}
+      <mesh position={[size * 0.32, size * 0.08, 0]} rotation={[0, 0, -0.5]} castShadow>
+        <cylinderGeometry args={[size * 0.055, size * 0.065, size * 0.4, 8]} />
+        <meshStandardMaterial color={c} roughness={0.6} metalness={0.2} />
+      </mesh>
+      {/* rose (sprinkle head) */}
+      <mesh position={[size * 0.52, -size * 0.08, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.08, size * 0.06, size * 0.06, 10]} />
+        <meshStandardMaterial color="#5a5a5a" roughness={0.5} metalness={0.4} />
+      </mesh>
+      {/* handle arc */}
+      <mesh position={[-size * 0.04, size * 0.38, 0]} rotation={[0, 0, 0.3]} castShadow>
+        <torusGeometry args={[size * 0.2, size * 0.035, 8, 14, Math.PI * 1.1]} />
+        <meshStandardMaterial color={c} roughness={0.6} metalness={0.2} />
+      </mesh>
+      {/* lid */}
+      <mesh position={[0, size * 0.38, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.14, size * 0.18, size * 0.05, 10]} />
+        <meshStandardMaterial color="#3a7ace" roughness={0.6} metalness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function BirdBath({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const stone = color || '#a9d8ff'
+  return (
+    <group position={pos}>
+      {/* pedestal */}
+      <mesh position={[0, size * 0.06, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[size * 0.1, size * 0.14, size * 0.15, 10]} />
+        <meshStandardMaterial color="#9a9a9a" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, size * 0.2, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.07, size * 0.1, size * 0.18, 10]} />
+        <meshStandardMaterial color="#9a9a9a" roughness={0.9} />
+      </mesh>
+      {/* basin */}
+      <mesh position={[0, size * 0.34, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.38, size * 0.28, size * 0.12, 14]} />
+        <meshStandardMaterial color="#8a8a8a" roughness={0.9} />
+      </mesh>
+      {/* water */}
+      <mesh position={[0, size * 0.41, 0]}>
+        <cylinderGeometry args={[size * 0.34, size * 0.34, size * 0.04, 14]} />
+        <meshStandardMaterial color={stone} roughness={0.1} transparent opacity={0.8} />
+      </mesh>
+      {/* base plate */}
+      <mesh position={[0, size * 0.02, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[size * 0.22, size * 0.24, size * 0.06, 14]} />
+        <meshStandardMaterial color="#8a8a8a" roughness={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function GardenGnome({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const hatColor = color || '#ff5464'
+  return (
+    <group position={pos}>
+      {/* shoes */}
+      {[-1, 1].map((s, i) => (
+        <mesh key={i} position={[s * size * 0.07, size * 0.03, size * 0.04]} castShadow>
+          <boxGeometry args={[size * 0.1, size * 0.08, size * 0.18]} />
+          <meshStandardMaterial color="#2a1200" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* legs */}
+      {[-1, 1].map((s, i) => (
+        <mesh key={i} position={[s * size * 0.07, size * 0.15, 0]} castShadow>
+          <cylinderGeometry args={[size * 0.06, size * 0.065, size * 0.18, 8]} />
+          <meshStandardMaterial color="#4c7cb0" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* body */}
+      <mesh position={[0, size * 0.3, 0]} castShadow>
+        <boxGeometry args={[size * 0.28, size * 0.25, size * 0.22]} />
+        <meshStandardMaterial color="#c84848" roughness={0.8} />
+      </mesh>
+      {/* jacket/belt */}
+      <mesh position={[0, size * 0.2, size * 0.115]} castShadow>
+        <boxGeometry args={[size * 0.2, size * 0.06, size * 0.02]} />
+        <meshStandardMaterial color="#3a2000" roughness={0.9} />
+      </mesh>
+      {/* beard */}
+      <mesh position={[0, size * 0.35, size * 0.12]} castShadow>
+        <boxGeometry args={[size * 0.2, size * 0.14, size * 0.04]} />
+        <meshStandardMaterial color="#f5f5f0" roughness={0.9} />
+      </mesh>
+      {/* head */}
+      <mesh position={[0, size * 0.48, 0]} castShadow>
+        <sphereGeometry args={[size * 0.15, 10, 8]} />
+        <meshStandardMaterial color="#f5c87a" roughness={0.8} />
+      </mesh>
+      {/* eyes */}
+      {[-1, 1].map((s, i) => (
+        <mesh key={i} position={[s * size * 0.055, size * 0.5, size * 0.14]} castShadow>
+          <sphereGeometry args={[size * 0.025, 6, 6]} />
+          <meshStandardMaterial color="#2a1200" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* nose */}
+      <mesh position={[0, size * 0.46, size * 0.15]} castShadow>
+        <sphereGeometry args={[size * 0.03, 6, 6]} />
+        <meshStandardMaterial color="#e0a050" roughness={0.8} />
+      </mesh>
+      {/* hat brim */}
+      <mesh position={[0, size * 0.63, 0]} castShadow>
+        <cylinderGeometry args={[size * 0.22, size * 0.22, size * 0.04, 12]} />
+        <meshStandardMaterial color={hatColor} roughness={0.8} />
+      </mesh>
+      {/* hat cone */}
+      <mesh position={[0, size * 0.82, 0]} castShadow>
+        <coneGeometry args={[size * 0.16, size * 0.4, 12]} />
+        <meshStandardMaterial color={hatColor} roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function FlowerBed({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const flowerColor = color || '#ff5ab1'
+  const flowerPositions: Array<[number, number]> = [
+    [0, 0], [-0.18, 0.12], [0.18, -0.1], [-0.08, -0.16], [0.12, 0.14],
+    [0.22, 0.02], [-0.22, -0.06], [0, 0.18], [-0.16, 0.06],
+  ]
+  return (
+    <group position={pos}>
+      {/* soil bed */}
+      <mesh position={[0, size * 0.02, 0]} castShadow receiveShadow>
+        <boxGeometry args={[size * 0.7, size * 0.1, size * 0.5]} />
+        <meshStandardMaterial color="#6b3d00" roughness={0.95} />
+      </mesh>
+      {/* border stones */}
+      {[0, 1, 2, 3].map((i) => {
+        const xSigns = [-1, 1, 0, 0]
+        const zSigns = [0, 0, -1, 1]
+        return (
+          <mesh key={i} position={[xSigns[i] * size * 0.36, size * 0.02, zSigns[i] * size * 0.26]} castShadow>
+            <boxGeometry args={i < 2 ? [size * 0.06, size * 0.12, size * 0.54] : [size * 0.76, size * 0.12, size * 0.06]} />
+            <meshStandardMaterial color="#9a9a9a" roughness={0.9} />
+          </mesh>
+        )
+      })}
+      {/* flowers */}
+      {flowerPositions.map(([x, z], i) => (
+        <group key={i} position={[x * size, size * 0.08, z * size]}>
+          {/* stem */}
+          <mesh castShadow>
+            <cylinderGeometry args={[size * 0.02, size * 0.025, size * 0.18, 6]} />
+            <meshStandardMaterial color="#5ba55b" roughness={0.85} />
+          </mesh>
+          {/* petals */}
+          <mesh position={[0, size * 0.1, 0]} castShadow>
+            <sphereGeometry args={[size * 0.07, 8, 6]} />
+            <meshStandardMaterial color={i % 2 === 0 ? flowerColor : '#FFD43C'} roughness={0.8} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function Trellis({ pos, color, size }: { pos: [number, number, number]; color: string; size: number }) {
+  const wood = color || '#8b5a2b'
+  const verts = 4
+  const horiz = 5
+  return (
+    <group position={pos}>
+      {/* vertical posts */}
+      {Array.from({ length: verts }, (_, i) => (
+        <mesh key={i} position={[(i / (verts - 1) - 0.5) * size * 0.8, size * 0.5, 0]} castShadow>
+          <cylinderGeometry args={[size * 0.03, size * 0.035, size * 1.1, 6]} />
+          <meshStandardMaterial color={wood} roughness={0.9} />
+        </mesh>
+      ))}
+      {/* horizontal rails */}
+      {Array.from({ length: horiz }, (_, i) => (
+        <mesh key={i} position={[0, size * (i / (horiz - 1) * 0.9 + 0.05), 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
+          <cylinderGeometry args={[size * 0.022, size * 0.022, size * 0.86, 6]} />
+          <meshStandardMaterial color={wood} roughness={0.9} />
+        </mesh>
+      ))}
+      {/* diagonal vines */}
+      {[-1, 1].map((s, i) => (
+        <mesh key={i} position={[0, size * 0.5, 0]} rotation={[0, 0, s * 0.55]} castShadow>
+          <cylinderGeometry args={[size * 0.016, size * 0.016, size * 1.1, 6]} />
+          <meshStandardMaterial color="#5ba55b" roughness={0.9} />
+        </mesh>
+      ))}
+      {/* leaf dots on vine */}
+      {[-0.3, 0, 0.3].map((y, i) => (
+        <mesh key={i} position={[y * size * 0.5, size * (0.5 + y * 0.35), size * 0.02]} castShadow>
+          <sphereGeometry args={[size * 0.055, 6, 6]} />
+          <meshStandardMaterial color="#48c774" roughness={0.85} />
+        </mesh>
+      ))}
     </group>
   )
 }

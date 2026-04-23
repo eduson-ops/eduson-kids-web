@@ -90,6 +90,8 @@ export type PropKind =
   | 'palm-tree' | 'bamboo' | 'snake-deco' | 'tribal-mask' | 'vine-swing'
   // City
   | 'traffic-light' | 'fire-hydrant' | 'mailbox' | 'street-lamp' | 'phone-booth'
+  // Garden
+  | 'watering-can' | 'bird-bath' | 'garden-gnome' | 'flower-bed' | 'trellis'
 
 export interface SpawnedPart {
   id: string
