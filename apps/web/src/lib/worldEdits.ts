@@ -371,6 +371,12 @@ export type PropKind =
   | 'glow-vine-b45' | 'neon-flower-b45' | 'biolume-tree-b45' | 'radiant-mushroom-b45' | 'pulse-root-b45'
   // Medieval Tavern
   | 'ale-barrel-b45' | 'tavern-table-b45' | 'fire-hearth-b45' | 'trophy-mount-b45' | 'dart-board-b45'
+  // Space Bazaar
+  | 'alien-vendor-b46' | 'zero-g-shelf-b46' | 'plasma-gem-b46' | 'star-fruit-stand-b46' | 'holo-price-b46'
+  // Fairy Garden
+  | 'toadstool-house-b46' | 'flower-lantern-b46' | 'butterfly-arch-b46' | 'petal-bridge-b46' | 'dewdrop-pond-b46'
+  // Steampunk Factory
+  | 'gear-cluster-b46' | 'steam-piston-b46' | 'furnace-unit-b46' | 'conveyor-belt-b46' | 'pressure-gauge-b46'
 
 export interface SpawnedPart {
   id: string

@@ -1791,6 +1791,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'dart-board-b45',    label: 'Мишень для дротиков',emoji: '🎯', defaultColor: '#cc2200', tags: ['мишень','dart board','дротик','игра','таверна'], hint: 'Пробковая мишень с дротиками' },
     ],
   },
+  {
+    id: 'space-bazaar-b46', name: '🛸 Космический базар', icon: '🛸',
+    items: [
+      { kind: 'alien-vendor-b46',    label: 'Торговец-пришелец',  emoji: '👽', defaultColor: '#44cc66', tags: ['пришелец','alien vendor','торговец','космос','рынок'], hint: 'Инопланетный торговец за прилавком' },
+      { kind: 'zero-g-shelf-b46',    label: 'Полка в невесомости',emoji: '🛸', defaultColor: '#8899cc', tags: ['полка','zero g shelf','невесомость','космос','магазин'], hint: 'Товары парят над полкой' },
+      { kind: 'plasma-gem-b46',      label: 'Плазменный кристалл',emoji: '💎', defaultColor: '#cc44ff', tags: ['кристалл','plasma gem','плазма','космос','драгоценность'], hint: 'Светящийся энергетический кристалл' },
+      { kind: 'star-fruit-stand-b46',label: 'Лоток звёздных фруктов',emoji: '⭐', defaultColor: '#ffdd22', tags: ['фрукты','star fruit stand','звезда','рынок','экзотика'], hint: 'Светящиеся инопланетные фрукты' },
+      { kind: 'holo-price-b46',      label: 'Голографический ценник',emoji: '📟', defaultColor: '#00ffcc', tags: ['ценник','holo price','голограмма','космос','реклама'], hint: 'Мерцающий голографический дисплей' },
+    ],
+  },
+  {
+    id: 'fairy-garden-b46', name: '🧚 Сказочный сад', icon: '🧚',
+    items: [
+      { kind: 'toadstool-house-b46', label: 'Домик-мухомор',      emoji: '🍄', defaultColor: '#ff4422', tags: ['мухомор','toadstool house','гриб','сказка','дом'], hint: 'Крошечный домик в шляпке мухомора' },
+      { kind: 'flower-lantern-b46',  label: 'Фонарь-цветок',      emoji: '🌸', defaultColor: '#ff88aa', tags: ['фонарь','flower lantern','цветок','сад','свет'], hint: 'Нежный светящийся цветок-фонарь' },
+      { kind: 'butterfly-arch-b46',  label: 'Арка с бабочками',   emoji: '🦋', defaultColor: '#aa66ff', tags: ['арка','butterfly arch','бабочка','сад','ворота'], hint: 'Арка увитая живыми бабочками' },
+      { kind: 'petal-bridge-b46',    label: 'Мост из лепестков',  emoji: '🌺', defaultColor: '#ff6688', tags: ['мост','petal bridge','лепесток','сад','переход'], hint: 'Изящный мостик из цветочных лепестков' },
+      { kind: 'dewdrop-pond-b46',    label: 'Пруд из росы',       emoji: '💧', defaultColor: '#44aaff', tags: ['пруд','dewdrop pond','роса','вода','сад'], hint: 'Крошечный прозрачный прудик' },
+    ],
+  },
+  {
+    id: 'steampunk-factory-b46', name: '⚙️ Паровой завод', icon: '⚙️',
+    items: [
+      { kind: 'gear-cluster-b46',    label: 'Шестерёнки',         emoji: '⚙️', defaultColor: '#996633', tags: ['шестерня','gear cluster','механизм','стимпанк','завод'], hint: 'Сцепленные бронзовые шестерёнки' },
+      { kind: 'steam-piston-b46',    label: 'Паровой поршень',    emoji: '🔩', defaultColor: '#888888', tags: ['поршень','steam piston','пар','механизм','стимпанк'], hint: 'Мощный двигающийся поршень' },
+      { kind: 'furnace-unit-b46',    label: 'Паровая печь',       emoji: '🔥', defaultColor: '#cc4400', tags: ['печь','furnace unit','огонь','сталь','стимпанк'], hint: 'Раскалённая паровая топка' },
+      { kind: 'conveyor-belt-b46',   label: 'Конвейер',           emoji: '🏭', defaultColor: '#555555', tags: ['конвейер','conveyor belt','завод','механизм','производство'], hint: 'Движущаяся лента конвейера' },
+      { kind: 'pressure-gauge-b46',  label: 'Манометр',           emoji: '🌡️', defaultColor: '#cc8800', tags: ['манометр','pressure gauge','давление','пар','стимпанк'], hint: 'Латунный манометр с красной стрелкой' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
