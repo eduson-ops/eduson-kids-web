@@ -275,6 +275,42 @@ export type PropKind =
   | 'saloon-b28' | 'wild-west-wagon' | 'west-sheriff-star' | 'tumbleweed-b28' | 'water-tower-west'
   | 'west-gold-nugget' | 'cactus-big' | 'bandit-campfire' | 'oil-derrick' | 'barn-west'
   | 'west-street-lanterns' | 'gold-mine-cart'
+  // Medieval Market
+  | 'b29-market-stall' | 'medieval-well' | 'medieval-catapult' | 'herald-banner' | 'smithy-anvil'
+  | 'medieval-tavern' | 'medieval-knight-statue' | 'medieval-crossbow' | 'merchant-chest'
+  // Tech Lab
+  | 'tech-hologram' | 'tech-robot-arm' | 'dna-helix' | 'quantum-computer' | 'laser-cutter'
+  | 'nanodrone-swarm' | 'plasma-reactor' | 'cloning-pod' | 'lab-beaker' | 'time-portal'
+  // Space Station
+  | 'space-station-hub' | 'space-oxy-tank' | 'asteroid-b30' | 'space-airlock' | 'space-sat-dish'
+  | 'space-pod' | 'space-helmet' | 'b30-space-debris' | 'nebula-clouds'
+  // Underwater Castle
+  | 'underwater-castle' | 'coral-spire' | 'mermaid-statue' | 'underwater-anchor' | 'bubble-stream'
+  | 'ocean-treasure-map' | 'b30-sea-turtle' | 'wreck-cannon' | 'aqua-gargoyle' | 'underwater-gate'
+  // Steampunk City
+  | 'steam-piston' | 'gearwork-clock' | 'airship-b31' | 'steam-pipe-system' | 'brass-gauge'
+  | 'steampunk-golem' | 'telegraph-station' | 'steam-factory' | 'zeppelin-b31'
+  // Anime Dojo
+  | 'dojo-punching-dummy' | 'katana-blade' | 'dojo-scroll-board' | 'ninja-tower' | 'anime-energy-orb'
+  | 'tako-yaki-cart' | 'dojo-mat' | 'breaking-boards' | 'training-bell'
+  // Enchanted Forest
+  | 'fairy-ring-b32' | 'glowing-tree-b32' | 'pixie-dust' | 'ancient-tree-spirit' | 'enchanted-mushroom'
+  | 'crystal-cave-32' | 'druid-stone' | 'wisteria-arch' | 'willow-tree'
+  // Post-Apocalypse
+  | 'ruined-skyscraper' | 'rusted-car-wreck' | 'radiation-barrel' | 'scavenger-tower' | 'wasteland-turret'
+  | 'bunker-entrance' | 'apoc-solar-panel' | 'post-apoc-telephone'
+  // Farm
+  | 'farm-hay-bale' | 'chicken-coop' | 'tractor-b33' | 'farm-silo' | 'garden-scarecrow'
+  | 'rooster-weather-vane' | 'pig-pen' | 'water-mill'
+  // Industrial Port
+  | 'port-crane' | 'shipping-container' | 'dock-cleat' | 'storage-tank-b33' | 'fork-lift'
+  | 'fishing-boat' | 'lighthouse-port-b33' | 'coal-conveyor' | 'industrial-chimney'
+  // Ancient Greece
+  | 'greek-pillar' | 'greek-urn-b34' | 'greek-shield' | 'olive-tree-b34' | 'greek-lyre'
+  | 'athens-owl-b34' | 'trireme-b34' | 'parthenon-cap'
+  // Cyberpunk City
+  | 'neon-sign-b34' | 'cyber-tower-b34' | 'hover-car-b34' | 'data-terminal-b34'
+  | 'cyber-blade-b34' | 'synth-plant-b34' | 'cyber-drone-b34' | 'power-core-b34' | 'cyber-bridge-b34'
 
 export interface SpawnedPart {
   id: string

@@ -24,6 +24,8 @@ const Designbook = lazy(() => import('./pages/Designbook'))
 const Billing = lazy(() => import('./pages/Billing'))
 const Settings = lazy(() => import('./pages/Settings'))
 const Legal = lazy(() => import('./pages/Legal'))
+const Teacher = lazy(() => import('./pages/Teacher'))
+const Leagues = lazy(() => import('./pages/Leagues'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -242,6 +244,22 @@ export default function App() {
           element={
             <Suspense fallback={<RouteLoader label="Открываю документ…" />}>
               <Legal />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/teacher"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю кабинет учителя…" />}>
+              <Teacher />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/leagues"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю лиги…" />}>
+              <Leagues />
             </Suspense>
           }
         />

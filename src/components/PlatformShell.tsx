@@ -16,7 +16,7 @@ interface Props {
   activeKey?: NavKey
 }
 
-type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing' | 'settings'
+type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing' | 'settings' | 'teacher' | 'leagues'
 
 interface NavItem {
   key: NavKey
@@ -34,9 +34,10 @@ const GROUPS: NavGroup[] = [
   {
     label: 'Обучение',
     items: [
-      { key: 'hub',       label: 'Главная',       to: '/',      emoji: '🏠' },
-      { key: 'learn',     label: 'Уроки',         to: '/learn', emoji: '📚' },
-      { key: 'portfolio', label: 'Мой прогресс',  to: '/me',    emoji: '📊' },
+      { key: 'hub',       label: 'Главная',       to: '/',        emoji: '🏠' },
+      { key: 'learn',     label: 'Уроки',         to: '/learn',   emoji: '📚' },
+      { key: 'portfolio', label: 'Мой прогресс',  to: '/me',      emoji: '📊' },
+      { key: 'leagues',   label: 'Лиги',          to: '/leagues', emoji: '🏆' },
     ],
   },
   {
@@ -51,6 +52,7 @@ const GROUPS: NavGroup[] = [
     label: 'Аккаунт',
     items: [
       { key: 'parent',   label: 'Родителям', to: '/parent',   emoji: '👨‍👩‍👦' },
+      { key: 'teacher',  label: 'Учителям',  to: '/teacher',  emoji: '🎓' },
       { key: 'billing',  label: 'Оплата',    to: '/billing',  emoji: '💳' },
       { key: 'settings', label: 'Настройки', to: '/settings', emoji: '⚙️' },
       { key: 'profile',  label: 'Аватар',    to: '/profile',  emoji: '🎭' },
@@ -201,5 +203,7 @@ function inferKey(path: string): NavKey | undefined {
   if (path.startsWith('/billing')) return 'billing'
   if (path.startsWith('/settings')) return 'settings'
   if (path.startsWith('/designbook')) return 'designbook'
+  if (path.startsWith('/teacher')) return 'teacher'
+  if (path.startsWith('/leagues')) return 'leagues'
   return undefined
 }

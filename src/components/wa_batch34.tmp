@@ -1,0 +1,475 @@
+
+// === BATCH 34: Ancient Greece + Cyberpunk City ===
+interface P34 { pos: [number,number,number]; color: string; size: number }
+
+function GreekPillar({ pos, color, size }: P34) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <cylinderGeometry args={[size*0.18, size*0.2, size*1.6, 12]} />
+        <meshStandardMaterial color={color} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, size*0.85, 0]}>
+        <boxGeometry args={[size*0.45, size*0.12, size*0.45]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, -size*0.85, 0]}>
+        <boxGeometry args={[size*0.5, size*0.1, size*0.5]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {([-0.3, 0, 0.3] as number[]).map((y, i) => (
+        <mesh key={i} position={[0, y * size * 0.5, 0]}>
+          <torusGeometry args={[size*0.19, size*0.02, 6, 16]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GreekUrnB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => { ref.current.rotation.y = clock.getElapsedTime() * 0.3 })
+  return (
+    <group position={pos}>
+      <mesh ref={ref} castShadow>
+        <sphereGeometry args={[size*0.35, 12, 10, 0, Math.PI*2, 0, Math.PI*0.7]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.2} />
+      </mesh>
+      <mesh position={[0, -size*0.28, 0]}>
+        <cylinderGeometry args={[size*0.08, size*0.14, size*0.28, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, -size*0.42, 0]}>
+        <cylinderGeometry args={[size*0.2, size*0.2, size*0.05, 8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s * size*0.38, 0, 0]} rotation={[0, 0, s * 1.4]}>
+          <torusGeometry args={[size*0.12, size*0.025, 6, 10, Math.PI*0.8]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GreekShield({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => { ref.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.5) * 0.15 })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh castShadow>
+        <cylinderGeometry args={[size*0.55, size*0.55, size*0.07, 24]} />
+        <meshStandardMaterial color={color} roughness={0.4} metalness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.06, 0]}>
+        <cylinderGeometry args={[size*0.28, size*0.28, size*0.04, 24]} />
+        <meshStandardMaterial color="#c8a000" roughness={0.3} metalness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.1, 0]}>
+        <sphereGeometry args={[size*0.1, 8, 8]} />
+        <meshStandardMaterial color="#c8a000" roughness={0.3} metalness={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function OliveTreeB34({ pos, color, size }: P34) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <cylinderGeometry args={[size*0.08, size*0.12, size*0.9, 6]} />
+        <meshStandardMaterial color="#8B6914" roughness={0.9} />
+      </mesh>
+      {([
+        [0, size*0.7, 0, size*0.55],
+        [0, size*0.45, size*0.15, size*0.4],
+        [0, size*0.55, -size*0.12, size*0.35],
+      ] as [number,number,number,number][]).map(([x,y,z,r], i) => (
+        <mesh key={i} position={[x,y,z]} castShadow>
+          <sphereGeometry args={[r, 8, 6]} />
+          <meshStandardMaterial color={color} roughness={0.9} />
+        </mesh>
+      ))}
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.18, size*0.55, 0]}>
+          <sphereGeometry args={[size*0.06, 5, 4]} />
+          <meshStandardMaterial color="#9acd32" roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GreekLyre({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => { ref.current.rotation.y = clock.getElapsedTime() * 0.4 })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh castShadow>
+        <torusGeometry args={[size*0.32, size*0.06, 6, 20, Math.PI]} />
+        <meshStandardMaterial color={color} roughness={0.5} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, -size*0.32, 0]} rotation={[0,0,0]}>
+        <boxGeometry args={[size*0.08, size*0.35, size*0.06]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {([-0.18, -0.06, 0.06, 0.18] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, -size*0.1, 0]}>
+          <cylinderGeometry args={[size*0.01, size*0.01, size*0.5, 4]} />
+          <meshStandardMaterial color="#c8a000" roughness={0.3} metalness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function AthensOwlB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = Math.sin(clock.getElapsedTime() * 0.7) * 0.2
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 1.2) * size * 0.04
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <sphereGeometry args={[size*0.28, 10, 8]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.24, 0]}>
+        <sphereGeometry args={[size*0.2, 10, 8]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.1, size*0.28, size*0.12]}>
+          <sphereGeometry args={[size*0.07, 6, 6]} />
+          <meshStandardMaterial color="#ffcc00" emissive="#aa7700" emissiveIntensity={0.4} />
+        </mesh>
+      ))}
+      {([-1, 1] as number[]).map((s, i) => (
+        <mesh key={i} position={[s*size*0.12, size*0.36, 0]}>
+          <coneGeometry args={[size*0.06, size*0.1, 4]} />
+          <meshStandardMaterial color={color} roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function TriremeB34({ pos, color, size }: P34) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*1.6, size*0.25, size*0.5]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, size*0.2, 0]}>
+        <boxGeometry args={[size*1.4, size*0.08, size*0.3]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.5, 0]} rotation={[0,0,0]}>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.9, 6]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, size*0.52, -size*0.22]}>
+        <boxGeometry args={[size*0.8, size*0.5, size*0.03]} />
+        <meshStandardMaterial color="#cc3300" roughness={0.8} />
+      </mesh>
+      <mesh position={[size*0.75, size*0.1, 0]}>
+        <coneGeometry args={[size*0.06, size*0.28, 8]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function ParthenoCap({ pos, color, size }: P34) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*1.2, size*0.08, size*0.8]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.15, 0]}>
+        <boxGeometry args={[size*1.0, size*0.12, size*0.65]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, size*0.33, 0]}>
+        <boxGeometry args={[size*1.1, size*0.4, size*0.04]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {([-0.45, -0.15, 0.15, 0.45] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, -size*0.36, 0]}>
+          <cylinderGeometry args={[size*0.07, size*0.08, size*0.65, 10]} />
+          <meshStandardMaterial color={color} roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function NeonSignB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.6 + Math.sin(t * 3) * 0.4
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[size*1.1, size*0.45, size*0.06]} />
+        <meshStandardMaterial color="#1a1a2e" roughness={0.8} />
+      </mesh>
+      <mesh ref={ref} position={[0, 0, size*0.04]}>
+        <torusGeometry args={[size*0.18, size*0.03, 6, 20]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} roughness={0.2} />
+      </mesh>
+      {([-0.3, 0.3] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, 0, size*0.04]}>
+          <boxGeometry args={[size*0.3, size*0.04, size*0.02]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.9} roughness={0.2} />
+        </mesh>
+      ))}
+      <mesh position={[0, -size*0.3, 0]}>
+        <boxGeometry args={[size*0.06, size*0.3, size*0.06]} />
+        <meshStandardMaterial color="#333" roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function CyberTowerB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4 + Math.sin(clock.getElapsedTime() * 2) * 0.3
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*0.5, size*2.2, size*0.5]} />
+        <meshStandardMaterial color="#1a1a2e" roughness={0.3} metalness={0.8} />
+      </mesh>
+      {([0.3, 0.75, 1.2, 1.65] as number[]).map((y, i) => (
+        <mesh key={i} position={[0, (y - 0.8) * size, 0]}>
+          <boxGeometry args={[size*0.55, size*0.06, size*0.55]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} roughness={0.3} />
+        </mesh>
+      ))}
+      <mesh ref={ref} position={[0, size*1.2, 0]}>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.3, 6]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, size*1.37, 0]}>
+        <sphereGeometry args={[size*0.07, 6, 6]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function HoverCarB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 1.5) * size * 0.06
+    ref.current.rotation.y = clock.getElapsedTime() * 0.3
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*1.0, size*0.22, size*0.5]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.17, 0]}>
+        <boxGeometry args={[size*0.65, size*0.18, size*0.44]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.6} />
+      </mesh>
+      {([-0.35, 0.35] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, -size*0.15, 0]}>
+          <torusGeometry args={[size*0.14, size*0.04, 6, 14]} />
+          <meshStandardMaterial color="#00e5ff" emissive="#00e5ff" emissiveIntensity={0.8} roughness={0.2} />
+        </mesh>
+      ))}
+      <mesh position={[size*0.52, 0, 0]}>
+        <sphereGeometry args={[size*0.06, 6, 6]} />
+        <meshStandardMaterial color="#ff4444" emissive="#ff4444" emissiveIntensity={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function DataTerminalB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(clock.getElapsedTime() * 4) * 0.3
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, -size*0.3, 0]} castShadow>
+        <boxGeometry args={[size*0.45, size*0.7, size*0.3]} />
+        <meshStandardMaterial color="#1a1a2e" roughness={0.4} metalness={0.7} />
+      </mesh>
+      <mesh position={[0, size*0.2, size*0.03]}>
+        <boxGeometry args={[size*0.38, size*0.42, size*0.04]} />
+        <meshStandardMaterial color="#0a0a1a" roughness={0.3} metalness={0.5} />
+      </mesh>
+      <mesh ref={ref} position={[0, size*0.2, size*0.06]}>
+        <boxGeometry args={[size*0.32, size*0.35, size*0.01]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.1} />
+      </mesh>
+      <mesh position={[0, -size*0.68, 0]}>
+        <boxGeometry args={[size*0.55, size*0.05, size*0.4]} />
+        <meshStandardMaterial color="#333" roughness={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function CyberBladeB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 1.2
+    ref.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.8) * 0.15
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, size*0.3, 0]} castShadow>
+        <boxGeometry args={[size*0.06, size*0.8, size*0.18]} />
+        <meshStandardMaterial color={color} roughness={0.1} metalness={0.9} />
+      </mesh>
+      <mesh position={[0, size*0.75, 0]}>
+        <boxGeometry args={[size*0.04, size*0.2, size*0.06]} />
+        <meshStandardMaterial color="#00e5ff" emissive="#00e5ff" emissiveIntensity={1.0} roughness={0.1} />
+      </mesh>
+      <mesh position={[0, -size*0.12, 0]}>
+        <boxGeometry args={[size*0.12, size*0.16, size*0.12]} />
+        <meshStandardMaterial color="#333" roughness={0.3} metalness={0.8} />
+      </mesh>
+      <mesh position={[0, -size*0.36, 0]}>
+        <cylinderGeometry args={[size*0.04, size*0.04, size*0.45, 8]} />
+        <meshStandardMaterial color="#444" roughness={0.4} metalness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function SynthPlantB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 0.25
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh position={[0, -size*0.2, 0]}>
+        <cylinderGeometry args={[size*0.12, size*0.15, size*0.25, 6]} />
+        <meshStandardMaterial color="#1a1a2e" roughness={0.4} metalness={0.6} />
+      </mesh>
+      {([0, 1, 2, 3, 4] as number[]).map((i) => (
+        <mesh key={i} position={[
+          Math.sin(i * 1.26) * size * 0.22,
+          (i * 0.22 - 0.2) * size,
+          Math.cos(i * 1.26) * size * 0.22
+        ]} rotation={[0, i * 1.26, 0.5]}>
+          <boxGeometry args={[size*0.28, size*0.06, size*0.04]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} roughness={0.3} />
+        </mesh>
+      ))}
+      <mesh position={[0, size*0.9, 0]}>
+        <sphereGeometry args={[size*0.12, 6, 6]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.9} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function CyberDroneB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    ref.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 2.5) * size * 0.08
+    ref.current.rotation.y = clock.getElapsedTime() * 1.5
+  })
+  return (
+    <group ref={ref} position={pos}>
+      <mesh castShadow>
+        <boxGeometry args={[size*0.35, size*0.1, size*0.35]} />
+        <meshStandardMaterial color={color} roughness={0.3} metalness={0.7} />
+      </mesh>
+      {([[-1,-1], [-1,1], [1,-1], [1,1]] as number[][]).map(([x,z], i) => (
+        <group key={i} position={[x*size*0.28, 0, z*size*0.28]}>
+          <mesh>
+            <cylinderGeometry args={[size*0.04, size*0.04, size*0.04, 6]} />
+            <meshStandardMaterial color="#333" roughness={0.4} />
+          </mesh>
+          <mesh>
+            <torusGeometry args={[size*0.1, size*0.015, 4, 12]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.2} />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[0, -size*0.08, 0]}>
+        <sphereGeometry args={[size*0.06, 6, 6]} />
+        <meshStandardMaterial color="#00e5ff" emissive="#00e5ff" emissiveIntensity={1.0} />
+      </mesh>
+    </group>
+  )
+}
+
+function PowerCoreB34({ pos, color, size }: P34) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    ref.current.rotation.y = clock.getElapsedTime() * 2.0
+    ref.current.rotation.x = clock.getElapsedTime() * 0.7;
+    (ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.6 + Math.sin(clock.getElapsedTime() * 3) * 0.4
+  })
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <octahedronGeometry args={[size*0.42, 0]} />
+        <meshStandardMaterial color="#1a1a2e" roughness={0.2} metalness={0.9} />
+      </mesh>
+      <mesh ref={ref}>
+        <dodecahedronGeometry args={[size*0.32, 0]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} roughness={0.1} transparent opacity={0.7} />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[size*0.18, 8, 8]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.2} roughness={0.0} />
+      </mesh>
+      {([0, 1, 2, 3] as number[]).map((i) => (
+        <mesh key={i} position={[Math.sin(i*1.57)*size*0.44, 0, Math.cos(i*1.57)*size*0.44]}>
+          <boxGeometry args={[size*0.06, size*0.35, size*0.06]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function CyberBridgeB34({ pos, color, size }: P34) {
+  return (
+    <group position={pos}>
+      <mesh position={[0, 0, 0]} castShadow>
+        <boxGeometry args={[size*2.0, size*0.08, size*0.5]} />
+        <meshStandardMaterial color="#1a1a2e" roughness={0.3} metalness={0.8} />
+      </mesh>
+      {([-0.8, 0.8] as number[]).map((x, i) => (
+        <group key={i} position={[x*size, 0, 0]}>
+          <mesh position={[0, size*0.35, 0]}>
+            <cylinderGeometry args={[size*0.05, size*0.05, size*0.7, 6]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} roughness={0.2} />
+          </mesh>
+          <mesh position={[0, size*0.72, 0]}>
+            <sphereGeometry args={[size*0.07, 6, 6]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.0} roughness={0.1} />
+          </mesh>
+        </group>
+      ))}
+      {([-0.4, 0, 0.4] as number[]).map((x, i) => (
+        <mesh key={i} position={[x*size, size*0.06, 0]}>
+          <boxGeometry args={[size*0.04, size*0.05, size*0.5]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} roughness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
