@@ -46,7 +46,7 @@ export default function Studio() {
 
   // Прогреваем Pyodide сразу — первая попытка Live-режима должна быть быстрой
   useEffect(() => {
-    void warmPyodide()
+    warmPyodide().catch(console.error)
   }, [])
 
   // ─── Глобальный Live-watcher (персистит между вкладками) ───
