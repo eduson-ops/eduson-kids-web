@@ -214,6 +214,12 @@ export type PropKind =
   // Haunted Mansion
   | 'ghost-lantern' | 'gravestone' | 'haunted-tree' | 'cauldron-bubble' | 'bat-swarm'
   | 'cobweb-arch' | 'coffin-lid' | 'potion-shelf' | 'cursed-mirror' | 'spirit-flame'
+  // Robot Factory
+  | 'assembly-arm' | 'conveyor-belt' | 'robot-drone' | 'gear-column' | 'spark-welder'
+  | 'circuit-panel' | 'power-core' | 'sensor-tower' | 'cargo-claw' | 'bot-chassis'
+  // Underwater City
+  | 'kelp-tower' | 'bubble-dome' | 'sea-arch' | 'clam-throne' | 'whirlpool-gate'
+  | 'glowing-jellyfish' | 'sunken-statue' | 'treasure-chest-sea' | 'anglerfish-lamp' | 'submarine-dock'
 
 export interface SpawnedPart {
   id: string

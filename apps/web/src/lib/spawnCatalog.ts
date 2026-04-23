@@ -1050,6 +1050,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'spirit-flame',   label: 'Дух огня',            emoji: '👻', defaultColor: '#44aaff', tags: ['дух','spirit flame','синий','огонь','призрак'], hint: 'Синий призрачный огонёк' },
     ],
   },
+  {
+    id: 'robot-factory', name: 'Роботзавод', icon: '🤖',
+    items: [
+      { kind: 'assembly-arm',   label: 'Сборочная рука',       emoji: '🦾', defaultColor: '#888888', tags: ['рука','assembly arm','роботизированная','механическая','завод'], hint: 'Механическая рука-манипулятор' },
+      { kind: 'conveyor-belt',  label: 'Конвейер',             emoji: '📦', defaultColor: '#666666', tags: ['конвейер','conveyor belt','лента','завод','движется'], hint: 'Движущийся конвейер с коробками' },
+      { kind: 'robot-drone',    label: 'Дрон-робот',           emoji: '🤖', defaultColor: '#aaaaaa', tags: ['дрон','robot drone','летает','робот','металл'], hint: 'Летающий дрон-разведчик' },
+      { kind: 'gear-column',    label: 'Шестерёнчатая колонна',emoji: '⚙', defaultColor: '#777777', tags: ['колонна','gear','шестерня','механизм','вращается'], hint: 'Колонна из крутящихся шестерёнок' },
+      { kind: 'spark-welder',   label: 'Сварочный аппарат',    emoji: '⚡', defaultColor: '#ffaa00', tags: ['сварка','spark welder','искры','огонь','металл'], hint: 'Сварочный аппарат с искрами' },
+      { kind: 'circuit-panel',  label: 'Панель управления',    emoji: '🖥', defaultColor: '#224488', tags: ['панель','circuit panel','схема','кнопки','контроль'], hint: 'Панель управления с индикаторами' },
+      { kind: 'power-core',     label: 'Энергетическое ядро',  emoji: '🔋', defaultColor: '#44ffaa', tags: ['ядро','power core','энергия','светится','зелёный'], hint: 'Пульсирующее энергетическое ядро' },
+      { kind: 'sensor-tower',   label: 'Башня сенсоров',       emoji: '📡', defaultColor: '#cc8833', tags: ['башня','sensor tower','сенсор','радар','вращается'], hint: 'Башня со вращающимися сенсорами' },
+      { kind: 'cargo-claw',     label: 'Грузозахватный зажим', emoji: '🔩', defaultColor: '#888844', tags: ['зажим','cargo claw','груз','кран','захват'], hint: 'Промышленный грузозахватный зажим' },
+      { kind: 'bot-chassis',    label: 'Корпус робота',         emoji: '🤖', defaultColor: '#6688aa', tags: ['корпус','bot chassis','робот','металл','сборка'], hint: 'Готовый корпус собираемого робота' },
+    ],
+  },
+  {
+    id: 'underwater-city', name: 'Подводный город', icon: '🌊',
+    items: [
+      { kind: 'kelp-tower',       label: 'Башня из водорослей', emoji: '🌿', defaultColor: '#226633', tags: ['башня','kelp tower','водоросли','океан','зелёный'], hint: 'Высокая башня из морских водорослей' },
+      { kind: 'bubble-dome',      label: 'Пузырьковый купол',   emoji: '🫧', defaultColor: '#44aaff', tags: ['купол','bubble dome','пузырь','прозрачный','подводный'], hint: 'Прозрачный купол с воздухом внутри' },
+      { kind: 'sea-arch',         label: 'Морская арка',        emoji: '🪸', defaultColor: '#ff6699', tags: ['арка','sea arch','коралловая','ворота','подводная'], hint: 'Арка из кораллов и ракушек' },
+      { kind: 'clam-throne',      label: 'Трон-ракушка',        emoji: '🐚', defaultColor: '#ffaacc', tags: ['трон','clam throne','ракушка','жемчуг','розовый'], hint: 'Трон из гигантской ракушки' },
+      { kind: 'whirlpool-gate',   label: 'Водоворотные врата',  emoji: '🌀', defaultColor: '#4488ff', tags: ['врата','whirlpool gate','водоворот','портал','синий'], hint: 'Врата с водоворотом' },
+      { kind: 'glowing-jellyfish',label: 'Медуза-фонарь',       emoji: '🪼', defaultColor: '#ff88ff', tags: ['медуза','jellyfish','светится','розовая','океан'], hint: 'Светящаяся медуза' },
+      { kind: 'sunken-statue',    label: 'Затонувшая статуя',   emoji: '🗿', defaultColor: '#5588aa', tags: ['статуя','sunken','затонувшая','мох','древняя'], hint: 'Затонувшая статуя, покрытая водорослями' },
+      { kind: 'treasure-chest-sea', label: 'Затопленный сундук', emoji: '💰', defaultColor: '#8b5a1a', tags: ['сундук','treasure','золото','подводный','клад'], hint: 'Сундук с сокровищами на дне' },
+      { kind: 'anglerfish-lamp',  label: 'Фонарь-удильщик',     emoji: '🐟', defaultColor: '#223355', tags: ['рыба','anglerfish lamp','удильщик','фонарь','тёмный'], hint: 'Удильщик со светящейся приманкой' },
+      { kind: 'submarine-dock',   label: 'Стыковочный узел',    emoji: '🚢', defaultColor: '#445566', tags: ['стыковка','submarine dock','узел','подводная','база'], hint: 'Стыковочный узел для субмарин' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
