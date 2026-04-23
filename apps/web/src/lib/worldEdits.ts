@@ -365,6 +365,12 @@ export type PropKind =
   | 'cryo-chamber-b44' | 'ice-console-b44' | 'freeze-ray-b44' | 'ice-specimen-b44' | 'blizzard-core-b44'
   // Pirate Island
   | 'palm-with-flag-b44' | 'crab-trap-b44' | 'message-bottle-b44' | 'treasure-x-b44' | 'parrot-perch-b44'
+  // Village Market
+  | 'bread-stall-b45' | 'cheese-wheel-b45' | 'herb-bundle-b45' | 'clay-pot-b45' | 'woven-mat-b45'
+  // Neon Jungle
+  | 'glow-vine-b45' | 'neon-flower-b45' | 'biolume-tree-b45' | 'radiant-mushroom-b45' | 'pulse-root-b45'
+  // Medieval Tavern
+  | 'ale-barrel-b45' | 'tavern-table-b45' | 'fire-hearth-b45' | 'trophy-mount-b45' | 'dart-board-b45'
 
 export interface SpawnedPart {
   id: string

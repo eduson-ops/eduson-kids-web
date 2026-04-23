@@ -1694,6 +1694,24 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'message-bottle-b44': return <MessageBottleB44 pos={pos} color={color} size={size} />
     case 'treasure-x-b44': return <TreasureXB44 pos={pos} color={color} size={size} />
     case 'parrot-perch-b44': return <ParrotPerchB44 pos={pos} color={color} size={size} />
+    // Batch 45 — Village Market
+    case 'bread-stall-b45': return <BreadStallB45 pos={pos} color={color} size={size} />
+    case 'cheese-wheel-b45': return <CheeseWheelB45 pos={pos} color={color} size={size} />
+    case 'herb-bundle-b45': return <HerbBundleB45 pos={pos} color={color} size={size} />
+    case 'clay-pot-b45': return <ClayPotB45 pos={pos} color={color} size={size} />
+    case 'woven-mat-b45': return <WovenMatB45 pos={pos} color={color} size={size} />
+    // Batch 45 — Neon Jungle
+    case 'glow-vine-b45': return <GlowVineB45 pos={pos} color={color} size={size} />
+    case 'neon-flower-b45': return <NeonFlowerB45 pos={pos} color={color} size={size} />
+    case 'biolume-tree-b45': return <BiolumeTreeB45 pos={pos} color={color} size={size} />
+    case 'radiant-mushroom-b45': return <RadiantMushroomB45 pos={pos} color={color} size={size} />
+    case 'pulse-root-b45': return <PulseRootB45 pos={pos} color={color} size={size} />
+    // Batch 45 — Medieval Tavern
+    case 'ale-barrel-b45': return <AleBarrelB45 pos={pos} color={color} size={size} />
+    case 'tavern-table-b45': return <TavernTableB45 pos={pos} color={color} size={size} />
+    case 'fire-hearth-b45': return <FireHearthB45 pos={pos} color={color} size={size} />
+    case 'trophy-mount-b45': return <TrophyMountB45 pos={pos} color={color} size={size} />
+    case 'dart-board-b45': return <DartBoardB45 pos={pos} color={color} size={size} />
 
     default:
       return null
@@ -31233,6 +31251,399 @@ function ParrotPerchB44({ pos, color, size: s }: P44) {
           </mesh>
         ))}
       </group>
+    </group>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  BATCH 45 — Village Market · Neon Jungle · Medieval Tavern
+// ═══════════════════════════════════════════════════════════════════
+
+interface P45 { pos: [number,number,number]; color: string; size: number }
+
+function BreadStallB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[1.0, 0.9, 0.6]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.96, 0]}>
+        <boxGeometry args={[1.1, 0.06, 0.65]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+      {[[-0.28, 1.06, 0.1], [0, 1.08, 0.05], [0.26, 1.07, 0.08]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} rotation={[0.1, i * 0.3, 0]}>
+          <boxGeometry args={[0.22, 0.12, 0.32]} />
+          <meshStandardMaterial color="#d4a017" roughness={0.6} />
+        </mesh>
+      ))}
+      {[-0.5, 0.5].map((x, i) => (
+        <mesh key={i} position={[x, 1.0, 0]}>
+          <boxGeometry args={[0.05, 1.0, 0.05]} />
+          <meshStandardMaterial color="#555" metalness={0.4} roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function CheeseWheelB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.12, 0]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.24, 10]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      <mesh position={[0.15, 0.25, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.18, 0.18, 0.24, 8]} />
+        <meshStandardMaterial color="#f8d060" roughness={0.4} />
+      </mesh>
+      {[0, 1, 2].map((i) => (
+        <mesh key={i} position={[Math.sin(i * 2.1) * 0.15, 0.25, Math.cos(i * 2.1) * 0.15]}>
+          <sphereGeometry args={[0.03, 5, 4]} />
+          <meshStandardMaterial color="#c8a010" roughness={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function HerbBundleB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.5, 5]} />
+        <meshStandardMaterial color="#555" metalness={0.3} roughness={0.6} />
+      </mesh>
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <mesh key={i} position={[Math.sin(i * 1.05) * 0.1, 0.55 + i * 0.04, Math.cos(i * 1.05) * 0.08]}
+          rotation={[0.15, i * 1.05, 0]}>
+          <boxGeometry args={[0.03, 0.22, 0.01]} />
+          <meshStandardMaterial color={color} roughness={0.9} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.3, 0]}>
+        <torusGeometry args={[0.07, 0.01, 4, 10]} />
+        <meshStandardMaterial color="#c8a060" roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function ClayPotB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.28, 0]}>
+        <cylinderGeometry args={[0.18, 0.12, 0.56, 10]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.57, 0]}>
+        <cylinderGeometry args={[0.2, 0.18, 0.07, 10]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.04, 0]}>
+        <cylinderGeometry args={[0.14, 0.14, 0.08, 10]} />
+        <meshStandardMaterial color={color} roughness={0.85} />
+      </mesh>
+    </group>
+  )
+}
+
+function WovenMatB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.02, 0]}>
+        <boxGeometry args={[1.0, 0.04, 0.7]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <mesh key={i} position={[0, 0.04, -0.28 + i * 0.14]}>
+          <boxGeometry args={[0.98, 0.01, 0.02]} />
+          <meshStandardMaterial color={i % 2 === 0 ? '#c8501a' : '#c8a060'} roughness={0.9} />
+        </mesh>
+      ))}
+      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+        <mesh key={i} position={[-0.42 + i * 0.14, 0.04, 0]}>
+          <boxGeometry args={[0.02, 0.01, 0.68]} />
+          <meshStandardMaterial color={i % 2 === 0 ? '#8B4513' : '#c87020'} roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function GlowVineB45({ pos, color, size: s }: P45) {
+  const glow = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (glow.current) glow.current.children.forEach((c, i) => {
+      ;((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(clock.elapsedTime * 1.5 + i * 0.5) * 0.3
+    })
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]} rotation={[0.2, 0, 0.15]}>
+        <cylinderGeometry args={[0.03, 0.05, 1.0, 5]} />
+        <meshStandardMaterial color="#2a5a2a" roughness={0.9} />
+      </mesh>
+      <group ref={glow}>
+        {[0.2, 0.45, 0.7, 0.88].map((y, i) => (
+          <mesh key={i} position={[Math.sin(i * 1.8) * 0.12, y, Math.cos(i * 1.8) * 0.1]}>
+            <sphereGeometry args={[0.05, 6, 5]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} transparent opacity={0.85} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  )
+}
+
+function NeonFlowerB45({ pos, color, size: s }: P45) {
+  const petals = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (petals.current) {
+      petals.current.rotation.y = clock.elapsedTime * 0.3
+      petals.current.children.forEach((p) => {
+        ;((p as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity !== undefined &&
+          (((p as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.6 + Math.sin(clock.elapsedTime * 2) * 0.25)
+      })
+    }
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.4, 0]}>
+        <cylinderGeometry args={[0.04, 0.06, 0.8, 5]} />
+        <meshStandardMaterial color="#226622" roughness={0.8} />
+      </mesh>
+      <group ref={petals} position={[0, 0.82, 0]}>
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <mesh key={i} position={[Math.sin(i * 1.047) * 0.22, 0, Math.cos(i * 1.047) * 0.22]} rotation={[0, i * 1.047, 0]}>
+            <boxGeometry args={[0.1, 0.02, 0.2]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} transparent opacity={0.85} />
+          </mesh>
+        ))}
+        <mesh>
+          <sphereGeometry args={[0.1, 8, 7]} />
+          <meshStandardMaterial color="#ffff00" emissive="#ffcc00" emissiveIntensity={0.8} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+function BiolumeTreeB45({ pos, color, size: s }: P45) {
+  const canopy = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (canopy.current) canopy.current.children.forEach((c, i) => {
+      ;((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity !== undefined &&
+        (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 0.8 + i * 0.6) * 0.2)
+    })
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.08, 0.12, 1.0, 6]} />
+        <meshStandardMaterial color="#1a3a1a" roughness={0.9} />
+      </mesh>
+      <group ref={canopy} position={[0, 1.1, 0]}>
+        <mesh>
+          <sphereGeometry args={[0.3, 8, 7]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.3} transparent opacity={0.8} />
+        </mesh>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <mesh key={i} position={[Math.sin(i * 1.26) * 0.28, -0.15, Math.cos(i * 1.26) * 0.28]}>
+            <sphereGeometry args={[0.05, 5, 4]} />
+            <meshStandardMaterial color="#88ffcc" emissive="#44ffaa" emissiveIntensity={0.7} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  )
+}
+
+function RadiantMushroomB45({ pos, color, size: s }: P45) {
+  const cap = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (cap.current) (cap.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(clock.elapsedTime * 1.8) * 0.3
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.28, 0]}>
+        <cylinderGeometry args={[0.08, 0.12, 0.56, 7]} />
+        <meshStandardMaterial color="#f0f0f0" roughness={0.5} />
+      </mesh>
+      <mesh ref={cap} position={[0, 0.62, 0]}>
+        <sphereGeometry args={[0.3, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} roughness={0.3} />
+      </mesh>
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <mesh key={i} position={[Math.sin(i * 1.047) * 0.38, 0.57, Math.cos(i * 1.047) * 0.38]}>
+          <sphereGeometry args={[0.04, 4, 3]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function PulseRootB45({ pos, color, size: s }: P45) {
+  const pulse = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (pulse.current) {
+      const t = clock.elapsedTime
+      pulse.current.children.forEach((c, i) => {
+        ;((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity !== undefined &&
+          (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4 + Math.sin(t * 2 + i * 0.8) * 0.3)
+      })
+    }
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.08, 0]}>
+        <sphereGeometry args={[0.18, 8, 6]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} transparent opacity={0.7} />
+      </mesh>
+      <group ref={pulse}>
+        {[[-0.3, 0.06, 0.1], [0.28, 0.04, -0.1], [-0.1, 0.04, 0.3], [0.15, 0.04, -0.28]].map(([x, y, z], i) => (
+          <mesh key={i} position={[x, y, z]}>
+            <cylinderGeometry args={[0.03, 0.05, 0.5, 4]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} transparent opacity={0.75} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  )
+}
+
+function AleBarrelB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.3, 0]}>
+        <cylinderGeometry args={[0.22, 0.18, 0.6, 10]} />
+        <meshStandardMaterial color={color} roughness={0.85} />
+      </mesh>
+      {[0.12, 0.35, 0.58].map((y, i) => (
+        <mesh key={i} position={[0, y, 0]}>
+          <torusGeometry args={[0.23, 0.02, 4, 12]} />
+          <meshStandardMaterial color="#888" metalness={0.5} roughness={0.3} />
+        </mesh>
+      ))}
+      <mesh position={[0.23, 0.22, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.025, 0.025, 0.08, 6]} />
+        <meshStandardMaterial color="#888" metalness={0.6} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, 0.62, 0]}>
+        <cylinderGeometry args={[0.19, 0.19, 0.05, 10]} />
+        <meshStandardMaterial color="#6B3A2A" roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function TavernTableB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.48, 0]}>
+        <boxGeometry args={[1.1, 0.08, 0.65]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      {[[-0.46, 0.22, -0.26], [0.46, 0.22, -0.26], [-0.46, 0.22, 0.26], [0.46, 0.22, 0.26]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <boxGeometry args={[0.07, 0.44, 0.07]} />
+          <meshStandardMaterial color={color} roughness={0.85} />
+        </mesh>
+      ))}
+      <mesh position={[0.25, 0.55, 0.1]}>
+        <cylinderGeometry args={[0.07, 0.08, 0.16, 8]} />
+        <meshStandardMaterial color="#c8a030" roughness={0.4} transparent opacity={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function FireHearthB45({ pos, color, size: s }: P45) {
+  const flame = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (flame.current) {
+      flame.current.scale.y = 1 + Math.sin(clock.elapsedTime * 4) * 0.15
+      flame.current.children.forEach((c) => {
+        ;((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity !== undefined &&
+          (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.6 + Math.sin(clock.elapsedTime * 5) * 0.25)
+      })
+    }
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.2, 0]}>
+        <boxGeometry args={[0.8, 0.4, 0.5]} />
+        <meshStandardMaterial color={color} roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.45, 0.06]}>
+        <boxGeometry args={[0.7, 0.1, 0.38]} />
+        <meshStandardMaterial color="#333" roughness={0.8} />
+      </mesh>
+      <group ref={flame} position={[0, 0.55, 0]}>
+        <mesh>
+          <coneGeometry args={[0.18, 0.35, 6]} />
+          <meshStandardMaterial color="#ff4400" emissive="#ff2200" emissiveIntensity={0.6} transparent opacity={0.85} />
+        </mesh>
+        <mesh position={[0.06, 0.1, 0]}>
+          <coneGeometry args={[0.1, 0.25, 5]} />
+          <meshStandardMaterial color="#ff8800" emissive="#ffaa00" emissiveIntensity={0.7} transparent opacity={0.75} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+function TrophyMountB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, -0.18]}>
+        <boxGeometry args={[0.6, 0.5, 0.08]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.65, -0.05]}>
+        <boxGeometry args={[0.2, 0.28, 0.25]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.84, 0]}>
+        <boxGeometry args={[0.14, 0.18, 0.14]} />
+        <meshStandardMaterial color={color} roughness={0.75} />
+      </mesh>
+      {[-1, 1].map((side, i) => (
+        <mesh key={i} position={[side * 0.22, 0.9, 0.02]} rotation={[0, 0, side * 0.5]}>
+          <boxGeometry args={[0.06, 0.3, 0.05]} />
+          <meshStandardMaterial color={color} roughness={0.7} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function DartBoardB45({ pos, color, size: s }: P45) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.6, -0.12]}>
+        <cylinderGeometry args={[0.28, 0.28, 0.06, 12]} rotation={[Math.PI / 2, 0, 0]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.6} />
+      </mesh>
+      {[0.22, 0.16, 0.1, 0.05].map((r, i) => (
+        <mesh key={i} position={[0, 0.6, -0.09]}>
+          <cylinderGeometry args={[r, r, 0.02, 12]} rotation={[Math.PI / 2, 0, 0]} />
+          <meshStandardMaterial color={i % 2 === 0 ? color : '#eeeeee'} roughness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.6, -0.06]}>
+        <sphereGeometry args={[0.025, 5, 4]} />
+        <meshStandardMaterial color="#ff2200" roughness={0.3} />
+      </mesh>
+      {[[0.1, 0.78, -0.08], [-0.06, 0.65, -0.08]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]} rotation={[Math.PI / 2, 0, i * 0.3]}>
+          <cylinderGeometry args={[0.008, 0.008, 0.15, 4]} />
+          <meshStandardMaterial color="#888" metalness={0.6} roughness={0.2} />
+        </mesh>
+      ))}
     </group>
   )
 }

@@ -1761,6 +1761,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'parrot-perch-b44',   label: 'Жердь попугая',    emoji: '🦜', defaultColor: '#44bb44', tags: ['попугай','parrot perch','жердь','птица','пиратский'], hint: 'Кольцевая жердь с разноцветным попугаем' },
     ],
   },
+  {
+    id: 'village-market', name: 'Деревенский рынок', icon: '🧺',
+    items: [
+      { kind: 'bread-stall-b45',   label: 'Хлебный лоток',    emoji: '🍞', defaultColor: '#d4a017', tags: ['хлеб','bread stall','лоток','рынок','деревня'], hint: 'Прилавок со свежевыпеченным хлебом' },
+      { kind: 'cheese-wheel-b45',  label: 'Головка сыра',     emoji: '🧀', defaultColor: '#f0c040', tags: ['сыр','cheese wheel','рынок','молочный','круглый'], hint: 'Большая круглая головка выдержанного сыра' },
+      { kind: 'herb-bundle-b45',   label: 'Связка трав',      emoji: '🌿', defaultColor: '#4a8a4a', tags: ['травы','herb bundle','связка','аптека','рынок'], hint: 'Подвешенные пучки сушёных трав' },
+      { kind: 'clay-pot-b45',      label: 'Глиняный горшок',  emoji: '🏺', defaultColor: '#c87040', tags: ['горшок','clay pot','глина','керамика','рынок'], hint: 'Ручная лепка — горшок из обожжённой глины' },
+      { kind: 'woven-mat-b45',     label: 'Плетёный коврик',  emoji: '🪵', defaultColor: '#c8a060', tags: ['коврик','woven mat','плетёный','рынок','торговля'], hint: 'Яркий плетёный коврик для торговли' },
+    ],
+  },
+  {
+    id: 'neon-jungle', name: 'Неоновые джунгли', icon: '🌿',
+    items: [
+      { kind: 'glow-vine-b45',        label: 'Светящаяся лиана',  emoji: '💚', defaultColor: '#00ff88', tags: ['лиана','glow vine','светящийся','неон','джунгли'], hint: 'Биолюминесцентная лиана со свечением' },
+      { kind: 'neon-flower-b45',      label: '⚡ Цветок',          emoji: '🌸', defaultColor: '#ff00ff', tags: ['цветок','neon flower','неон','розовый','джунгли'], hint: 'Огромный цветок с неоновым свечением' },
+      { kind: 'biolume-tree-b45',     label: 'Биолюм-дерево',     emoji: '🌳', defaultColor: '#0088ff', tags: ['дерево','bioluminescent','свет','синий','джунгли'], hint: 'Дерево с биолюминесцентными плодами' },
+      { kind: 'radiant-mushroom-b45', label: 'Лучезарный гриб',   emoji: '🍄', defaultColor: '#aa44ff', tags: ['гриб','radiant mushroom','светящийся','фиолетовый','джунгли'], hint: 'Гриб с мощным фиолетовым свечением' },
+      { kind: 'pulse-root-b45',       label: 'Пульс-корень',      emoji: '🫀', defaultColor: '#ff4488', tags: ['корень','pulse root','пульсирует','неон','джунгли'], hint: 'Корень растения с пульсирующим свечением' },
+    ],
+  },
+  {
+    id: 'medieval-tavern', name: 'Средневековая таверна', icon: '🍺',
+    items: [
+      { kind: 'ale-barrel-b45',    label: 'Бочка с элем',     emoji: '🛢️', defaultColor: '#8B4513', tags: ['бочка','ale barrel','пиво','эль','таверна'], hint: 'Деревянная бочка с краником для эля' },
+      { kind: 'tavern-table-b45',  label: 'Стол таверны',     emoji: '🪑', defaultColor: '#6B3A2A', tags: ['стол','tavern table','деревянный','таверна','застолье'], hint: 'Массивный дубовый стол для пирушки' },
+      { kind: 'fire-hearth-b45',   label: 'Очаг',             emoji: '🔥', defaultColor: '#cc4400', tags: ['очаг','fire hearth','камин','огонь','таверна'], hint: 'Каменный очаг с жарким пламенем' },
+      { kind: 'trophy-mount-b45',  label: 'Голова оленя',     emoji: '🦌', defaultColor: '#8B5A2B', tags: ['трофей','trophy mount','олень','рога','таверна'], hint: 'Охотничий трофей на стене таверны' },
+      { kind: 'dart-board-b45',    label: 'Мишень для дротиков',emoji: '🎯', defaultColor: '#cc2200', tags: ['мишень','dart board','дротик','игра','таверна'], hint: 'Пробковая мишень с дротиками' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
