@@ -219,7 +219,7 @@ export default function Teacher() {
 
 function ClassesTab() {
   const [showCreate, setShowCreate] = useState(false)
-  const { showToast } = useToast()
+  const { show: showToast } = useToast()
   return (
     <>
       <section style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
@@ -275,8 +275,10 @@ function ClassesTab() {
               <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button className="kb-btn kb-btn--sm kb-btn--secondary" disabled title="Детали класса — скоро">Открыть →</button>
                 <button className="kb-btn kb-btn--sm" onClick={() => {
-                  navigator.clipboard?.writeText(c.inviteCode)
-                  showToast(`✓ Код ${c.inviteCode} скопирован`, 'success')
+                  void navigator.clipboard?.writeText(c.inviteCode).then(
+                    () => showToast(`✓ Код ${c.inviteCode} скопирован`, 'success'),
+                    () => showToast('Не удалось скопировать', 'error'),
+                  )
                 }}>📋 Скопировать код</button>
               </div>
             </div>
