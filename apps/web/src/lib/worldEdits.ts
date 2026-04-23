@@ -383,6 +383,12 @@ export type PropKind =
   | 'ships-wheel-b47' | 'cannon-b47' | 'rigging-post-b47' | 'crows-nest-b47' | 'anchor-b47'
   // Crystal Caves
   | 'stalactite-cluster-b47' | 'crystal-pool-b47' | 'glowing-moss-b47' | 'cave-mushroom-b47' | 'echo-crystal-b47'
+  // Desert Oasis
+  | 'palm-cluster-b48' | 'sand-dune-b48' | 'oasis-pool-b48' | 'desert-tent-b48' | 'camel-statue-b48'
+  // Volcanic Island
+  | 'lava-vent-b48' | 'obsidian-spire-b48' | 'fire-geyser-b48' | 'volcanic-rock-b48' | 'ember-pool-b48'
+  // Japanese Garden
+  | 'stone-lantern-b48' | 'bamboo-fence-b48' | 'koi-pond-b48' | 'cherry-tree-b48' | 'tea-pavilion-b48'
 
 export interface SpawnedPart {
   id: string

@@ -70,7 +70,7 @@ const GROUPS: NavGroup[] = [
 export default function PlatformShell({ children, activeKey }: Props) {
   const loc = useLocation()
   const navigate = useNavigate()
-  const { showToast } = useToast()
+  const { show: showToast } = useToast()
   const active = activeKey ?? inferKey(loc.pathname)
   const isAdmin = typeof window !== 'undefined' && (
     localStorage.getItem('ek_admin') === '1' ||

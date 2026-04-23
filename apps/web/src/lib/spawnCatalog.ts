@@ -1851,6 +1851,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'echo-crystal-b47',  label: 'Эхо-кристалл',      emoji: '💠', defaultColor: '#88ccff', tags: ['кристалл','echo crystal','звук','пещера','магия'], hint: 'Кристалл резонирующий со звуком' },
     ],
   },
+  {
+    id: 'desert-oasis-b48', name: '🏜️ Оазис', icon: '🏜️',
+    items: [
+      { kind: 'palm-cluster-b48',  label: 'Пальмы',              emoji: '🌴', defaultColor: '#228822', tags: ['пальма','palm cluster','пустыня','оазис','тропики'], hint: 'Группа высоких финиковых пальм' },
+      { kind: 'sand-dune-b48',     label: 'Барханы',             emoji: '🏜️', defaultColor: '#deb887', tags: ['бархан','sand dune','пустыня','песок','природа'], hint: 'Волнистые песчаные дюны' },
+      { kind: 'oasis-pool-b48',    label: 'Озеро оазиса',        emoji: '💧', defaultColor: '#44aaff', tags: ['озеро','oasis pool','вода','пустыня','оазис'], hint: 'Прохладный водоём среди пустыни' },
+      { kind: 'desert-tent-b48',   label: 'Бедуинский шатёр',    emoji: '⛺', defaultColor: '#cc8800', tags: ['шатёр','desert tent','бедуин','пустыня','кочевник'], hint: 'Полосатый бедуинский шатёр' },
+      { kind: 'camel-statue-b48',  label: 'Статуя верблюда',     emoji: '🐪', defaultColor: '#cc9944', tags: ['верблюд','camel statue','пустыня','животное','статуя'], hint: 'Каменная статуя отдыхающего верблюда' },
+    ],
+  },
+  {
+    id: 'volcanic-island-b48', name: '🌋 Вулканический остров', icon: '🌋',
+    items: [
+      { kind: 'lava-vent-b48',     label: 'Лавовый выход',       emoji: '🌋', defaultColor: '#ff4400', tags: ['лава','lava vent','вулкан','огонь','геология'], hint: 'Трещина в земле с пузырящейся лавой' },
+      { kind: 'obsidian-spire-b48',label: 'Обсидиановый шпиль',  emoji: '🗿', defaultColor: '#222222', tags: ['обсидиан','obsidian spire','вулкан','камень','острый'], hint: 'Острый чёрный столб застывшей лавы' },
+      { kind: 'fire-geyser-b48',   label: 'Огненный гейзер',     emoji: '🔥', defaultColor: '#ff6600', tags: ['гейзер','fire geyser','огонь','вулкан','извержение'], hint: 'Бьющий фонтан раскалённого газа' },
+      { kind: 'volcanic-rock-b48', label: 'Вулканическая порода', emoji: '🪨', defaultColor: '#444444', tags: ['порода','volcanic rock','лава','камень','вулкан'], hint: 'Пористый вулканический базальт' },
+      { kind: 'ember-pool-b48',    label: 'Бассейн с углями',    emoji: '♨️', defaultColor: '#ff2200', tags: ['угли','ember pool','жар','вулкан','опасность'], hint: 'Светящийся бассейн с раскалёнными углями' },
+    ],
+  },
+  {
+    id: 'japanese-garden-b48', name: '⛩️ Японский сад', icon: '⛩️',
+    items: [
+      { kind: 'stone-lantern-b48', label: 'Каменный фонарь',     emoji: '🏮', defaultColor: '#aaaaaa', tags: ['фонарь','stone lantern','японский','сад','камень'], hint: 'Традиционный каменный садовый фонарь' },
+      { kind: 'bamboo-fence-b48',  label: 'Бамбуковый забор',    emoji: '🎋', defaultColor: '#558833', tags: ['забор','bamboo fence','бамбук','японский','сад'], hint: 'Аккуратный бамбуковый забор' },
+      { kind: 'koi-pond-b48',      label: 'Пруд с карпами',      emoji: '🐟', defaultColor: '#44aacc', tags: ['пруд','koi pond','карп','японский','сад'], hint: 'Декоративный пруд с золотыми карпами' },
+      { kind: 'cherry-tree-b48',   label: 'Сакура',              emoji: '🌸', defaultColor: '#ffaacc', tags: ['сакура','cherry tree','цветение','японский','весна'], hint: 'Цветущая японская вишня' },
+      { kind: 'tea-pavilion-b48',  label: 'Чайный павильон',     emoji: '🫖', defaultColor: '#8B4513', tags: ['павильон','tea pavilion','чай','японский','архитектура'], hint: 'Изящный традиционный чайный домик' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
