@@ -81,7 +81,7 @@ export default function Home() {
             }}
           />
         </div>
-        <button className="kb-btn kb-btn--secondary" onClick={playRandom}>
+        <button className="kb-btn kb-btn--secondary" onClick={playRandom} title="Открыть случайный мир">
           🎲 Случайный мир
         </button>
       </section>
@@ -247,7 +247,7 @@ function GameCard({ game }: { game: GameMeta }) {
           }} />
           <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>{game.author}</span>
         </div>
-        <div className="h3" style={{ fontSize: 15, marginBottom: 6 }}>{game.title}</div>
+        <div className="h3" style={{ fontSize: 15, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={game.title}>{game.title}</div>
         <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>
           <span>👁 {formatCount(game.views)}</span>
           <span>❤ {game.likes}</span>

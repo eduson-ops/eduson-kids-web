@@ -72,6 +72,118 @@ export type PropKind =
   | 'teddy-bear' | 'lego-brick' | 'yo-yo'
   // Lab
   | 'flask' | 'atom' | 'gear'
+  // Weather
+  | 'rain-cloud' | 'lightning-bolt' | 'rainbow-arch' | 'snowdrift' | 'sun-deco'
+  // Egypt
+  | 'pyramid' | 'sphinx' | 'obelisk'
+  // Candy
+  | 'lollipop' | 'candy-cane' | 'gingerbread'
+  // Workshop
+  | 'toolbox' | 'anvil' | 'barrel-fire'
+  // Art
+  | 'easel' | 'sculpture' | 'vase-ancient'
+  // Farm
+  | 'cow' | 'barn' | 'hay-bale' | 'scarecrow' | 'well'
+  // Pirates
+  | 'cannon' | 'ship-wheel' | 'treasure-map' | 'jolly-roger' | 'anchor-chain'
+  // Jungle
+  | 'palm-tree' | 'bamboo' | 'snake-deco' | 'tribal-mask' | 'vine-swing'
+  // City
+  | 'traffic-light' | 'fire-hydrant' | 'mailbox' | 'street-lamp' | 'phone-booth'
+  // Garden
+  | 'watering-can' | 'bird-bath' | 'garden-gnome' | 'flower-bed' | 'trellis'
+  // Sport-2
+  | 'basketball-hoop' | 'boxing-gloves' | 'archery-target' | 'surf-board' | 'dumbbell'
+  // Food-2
+  | 'taco' | 'ramen-bowl' | 'boba-tea' | 'croissant' | 'watermelon-slice'
+  // Vehicles
+  | 'helicopter' | 'bicycle' | 'scooter' | 'hot-rod' | 'jeep'
+  // Beach
+  | 'sandcastle' | 'beach-umbrella' | 'lifeguard-tower' | 'buoy' | 'surfboard-rack'
+  // Ancient
+  | 'catapult' | 'broken-column' | 'altar' | 'sarcophagus' | 'colosseum-arch'
+  // Underwater
+  | 'shipwreck' | 'treasure-chest-open' | 'anemone' | 'sea-turtle' | 'whale'
+  // Fairground
+  | 'popcorn-stand' | 'bumper-car' | 'ticket-booth' | 'balloon-arch' | 'prize-wheel'
+  // Nordic/Viking
+  | 'longship' | 'runestone' | 'viking-helmet' | 'mead-hall' | 'axe-rack'
+  // Magical Forest
+  | 'fairy-ring' | 'giant-mushroom' | 'crystal-tree' | 'wizard-hat' | 'potion-stand'
+  // Industrial
+  | 'factory-chimney' | 'conveyor-belt' | 'robot-arm' | 'oil-drum' | 'crane'
+  // Retro/Arcade
+  | 'arcade-machine' | 'retro-tv' | 'cassette-tape' | 'game-controller' | 'pixel-heart'
+  // Nature 2
+  | 'waterfall' | 'lotus-pond' | 'volcano' | 'geyser' | 'cave-entrance'
+  // Dinosaurs
+  | 't-rex' | 'triceratops' | 'stegosaurus' | 'pterodactyl' | 'dino-egg'
+  // Western
+  | 'saloon' | 'cactus-tall' | 'tumbleweed' | 'wanted-sign' | 'horseshoe'
+  // Ice Kingdom
+  | 'ice-castle' | 'ice-spike' | 'frozen-tree' | 'snowfort' | 'polar-bear'
+  // Anime
+  | 'torii-gate' | 'paper-lantern' | 'sakura-tree' | 'ninja-star' | 'temple-bell'
+  // Deep Space
+  | 'black-hole' | 'nebula-cloud' | 'space-debris' | 'laser-turret' | 'warp-gate'
+  // Magic Effects
+  | 'fireworks' | 'spark-fountain' | 'smoke-cloud' | 'rainbow-jet' | 'magic-circle'
+  // Superhero
+  | 'hero-cape' | 'hero-mask' | 'power-shield' | 'hero-statue' | 'energy-core'
+  // Buildings
+  | 'house-small' | 'apartment' | 'skyscraper' | 'cottage' | 'lighthouse-prop'
+  | 'castle-wall' | 'shop-front' | 'school-building' | 'barn-big' | 'temple-prop'
+  // City-2
+  | 'hospital' | 'police-station' | 'fire-station' | 'library-building' | 'park-fountain'
+  | 'bus-stop' | 'bridge-arch' | 'stadium' | 'museum' | 'market-stall'
+  // Transport-2
+  | 'ambulance' | 'fire-truck' | 'police-car' | 'school-bus' | 'tractor'
+  | 'submarine-mini' | 'sailboat' | 'hot-air-balloon-2' | 'cable-car' | 'monorail'
+  // Food/Café
+  | 'cafe-table' | 'coffee-cup' | 'cake-slice' | 'ice-cream-stand' | 'food-cart'
+  | 'pizza-oven' | 'soda-machine' | 'cupcake' | 'pretzel' | 'hot-dog-stand'
+  // Sports-2
+  | 'swimming-pool' | 'tennis-court' | 'ski-jump' | 'bowling-pin' | 'dartboard'
+  | 'golf-hole' | 'climbing-wall' | 'balance-beam' | 'racing-flag' | 'medal-stand'
+  // Space-2
+  | 'moon-base' | 'space-rover' | 'satellite-dish-2' | 'alien-ship' | 'cryo-pod'
+  | 'space-suit' | 'meteor-shower' | 'ring-planet' | 'rocket-launch-pad' | 'space-cannon'
+  // Fantasy-2
+  | 'wizard-tower' | 'dragon-statue' | 'magic-wand' | 'spell-book' | 'enchanted-sword'
+  | 'alchemy-table' | 'fairy-house' | 'rune-stone-glow' | 'magic-mirror' | 'cursed-chest'
+  // Sci-Tech
+  | 'hologram-display' | 'tesla-coil' | 'dna-helix' | 'laser-beam' | 'computer-terminal'
+  | 'reactor-core' | 'data-tower' | 'magnifying-glass' | 'portal-gun' | 'hover-pad'
+  // Ocean Park
+  | 'jellyfish' | 'clam-shell' | 'crab-prop' | 'seaweed-tall' | 'diving-bell'
+  | 'reef-rock' | 'sea-star' | 'manta-ray' | 'puffer-fish' | 'sunken-ship-bow'
+  // Jungle Park
+  | 'jungle-bridge' | 'tribal-drum' | 'jungle-flower' | 'tree-giant' | 'parrot-perch'
+  | 'waterfall-small' | 'bamboo-wall' | 'frog-statue' | 'temple-ruin' | 'treasure-map-stand'
+  // Steampunk
+  | 'steam-pipe' | 'clockwork-gear' | 'airship-engine' | 'pressure-gauge' | 'steam-locomotive'
+  | 'cog-tower' | 'tesla-lamp' | 'brass-telescope' | 'steam-vent' | 'dirigible'
+  // Cyberpunk
+  | 'neon-billboard' | 'cyber-vending' | 'holo-ad' | 'drone-prop' | 'cyberpunk-car'
+  | 'server-rack' | 'cyber-street-lamp' | 'rain-puddle' | 'graffiti-wall' | 'cyber-trash'
+  // Space Station
+  | 'launch-silo' | 'space-capsule' | 'moon-crater' | 'ion-thruster' | 'astro-lab'
+  | 'solar-collector' | 'space-beacon' | 'oxygen-tank' | 'hull-panel' | 'space-buggy'
+  // Prehistoric
+  | 'cave-painting' | 'mammoth' | 'dino-track' | 'bone-pile' | 'flint-club'
+  | 'stone-hut' | 'fire-pit-2' | 'sabre-tooth' | 'tar-pit' | 'amber-gem'
+  // Enchanted Village
+  | 'magic-well' | 'enchanted-gate' | 'pixie-lamp' | 'spell-scroll' | 'crystal-ball-stand'
+  | 'mushroom-house' | 'fairy-fountain' | 'glowing-tree' | 'potion-rack' | 'rune-altar'
+  // Underwater Lab
+  | 'submarine-hatch' | 'pressure-dome' | 'sonar-tower' | 'deep-probe' | 'bubble-vent'
+  | 'coral-lab' | 'specimen-tank' | 'depth-gauge' | 'torpedo-bay' | 'biolume-tank'
+  // Desert Oasis
+  | 'sand-dune' | 'oasis-pool' | 'date-palm' | 'desert-tent' | 'camel-statue'
+  | 'mirage-pillar' | 'desert-scorpion' | 'nomad-brazier' | 'sandstone-arch' | 'desert-skull'
+  // Medieval Castle
+  | 'castle-door' | 'drawbridge' | 'knight-armor' | 'catapult-prop' | 'dungeon-door'
+  | 'heraldic-banner' | 'arrow-slit' | 'wall-torch' | 'moat-water' | 'portcullis'
 
 export interface SpawnedPart {
   id: string

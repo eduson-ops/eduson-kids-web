@@ -22,6 +22,8 @@ import ObjectScriptEditor from '../components/ObjectScriptEditor'
 import PlayScriptRuntime from '../components/PlayScriptRuntime'
 import WorldContextMenu from '../components/WorldContextMenu'
 import SpawnMenu from '../components/SpawnMenu'
+import MobileControls from '../components/MobileControls'
+import SayBubble from '../components/SayBubble'
 import {
   isEditMode,
   setEditMode,
@@ -31,7 +33,7 @@ import {
 } from '../lib/playEditMode'
 import { getAllScriptsForWorld, subscribeWorldScripts } from '../lib/worldScripts'
 import { getWorldTargets, getTargetLabel, type WorldTarget } from '../components/worlds/scriptableTargets'
-import { getRemovedForWorld, getRecoloredForWorld, resetWorldEdits } from '../lib/worldEdits'
+import { getRemovedForWorld, getRecoloredForWorld, resetWorldEdits, subscribeEdits } from '../lib/worldEdits'
 
 export default function Play() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -54,11 +56,17 @@ export default function Play() {
   useEffect(() => subscribeEditMode(setEdit), [])
   useEffect(() => subscribeFocus(setFocused), [])
 
-  // Safety check: если в мире сохранено подозрительно много правок — предложить reset
-  const editsCount = useMemo(() => {
+  const [editsCount, setEditsCount] = useState(() => {
     if (!gameId) return 0
     return getRemovedForWorld(gameId).size + Object.keys(getRecoloredForWorld(gameId)).length
-  }, [gameId, edit])
+  })
+  useEffect(() => {
+    const refresh = () => {
+      if (!gameId) return
+      setEditsCount(getRemovedForWorld(gameId).size + Object.keys(getRecoloredForWorld(gameId)).length)
+    }
+    return subscribeEdits(refresh)
+  }, [gameId])
   useEffect(() => {
     const refresh = () => {
       if (gameId) setScriptedCount(getAllScriptsForWorld(gameId).length)
@@ -165,7 +173,7 @@ export default function Play() {
       {edit && (
         <div className="edit-mode-hint">
           <strong>⚡ Режим редактирования.</strong>
-          Клик по жёлтой ауре объекта → редактор блоков. <kbd>Q</kbd> — меню спавна.
+          Клик по объекту → меню (покрасить / дублировать / убрать / скрипт). <kbd>Q</kbd> — спавн пропсов.
           {editsCount > 0 && !confirmReset && (
             <button
               className="edit-mode-exit"
@@ -198,6 +206,8 @@ export default function Play() {
         <strong> клик</strong> — захват мыши (ESC — отменить)
       </div>
 
+      <MobileControls />
+      <SayBubble />
       <PlayScriptRuntime />
       <EscapeMenu gameTitle={game.title} />
       <Leaderboard gameTitle={game.title} />

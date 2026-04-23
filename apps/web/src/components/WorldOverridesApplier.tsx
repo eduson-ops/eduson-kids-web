@@ -12,51 +12,56 @@ interface Props {
   worldId: string
 }
 
-/**
- * WorldOverridesApplier — пробегает по всей Three.js-сцене и применяет
- * сохранённые правки (removed / recolored) на меши по их world-position hash.
- *
- * Запускается:
- *  - на mount (через короткую задержку чтобы world-компонент успел построить сцену)
- *  - на каждое изменение стора (ребёнок сохранил новую правку)
- */
 export default function WorldOverridesApplier({ worldId }: Props) {
   const { scene } = useThree()
 
   useEffect(() => {
+    // Track previously applied state so we can undo it on re-apply
+    const hiddenMeshes = new Set<THREE.Mesh>()
+    const recoloredMeshes = new Map<THREE.Mesh, THREE.Color>() // mesh -> original color
+
     const apply = () => {
       const removed = getRemovedForWorld(worldId)
       const recolored = getRecoloredForWorld(worldId)
+
+      // Restore previously hidden meshes
+      for (const mesh of hiddenMeshes) {
+        mesh.visible = true
+      }
+      hiddenMeshes.clear()
+
+      // Restore previously recolored meshes to original colors
+      for (const [mesh, origColor] of recoloredMeshes) {
+        const mat = mesh.material as THREE.MeshStandardMaterial | THREE.MeshStandardMaterial[]
+        const restore = (m: THREE.MeshStandardMaterial) => {
+          try { m.color = origColor.clone() } catch { /* skip */ }
+        }
+        if (Array.isArray(mat)) mat.forEach(restore)
+        else restore(mat)
+      }
+      recoloredMeshes.clear()
+
       if (removed.size === 0 && Object.keys(recolored).length === 0) return
 
-      // Собираем всех кандидатов в массив чтобы принять решение: если под hide
-      // попадает подавляющее большинство — localStorage, скорее всего, битый.
       const candidates: Array<{ mesh: THREE.Mesh; hash: string; hex?: string }> = []
+      let totalMeshes = 0
       const tmp = new THREE.Vector3()
 
       scene.traverse((obj) => {
         if (!(obj as THREE.Mesh).isMesh) return
+        totalMeshes++
         const mesh = obj as THREE.Mesh
-
-        // Skip: scriptable-hitbox, pointLight helpers
         const parentName = mesh.parent?.name || ''
         if (parentName.startsWith('scriptable-')) return
-
-        // Skip критические меши — sky/clouds/sun/fog/postprocess
-        // identifier лучше по userData-флагу, но пока — проверим by name pattern
-        // и по материалу (BasicMaterial/ShaderMaterial — всё что НЕ Standard)
         const nm = (mesh.name || '') + '|' + parentName
         if (/sky|cloud|sun|voxel|fog|backdrop|hemisphere|dir-?light|light\b/i.test(nm)) return
         if (mesh.userData?.skipEdits) return
-
         const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
         if (!mat) return
-        // Красить можно только MeshStandardMaterial. Sky/clouds — ShaderMaterial → пропустим.
         const isStandardLike = Array.isArray(mat)
           ? mat.some((m) => m.type === 'MeshStandardMaterial' || m.type === 'MeshPhysicalMaterial')
           : mat.type === 'MeshStandardMaterial' || mat.type === 'MeshPhysicalMaterial'
         if (!isStandardLike) return
-
         mesh.getWorldPosition(tmp)
         const h = hashPos([tmp.x, tmp.y, tmp.z])
         const hex = recolored[h]
@@ -65,51 +70,49 @@ export default function WorldOverridesApplier({ worldId }: Props) {
         }
       })
 
-      // Safety: если applier хотел бы спрятать/перекрасить > 60% ВСЕХ меш'ей,
-      // это почти наверняка битый стор (прошлые тесты). Пропускаем и логируем.
-      let totalMeshes = 0
-      scene.traverse((o) => { if ((o as THREE.Mesh).isMesh) totalMeshes++ })
-      const wouldTouch = candidates.length
-      if (totalMeshes > 0 && wouldTouch / totalMeshes > 0.6) {
+      // Safety: > 60% of all meshes is almost certainly a corrupted store
+      if (totalMeshes > 0 && candidates.length / totalMeshes > 0.6) {
         console.warn(
-          `[WorldOverrides] Skip — suspiciously many matches (${wouldTouch}/${totalMeshes}). ` +
-          `localStorage['ek_world_edits_v2'] likely corrupted. ` +
+          `[WorldOverrides] Skip — suspiciously many matches (${candidates.length}/${totalMeshes}). ` +
           `Run: localStorage.removeItem('ek_world_edits_v2'); location.reload()`
         )
         return
       }
 
-      let hiddenCount = 0
-      let recoloredCount = 0
       for (const c of candidates) {
         if (removed.has(c.hash)) {
           c.mesh.visible = false
-          hiddenCount++
-          continue
-        }
-        if (c.hex) {
+          hiddenMeshes.add(c.mesh)
+        } else if (c.hex) {
           const mat = c.mesh.material as THREE.MeshStandardMaterial | THREE.MeshStandardMaterial[]
+          const firstMat = Array.isArray(mat) ? mat[0] : mat
+          if (firstMat?.color) {
+            recoloredMeshes.set(c.mesh, firstMat.color.clone())
+          }
           const applyColor = (m: THREE.MeshStandardMaterial) => {
-            try {
-              m.color = new THREE.Color(c.hex!)
-              if ('emissive' in m && m.emissive) m.emissive = new THREE.Color(c.hex!)
-            } catch { /* skip */ }
+            try { m.color = new THREE.Color(c.hex!) } catch { /* skip */ }
           }
           if (Array.isArray(mat)) mat.forEach(applyColor)
           else applyColor(mat)
-          recoloredCount++
         }
       }
     }
 
-    // Первичное применение — с задержкой, чтобы сцена успела построиться
     const t = setTimeout(apply, 250)
-    const unsub = subscribeEdits(() => {
-      setTimeout(apply, 50)
-    })
+    const unsub = subscribeEdits(() => { setTimeout(apply, 50) })
     return () => {
       clearTimeout(t)
       unsub()
+      // Restore on unmount
+      for (const mesh of hiddenMeshes) mesh.visible = true
+      for (const [mesh, orig] of recoloredMeshes) {
+        const mat = mesh.material as THREE.MeshStandardMaterial | THREE.MeshStandardMaterial[]
+        const restore = (m: THREE.MeshStandardMaterial) => {
+          try { m.color = orig.clone() } catch { /* skip */ }
+        }
+        if (Array.isArray(mat)) mat.forEach(restore)
+        else restore(mat)
+      }
     }
   }, [scene, worldId])
 

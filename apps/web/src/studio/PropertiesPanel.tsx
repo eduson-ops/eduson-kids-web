@@ -9,6 +9,7 @@ import {
   updatePart,
 } from './editorState'
 import ObjectScriptEditor from '../components/ObjectScriptEditor'
+import { pluralize } from '../lib/plural'
 
 interface Props {
   state: EditorState
@@ -63,7 +64,7 @@ export default function PropertiesPanel({ state }: Props) {
               <>
                 <div className="prop-script-summary">
                   <span className="prop-script-dot" />
-                  <span>Скрипт готов · {countEvents(selected.scripts.python)} событий</span>
+                  <span>Скрипт готов · {pluralize(countEvents(selected.scripts.python), 'event')}</span>
                 </div>
                 <div className="prop-script-actions">
                   <button className="kb-btn kb-btn--sm" onClick={() => setEditingScriptFor(selected.id)}>
@@ -80,7 +81,7 @@ export default function PropertiesPanel({ state }: Props) {
                   className="kb-btn kb-btn--sm prop-script-add"
                   onClick={() => setEditingScriptFor(selected.id)}
                 >
-                  ⚡ Запрограммировать объект
+                  ⚡ Добавить скрипт
                 </button>
               </>
             )}

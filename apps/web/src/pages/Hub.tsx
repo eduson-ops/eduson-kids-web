@@ -123,7 +123,7 @@ export default function Hub() {
           </div>
         </div>
 
-        <div className="kb-cover-mascot" style={{ position: 'relative' }} aria-hidden>
+        <div className="kb-cover-mascot" aria-hidden>
           <Niksel pose={mood} size={280} />
           <MascotMoodOverlay mood={mood} />
         </div>
@@ -169,12 +169,15 @@ export default function Hub() {
                 key={m.n}
                 to={unlocked ? `/learn/module/${m.n}` : '#'}
                 className={`kb-course${isActive ? ' kb-course--active' : ''}`}
+                title={unlocked ? undefined : 'Пройди предыдущие модули, чтобы разблокировать'}
+                aria-disabled={!unlocked}
                 style={{
                   '--accent': a.color,
                   '--accent-soft': a.soft,
                   '--accent-ink': a.ink,
                   opacity: unlocked ? 1 : 0.45,
                   pointerEvents: unlocked ? 'auto' : 'none',
+                  cursor: unlocked ? 'pointer' : 'not-allowed',
                 } as React.CSSProperties}
               >
                 <div className="kb-course-top">
@@ -224,8 +227,8 @@ export default function Hub() {
         </div>
       </section>
 
-      {/* Y2 teaser — только когда Y1 завершён или почти (урок ≥ 43) */}
-      {currentLesson >= 43 && (
+      {/* Y2 teaser — только когда Y1 завершён или почти (42+ уроков пройдено) */}
+      {lessonsCompleted >= 42 && (
         <section style={{ marginBottom: 40 }}>
           <div
             className="kb-card kb-card--feature"

@@ -37,40 +37,17 @@ interface TimelineEvent {
 
 /**
  * Трансформация реальной активности из useProgress().dailyLast28
- * в формат, ожидаемый графиком. Если за 28 дней нет ни одной записи
- * (новый пользователь) — показываем детерминированный mock, чтобы
- * график не выглядел пустым на демо.
+ * в формат, ожидаемый графиком. Mock-fallback УДАЛЁН — родитель
+ * видит только реальные данные. Для новых пользователей рисуем
+ * пустой график с призывом «Начни первый урок».
  */
 function buildActivity(last28: ReturnType<typeof useProgress>['dailyLast28']): Activity[] {
-  const anyReal = last28.some((d) => d.data.minutes > 0 || d.data.lessons > 0)
-  if (!anyReal) return loadMockActivity()
   return last28.map((d, idx) => ({
     day: idx,
     minutes: d.data.minutes,
     coins: d.data.coins,
     lessonsCompleted: d.data.lessons,
   }))
-}
-
-function loadMockActivity(): Activity[] {
-  // Детерминированный mock (fallback для новых пользователей).
-  const out: Activity[] = []
-  let rngSeed = 1337
-  const rng = () => {
-    rngSeed = (rngSeed * 1103515245 + 12345) & 0x7fffffff
-    return rngSeed / 0x7fffffff
-  }
-  for (let d = 0; d < 28; d++) {
-    const weekday = (d + 4) % 7
-    const peak = weekday === 0 || weekday === 6
-    const mid = weekday === 3
-    const base = peak ? 35 : mid ? 8 : 20
-    const minutes = Math.max(0, Math.floor(base + (rng() - 0.5) * 15))
-    const coins = Math.floor(minutes * (0.8 + rng() * 0.4))
-    const lessonsCompleted = minutes >= 30 ? 1 : 0
-    out.push({ day: d, minutes, coins, lessonsCompleted })
-  }
-  return out
 }
 
 function formatMinutes(min: number): string {

@@ -38,6 +38,8 @@ export default function AdaptiveDPR() {
   const highSince = useRef<number | null>(null)
   const curDpr = useRef(1)
 
+  const overrideDpr = useRef<number | null>(null)
+
   // Инициализация стартового DPR — ОДИН раз при монтаже
   useEffect(() => {
     const raw = typeof window !== 'undefined' ? window.devicePixelRatio : 1
@@ -49,11 +51,29 @@ export default function AdaptiveDPR() {
     } else {
       initial = Math.min(raw, 2)
     }
+    // Apply saved quality preference
+    const saved = localStorage.getItem('ek_quality')
+    if (saved === 'low') { initial = 1; overrideDpr.current = 1 }
+    else if (saved === 'med') { initial = Math.min(raw, 1.5); overrideDpr.current = Math.min(raw, 1.5) }
+    else { overrideDpr.current = null }
     curDpr.current = initial
     gl.setPixelRatio(initial)
+
+    const onQuality = (e: Event) => {
+      const { quality } = (e as CustomEvent).detail as { quality: string }
+      const deviceRaw = window.devicePixelRatio
+      if (quality === 'low') { overrideDpr.current = 1; gl.setPixelRatio(1); curDpr.current = 1 }
+      else if (quality === 'med') { const v = Math.min(deviceRaw, 1.5); overrideDpr.current = v; gl.setPixelRatio(v); curDpr.current = v }
+      else { overrideDpr.current = null }
+    }
+    window.addEventListener('ek:quality-change', onQuality)
+    return () => window.removeEventListener('ek:quality-change', onQuality)
   }, [gl])
 
   useFrame(() => {
+    // If user picked a manual quality level, skip adaptive logic
+    if (overrideDpr.current !== null) return
+
     const now = performance.now()
     const dtMs = Math.max(1, now - lastT.current)
     lastT.current = now

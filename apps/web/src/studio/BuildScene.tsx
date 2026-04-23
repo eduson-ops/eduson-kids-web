@@ -97,8 +97,11 @@ function PartMesh({
         castShadow
         receiveShadow
         onClick={(e) => {
+          // В place-режиме НЕ поглощаем клик — он должен долететь до grid
+          // и поставить блок рядом. stopPropagation только в select-режиме.
+          if (getState().tool !== 'select') return
           e.stopPropagation()
-          if (getState().tool === 'select') onClick(part.id)
+          onClick(part.id)
         }}
       >
         {part.type === 'coin' ? (

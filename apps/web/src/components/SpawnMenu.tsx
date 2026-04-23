@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   isEditMode,
   subscribeEditMode,
@@ -29,6 +29,19 @@ import {
 import { doUndo, canUndo, resetWorldEdits, subscribeEdits } from '../lib/worldEdits'
 import { SFX } from '../lib/audio'
 
+function highlight(text: string, q: string): ReactNode {
+  if (!q.trim()) return text
+  const idx = text.toLowerCase().indexOf(q.toLowerCase().trim())
+  if (idx === -1) return text
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="spawn-hl">{text.slice(idx, idx + q.trim().length)}</mark>
+      {text.slice(idx + q.trim().length)}
+    </>
+  )
+}
+
 type TopTab = 'spawn' | 'tools'
 
 interface ToolDef {
@@ -42,9 +55,17 @@ const TOOLS: ToolDef[] = [
   { id: 'remove', emoji: '🗑', label: 'Удалятель', hint: 'Клик по объекту мгновенно скрывает его' },
 ]
 
-const TOOL_COLORS = [
-  '#ff5464', '#ffd644', '#48c774', '#4c97ff', '#c879ff',
-  '#ff8c1a', '#ff5ab1', '#88d4ff', '#ffffff', '#2a3340',
+const TOOL_COLORS: { hex: string; name: string }[] = [
+  { hex: '#ff5464', name: 'Красный' },
+  { hex: '#ffd644', name: 'Жёлтый' },
+  { hex: '#48c774', name: 'Зелёный' },
+  { hex: '#4c97ff', name: 'Синий' },
+  { hex: '#c879ff', name: 'Фиолетовый' },
+  { hex: '#ff8c1a', name: 'Оранжевый' },
+  { hex: '#ff5ab1', name: 'Розовый' },
+  { hex: '#88d4ff', name: 'Голубой' },
+  { hex: '#ffffff', name: 'Белый' },
+  { hex: '#2a3340', name: 'Тёмный' },
 ]
 
 interface SpawnMenuProps {
@@ -155,13 +176,14 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
           <span>📍 Кликни в мир чтобы поставить <b>{findItem(placement.kind as PropKind)?.label ?? placement.kind}</b>.
           Esc — отмена · Q — другой объект</span>
           <div className="spawn-hint-colors">
-            {TOOL_COLORS.map((c) => (
+            {TOOL_COLORS.map(({ hex, name }) => (
               <button
-                key={c}
+                key={hex}
                 className="spawn-hint-swatch"
-                style={{ background: c, outline: placement.color === c ? '2px solid #fff' : '2px solid transparent' }}
-                onClick={() => setPlacement({ ...placement, color: c })}
-                aria-label={`Цвет ${c}`}
+                style={{ background: hex, outline: placement.color === hex ? '2px solid #fff' : '2px solid transparent' }}
+                onClick={() => setPlacement({ ...placement, color: hex })}
+                aria-label={name}
+                title={name}
               />
             ))}
           </div>
@@ -254,13 +276,14 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                   <section className="tools-section">
                     <h4>🎨 Цвет кисти</h4>
                     <div className="tools-colors">
-                      {TOOL_COLORS.map((c) => (
+                      {TOOL_COLORS.map(({ hex, name }) => (
                         <button
-                          key={c}
-                          className={`tools-swatch ${toolColor === c ? 'active' : ''}`}
-                          style={{ background: c }}
-                          onClick={() => { setToolColor(c); setToolColorLocal(c); SFX.click() }}
-                          aria-label={`Цвет ${c}`}
+                          key={hex}
+                          className={`tools-swatch ${toolColor === hex ? 'active' : ''}`}
+                          style={{ background: hex }}
+                          onClick={() => { setToolColor(hex); setToolColorLocal(hex); SFX.click() }}
+                          aria-label={name}
+                          title={name}
                         />
                       ))}
                     </div>
@@ -284,7 +307,7 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                     ) : (
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         <span style={{ fontSize: 12 }}>Удалить все правки?</span>
-                        <button className="tools-action danger" onClick={() => { resetWorldEdits(worldId); SFX.click(); setConfirmReset(false) }}>Да</button>
+                        <button className="tools-action danger" onClick={() => { resetWorldEdits(worldId); SFX.click(); location.reload() }}>Да</button>
                         <button className="tools-action" onClick={() => setConfirmReset(false)}>Нет</button>
                       </div>
                     )}
@@ -343,6 +366,22 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                     🔍 Результаты поиска «{query}» · {searchResults.length} найдено
                   </div>
                 )}
+                {!query.trim() && activeCat !== 'favs' && activeCat !== 'recent' && recentItems.length > 0 && (
+                  <div className="spawn-quick-row">
+                    <span className="spawn-quick-label">Недавние:</span>
+                    {recentItems.slice(0, 6).map((item) => (
+                      <button
+                        key={item.kind}
+                        className={`spawn-quick-chip ${placement?.kind === item.kind ? 'active' : ''}`}
+                        onClick={() => pickItem(item)}
+                        title={item.label}
+                      >
+                        <span>{item.emoji}</span>
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {!query.trim() && activeCat === 'favs' && favItems.length === 0 && (
                   <div className="spawn-menu-empty">
                     Пока пусто. Нажми ⭐ на любом пропсе чтобы добавить в избранное.
@@ -373,7 +412,7 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                           {fav ? '⭐' : '☆'}
                         </span>
                         <span className="spawn-menu-emoji">{item.emoji}</span>
-                        <span className="spawn-menu-label">{item.label}</span>
+                        <span className="spawn-menu-label">{highlight(item.label, query)}</span>
                         {item.hint && <small className="spawn-menu-hint">{item.hint}</small>}
                       </button>
                     )

@@ -12,6 +12,11 @@ import {
   formatRub,
 } from '../lib/billing'
 
+function isDebug(): boolean {
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).get('debug') === '1'
+}
+
 /**
  * /billing — отдельная страница «Оплата и уроки».
  * Видна в sidenav рядом с портфолио. Родитель прилетает сюда напрямую
@@ -220,10 +225,12 @@ export default function Billing() {
 
       {/* Legal note */}
       <section style={{ marginBottom: 32, fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-        <p style={{ margin: '0 0 6px' }}>
-          ⓘ&nbsp;<strong>MVP-режим:</strong> настоящие списания подключаем с&nbsp;бэкендом (ЮKassa&nbsp;/ CloudPayments).
-          Сейчас все операции локальные — нужны для демонстрации UX.
-        </p>
+        {isDebug() && (
+          <p style={{ margin: '0 0 6px' }}>
+            ⓘ&nbsp;<strong>MVP-режим:</strong> настоящие списания подключаем с&nbsp;бэкендом (ЮKassa&nbsp;/ CloudPayments).
+            Сейчас все операции локальные — нужны для демонстрации UX.
+          </p>
+        )}
         <p style={{ margin: 0 }}>
           🛡&nbsp;Защита прав потребителя: отмена подписки — в&nbsp;1&nbsp;клик из&nbsp;этой страницы.
           14&nbsp;дней на&nbsp;возврат (ЗоЗПП&nbsp;ст.32). Данные ребёнка — по&nbsp;ФЗ-152.

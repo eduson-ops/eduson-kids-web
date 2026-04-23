@@ -5,13 +5,14 @@
 let ctx: AudioContext | null = null
 let masterGain: GainNode | null = null
 let muted = false
+let volume = 0.35
 
 function getCtx(): AudioContext {
   if (!ctx) {
     const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
     ctx = new AC()
     masterGain = ctx.createGain()
-    masterGain.gain.value = 0.35
+    masterGain.gain.value = muted ? 0 : volume
     masterGain.connect(ctx.destination)
   }
   // Некоторые браузеры start в suspended до первого user gesture
@@ -103,7 +104,7 @@ export const SFX = {
 
 export function setMuted(m: boolean) {
   muted = m
-  if (masterGain) masterGain.gain.value = m ? 0 : 0.35
+  if (masterGain) masterGain.gain.value = m ? 0 : volume
   localStorage.setItem('ek_muted', m ? '1' : '0')
 }
 
@@ -111,8 +112,20 @@ export function getMuted() {
   return muted
 }
 
+export function setVolume(vol: number) {
+  volume = Math.max(0, Math.min(1, vol))
+  if (masterGain && !muted) masterGain.gain.value = volume
+  localStorage.setItem('ek_sfx_vol', String(Math.round(volume * 100)))
+}
+
+export function getVolume(): number {
+  return volume
+}
+
 // load persisted preference
 if (typeof window !== 'undefined') {
-  const saved = localStorage.getItem('ek_muted')
-  if (saved === '1') muted = true
+  const savedMuted = localStorage.getItem('ek_muted')
+  if (savedMuted === '1') muted = true
+  const savedVol = localStorage.getItem('ek_sfx_vol')
+  if (savedVol !== null) volume = Math.max(0, Math.min(1, parseInt(savedVol, 10) / 100))
 }

@@ -228,10 +228,10 @@ const M1: Lesson[] = [
   {
     n: 6, localN: 6, moduleN: 1, kind: 'defense',
     title: 'Защита первой игры',
-    hook: 'Презентуй свой Obby классу. 2 мин на игрока.',
+    hook: 'Презентуй свой Прыжковую полосу классу. 2 мин на игрока.',
     terms: ['защита', 'рубрика', 'рефлексия'],
     newBlocks: [],
-    capstoneContribution: '✅ Капстон M1: готовый Obby-платформер',
+    capstoneContribution: '✅ Капстон M1: готовый Прыжковую полосу-платформер',
     htmlFile: `${PUBLIC_BASE}/curriculum/lessons/L6_python_mode.html`,
     guideFile: `${PUBLIC_BASE}/curriculum/lessons/L6_teacher_guide.md`,
     quiz: [
@@ -243,7 +243,7 @@ const M1: Lesson[] = [
       },
       {
         text: 'Сколько у тебя игр после M1?',
-        options: ['0', '1 — Obby', '3', '5'],
+        options: ['0', '1 — Прыжковую полосу', '3', '5'],
         correctIdx: 1,
         explanation: 'Один капстон на модуль. За 8 модулей будет 8 собственных игр.',
       },
@@ -404,11 +404,11 @@ const M3: Lesson[] = [
   },
   {
     n: 17, localN: 5, moduleN: 3, kind: 'project',
-    title: 'Проектный урок: Pet Math Sim',
+    title: 'Проектный урок: Зверята-математики',
     hook: 'Питомник с 3 редкостями монет и HUD-счётом.',
     terms: ['playtest', 'баланс'],
     newBlocks: [],
-    capstoneContribution: 'готовая Pet Math Sim',
+    capstoneContribution: 'готовая Зверята-математики',
     differentiation: {
       easy: '2 типа монет, цель — 20',
       mid: '3 типа + рекорд + цель 100',
@@ -421,7 +421,7 @@ const M3: Lesson[] = [
     hook: 'Гости класса играют в твой питомник. Приз за баланс.',
     terms: ['экспозиция', 'интервью'],
     newBlocks: [],
-    capstoneContribution: '✅ Капстон M3: Pet Math Sim',
+    capstoneContribution: '✅ Капстон M3: Зверята-математики',
   },
 ]
 
@@ -461,7 +461,7 @@ const M4: Lesson[] = [
   },
   {
     n: 23, localN: 5, moduleN: 4, kind: 'project',
-    title: 'Проектный урок: Tower of Code',
+    title: 'Проектный урок: Башня Кода',
     hook: 'Процедурная башня-лабиринт на 8 этажей.',
     terms: ['декомпозиция', 'рефакторинг'],
     newBlocks: [],
@@ -478,7 +478,7 @@ const M4: Lesson[] = [
     hook: 'Взаимное тестирование башен. Приз — «Железный зодчий».',
     terms: ['тестирование', 'сложность'],
     newBlocks: [],
-    capstoneContribution: '✅ Капстон M4: Tower of Code',
+    capstoneContribution: '✅ Капстон M4: Башня Кода',
   },
 ]
 
@@ -518,7 +518,7 @@ const M5: Lesson[] = [
   },
   {
     n: 29, localN: 5, moduleN: 5, kind: 'project',
-    title: 'Проектный урок: Pet Brain',
+    title: 'Проектный урок: Питомцы и нейросеть',
     hook: 'Питомец сам решает что делать: hungry → ест, tired → спит.',
     terms: ['конечный автомат', 'приоритет'],
     newBlocks: [],
@@ -535,7 +535,7 @@ const M5: Lesson[] = [
     hook: 'Эксперименты на чужих Pet\'ах — кто разгадает их мозг?',
     terms: ['reverse engineering', 'фидбэк'],
     newBlocks: [],
-    capstoneContribution: '✅ Капстон M5: Pet Brain',
+    capstoneContribution: '✅ Капстон M5: Питомцы и нейросеть',
   },
 ]
 
@@ -625,7 +625,7 @@ const M7: Lesson[] = [
   {
     n: 40, localN: 4, moduleN: 7, kind: 'practice',
     title: 'DRY: не повторяйся',
-    hook: 'Берём старый Obby из M1 — сокращаем в 3 раза.',
+    hook: 'Берём старый Прыжковую полосу из M1 — сокращаем в 3 раза.',
     terms: ['рефакторинг', 'декомпозиция', 'DRY'],
     newBlocks: [],
     capstoneContribution: 'код в 3 раза короче',
@@ -709,43 +709,43 @@ export const MODULES: Module[] = [
   {
     n: 1, title: 'Первые шаги в Эдюсон Kids', emoji: '🧱', accent: '#6B5CE7', ageAnchor: '9-11',
     story: 'Ты попал на остров Эдюсон Kids — всё построено из блоков. Собери свой первый мир.',
-    capstone: { name: 'Моя первая игра', genre: 'Obby', worldId: 'obby-rainbow' },
+    capstone: { name: 'Моя первая игра', genre: 'Прыжковую полосу', worldId: 'obby-rainbow' },
     lessons: M1,
   },
   {
     n: 2, title: 'Движение и события', emoji: '🎮', accent: '#A9D8FF', ageAnchor: '9-12',
     story: 'Твой герой устал ходить. Построй гоночный трек с чекпоинтами.',
-    capstone: { name: 'Гонка с препятствиями', genre: 'Race' },
+    capstone: { name: 'Гонка с препятствиями', genre: 'Гонка' },
     lessons: M2,
   },
   {
     n: 3, title: 'Переменные и счёт', emoji: '💰', accent: '#9FE8C7', ageAnchor: '10-13',
     story: 'Открылся питомник: чем больше монет, тем сильнее питомцы.',
-    capstone: { name: 'Pet Math Sim', genre: 'Idle Collector', worldId: 'pet-math-sim' },
+    capstone: { name: 'Зверята-математики', genre: 'Тихий сборщик', worldId: 'pet-math-sim' },
     lessons: M3,
   },
   {
     n: 4, title: 'Повторы — цикл', emoji: '🔁', accent: '#FFD43C', ageAnchor: '11-14',
     story: '100 этажей башни. Писать руками скучно — напиши цикл.',
-    capstone: { name: 'Tower of Code', genre: 'Procedural Tower', worldId: 'tower-of-code' },
+    capstone: { name: 'Башня Кода', genre: 'Генеративная башня', worldId: 'tower-of-code' },
     lessons: M4,
   },
   {
     n: 5, title: 'Условия и логика', emoji: '🧠', accent: '#FFB4C8', ageAnchor: '11-14',
     story: 'Твоему питомцу нужен разум. Научи его думать — if/elif/else.',
-    capstone: { name: 'Pet Brain (Adopt Me AI)', genre: 'Simulation', worldId: 'pet-brain' },
+    capstone: { name: 'Питомцы и нейросеть', genre: 'Симулятор жизни', worldId: 'pet-brain' },
     lessons: M5,
   },
   {
     n: 6, title: 'Скрипты объектов', emoji: '📜', accent: '#FF9454', ageAnchor: '12-15',
     story: 'Каждый объект — свой характер. Детективный особняк с NPC и уликами.',
-    capstone: { name: 'Детектив в Особняке', genre: 'Mystery', worldId: 'detective-mansion' },
+    capstone: { name: 'Детектив в Особняке', genre: 'Детектив', worldId: 'detective-mansion' },
     lessons: M6,
   },
   {
     n: 7, title: 'Функции и DRY', emoji: '⚡', accent: '#c879ff', ageAnchor: '12-15',
     story: 'Мастерская магов. Собираешь свои заклинания как функции.',
-    capstone: { name: 'Моя мини-библиотека', genre: 'Library', worldId: 'ability-builder' },
+    capstone: { name: 'Моя мини-библиотека', genre: 'Библиотека', worldId: 'ability-builder' },
     lessons: M7,
   },
   {

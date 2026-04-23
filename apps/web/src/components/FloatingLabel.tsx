@@ -1,9 +1,7 @@
 import { Html } from '@react-three/drei'
-import { useFrame } from '@react-three/fiber'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Group } from 'three'
 import { subscribe } from '../lib/gameState'
-import { useEffect } from 'react'
 
 /**
  * Плавающий label над персонажем с суммой денег — как в Bloxels.
@@ -14,14 +12,6 @@ export default function FloatingLabel() {
   const [coins, setCoins] = useState(0)
 
   useEffect(() => subscribe((s) => setCoins(s.coins)), [])
-
-  // позиция обновляется в Player — этот компонент сам по себе не двигается,
-  // его встраивают в meshGroup игрока
-  useFrame(() => {
-    if (group.current) {
-      // pulse на прибавку
-    }
-  })
 
   return (
     <group ref={group} position={[0, 2.2, 0]}>
