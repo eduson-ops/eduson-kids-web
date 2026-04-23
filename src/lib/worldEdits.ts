@@ -96,6 +96,16 @@ export type PropKind =
   | 'basketball-hoop' | 'boxing-gloves' | 'archery-target' | 'surf-board' | 'dumbbell'
   // Food-2
   | 'taco' | 'ramen-bowl' | 'boba-tea' | 'croissant' | 'watermelon-slice'
+  // Vehicles
+  | 'helicopter' | 'bicycle' | 'scooter' | 'hot-rod' | 'jeep'
+  // Beach
+  | 'sandcastle' | 'beach-umbrella' | 'lifeguard-tower' | 'buoy' | 'surfboard-rack'
+  // Ancient
+  | 'catapult' | 'broken-column' | 'altar' | 'sarcophagus' | 'colosseum-arch'
+  // Underwater
+  | 'shipwreck' | 'treasure-chest-open' | 'anemone' | 'sea-turtle' | 'whale'
+  // Fairground
+  | 'popcorn-stand' | 'bumper-car' | 'ticket-booth' | 'balloon-arch' | 'prize-wheel'
 
 export interface SpawnedPart {
   id: string

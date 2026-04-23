@@ -435,6 +435,56 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'anchor-chain',  label: 'Якорь-цепь',  emoji: '⚓', defaultColor: '#5a5a5a', tags: ['якорь','цепь','anchor','пираты','море'], hint: 'Якорь с тяжёлой цепью' },
     ],
   },
+  {
+    id: 'vehicles', name: 'Транспорт', icon: '🚗',
+    items: [
+      { kind: 'helicopter',    label: 'Вертолёт',    emoji: '🚁', defaultColor: '#5b8dee', tags: ['вертолёт','helicopter','летит','лопасти','авиация'], hint: 'Вертолёт с вращающимися лопастями' },
+      { kind: 'bicycle',       label: 'Велосипед',   emoji: '🚲', defaultColor: '#e84040', tags: ['велосипед','bicycle','колёса','спорт','езда'], hint: 'Двухколёсный велосипед' },
+      { kind: 'scooter',       label: 'Самокат',     emoji: '🛴', defaultColor: '#48c774', tags: ['самокат','scooter','кикборд','городской','дорожки'], hint: 'Городской самокат' },
+      { kind: 'hot-rod',       label: 'Хот-род',     emoji: '🏎️', defaultColor: '#ff5464', tags: ['хот-род','гоночная','car','hot rod','машина','быстрая'], hint: 'Стилизованный гоночный автомобиль' },
+      { kind: 'jeep',          label: 'Джип',        emoji: '🚙', defaultColor: '#7d6e3a', tags: ['джип','jeep','внедорожник','4х4','кемпинг'], hint: 'Внедорожник с большими колёсами' },
+    ],
+  },
+  {
+    id: 'beach', name: 'Пляж', icon: '🏖️',
+    items: [
+      { kind: 'sandcastle',       label: 'Замок из песка', emoji: '🏰', defaultColor: '#e6c96e', tags: ['замок','песок','пляж','sandcastle','башни'], hint: 'Замок из мокрого песка' },
+      { kind: 'beach-umbrella',   label: 'Зонтик пляжный',emoji: '⛱️', defaultColor: '#ff9f43', tags: ['зонтик','beach','umbrella','пляж','тень'], hint: 'Полосатый пляжный зонт' },
+      { kind: 'lifeguard-tower',  label: 'Вышка спасателя',emoji: '🗼', defaultColor: '#e84040', tags: ['вышка','спасатель','lifeguard','пляж','океан'], hint: 'Деревянная вышка спасателя' },
+      { kind: 'buoy',             label: 'Буй',           emoji: '🔴', defaultColor: '#ff5464', tags: ['буй','buoy','море','навигация','вода','красный'], hint: 'Морской навигационный буй' },
+      { kind: 'surfboard-rack',   label: 'Стойка досок',  emoji: '🏄', defaultColor: '#8b5a2b', tags: ['доска','сёрфинг','стойка','rack','серфборд'], hint: 'Деревянная стойка для сёрфборда' },
+    ],
+  },
+  {
+    id: 'ancient', name: 'Древность', icon: '🏛️',
+    items: [
+      { kind: 'catapult',          label: 'Катапульта',   emoji: '🪨', defaultColor: '#8b5a2b', tags: ['катапульта','catapult','осада','средневековье','деревянная'], hint: 'Деревянная катапульта' },
+      { kind: 'broken-column',     label: 'Колонна',      emoji: '🏛️', defaultColor: '#d4c4a0', tags: ['колонна','column','руины','ancient','рим','греция'], hint: 'Сломанная мраморная колонна' },
+      { kind: 'altar',             label: 'Алтарь',       emoji: '🪨', defaultColor: '#6a5a4a', tags: ['алтарь','altar','жертвенник','древний','камень'], hint: 'Каменный жертвенный алтарь' },
+      { kind: 'sarcophagus',       label: 'Саркофаг',     emoji: '⚰️', defaultColor: '#c8a84a', tags: ['саркофаг','sarcophagus','мумия','египет','золото'], hint: 'Золотой саркофаг фараона' },
+      { kind: 'colosseum-arch',    label: 'Арка Колизея', emoji: '🏟️', defaultColor: '#c4a882', tags: ['арка','колизей','colosseum','рим','руины','камень'], hint: 'Арка в стиле Колизея' },
+    ],
+  },
+  {
+    id: 'underwater', name: 'Подводный', icon: '🌊',
+    items: [
+      { kind: 'shipwreck',         label: 'Кораблекрушение',emoji: '🚢', defaultColor: '#4a6a5a', tags: ['кораблекрушение','shipwreck','затонул','океан','ржавый'], hint: 'Затонувший корабль' },
+      { kind: 'treasure-chest-open',label: 'Открытый сундук',emoji: '💎', defaultColor: '#8b5a2b', tags: ['сундук','клад','treasure','открытый','сокровища'], hint: 'Открытый сундук с сокровищами' },
+      { kind: 'anemone',           label: 'Анемон',       emoji: '🌺', defaultColor: '#ff6b8a', tags: ['анемон','anemone','коралл','морской','цветок','подводный'], hint: 'Морской анемон с щупальцами' },
+      { kind: 'sea-turtle',        label: 'Морская черепаха',emoji: '🐢', defaultColor: '#48a887', tags: ['черепаха','turtle','море','плавает','зелёная'], hint: 'Черепаха медленно плывёт' },
+      { kind: 'whale',             label: 'Кит',          emoji: '🐋', defaultColor: '#2c3e6e', tags: ['кит','whale','большой','синий','океан','млекопитающее'], hint: 'Огромный синий кит' },
+    ],
+  },
+  {
+    id: 'fairground', name: 'Аттракционы', icon: '🎡',
+    items: [
+      { kind: 'popcorn-stand',    label: 'Попкорн',      emoji: '🍿', defaultColor: '#e84040', tags: ['попкорн','popcorn','ларёк','кино','аттракцион'], hint: 'Ларёк с попкорном' },
+      { kind: 'bumper-car',       label: 'Машина-бамper', emoji: '🎠', defaultColor: '#ffd644', tags: ['машинка','бамper','bumper car','аттракцион','парк'], hint: 'Аттракцион машинка-бампер' },
+      { kind: 'ticket-booth',     label: 'Кассовая будка',emoji: '🎟️', defaultColor: '#a29bfe', tags: ['касса','билеты','booth','ticket','парк','аттракцион'], hint: 'Будка с билетами' },
+      { kind: 'balloon-arch',     label: 'Арка из шаров', emoji: '🎈', defaultColor: '#ff9f43', tags: ['арка','шары','balloon','arch','праздник','украшение'], hint: 'Праздничная арка из воздушных шаров' },
+      { kind: 'prize-wheel',      label: 'Колесо фортуны',emoji: '🎡', defaultColor: '#6c5ce7', tags: ['колесо','фортуна','prize wheel','spin','приз','вращение'], hint: 'Крутящееся колесо призов' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
