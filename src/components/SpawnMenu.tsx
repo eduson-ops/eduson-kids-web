@@ -284,7 +284,7 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                     ) : (
                       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                         <span style={{ fontSize: 12 }}>Удалить все правки?</span>
-                        <button className="tools-action danger" onClick={() => { resetWorldEdits(worldId); SFX.click(); setConfirmReset(false) }}>Да</button>
+                        <button className="tools-action danger" onClick={() => { resetWorldEdits(worldId); SFX.click(); location.reload() }}>Да</button>
                         <button className="tools-action" onClick={() => setConfirmReset(false)}>Нет</button>
                       </div>
                     )}
