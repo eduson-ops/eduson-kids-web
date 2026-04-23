@@ -100,7 +100,10 @@ export default function PlatformShell({ children, activeKey }: Props) {
 
   return (
     <div className={`brand-shell brand-shell--sidenav${collapsed ? ' brand-shell--collapsed' : ''}`}>
-      <aside className={`kb-sidenav${collapsed ? ' kb-sidenav--collapsed' : ''}`}>
+      <a href="#kb-main-content" className="kb-skip-link">
+        Перейти к содержимому
+      </a>
+      <aside className={`kb-sidenav${collapsed ? ' kb-sidenav--collapsed' : ''}`} aria-label="Основная навигация">
         <Link to="/" className="kb-shell-brand" aria-label="Эдюсон Kids — главная">
           <NikselMini size={36} />
           {!collapsed && (
@@ -178,7 +181,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
         )}
       </aside>
 
-      <main className="kb-shell-main">{children}</main>
+      <main className="kb-shell-main" id="kb-main-content" tabIndex={-1}>{children}</main>
       <StreakWidget />
       <NikselChat />
       <MobileBottomTabs />

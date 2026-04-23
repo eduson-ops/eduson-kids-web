@@ -4,6 +4,11 @@ import PlatformShell from '../components/PlatformShell'
 import { useToast } from '../hooks/useToast'
 import { getMuted, setMuted, setVolume, getVolume } from '../lib/audio'
 import { resetOnboarding } from '../components/OnboardingOverlay'
+import {
+  isStreakReminderEnabled,
+  setStreakReminderEnabled,
+  requestNotificationPermission,
+} from '../lib/streakReminder'
 
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
@@ -365,6 +370,9 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Напоминание о стрике — рабочее */}
+        <StreakReminderCard onToast={showToast} />
+
         {/* Уведомления */}
         <div className="kb-card" style={{ opacity: 0.7 }}>
           <h2 className="h2" style={{ marginBottom: 16 }}>Уведомления <span className="eyebrow" style={{ marginLeft: 8 }}>скоро</span></h2>
@@ -397,5 +405,64 @@ export default function Settings() {
 
       </div>
     </PlatformShell>
+  )
+}
+
+/** Карточка настройки вечернего напоминания о стрике. */
+function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'success' | 'info' | 'error') => void }) {
+  const [enabled, setEnabled] = useState(() => isStreakReminderEnabled())
+  const [perm, setPerm] = useState<NotificationPermission>(
+    typeof Notification === 'undefined' ? 'denied' : Notification.permission
+  )
+
+  const toggle = async () => {
+    if (!enabled) {
+      // Включаем — спросим разрешение браузера
+      if (typeof Notification === 'undefined') {
+        onToast('Твой браузер не поддерживает уведомления', 'error')
+        return
+      }
+      const p = await requestNotificationPermission()
+      setPerm(p)
+      if (p !== 'granted') {
+        onToast('Разрешение на уведомления не получено', 'error')
+        return
+      }
+      setStreakReminderEnabled(true)
+      setEnabled(true)
+      onToast('✓ Напоминание включено — после 20:00 пришлю уведомление если не занимался', 'success')
+    } else {
+      setStreakReminderEnabled(false)
+      setEnabled(false)
+      onToast('Напоминание выключено', 'info')
+    }
+  }
+
+  return (
+    <div className="kb-card">
+      <h2 className="h2" style={{ marginBottom: 10 }}>
+        Напоминание о стрике <span className="eyebrow" style={{ marginLeft: 8, color: 'var(--mint-deep)' }}>🔥 работает</span>
+      </h2>
+      <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.55 }}>
+        Если после 20:00 вечером ещё не занимался — пришлём тёплое браузерное уведомление.
+        Не спамим: не чаще раза в день, не беспокоим если урок уже пройден.
+      </p>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', userSelect: 'none' }}>
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={toggle}
+          style={{ width: 18, height: 18, cursor: 'pointer' }}
+        />
+        <span style={{ fontSize: 15, fontWeight: 600 }}>
+          {enabled ? 'Включено' : 'Включить вечернее напоминание'}
+        </span>
+      </label>
+      {perm === 'denied' && (
+        <p style={{ fontSize: 12, color: '#c33', margin: '10px 0 0' }}>
+          ⚠ Уведомления заблокированы в настройках браузера. Разреши их для этого сайта, чтобы включить.
+        </p>
+      )}
+    </div>
   )
 }

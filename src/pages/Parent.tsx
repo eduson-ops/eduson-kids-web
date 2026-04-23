@@ -139,6 +139,9 @@ export default function Parent() {
         </div>
       </section>
 
+      {/* Weekly digest — summary за последние 7 дней + PDF export */}
+      <WeeklyDigest activity={activity} childName={childName} />
+
       {/* Activity chart */}
       <section style={{ marginBottom: 40 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
@@ -240,6 +243,113 @@ function KpiCard({ value, label, iconKind, accent }: { value: string; label: str
       <div className="kpi-value" style={{ color: accent }}>{value}</div>
       <div className="kpi-label">{label}</div>
     </div>
+  )
+}
+
+/**
+ * WeeklyDigest — краткая сводка за последние 7 дней + кнопка «Скачать PDF».
+ * PDF пока через window.print() стиля — lightweight, без зависимостей.
+ */
+function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName: string }) {
+  // Последние 7 дней — это последние 7 элементов массива (day 21..27)
+  const last7 = activity.slice(-7)
+  const totalMin = last7.reduce((s, a) => s + a.minutes, 0)
+  const totalCoins = last7.reduce((s, a) => s + a.coins, 0)
+  const totalLessons = last7.reduce((s, a) => s + a.lessonsCompleted, 0)
+  const activeDays = last7.filter((a) => a.minutes > 0 || a.lessonsCompleted > 0).length
+  const bestDay = last7.reduce((best, a) => (a.minutes > (best?.minutes ?? 0) ? a : best), last7[0])
+  const weekdayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+  const bestDayDate = bestDay ? new Date(Date.now() - (27 - bestDay.day) * 86400_000) : null
+  const bestDayLabel = bestDayDate ? weekdayNames[bestDayDate.getDay()] : '—'
+
+  // Простейший PDF через print-to-pdf: открываем новое окно с markup
+  const downloadReport = () => {
+    const html = `<!doctype html><html lang="ru"><head>
+      <meta charset="utf-8">
+      <title>Отчёт · ${childName} · ${pluralize(7, 'day')}</title>
+      <style>
+        body { font-family: -apple-system, Segoe UI, sans-serif; max-width: 640px; margin: 40px auto; padding: 20px; color: #15141b; line-height: 1.55; }
+        h1 { font-size: 28px; margin-bottom: 6px; }
+        .sub { color: #666; margin-bottom: 32px; font-size: 14px; }
+        .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .row strong { font-size: 18px; color: #6B5CE7; }
+        h2 { margin-top: 32px; font-size: 20px; }
+        .muted { color: #888; font-size: 13px; }
+        @media print { body { margin: 20px; } }
+      </style></head><body>
+      <h1>Отчёт о прогрессе · ${childName}</h1>
+      <div class="sub">Платформа «Эдюсон Kids» · последние 7 дней · ${new Date().toLocaleDateString('ru-RU')}</div>
+      <div class="row"><span>Уроков завершено</span><strong>${totalLessons}</strong></div>
+      <div class="row"><span>Времени в приложении</span><strong>${formatMinutes(totalMin)}</strong></div>
+      <div class="row"><span>Монет собрано</span><strong>${totalCoins}</strong></div>
+      <div class="row"><span>Активных дней</span><strong>${activeDays} из 7</strong></div>
+      ${bestDay && bestDay.minutes > 0 ? `<div class="row"><span>Самый продуктивный день</span><strong>${bestDayLabel} · ${formatMinutes(bestDay.minutes)}</strong></div>` : ''}
+      <h2>Что дальше</h2>
+      <p class="muted">Зайди на eduson-ops.github.io/eduson-kids-web/parent чтобы посмотреть полный отчёт с графиком за 28 дней и достижениями.</p>
+      <p class="muted" style="margin-top: 32px; font-size: 11px;">Отчёт сгенерирован ${new Date().toLocaleString('ru-RU')}. Эдюсон Kids v1.0.</p>
+      <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300))</script>
+    </body></html>`
+    const w = window.open('', '_blank', 'width=720,height=900')
+    if (!w) {
+      alert('Разреши всплывающие окна для этого сайта, чтобы скачать отчёт.')
+      return
+    }
+    w.document.write(html)
+    w.document.close()
+  }
+
+  return (
+    <section style={{ marginBottom: 40 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+        <h2 className="h2">Отчёт за неделю</h2>
+        <button className="kb-btn kb-btn--sm kb-btn--secondary" onClick={downloadReport}>
+          📄 Скачать PDF
+        </button>
+      </div>
+      <div className="kb-card kb-card--feature" style={{ padding: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 20 }}>
+          <div>
+            <div className="eyebrow">Уроков</div>
+            <strong style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 28, color: 'var(--violet)' }}>
+              {totalLessons}
+            </strong>
+          </div>
+          <div>
+            <div className="eyebrow">Времени</div>
+            <strong style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 28, color: 'var(--sky-deep, #3E87E8)' }}>
+              {formatMinutes(totalMin)}
+            </strong>
+          </div>
+          <div>
+            <div className="eyebrow">Активных дней</div>
+            <strong style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 28, color: 'var(--mint-deep, #3DB07A)' }}>
+              {activeDays}/7
+            </strong>
+          </div>
+          <div>
+            <div className="eyebrow">Лучший день</div>
+            <strong style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 28, color: 'var(--yellow-ink, #7A5900)' }}>
+              {bestDayLabel}
+            </strong>
+          </div>
+        </div>
+        {activeDays === 0 && (
+          <p style={{ marginTop: 20, fontSize: 14, color: 'var(--ink-soft)' }}>
+            Пока нет активности за неделю. Предложи ребёнку пройти первый урок — Никсель поможет.
+          </p>
+        )}
+        {activeDays > 0 && activeDays < 3 && (
+          <p style={{ marginTop: 20, fontSize: 14, color: 'var(--ink-soft)' }}>
+            💡 Заметил: занимался {pluralize(activeDays, 'day')} из 7. Регулярность важнее длительности — 10 минут каждый день лучше часа раз в неделю.
+          </p>
+        )}
+        {activeDays >= 5 && (
+          <p style={{ marginTop: 20, fontSize: 14, color: 'var(--mint-deep, #3DB07A)' }}>
+            🎉 Классная неделя: {pluralize(activeDays, 'day')} из 7. Стрик в норме, мотивация на месте.
+          </p>
+        )}
+      </div>
+    </section>
   )
 }
 

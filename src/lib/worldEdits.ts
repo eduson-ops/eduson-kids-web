@@ -238,6 +238,43 @@ export type PropKind =
   // Jungle Temple
   | 'jungle-pillar' | 'moss-altar' | 'vine-gate' | 'temple-idol' | 'giant-leaf'
   | 'temple-fire-brazier' | 'serpent-carving' | 'hidden-trap-door' | 'ancient-gong' | 'jungle-shrine'
+  // Ice Palace
+  | 'ice-palace-tower' | 'frozen-waterfall' | 'ice-statue' | 'ice-bridge' | 'snow-drift'
+  | 'ice-crystal-pillar' | 'ice-blizzard-shield' | 'ice-throne-chair' | 'polar-bear-statue' | 'ice-lantern'
+  // Lava Forge
+  | 'forge-anvil' | 'lava-forge' | 'molten-hammer' | 'lava-tube-pipe' | 'forge-chest'
+  | 'smith-bellows' | 'lava-rune' | 'forge-golem' | 'molten-crucible' | 'ember-spark'
+  // Mushroom Kingdom
+  | 'giant-mushroom-b24' | 'mushroom-house-b24' | 'spore-cloud' | 'glowing-mushroom-ring' | 'mushroom-bridge'
+  | 'mushroom-toadstool' | 'mushroom-lamp' | 'mushroom-fountain-b24' | 'mushroom-gate' | 'toad-king-throne'
+  // Space Outpost
+  | 'satellite-dish-b24' | 'habitat-module' | 'space-antenna' | 'outpost-cryo-pod' | 'airblock-door'
+  | 'space-tool-rack' | 'meteor-fragment' | 'outpost-beacon' | 'space-turret' | 'hull-breach-patch'
+  // Toy Workshop
+  | 'toy-train-b25' | 'building-block-tower' | 'wind-up-robot' | 'teddy-bear-b25' | 'kaleidoscope-tower'
+  | 'snow-globe' | 'toy-chest-b25' | 'music-box-b25' | 'puppet-stage' | 'marble-machine'
+  // Garden Party
+  | 'garden-pavilion' | 'rose-arbor' | 'garden-bench' | 'flower-arrangement' | 'party-balloons'
+  | 'cake-tower' | 'garden-sunflower' | 'garden-windmill' | 'garden-bird-bath' | 'picnic-blanket'
+  // Circus Spectacular
+  | 'acrobat-trapeze' | 'circus-elephant' | 'juggling-balls' | 'circus-big-tent' | 'tightrope-wire'
+  | 'clown-car' | 'magic-hat-circus' | 'ring-of-fire' | 'circus-podium' | 'lion-tamer-whip'
+  // Viking Age
+  | 'viking-longship' | 'runestone-b26' | 'viking-iron-helmet' | 'viking-mead-hall' | 'viking-axe-rack'
+  | 'bonfire-viking' | 'viking-shield' | 'dragon-prow' | 'nordic-well' | 'nordic-banner'
+  // Samurai Japan
+  | 'samurai-sword' | 'samurai-armor' | 'pagoda-temple' | 'torii-gate' | 'cherry-blossom'
+  | 'katana-rack' | 'lantern-japanese' | 'sakura-bridge' | 'tea-house-japanese' | 'shuriken-b27'
+  // Aztec Empire
+  | 'aztec-pyramid' | 'aztec-sun-stone' | 'quetzal-bird' | 'aztec-water-fountain' | 'jade-mask'
+  | 'obsidian-altar' | 'tepee-hut' | 'aztec-warrior' | 'aztec-serpent'
+  // Deep Sea
+  | 'anglerfish-b28' | 'ocean-trench' | 'giant-squid' | 'deep-sea-jellyfish' | 'sunken-ship-b28'
+  | 'coral-garden' | 'deep-sub-mini'
+  // Wild West
+  | 'saloon-b28' | 'wild-west-wagon' | 'west-sheriff-star' | 'tumbleweed-b28' | 'water-tower-west'
+  | 'west-gold-nugget' | 'cactus-big' | 'bandit-campfire' | 'oil-derrick' | 'barn-west'
+  | 'west-street-lanterns' | 'gold-mine-cart'
 
 export interface SpawnedPart {
   id: string

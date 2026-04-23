@@ -4,6 +4,7 @@ import Hub from './pages/Hub'
 import Login from './pages/Login'
 import AchievementToast from './components/AchievementToast'
 import { ensureAchievementsWatcher } from './lib/achievements'
+import { startStreakReminderWatcher } from './lib/streakReminder'
 import './App.css'
 
 // Lazy-load heavy routes so the hub doesn't pull Three.js / Blockly on first paint.
@@ -37,7 +38,10 @@ function RouteLoader({ label }: { label: string }) {
 const ROUTER_BASENAME = import.meta.env.BASE_URL.replace(/\/$/, '')
 
 export default function App() {
-  useEffect(() => { ensureAchievementsWatcher() }, [])
+  useEffect(() => {
+    ensureAchievementsWatcher()
+    return startStreakReminderWatcher()
+  }, [])
   return (
     <BrowserRouter basename={ROUTER_BASENAME}>
       <AchievementToast />

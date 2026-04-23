@@ -8848,3 +8848,83 @@ body:has(.lobby-v2) {
   }
   .nk-chat-fab { right: 12px; bottom: 12px; }
 }
+
+/* ═══ Accessibility (WCAG 2.2 AA basics) ═══ */
+
+/* Skip-to-content — visible только при фокусе */
+.kb-skip-link {
+  position: absolute;
+  left: 12px;
+  top: -40px;
+  z-index: 10000;
+  padding: 8px 16px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: top .15s ease;
+}
+.kb-skip-link:focus {
+  top: 8px;
+  outline: 2px solid var(--yellow);
+}
+
+/* Унифицированный focus-visible на все интерактивы */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.kb-btn:focus-visible { outline-offset: 3px; }
+
+/* На жёлтом фоне (кнопки жёлтые) — фокус фиолетовый всё ок */
+.kb-btn--secondary:focus-visible { outline-color: var(--ink); }
+
+/* Убрать outline для клика мышью — он и так виден */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Reduced motion — отключаем тяжёлые анимации */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .path-node-pulse,
+  .kb-streak-ring circle,
+  .mascot-spark,
+  .mascot-bubble {
+    animation: none !important;
+  }
+}
+
+/* High contrast mode — для ГОСТ Р 52872 / Dyslexia toggle */
+.a11y-high-contrast {
+  --ink: #000;
+  --ink-soft: #222;
+  --paper: #fff;
+  --paper-2: #f0f0f0;
+}
+.a11y-high-contrast .kb-btn,
+.a11y-high-contrast .kb-card {
+  border-width: 2.5px !important;
+}
+
+/* Font scaling — привязано к классу на html/body */
+.a11y-font-large { font-size: 18px; }
+.a11y-font-xl { font-size: 20px; }
