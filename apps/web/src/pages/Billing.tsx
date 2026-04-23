@@ -133,7 +133,7 @@ export default function Billing() {
               {b.subscription.plan === 'trial' && b.subscription.trialEndsAt && (
                 <p style={{ margin: 0, fontSize: 14, color: 'var(--ink-soft)' }}>
                   Бесплатно до <strong>{new Date(b.subscription.trialEndsAt).toLocaleDateString('ru-RU')}</strong>.
-                  Автопереход на месячную подписку ({formatRub(5937)}/мес) после — отмени заранее если не подходит.
+                  Автопереход на месячную подписку ({formatRub(PLAN_INFO['monthly'].pricePerMonth)}/мес) после — отмени заранее если не подходит.
                 </p>
               )}
               {b.subscription.plan !== 'trial' && b.subscription.nextChargeAt && (
