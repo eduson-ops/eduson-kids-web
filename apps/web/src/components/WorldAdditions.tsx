@@ -2734,8 +2734,8 @@ function Compass({ pos, color, size }: { pos: [number, number, number]; color: s
           <coneGeometry args={[size * 0.05, size * 0.28, 4]} />
           <meshStandardMaterial color="#e53" roughness={0.4} />
         </mesh>
-        <mesh position={[0, size * 0.05, -size * 0.14]} castShadow>
-          <coneGeometry args={[size * 0.05, size * 0.28, 4]} rotation={[Math.PI, 0, 0]} />
+        <mesh position={[0, size * 0.05, -size * 0.14]} rotation={[Math.PI, 0, 0]} castShadow>
+          <coneGeometry args={[size * 0.05, size * 0.28, 4]} />
           <meshStandardMaterial color="#ccc" roughness={0.4} />
         </mesh>
       </group>
@@ -2819,8 +2819,8 @@ function SpiderWeb({ pos, color, size }: { pos: [number, number, number]; color:
     <group position={pos}>
       {/* Spokes */}
       {Array.from({ length: spokes }).map((_, i) => (
-        <mesh key={i} rotation={[0, (i / spokes) * Math.PI * 2, 0]} castShadow>
-          <cylinderGeometry args={[size * 0.008, size * 0.008, size * 1.1, 4]} rotation={[0, 0, Math.PI / 2]} />
+        <mesh key={i} rotation={[0, (i / spokes) * Math.PI * 2, Math.PI / 2]} castShadow>
+          <cylinderGeometry args={[size * 0.008, size * 0.008, size * 1.1, 4]} />
           <meshStandardMaterial color={color} roughness={0.4} />
         </mesh>
       ))}
@@ -2916,14 +2916,14 @@ function YoYo({ pos, color, size }: { pos: [number, number, number]; color: stri
       <group ref={spin}>
         {/* Two discs */}
         {[-1, 1].map((s) => (
-          <mesh key={s} position={[0, 0, s * size * 0.12]} castShadow>
-            <cylinderGeometry args={[size * 0.34, size * 0.34, size * 0.1, 16]} rotation={[Math.PI / 2, 0, 0]} />
+          <mesh key={s} position={[0, 0, s * size * 0.12]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+            <cylinderGeometry args={[size * 0.34, size * 0.34, size * 0.1, 16]} />
             <meshStandardMaterial color={color} roughness={0.3} metalness={0.4} />
           </mesh>
         ))}
         {/* Center axle */}
-        <mesh castShadow>
-          <cylinderGeometry args={[size * 0.08, size * 0.08, size * 0.24, 8]} rotation={[Math.PI / 2, 0, 0]} />
+        <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <cylinderGeometry args={[size * 0.08, size * 0.08, size * 0.24, 8]} />
           <meshStandardMaterial color="#888" roughness={0.4} metalness={0.6} />
         </mesh>
       </group>
