@@ -365,6 +365,26 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'vase-ancient',label: 'Ваза',     emoji: '🏺', defaultColor: '#c8841a', tags: ['ваза','vase','амфора','античная','глина'], hint: 'Греческая амфора' },
     ],
   },
+  {
+    id: 'farm', name: 'Ферма', icon: '🐄',
+    items: [
+      { kind: 'cow',       label: 'Корова',     emoji: '🐄', defaultColor: '#f5f5f5', tags: ['корова','cow','ферма','животное','молоко'], hint: 'Пятнистая корова' },
+      { kind: 'barn',      label: 'Амбар',      emoji: '🏚️', defaultColor: '#c0392b', tags: ['амбар','barn','ферма','сарай','хранилище'], hint: 'Красный фермерский амбар' },
+      { kind: 'hay-bale',  label: 'Тюк сена',   emoji: '🌾', defaultColor: '#d4aa60', tags: ['сено','hay','рулон','тюк','ферма'], hint: 'Круглый рулон сена' },
+      { kind: 'scarecrow', label: 'Пугало',     emoji: '🎃', defaultColor: '#8b5a2b', tags: ['пугало','scarecrow','птицы','огород','ферма'], hint: 'Пугало на шесте' },
+      { kind: 'well',      label: 'Колодец',    emoji: '🪣', defaultColor: '#8b5a2b', tags: ['колодец','well','вода','деревня','деревянный'], hint: 'Деревянный колодец с крышей' },
+    ],
+  },
+  {
+    id: 'pirates', name: 'Пираты', icon: '☠️',
+    items: [
+      { kind: 'cannon',        label: 'Пушка',       emoji: '💣', defaultColor: '#3a3a3a', tags: ['пушка','cannon','пираты','выстрел','чугун'], hint: 'Корабельная чугунная пушка' },
+      { kind: 'ship-wheel',    label: 'Штурвал',     emoji: '🚢', defaultColor: '#8b5a2b', tags: ['штурвал','wheel','корабль','пираты','руль'], hint: 'Деревянный штурвал' },
+      { kind: 'treasure-map',  label: 'Карта',       emoji: '🗺️', defaultColor: '#d4aa60', tags: ['карта','map','сокровища','свиток','пираты'], hint: 'Свёрнутая карта сокровищ' },
+      { kind: 'jolly-roger',   label: 'Весёлый Роджер',emoji: '🏴‍☠️', defaultColor: '#2a2a2a', tags: ['флаг','jolly roger','пираты','череп','символ'], hint: 'Пиратский флаг с черепом' },
+      { kind: 'anchor-chain',  label: 'Якорь-цепь',  emoji: '⚓', defaultColor: '#5a5a5a', tags: ['якорь','цепь','anchor','пираты','море'], hint: 'Якорь с тяжёлой цепью' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

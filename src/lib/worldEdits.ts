@@ -82,6 +82,10 @@ export type PropKind =
   | 'toolbox' | 'anvil' | 'barrel-fire'
   // Art
   | 'easel' | 'sculpture' | 'vase-ancient'
+  // Farm
+  | 'cow' | 'barn' | 'hay-bale' | 'scarecrow' | 'well'
+  // Pirates
+  | 'cannon' | 'ship-wheel' | 'treasure-map' | 'jolly-roger' | 'anchor-chain'
 
 export interface SpawnedPart {
   id: string
