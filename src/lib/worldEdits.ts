@@ -136,6 +136,30 @@ export type PropKind =
   // City-2
   | 'hospital' | 'police-station' | 'fire-station' | 'library-building' | 'park-fountain'
   | 'bus-stop' | 'bridge-arch' | 'stadium' | 'museum' | 'market-stall'
+  // Transport-2
+  | 'ambulance' | 'fire-truck' | 'police-car' | 'school-bus' | 'tractor'
+  | 'submarine-mini' | 'sailboat' | 'hot-air-balloon-2' | 'cable-car' | 'monorail'
+  // Food/Café
+  | 'cafe-table' | 'coffee-cup' | 'cake-slice' | 'ice-cream-stand' | 'food-cart'
+  | 'pizza-oven' | 'soda-machine' | 'cupcake' | 'pretzel' | 'hot-dog-stand'
+  // Sports-2
+  | 'swimming-pool' | 'tennis-court' | 'ski-jump' | 'bowling-pin' | 'dartboard'
+  | 'golf-hole' | 'climbing-wall' | 'balance-beam' | 'racing-flag' | 'medal-stand'
+  // Space-2
+  | 'moon-base' | 'space-rover' | 'satellite-dish-2' | 'alien-ship' | 'cryo-pod'
+  | 'space-suit' | 'meteor-shower' | 'ring-planet' | 'rocket-launch-pad' | 'space-cannon'
+  // Fantasy-2
+  | 'wizard-tower' | 'dragon-statue' | 'magic-wand' | 'spell-book' | 'enchanted-sword'
+  | 'alchemy-table' | 'fairy-house' | 'rune-stone-glow' | 'magic-mirror' | 'cursed-chest'
+  // Sci-Tech
+  | 'hologram-display' | 'tesla-coil' | 'dna-helix' | 'laser-beam' | 'computer-terminal'
+  | 'reactor-core' | 'data-tower' | 'magnifying-glass' | 'portal-gun' | 'hover-pad'
+  // Ocean Park
+  | 'jellyfish' | 'clam-shell' | 'crab-prop' | 'seaweed-tall' | 'diving-bell'
+  | 'reef-rock' | 'sea-star' | 'manta-ray' | 'puffer-fish' | 'sunken-ship-bow'
+  // Jungle Park
+  | 'jungle-bridge' | 'tribal-drum' | 'jungle-flower' | 'tree-giant' | 'parrot-perch'
+  | 'waterfall-small' | 'bamboo-wall' | 'frog-statue' | 'temple-ruin' | 'treasure-map-stand'
 
 export interface SpawnedPart {
   id: string

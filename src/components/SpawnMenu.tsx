@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   isEditMode,
   subscribeEditMode,
@@ -28,6 +28,19 @@ import {
 } from '../lib/spawnPrefs'
 import { doUndo, canUndo, resetWorldEdits, subscribeEdits } from '../lib/worldEdits'
 import { SFX } from '../lib/audio'
+
+function highlight(text: string, q: string): ReactNode {
+  if (!q.trim()) return text
+  const idx = text.toLowerCase().indexOf(q.toLowerCase().trim())
+  if (idx === -1) return text
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="spawn-hl">{text.slice(idx, idx + q.trim().length)}</mark>
+      {text.slice(idx + q.trim().length)}
+    </>
+  )
+}
 
 type TopTab = 'spawn' | 'tools'
 
@@ -353,6 +366,22 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                     🔍 Результаты поиска «{query}» · {searchResults.length} найдено
                   </div>
                 )}
+                {!query.trim() && activeCat !== 'favs' && activeCat !== 'recent' && recentItems.length > 0 && (
+                  <div className="spawn-quick-row">
+                    <span className="spawn-quick-label">Недавние:</span>
+                    {recentItems.slice(0, 6).map((item) => (
+                      <button
+                        key={item.kind}
+                        className={`spawn-quick-chip ${placement?.kind === item.kind ? 'active' : ''}`}
+                        onClick={() => pickItem(item)}
+                        title={item.label}
+                      >
+                        <span>{item.emoji}</span>
+                        <span>{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {!query.trim() && activeCat === 'favs' && favItems.length === 0 && (
                   <div className="spawn-menu-empty">
                     Пока пусто. Нажми ⭐ на любом пропсе чтобы добавить в избранное.
@@ -383,7 +412,7 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                           {fav ? '⭐' : '☆'}
                         </span>
                         <span className="spawn-menu-emoji">{item.emoji}</span>
-                        <span className="spawn-menu-label">{item.label}</span>
+                        <span className="spawn-menu-label">{highlight(item.label, query)}</span>
                         {item.hint && <small className="spawn-menu-hint">{item.hint}</small>}
                       </button>
                     )

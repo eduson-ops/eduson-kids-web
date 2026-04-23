@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState, type ReactNode } from 'react'
 import { NikselMini } from '../design/mascot/Niksel'
+import NikselChat from './NikselChat'
 
 /**
  * Platform shell v2 — dark left sidenav (Designbook pattern).
@@ -133,6 +134,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
       </aside>
 
       <main className="kb-shell-main">{children}</main>
+      <NikselChat />
     </div>
   )
 }

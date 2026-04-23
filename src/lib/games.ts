@@ -261,8 +261,8 @@ export const GAMES: GameMeta[] = [
   },
   {
     id: 'bendy',
-    title: 'Bendy and the Ink Machine Chapter 1',
-    author: 'D PLAY :3',
+    title: 'Тёмная чернильница · Глава 1',
+    author: 'Студия Тень',
     authorColor: '#2a2840',
     category: 'rp',
     emoji: '🎩',

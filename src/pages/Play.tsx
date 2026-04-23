@@ -22,6 +22,7 @@ import ObjectScriptEditor from '../components/ObjectScriptEditor'
 import PlayScriptRuntime from '../components/PlayScriptRuntime'
 import WorldContextMenu from '../components/WorldContextMenu'
 import SpawnMenu from '../components/SpawnMenu'
+import MobileControls from '../components/MobileControls'
 import SayBubble from '../components/SayBubble'
 import {
   isEditMode,
@@ -205,6 +206,7 @@ export default function Play() {
         <strong> клик</strong> — захват мыши (ESC — отменить)
       </div>
 
+      <MobileControls />
       <SayBubble />
       <PlayScriptRuntime />
       <EscapeMenu gameTitle={game.title} />
