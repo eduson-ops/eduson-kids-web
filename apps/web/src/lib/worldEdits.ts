@@ -338,6 +338,10 @@ export type PropKind =
   | 't-rex-b39' | 'triceratops-b39' | 'stegosaurus-b39' | 'dino-egg-b39' | 'pterodactyl-b39'
   // Music Studio
   | 'guitar-b39' | 'drum-kit-b39' | 'piano-b39' | 'microphone-b39' | 'vinyl-record-b39' | 'speaker-b39'
+  // Sports
+  | 'soccer-ball-b40' | 'trophy-b40' | 'basketball-hoop-b40' | 'starting-block-b40'
+  // Halloween
+  | 'jack-o-lantern-b40' | 'ghost-b40' | 'witch-hat-b40' | 'spider-web-b40' | 'cauldron-b40' | 'bat-b40'
 
 export interface SpawnedPart {
   id: string

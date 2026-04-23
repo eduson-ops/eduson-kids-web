@@ -1631,6 +1631,26 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'speaker-b39',       label: 'Колонка',         emoji: '🔊', defaultColor: '#222222', tags: ['колонка','speaker','звук','бас','музыка'], hint: 'Мощная студийная колонка' },
     ],
   },
+  {
+    id: 'sports', name: 'Спорт', icon: '⚽',
+    items: [
+      { kind: 'soccer-ball-b40',      label: 'Футбольный мяч',    emoji: '⚽', defaultColor: '#ffffff', tags: ['мяч','soccer ball','футбол','прыгает','спорт'], hint: 'Прыгающий футбольный мяч' },
+      { kind: 'trophy-b40',           label: 'Кубок',             emoji: '🏆', defaultColor: '#c8a000', tags: ['кубок','trophy','золото','победа','чемпион'], hint: 'Золотой чемпионский кубок' },
+      { kind: 'basketball-hoop-b40',  label: 'Баскетбольное кольцо', emoji: '🏀', defaultColor: '#888', tags: ['кольцо','basketball hoop','баскетбол','стойка','оранжевый'], hint: 'Баскетбольная стойка с кольцом' },
+      { kind: 'starting-block-b40',   label: 'Стартовые колодки', emoji: '🏃', defaultColor: '#cc4400', tags: ['колодки','starting block','старт','бег','спорт'], hint: 'Лёгкоатлетические стартовые колодки' },
+    ],
+  },
+  {
+    id: 'halloween', name: 'Хэллоуин', icon: '🎃',
+    items: [
+      { kind: 'jack-o-lantern-b40', label: 'Тыква Джека',    emoji: '🎃', defaultColor: '#ff6600', tags: ['тыква','jack o lantern','хэллоуин','улыбка','светится'], hint: 'Мигающая тыква Джека' },
+      { kind: 'ghost-b40',          label: 'Призрак',         emoji: '👻', defaultColor: '#f0f0ff', tags: ['призрак','ghost','белый','летит','хэллоуин'], hint: 'Парящий полупрозрачный призрак' },
+      { kind: 'witch-hat-b40',      label: 'Шляпа ведьмы',   emoji: '🧙', defaultColor: '#1a0a2e', tags: ['шляпа','witch hat','ведьма','чёрная','хэллоуин'], hint: 'Остроконечная шляпа ведьмы' },
+      { kind: 'spider-web-b40',     label: 'Паутина',         emoji: '🕸️', defaultColor: '#cccccc', tags: ['паутина','spider web','паук','страшный','белый'], hint: 'Тонкая паутина с пауком' },
+      { kind: 'cauldron-b40',       label: 'Котёл',           emoji: '🪄', defaultColor: '#00cc44', tags: ['котёл','cauldron','зелье','ведьма','зелёный'], hint: 'Кипящий котёл с зеленым зельем' },
+      { kind: 'bat-b40',            label: 'Летучая мышь',    emoji: '🦇', defaultColor: '#2a1a3e', tags: ['мышь','bat','летит','ночь','хэллоуин'], hint: 'Летящая летучая мышь' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
