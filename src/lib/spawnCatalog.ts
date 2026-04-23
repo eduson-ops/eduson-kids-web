@@ -485,6 +485,56 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'prize-wheel',      label: 'Колесо фортуны',emoji: '🎡', defaultColor: '#6c5ce7', tags: ['колесо','фортуна','prize wheel','spin','приз','вращение'], hint: 'Крутящееся колесо призов' },
     ],
   },
+  {
+    id: 'nordic', name: 'Викинги', icon: '🪖',
+    items: [
+      { kind: 'longship',      label: 'Драккар',       emoji: '🚢', defaultColor: '#5a3a20', tags: ['драккар','longship','викинги','корабль','ладья'], hint: 'Викингский корабль со щитами' },
+      { kind: 'runestone',     label: 'Рунный камень', emoji: '🪨', defaultColor: '#5a5a6a', tags: ['руна','runestone','камень','норвегия','надпись'], hint: 'Камень с руническими надписями' },
+      { kind: 'viking-helmet', label: 'Шлем викинга',  emoji: '🪖', defaultColor: '#888', tags: ['шлем','helmet','викинг','рога','металл'], hint: 'Металлический шлем с рогами' },
+      { kind: 'mead-hall',     label: 'Пиршественный зал',emoji: '🏠', defaultColor: '#8b5a2b', tags: ['мид-холл','зал','mead hall','викинги','пир','дерево'], hint: 'Деревянный пиршественный зал викингов' },
+      { kind: 'axe-rack',      label: 'Стойка с топорами',emoji: '🪓', defaultColor: '#6a4a2a', tags: ['топор','axe','стойка','викинги','оружие'], hint: 'Деревянная стойка с боевыми топорами' },
+    ],
+  },
+  {
+    id: 'magic-forest', name: 'Магический лес', icon: '🧚',
+    items: [
+      { kind: 'fairy-ring',    label: 'Кольцо фей',    emoji: '🍄', defaultColor: '#ff9f43', tags: ['фея','fairy ring','кольцо','грибы','магия'], hint: 'Волшебное кольцо из грибов' },
+      { kind: 'giant-mushroom',label: 'Гигантский гриб',emoji: '🍄', defaultColor: '#c879ff', tags: ['гриб','mushroom','гигантский','фэнтези','лес'], hint: 'Огромный светящийся гриб' },
+      { kind: 'crystal-tree',  label: 'Кристальное дерево',emoji: '💎', defaultColor: '#88d4ff', tags: ['дерево','кристалл','crystal tree','магия','светится'], hint: 'Дерево из кристаллов' },
+      { kind: 'wizard-hat',    label: 'Шляпа волшебника',emoji: '🧙', defaultColor: '#5b3fa0', tags: ['шляпа','hat','волшебник','wizard','магия','звёзды'], hint: 'Высокая шляпа со звёздами' },
+      { kind: 'potion-stand',  label: 'Зельеварня',    emoji: '⚗️', defaultColor: '#6c5ce7', tags: ['зелье','potion','stand','магия','лавка','колбы'], hint: 'Стойка с зельями и колбами' },
+    ],
+  },
+  {
+    id: 'industrial', name: 'Индустрия', icon: '🏭',
+    items: [
+      { kind: 'factory-chimney',label: 'Труба завода',  emoji: '🏭', defaultColor: '#8a8a8a', tags: ['труба','chimney','завод','дым','индустрия','factory'], hint: 'Высокая заводская труба' },
+      { kind: 'conveyor-belt',  label: 'Конвейер',      emoji: '⚙️', defaultColor: '#5a5a5a', tags: ['конвейер','conveyor','belt','завод','индустрия'], hint: 'Промышленный конвейер' },
+      { kind: 'robot-arm',      label: 'Рука робота',   emoji: '🦾', defaultColor: '#4c97ff', tags: ['рука','robot arm','робот','завод','механическая'], hint: 'Механическая рука робота' },
+      { kind: 'oil-drum',       label: 'Бочка нефти',   emoji: '🛢️', defaultColor: '#333', tags: ['бочка','drum','нефть','oil','barrel','красная'], hint: 'Металлическая бочка для нефти' },
+      { kind: 'crane',          label: 'Кран',          emoji: '🏗️', defaultColor: '#ffd644', tags: ['кран','crane','стройка','жёлтый','подъёмный'], hint: 'Строительный подъёмный кран' },
+    ],
+  },
+  {
+    id: 'retro', name: 'Ретро', icon: '🕹️',
+    items: [
+      { kind: 'arcade-machine', label: 'Аркадный автомат',emoji: '🕹️', defaultColor: '#c879ff', tags: ['аркада','arcade','автомат','ретро','игра','монеты'], hint: 'Старый аркадный игровой автомат' },
+      { kind: 'retro-tv',       label: 'Старый телевизор',emoji: '📺', defaultColor: '#5a5a5a', tags: ['телевизор','tv','ретро','старый','экран'], hint: 'Ламповый телевизор' },
+      { kind: 'cassette-tape',  label: 'Кассета',       emoji: '📼', defaultColor: '#333', tags: ['кассета','cassette','music','ретро','80е','плёнка'], hint: 'Аудиокассета' },
+      { kind: 'game-controller',label: 'Джойстик',      emoji: '🎮', defaultColor: '#555', tags: ['джойстик','controller','геймпад','ретро','игра'], hint: 'Ретро-джойстик' },
+      { kind: 'pixel-heart',    label: 'Пиксель-сердце',emoji: '❤️', defaultColor: '#ff5464', tags: ['сердце','pixel','heart','8-бит','ретро','жизни'], hint: 'Пиксельное сердце из игр' },
+    ],
+  },
+  {
+    id: 'nature2', name: 'Природа-2', icon: '🌋',
+    items: [
+      { kind: 'waterfall',      label: 'Водопад',       emoji: '💧', defaultColor: '#4c97ff', tags: ['водопад','waterfall','вода','поток','природа'], hint: 'Водопад с брызгами' },
+      { kind: 'lotus-pond',     label: 'Пруд с лотосами',emoji: '🪷', defaultColor: '#ff9f43', tags: ['пруд','лотос','lotus','вода','цветок','восток'], hint: 'Пруд с цветущими лотосами' },
+      { kind: 'volcano',        label: 'Вулкан',        emoji: '🌋', defaultColor: '#ff5464', tags: ['вулкан','volcano','лава','огонь','горы','извержение'], hint: 'Дымящийся вулкан с лавой' },
+      { kind: 'geyser',         label: 'Гейзер',        emoji: '💦', defaultColor: '#88d4ff', tags: ['гейзер','geyser','пар','горячий','вода','йеллоустоун'], hint: 'Гейзер с паром' },
+      { kind: 'cave-entrance',  label: 'Вход в пещеру', emoji: '🕳️', defaultColor: '#4a4a5a', tags: ['пещера','cave','вход','тёмный','entrance','подземелье'], hint: 'Вход в тёмную пещеру' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

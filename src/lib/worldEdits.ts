@@ -106,6 +106,16 @@ export type PropKind =
   | 'shipwreck' | 'treasure-chest-open' | 'anemone' | 'sea-turtle' | 'whale'
   // Fairground
   | 'popcorn-stand' | 'bumper-car' | 'ticket-booth' | 'balloon-arch' | 'prize-wheel'
+  // Nordic/Viking
+  | 'longship' | 'runestone' | 'viking-helmet' | 'mead-hall' | 'axe-rack'
+  // Magical Forest
+  | 'fairy-ring' | 'giant-mushroom' | 'crystal-tree' | 'wizard-hat' | 'potion-stand'
+  // Industrial
+  | 'factory-chimney' | 'conveyor-belt' | 'robot-arm' | 'oil-drum' | 'crane'
+  // Retro/Arcade
+  | 'arcade-machine' | 'retro-tv' | 'cassette-tape' | 'game-controller' | 'pixel-heart'
+  // Nature 2
+  | 'waterfall' | 'lotus-pond' | 'volcano' | 'geyser' | 'cave-entrance'
 
 export interface SpawnedPart {
   id: string
