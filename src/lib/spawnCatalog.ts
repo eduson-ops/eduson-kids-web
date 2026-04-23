@@ -376,6 +376,26 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
+    id: 'sport2', name: 'Спорт-2', icon: '🏀',
+    items: [
+      { kind: 'basketball-hoop', label: 'Кольцо',      emoji: '🏀', defaultColor: '#ff8c1a', tags: ['кольцо','баскетбол','basketball','хуп','спорт'], hint: 'Баскетбольное кольцо с сеткой' },
+      { kind: 'boxing-gloves',   label: 'Боксёрские перчатки', emoji: '🥊', defaultColor: '#ff5464', tags: ['перчатки','бокс','boxing','спорт','удар'], hint: 'Боксёрские перчатки на подвесе' },
+      { kind: 'archery-target',  label: 'Мишень',      emoji: '🎯', defaultColor: '#ff5464', tags: ['мишень','лук','archery','target','стрельба'], hint: 'Концентрические кольца-мишень' },
+      { kind: 'surf-board',      label: 'Сёрфборд',    emoji: '🏄', defaultColor: '#48c774', tags: ['сёрф','surf','доска','волны','море'], hint: 'Сёрфинговая доска' },
+      { kind: 'dumbbell',        label: 'Гантель',     emoji: '🏋️', defaultColor: '#3a3a3a', tags: ['гантель','dumbbell','фитнес','тренировка','вес'], hint: 'Классическая гантель' },
+    ],
+  },
+  {
+    id: 'food2', name: 'Еда-2', icon: '🌮',
+    items: [
+      { kind: 'taco',            label: 'Тако',         emoji: '🌮', defaultColor: '#d4aa60', tags: ['тако','taco','мексика','еда','кукуруза'], hint: 'Мексиканский тако' },
+      { kind: 'ramen-bowl',      label: 'Рамен',        emoji: '🍜', defaultColor: '#ff9454', tags: ['рамен','ramen','нудли','суп','японский'], hint: 'Горячий рамен в чаше' },
+      { kind: 'boba-tea',        label: 'Боба-чай',     emoji: '🧋', defaultColor: '#c8841a', tags: ['боба','boba','чай','пузыри','стакан'], hint: 'Пузырьковый чай со стаканом' },
+      { kind: 'croissant',       label: 'Круассан',     emoji: '🥐', defaultColor: '#d4aa60', tags: ['круассан','croissant','выпечка','французский','хлеб'], hint: 'Слоёный круассан' },
+      { kind: 'watermelon-slice',label: 'Арбуз',        emoji: '🍉', defaultColor: '#ff5464', tags: ['арбуз','watermelon','лето','сладкий','красный'], hint: 'Долька арбуза' },
+    ],
+  },
+  {
     id: 'garden', name: 'Сад', icon: '🌷',
     items: [
       { kind: 'watering-can', label: 'Лейка',        emoji: '🪣', defaultColor: '#4c97ff', tags: ['лейка','watering can','сад','вода','полив'], hint: 'Садовая лейка с носиком' },
