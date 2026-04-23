@@ -7,7 +7,7 @@ import {
   makeObjectIdFromPos,
   type ClickContext,
 } from '../lib/playEditMode'
-import { addSpawnedPart, addRemoved, setRecolor, getRecoloredForWorld, hashPos, pushUndo } from '../lib/worldEdits'
+import { addSpawnedPart, addRemoved, setRecolor, getRecoloredForWorld, getAdditionsForWorld, hashPos, pushUndo } from '../lib/worldEdits'
 import { SFX } from '../lib/audio'
 
 interface Props {
@@ -84,13 +84,31 @@ export default function WorldContextMenu({ worldId }: Props) {
   }
 
   const duplicate = () => {
-    addSpawnedPart({
+    const additions = getAdditionsForWorld(worldId)
+    const ph = hashPos([ctx.pos[0], ctx.pos[1], ctx.pos[2]])
+    const src = additions.find((a) => hashPos(a.pos) === ph)
+    const kind = src?.kind ?? 'cube'
+    const size = src?.size ?? 1
+
+    // Extract live color from mesh material (respects recolors)
+    const obj = ctx.objectRef as THREE.Mesh | null
+    let color = src?.color ?? '#FFD43C'
+    if (obj) {
+      const mat = obj.material as THREE.MeshStandardMaterial | THREE.MeshStandardMaterial[] | undefined
+      if (mat) {
+        const m = Array.isArray(mat) ? mat[0] : mat
+        if (m?.color) color = '#' + m.color.getHexString()
+      }
+    }
+
+    const newId = addSpawnedPart({
       worldId,
       pos: [ctx.pos[0] + 1.5, ctx.pos[1] + 0.5, ctx.pos[2]],
-      color: '#FFD43C',
-      size: 1,
-      kind: 'cube',
+      color,
+      size,
+      kind,
     })
+    pushUndo({ kind: 'add', worldId, partId: newId })
     SFX.coin()
     close()
   }

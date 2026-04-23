@@ -31,7 +31,7 @@ import {
 } from '../lib/playEditMode'
 import { getAllScriptsForWorld, subscribeWorldScripts } from '../lib/worldScripts'
 import { getWorldTargets, getTargetLabel, type WorldTarget } from '../components/worlds/scriptableTargets'
-import { getRemovedForWorld, getRecoloredForWorld, resetWorldEdits } from '../lib/worldEdits'
+import { getRemovedForWorld, getRecoloredForWorld, resetWorldEdits, subscribeEdits } from '../lib/worldEdits'
 
 export default function Play() {
   const { gameId } = useParams<{ gameId: string }>()
@@ -54,11 +54,17 @@ export default function Play() {
   useEffect(() => subscribeEditMode(setEdit), [])
   useEffect(() => subscribeFocus(setFocused), [])
 
-  // Safety check: если в мире сохранено подозрительно много правок — предложить reset
-  const editsCount = useMemo(() => {
+  const [editsCount, setEditsCount] = useState(() => {
     if (!gameId) return 0
     return getRemovedForWorld(gameId).size + Object.keys(getRecoloredForWorld(gameId)).length
-  }, [gameId, edit])
+  })
+  useEffect(() => {
+    const refresh = () => {
+      if (!gameId) return
+      setEditsCount(getRemovedForWorld(gameId).size + Object.keys(getRecoloredForWorld(gameId)).length)
+    }
+    return subscribeEdits(refresh)
+  }, [gameId])
   useEffect(() => {
     const refresh = () => {
       if (gameId) setScriptedCount(getAllScriptsForWorld(gameId).length)
