@@ -811,7 +811,7 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
-    id: 'space-station', label: 'Космостанция', emoji: '🛸',
+    id: 'space-station', name: 'Космостанция', icon: '🛸',
     items: [
       { kind: 'launch-silo',      label: 'Пусковая шахта',     emoji: '🚀', defaultColor: '#778899', tags: ['шахта','launch silo','ракета','старт','космос'], hint: 'Бетонная шахта для запуска ракет' },
       { kind: 'space-capsule',    label: 'Космокапсула',        emoji: '🛸', defaultColor: '#c0c8d0', tags: ['капсула','space capsule','астронавт','спускаемый','космос'], hint: 'Спускаемая капсула после полёта' },
@@ -826,7 +826,7 @@ export const CATALOG: CatalogCategory[] = [
     ],
   },
   {
-    id: 'prehistoric', label: 'Доисторика', emoji: '🦕',
+    id: 'prehistoric', name: 'Доисторика', icon: '🦕',
     items: [
       { kind: 'cave-painting',    label: 'Наскальный рисунок',  emoji: '🎨', defaultColor: '#8b6050', tags: ['рисунок','cave painting','пещера','наскальный','prehistoric'], hint: 'Наскальный рисунок на камне' },
       { kind: 'mammoth',          label: 'Мамонт',              emoji: '🦣', defaultColor: '#8b6040', tags: ['мамонт','mammoth','слон','шерсть','ледник'], hint: 'Лохматый мамонт со бивнями' },
@@ -838,6 +838,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'sabre-tooth',      label: 'Саблезубый тигр',     emoji: '🐯', defaultColor: '#cc8844', tags: ['саблезубый','sabre tooth','тигр','клыки','prehistoric'], hint: 'Саблезубый тигр в стойке' },
       { kind: 'tar-pit',          label: 'Смоляная яма',        emoji: '⬛', defaultColor: '#111100', tags: ['смола','tar pit','яма','чёрный','опасность'], hint: 'Бурлящая смоляная яма' },
       { kind: 'amber-gem',        label: 'Янтарь с насекомым',  emoji: '🟡', defaultColor: '#ffaa00', tags: ['янтарь','amber gem','насекомое','золотой','prehistoric'], hint: 'Кусок янтаря с вмёрзшим насекомым' },
+    ],
+  },
+  {
+    id: 'enchanted-village', name: 'Зачарованная деревня', icon: '🧚',
+    items: [
+      { kind: 'magic-well',          label: 'Магический колодец',    emoji: '✨', defaultColor: '#4488ff', tags: ['колодец','magic well','магия','свечение','деревня'], hint: 'Колодец с магическим свечением' },
+      { kind: 'enchanted-gate',      label: 'Заколдованные ворота',  emoji: '🚪', defaultColor: '#7744aa', tags: ['ворота','enchanted gate','магия','арка','фэнтези'], hint: 'Светящиеся ворота с рунами' },
+      { kind: 'pixie-lamp',          label: 'Лампа фей',             emoji: '🔮', defaultColor: '#ffee44', tags: ['лампа','pixie lamp','феи','свет','фонарь'], hint: 'Лампа, наполненная светом фей' },
+      { kind: 'spell-scroll',        label: 'Свиток заклинания',     emoji: '📜', defaultColor: '#ddcc88', tags: ['свиток','spell scroll','заклинание','бумага','магия'], hint: 'Развёрнутый свиток с заклинанием' },
+      { kind: 'crystal-ball-stand',  label: 'Хрустальный шар',       emoji: '🔮', defaultColor: '#88ddff', tags: ['шар','crystal ball','предсказание','хрусталь','магия'], hint: 'Хрустальный шар на подставке' },
+      { kind: 'mushroom-house',      label: 'Гриб-домик',            emoji: '🍄', defaultColor: '#dd4444', tags: ['гриб','mushroom house','домик','красный','фея'], hint: 'Домик в большом грибе' },
+      { kind: 'fairy-fountain',      label: 'Фонтан фей',            emoji: '⛲', defaultColor: '#44ccff', tags: ['фонтан','fairy fountain','феи','вода','волшебный'], hint: 'Светящийся фонтан с феями' },
+      { kind: 'glowing-tree',        label: 'Светящееся дерево',     emoji: '🌳', defaultColor: '#44ff88', tags: ['дерево','glowing tree','свечение','лес','магия'], hint: 'Дерево с магическим свечением листьев' },
+      { kind: 'potion-rack',         label: 'Стеллаж зелий',         emoji: '🧪', defaultColor: '#884488', tags: ['зелья','potion rack','зелье','полка','алхимия'], hint: 'Полка с разноцветными зельями' },
+      { kind: 'rune-altar',          label: 'Алтарь рун',            emoji: '🗿', defaultColor: '#667788', tags: ['алтарь','rune altar','руны','камень','магия'], hint: 'Каменный алтарь с рунической гравировкой' },
+    ],
+  },
+  {
+    id: 'underwater-lab', name: 'Подводная лаборатория', icon: '🌊',
+    items: [
+      { kind: 'submarine-hatch',   label: 'Люк субмарины',         emoji: '🔩', defaultColor: '#446688', tags: ['люк','submarine hatch','субмарина','металл','подводный'], hint: 'Круглый металлический люк субмарины' },
+      { kind: 'pressure-dome',     label: 'Купол давления',         emoji: '⛺', defaultColor: '#88aacc', tags: ['купол','pressure dome','стекло','подводный','станция'], hint: 'Прозрачный купол для жизни под водой' },
+      { kind: 'sonar-tower',       label: 'Сонарная башня',         emoji: '📡', defaultColor: '#334455', tags: ['сонар','sonar tower','антенна','башня','подводный'], hint: 'Башня с вращающимся сонаром' },
+      { kind: 'deep-probe',        label: 'Глубоководный зонд',     emoji: '🤿', defaultColor: '#556677', tags: ['зонд','deep probe','исследование','зонд','наука'], hint: 'Автономный зонд для исследования глубин' },
+      { kind: 'bubble-vent',       label: 'Пузырьковый вентиль',    emoji: '💧', defaultColor: '#66aadd', tags: ['пузыри','bubble vent','вентиль','воздух','подводный'], hint: 'Трубка с поднимающимися пузырьками' },
+      { kind: 'coral-lab',         label: 'Коралловая лаборатория', emoji: '🪸', defaultColor: '#ff7766', tags: ['коралл','coral lab','лаборатория','море','наука'], hint: 'Лаборатория, встроенная в коралловый риф' },
+      { kind: 'specimen-tank',     label: 'Аквариум-образец',       emoji: '🐟', defaultColor: '#2255aa', tags: ['аквариум','specimen tank','рыба','образец','стекло'], hint: 'Герметичный резервуар с морскими образцами' },
+      { kind: 'depth-gauge',       label: 'Глубиномер',             emoji: '📊', defaultColor: '#334466', tags: ['глубиномер','depth gauge','прибор','давление','наука'], hint: 'Большой аналоговый глубиномер' },
+      { kind: 'torpedo-bay',       label: 'Торпедный отсек',        emoji: '🚀', defaultColor: '#445566', tags: ['торпеда','torpedo bay','отсек','металл','подводный'], hint: 'Открытый торпедный отсек субмарины' },
+      { kind: 'biolume-tank',      label: 'Бiolume-аквариум',       emoji: '🌟', defaultColor: '#00ccaa', tags: ['биолюминесценция','biolume tank','светится','зелёный','море'], hint: 'Аквариум с биолюминесцентными существами' },
     ],
   },
 ]

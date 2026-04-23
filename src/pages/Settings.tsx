@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import { useToast } from '../hooks/useToast'
@@ -22,6 +22,15 @@ function applyQuality(q: string) {
   window.dispatchEvent(new CustomEvent('ek:quality-change', { detail: { quality: q } }))
 }
 
+function getDailyGoal(): number {
+  const v = parseInt(localStorage.getItem('ek_daily_goal_minutes') ?? '10', 10)
+  return [5, 10, 15, 20].includes(v) ? v : 10
+}
+function setDailyGoal(m: number) {
+  localStorage.setItem('ek_daily_goal_minutes', String(m))
+  window.dispatchEvent(new CustomEvent('ek:daily-goal-change', { detail: { minutes: m } }))
+}
+
 export default function Settings() {
   const navigate = useNavigate()
   const { toast, show: showToast } = useToast()
@@ -32,6 +41,7 @@ export default function Settings() {
   const [vol, setVol] = useState(getVolume())
   const [quality, setQuality] = useState(getQuality())
   const [avatarColor, setAvatarColorState] = useState(getAvatarColor())
+  const [dailyGoal, setDailyGoalState] = useState(getDailyGoal())
 
   useEffect(() => {
     const n = localStorage.getItem('ek_child_name') ?? ''
@@ -239,17 +249,119 @@ export default function Settings() {
               ['Ctrl+Z', 'Отменить последнее действие (в редактировании)'],
               ['⚡ Ред.', 'Включить режим редактирования мира'],
             ].map(([key, desc]) => (
-              <>
-                <kbd key={`k-${key}`} style={{
+              <React.Fragment key={key}>
+                <kbd style={{
                   background: 'var(--paper-2)', border: '1px solid var(--border)',
                   borderRadius: 6, padding: '3px 8px', fontSize: 13, fontFamily: 'monospace',
                   whiteSpace: 'nowrap', boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
                 }}>
                   {key}
                 </kbd>
-                <span key={`d-${key}`} style={{ fontSize: 14, color: 'var(--ink-soft)' }}>{desc}</span>
-              </>
+                <span style={{ fontSize: 14, color: 'var(--ink-soft)' }}>{desc}</span>
+              </React.Fragment>
             ))}
+          </div>
+        </div>
+
+        {/* Цель на день */}
+        <div className="kb-card">
+          <h2 className="h2" style={{ marginBottom: 16 }}>Цель на день</h2>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 14 }}>
+            Сколько минут заниматься в день. Виджет в шапке показывает прогресс до цели.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {[5, 10, 15, 20].map((m) => (
+              <button
+                key={m}
+                onClick={() => { setDailyGoal(m); setDailyGoalState(m); showToast(`✓ Цель: ${m} мин/день`, 'success') }}
+                style={{
+                  flex: '1 1 80px',
+                  padding: '10px 14px',
+                  borderRadius: 12,
+                  border: dailyGoal === m ? '2px solid var(--violet)' : '2px solid var(--border)',
+                  background: dailyGoal === m ? 'var(--violet-soft)' : 'var(--paper-2)',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--f-display)',
+                  fontWeight: 900,
+                  fontSize: 18,
+                  color: dailyGoal === m ? 'var(--violet)' : 'var(--ink)',
+                }}
+              >
+                {m} <small style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-soft)' }}>мин</small>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Приватность и данные (ФЗ-152 / GDPR) */}
+        <div className="kb-card">
+          <h2 className="h2" style={{ marginBottom: 6 }}>Приватность и данные</h2>
+          <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginBottom: 16 }}>
+            ФЗ-152 · GDPR Art.15–20
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 6px' }}>📥 Скачать мои данные</h3>
+              <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 8px' }}>
+                Архив с профилем, прогрессом, скриптами и проектами. Отправим на email за 24 часа.
+              </p>
+              <button className="kb-btn" disabled style={{ opacity: 0.5 }}>
+                Запросить архив (скоро)
+              </button>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
+
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 6px' }}>🗑 Удалить аккаунт</h3>
+              <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 8px' }}>
+                Удаление навсегда после 30 дней льготного периода. Можно восстановить до истечения.
+              </p>
+              <button
+                className="kb-btn"
+                onClick={() => {
+                  if (!confirm('Удалить аккаунт? Это действие необратимо после 30 дней.')) return
+                  if (!confirm('Точно уверены? Прогресс, миры и покупки будут помечены на удаление.')) return
+                  localStorage.setItem('ek_delete_requested_at', String(Date.now()))
+                  showToast('Запрос на удаление принят. У вас 30 дней чтобы передумать.', 'info')
+                }}
+                style={{ borderColor: '#e53', color: '#e53' }}
+              >
+                Удалить навсегда
+              </button>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
+
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 10px' }}>📋 Согласия</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13 }}>
+                {[
+                  { label: 'Обработка персональных данных', required: true, active: true },
+                  { label: 'Аналитика (Яндекс.Метрика)', required: false, active: true },
+                  { label: 'Маркетинговые письма', required: false, active: false },
+                  { label: 'Публикация моих миров в каталог', required: false, active: false },
+                ].map((c) => (
+                  <label key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 10, opacity: c.required ? 0.7 : 1 }}>
+                    <input type="checkbox" defaultChecked={c.active} disabled={c.required} />
+                    <span>{c.label}</span>
+                    {c.required && <small style={{ color: 'var(--ink-soft)' }}>(обязательное)</small>}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
+
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 800, margin: '0 0 6px' }}>🔒 Родительский контроль</h3>
+              <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 8px' }}>
+                PIN-код на страницы оплаты и настроек. Ограничение времени в приложении.
+              </p>
+              <button className="kb-btn" disabled style={{ opacity: 0.5 }}>
+                Настроить (скоро)
+              </button>
+            </div>
           </div>
         </div>
 

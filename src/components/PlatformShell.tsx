@@ -72,10 +72,22 @@ export default function PlatformShell({ children, activeKey }: Props) {
   )
   const visibleGroups = isAdmin ? GROUPS : GROUPS.filter((g) => g.label !== 'Бренд')
   const [childName, setChildName] = useState<string | null>(null)
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('ek_sidenav_collapsed') === '1'
+  })
 
   useEffect(() => {
     setChildName(localStorage.getItem('ek_child_name'))
   }, [loc.pathname])
+
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      const next = !v
+      try { localStorage.setItem('ek_sidenav_collapsed', next ? '1' : '0') } catch { /* quota */ }
+      return next
+    })
+  }
 
   const signOut = () => {
     localStorage.removeItem('ek_child_name')
@@ -85,26 +97,40 @@ export default function PlatformShell({ children, activeKey }: Props) {
   }
 
   return (
-    <div className="brand-shell brand-shell--sidenav">
-      <aside className="kb-sidenav">
+    <div className={`brand-shell brand-shell--sidenav${collapsed ? ' brand-shell--collapsed' : ''}`}>
+      <aside className={`kb-sidenav${collapsed ? ' kb-sidenav--collapsed' : ''}`}>
         <Link to="/" className="kb-shell-brand" aria-label="Эдюсон Kids — главная">
           <NikselMini size={36} />
-          <span>Эдюсон</span>
-          <span className="kb-shell-brand-kids">Kids</span>
+          {!collapsed && (
+            <>
+              <span>Эдюсон</span>
+              <span className="kb-shell-brand-kids">Kids</span>
+            </>
+          )}
         </Link>
+
+        <button
+          className="kb-sidenav-collapse-btn"
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? 'Раскрыть меню' : 'Свернуть меню'}
+          title={collapsed ? 'Раскрыть меню' : 'Свернуть меню'}
+        >
+          {collapsed ? '»' : '«'}
+        </button>
 
         <div className="kb-sidenav-groups">
           {visibleGroups.map((g) => (
             <div key={g.label} className="kb-sidenav-group">
-              <div className="kb-sidenav-label">{g.label}</div>
+              {!collapsed && <div className="kb-sidenav-label">{g.label}</div>}
               {g.items.map((item) => (
                 <Link
                   key={item.key}
                   to={item.to}
                   className={`kb-sidenav-link ${active === item.key ? 'active' : ''}`}
+                  title={collapsed ? item.label : undefined}
                 >
                   <span className="kb-sidenav-link-emoji" aria-hidden>{item.emoji}</span>
-                  <span>{item.label}</span>
+                  {!collapsed && <span>{item.label}</span>}
                 </Link>
               ))}
             </div>
@@ -116,21 +142,38 @@ export default function PlatformShell({ children, activeKey }: Props) {
             <span className="kb-sidenav-user-avatar" aria-hidden>
               {childName.charAt(0).toUpperCase()}
             </span>
-            <div className="kb-sidenav-user-body">
-              <span className="kb-sidenav-user-name">{childName}</span>
-              <span className="kb-sidenav-user-role">УЧЕНИК</span>
-            </div>
-            <button className="kb-sidenav-user-out" onClick={signOut} title="Выйти">
-              ↩
-            </button>
+            {!collapsed && (
+              <>
+                <div className="kb-sidenav-user-body">
+                  <span className="kb-sidenav-user-name">{childName}</span>
+                  <span className="kb-sidenav-user-role">УЧЕНИК</span>
+                </div>
+                <button className="kb-sidenav-user-out" onClick={signOut} title="Выйти">
+                  ↩
+                </button>
+              </>
+            )}
           </div>
-        ) : (
+        ) : !collapsed ? (
           <Link to="/login" className="kb-sidenav-login">
             → Войти
           </Link>
+        ) : (
+          <Link to="/login" className="kb-sidenav-login" title="Войти">
+            →
+          </Link>
         )}
 
-        <div className="kb-sidenav-foot">v1.0 · 2026</div>
+        {!collapsed && (
+          <div className="kb-sidenav-foot">
+            <div className="kb-sidenav-foot-links">
+              <Link to="/legal/privacy">Политика</Link>
+              <Link to="/legal/terms">Оферта</Link>
+              <Link to="/legal/contacts">Контакты</Link>
+            </div>
+            <div className="kb-sidenav-foot-ver">v1.0 · 2026</div>
+          </div>
+        )}
       </aside>
 
       <main className="kb-shell-main">{children}</main>

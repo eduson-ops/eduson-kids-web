@@ -7669,6 +7669,27 @@ body:has(.lobby-v2) {
 .kb-sidenav-login:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--violet-deep); }
 .kb-sidenav-login:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--violet-deep); }
 
+.kb-sidenav-foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 8px;
+}
+.kb-sidenav-foot-links a {
+  font-size: 11px;
+  color: rgba(255,251,243,.5);
+  text-decoration: none;
+  transition: color .15s;
+}
+.kb-sidenav-foot-links a:hover {
+  color: rgba(255,251,243,.85);
+  text-decoration: underline;
+}
+.kb-sidenav-foot-ver {
+  font-size: 10px;
+  color: rgba(255,251,243,.35);
+  font-family: var(--f-mono);
+}
 .kb-sidenav-foot {
   padding-top: 12px;
   border-top: 1px solid rgba(255,251,243,.08);
@@ -7792,8 +7813,52 @@ body:has(.lobby-v2) {
   padding: 40px 32px 80px;
 }
 /* When sidenav is used, shift main content right. */
-.brand-shell--sidenav { padding-left: 260px; }
+.brand-shell--sidenav { padding-left: 260px; transition: padding-left 0.2s ease; }
 .brand-shell--sidenav .kb-shell-main { padding: 48px 48px 80px; max-width: 1280px; margin: 0 auto 0 0; }
+
+/* Collapsed sidenav — rail mode (72px, emoji only) */
+.brand-shell--collapsed { padding-left: 72px; }
+.kb-sidenav--collapsed {
+  width: 72px;
+  padding: 28px 10px 20px;
+}
+.kb-sidenav--collapsed .kb-shell-brand { justify-content: center; padding: 0; }
+.kb-sidenav--collapsed .kb-sidenav-link { justify-content: center; padding: 12px 0; }
+.kb-sidenav--collapsed .kb-sidenav-link-emoji { margin: 0; }
+.kb-sidenav--collapsed .kb-sidenav-user {
+  justify-content: center;
+  padding: 8px 0;
+}
+.kb-sidenav--collapsed .kb-sidenav-login { justify-content: center; padding: 10px 0; }
+
+/* Collapse toggle button — bottom-right of sidenav */
+.kb-sidenav-collapse-btn {
+  position: absolute;
+  top: 22px;
+  right: -12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--violet, #6B5CE7);
+  color: var(--paper, #fffbf3);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  z-index: 10;
+  transition: transform 0.15s ease;
+}
+.kb-sidenav-collapse-btn:hover { transform: scale(1.1); }
+
+@media (max-width: 900px) {
+  .kb-sidenav-collapse-btn { display: none; }
+  .brand-shell--collapsed { padding-left: 0; padding-top: 60px; }
+}
 @media (max-width: 900px) {
   .brand-shell--sidenav { padding-left: 0; padding-top: 60px; }
   .kb-sidenav {
@@ -7929,6 +7994,8 @@ body:has(.lobby-v2) {
   border-radius: 12px;
   box-shadow: 0 4px 0 rgba(21,20,27,.25);
   white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
 }
 .kb-cover-deco-block.b-move   { background: var(--violet-soft); color: var(--violet-ink); }
 .kb-cover-deco-block.b-logic  { background: var(--yellow); color: var(--yellow-ink); }

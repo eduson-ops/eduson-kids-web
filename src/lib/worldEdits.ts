@@ -172,6 +172,12 @@ export type PropKind =
   // Prehistoric
   | 'cave-painting' | 'mammoth' | 'dino-track' | 'bone-pile' | 'flint-club'
   | 'stone-hut' | 'fire-pit-2' | 'sabre-tooth' | 'tar-pit' | 'amber-gem'
+  // Enchanted Village
+  | 'magic-well' | 'enchanted-gate' | 'pixie-lamp' | 'spell-scroll' | 'crystal-ball-stand'
+  | 'mushroom-house' | 'fairy-fountain' | 'glowing-tree' | 'potion-rack' | 'rune-altar'
+  // Underwater Lab
+  | 'submarine-hatch' | 'pressure-dome' | 'sonar-tower' | 'deep-probe' | 'bubble-vent'
+  | 'coral-lab' | 'specimen-tank' | 'depth-gauge' | 'torpedo-bay' | 'biolume-tank'
 
 export interface SpawnedPart {
   id: string
