@@ -1260,6 +1260,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'picnic-blanket',    label: 'Пикниковая скатерть',   emoji: '🧺', defaultColor: '#ff6644', tags: ['скатерть','picnic blanket','пикник','корзина','еда'], hint: 'Яркая скатерть с едой для пикника' },
     ],
   },
+  {
+    id: 'circus-spectacular', name: 'Цирк', icon: '🎪',
+    items: [
+      { kind: 'acrobat-trapeze',   label: 'Трапеция',           emoji: '🎪', defaultColor: '#cc4422', tags: ['трапеция','acrobat trapeze','цирк','акробат','качается'], hint: 'Качающаяся трапеция для акробатов' },
+      { kind: 'circus-elephant',   label: 'Цирковой слон',      emoji: '🐘', defaultColor: '#888877', tags: ['слон','circus elephant','цирк','серый','большой'], hint: 'Слон в цирковом декоре' },
+      { kind: 'juggling-balls',    label: 'Жонглирование',      emoji: '⚽', defaultColor: '#ff4444', tags: ['мячи','juggling balls','жонглёр','летают','цветные'], hint: 'Летающие жонглёрские мячи' },
+      { kind: 'circus-big-tent',   label: 'Цирковой шатёр',     emoji: '🎪', defaultColor: '#cc2222', tags: ['шатёр','circus big tent','цирк','полосатый','купол'], hint: 'Большой полосатый цирковой шатёр' },
+      { kind: 'tightrope-wire',    label: 'Канатоходец',        emoji: '🎭', defaultColor: '#cc8822', tags: ['канат','tightrope wire','балансир','цирк','акробат'], hint: 'Натянутый канат с балансиром' },
+      { kind: 'clown-car',         label: 'Машина клоуна',      emoji: '🚗', defaultColor: '#ff4488', tags: ['клоун','clown car','машина','смешная','маленькая'], hint: 'Крошечная машинка клоуна' },
+      { kind: 'magic-hat-circus',  label: 'Волшебная шляпа',    emoji: '🎩', defaultColor: '#aa44ff', tags: ['шляпа','magic hat circus','фокусник','чёрная','кролик'], hint: 'Шляпа фокусника с летящими объектами' },
+      { kind: 'ring-of-fire',      label: 'Огненное кольцо',    emoji: '🔥', defaultColor: '#ff4400', tags: ['кольцо','ring of fire','огонь','цирк','прыжок'], hint: 'Горящее кольцо для прыжков' },
+      { kind: 'circus-podium',     label: 'Цирковой пьедестал', emoji: '🏅', defaultColor: '#ff2244', tags: ['пьедестал','circus podium','цилиндр','цирк','выступление'], hint: 'Цилиндрический пьедестал для выступлений' },
+      { kind: 'lion-tamer-whip',   label: 'Хлыст укротителя',  emoji: '🦁', defaultColor: '#8B4513', tags: ['хлыст','lion tamer whip','укротитель','кожаный','длинный'], hint: 'Хлыст укротителя диких животных' },
+    ],
+  },
+  {
+    id: 'viking-age', name: 'Эпоха викингов', icon: '⚔️',
+    items: [
+      { kind: 'viking-longship',   label: 'Драккар',                emoji: '⛵', defaultColor: '#664422', tags: ['драккар','viking longship','корабль','викинги','парус'], hint: 'Длинный боевой корабль викингов' },
+      { kind: 'runestone-b26',     label: 'Рунический камень',      emoji: '🪨', defaultColor: '#778866', tags: ['руна','runestone','камень','надписи','светится'], hint: 'Камень с рунической надписью' },
+      { kind: 'viking-iron-helmet',label: 'Железный шлем',          emoji: '⛑️', defaultColor: '#888877', tags: ['шлем','viking iron helmet','рога','металл','викинг'], hint: 'Рогатый шлем воина-викинга' },
+      { kind: 'viking-mead-hall',  label: 'Медовый зал',            emoji: '🏚', defaultColor: '#886644', tags: ['зал','viking mead hall','деревянный','пир','дом'], hint: 'Деревянный пиршественный зал' },
+      { kind: 'viking-axe-rack',   label: 'Стойка с топорами',      emoji: '🪓', defaultColor: '#555544', tags: ['топоры','viking axe rack','оружие','стойка','металл'], hint: 'Деревянная стойка с боевыми топорами' },
+      { kind: 'bonfire-viking',    label: 'Костёр викингов',         emoji: '🔥', defaultColor: '#ff4400', tags: ['костёр','bonfire viking','огонь','ночь','лагерь'], hint: 'Пылающий лагерный костёр' },
+      { kind: 'viking-shield',     label: 'Щит викинга',             emoji: '🛡️', defaultColor: '#cc4422', tags: ['щит','viking shield','круглый','металл','боевой'], hint: 'Круглый боевой щит с умбоном' },
+      { kind: 'dragon-prow',       label: 'Голова дракона',          emoji: '🐉', defaultColor: '#664422', tags: ['дракон','dragon prow','нос корабля','резьба','устрашающий'], hint: 'Резная голова дракона — нос корабля' },
+      { kind: 'nordic-well',       label: 'Скандинавский колодец',   emoji: '🪣', defaultColor: '#778866', tags: ['колодец','nordic well','деревянный','вода','скандинавский'], hint: 'Деревянный колодец с водой' },
+      { kind: 'nordic-banner',     label: 'Скандинавский стяг',      emoji: '🚩', defaultColor: '#cc4422', tags: ['стяг','nordic banner','флаг','красный','викинг'], hint: 'Боевой стяг викинга на шесте' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

@@ -256,6 +256,12 @@ export type PropKind =
   // Garden Party
   | 'garden-pavilion' | 'rose-arbor' | 'garden-bench' | 'flower-arrangement' | 'party-balloons'
   | 'cake-tower' | 'garden-sunflower' | 'garden-windmill' | 'garden-bird-bath' | 'picnic-blanket'
+  // Circus Spectacular
+  | 'acrobat-trapeze' | 'circus-elephant' | 'juggling-balls' | 'circus-big-tent' | 'tightrope-wire'
+  | 'clown-car' | 'magic-hat-circus' | 'ring-of-fire' | 'circus-podium' | 'lion-tamer-whip'
+  // Viking Age
+  | 'viking-longship' | 'runestone-b26' | 'viking-iron-helmet' | 'viking-mead-hall' | 'viking-axe-rack'
+  | 'bonfire-viking' | 'viking-shield' | 'dragon-prow' | 'nordic-well' | 'nordic-banner'
 
 export interface SpawnedPart {
   id: string
