@@ -33,6 +33,9 @@ const MODULES: Array<{ n: number; title: string; accent: string; lessons: number
   { n: 8, title: 'Публикация + авторство',     accent: 'yellow', lessons: 6, icon: 'trophy' },
 ]
 
+const TOTAL_LESSONS = 48
+const COINS_PER_LESSON = 15
+
 const ACCENT_MAP: Record<string, { color: string; soft: string; ink: string }> = {
   violet: { color: '#6B5CE7', soft: '#E4E0FC', ink: '#2A1F8C' },
   yellow: { color: '#FFD43C', soft: '#FFF0B0', ink: '#7A5900' },
@@ -46,7 +49,7 @@ export default function Hub() {
   const [name, setName] = useState<string | null>(null)
   const p = useProgress()
   const currentLesson = p.currentLesson
-  const coins = p.completedLessons * 15 // placeholder: 15 coins per lesson
+  const coins = p.completedLessons * COINS_PER_LESSON
   const mood = useMascotMood('hub')
   const [scrolled, setScrolled] = useState(false)
 
@@ -63,8 +66,8 @@ export default function Hub() {
 
   // Unlock modules based on progress: module N unlocks after finishing lesson (N-1)*6
   const lessonsCompleted = p.completedLessons
-  const courseComplete = lessonsCompleted >= 48
-  const safeLesson = Math.min(currentLesson, 48)
+  const courseComplete = lessonsCompleted >= TOTAL_LESSONS
+  const safeLesson = Math.min(currentLesson, TOTAL_LESSONS)
   const unlockedModuleN = Math.max(1, Math.ceil((lessonsCompleted + 1) / 6))
   const currentModuleN = Math.min(8, Math.ceil(safeLesson / 6))
   const currentModuleTitle = MODULES[currentModuleN - 1]?.title ?? 'Первые шаги в Эдюсон Kids'
@@ -119,7 +122,7 @@ export default function Hub() {
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Прогресс</span>
-            <strong>{lessonsCompleted} / 48 {plural(lessonsCompleted, 'lesson')}</strong>
+            <strong>{lessonsCompleted} / {TOTAL_LESSONS} {plural(lessonsCompleted, 'lesson')}</strong>
           </div>
           <div className="kb-cover-footer-col">
             <span className="eyebrow">Стрик</span>
@@ -149,10 +152,10 @@ export default function Hub() {
         <div className="kb-card" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: 20, alignItems: 'center', padding: '14px 20px' }}>
           <div className="eyebrow" style={{ whiteSpace: 'nowrap' }}>М{currentModuleN} · {currentModuleTitle}</div>
           <div className="kb-progress" style={{ height: 10 }}>
-            <div className="kb-progress-bar" style={{ width: `${(lessonsCompleted / 48) * 100}%`, background: 'var(--violet)' }} />
+            <div className="kb-progress-bar" style={{ width: `${(lessonsCompleted / TOTAL_LESSONS) * 100}%`, background: 'var(--violet)' }} />
           </div>
           <div style={{ fontFamily: 'var(--f-mono)', fontSize: 13, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>
-            {lessonsCompleted} / 48 · {pluralize(coins, 'coin')}
+            {lessonsCompleted} / {TOTAL_LESSONS} · {pluralize(coins, 'coin')}
           </div>
         </div>
       </section>
@@ -212,6 +215,7 @@ export default function Hub() {
       </section>
 
       {/* Featured worlds */}
+      {featuredGames.length > 0 && (
       <section style={{ marginBottom: 40 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 20 }}>
           <h2 className="h2">Сыграй в популярные миры</h2>
@@ -233,6 +237,7 @@ export default function Hub() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Y2 teaser — только когда Y1 завершён или почти (42+ уроков пройдено) */}
       {lessonsCompleted >= 42 && (

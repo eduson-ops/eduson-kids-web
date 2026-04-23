@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
@@ -91,17 +92,14 @@ const PROVIDERS: Provider[] = [
 ]
 
 export default function AuthSSO() {
+  const [notice, setNotice] = useState<string | null>(null)
+
   const onPick = (p: Provider) => {
     if (p.id === 'vk') {
-      // VK реально подключён в lib/vkAuth.ts — отсылаем в правильный роут
       window.location.href = '/login?via=vk'
       return
     }
-    alert(
-      `Интеграция с ${p.label} — в разработке (${p.type}).\n\n` +
-        `Архитектура готова (см. architecture/backend_v1.md).\n` +
-        `Для раннего доступа: schools@eduson.kids`
-    )
+    setNotice(`Интеграция с ${p.label} — в разработке (${p.type}). Для раннего доступа: schools@eduson.kids`)
   }
 
   return (
@@ -210,6 +208,16 @@ export default function AuthSSO() {
           ))}
         </div>
       </section>
+
+      {notice && (
+        <div
+          role="status"
+          style={{ background: 'var(--violet-soft)', borderRadius: 10, padding: '12px 16px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+        >
+          <span style={{ fontSize: 13, color: 'var(--violet-ink)', lineHeight: 1.5 }}>{notice}</span>
+          <button onClick={() => setNotice(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--violet-ink)', opacity: 0.7, flexShrink: 0 }} aria-label="Закрыть">✕</button>
+        </div>
+      )}
 
       {/* Roles info */}
       <section style={{ marginBottom: 32 }}>

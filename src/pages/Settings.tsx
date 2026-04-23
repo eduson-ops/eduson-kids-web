@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import { useToast } from '../hooks/useToast'
@@ -47,6 +47,8 @@ export default function Settings() {
   const [quality, setQuality] = useState(getQuality())
   const [avatarColor, setAvatarColorState] = useState(getAvatarColor())
   const [dailyGoal, setDailyGoalState] = useState(getDailyGoal())
+  const [deleteStep, setDeleteStep] = useState(0)
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const n = localStorage.getItem('ek_child_name') ?? ''
@@ -322,18 +324,48 @@ export default function Settings() {
               <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 8px' }}>
                 Удаление навсегда после 30 дней льготного периода. Можно восстановить до истечения.
               </p>
-              <button
-                className="kb-btn"
-                onClick={() => {
-                  if (!confirm('Удалить аккаунт? Это действие необратимо после 30 дней.')) return
-                  if (!confirm('Точно уверены? Прогресс, миры и покупки будут помечены на удаление.')) return
-                  localStorage.setItem('ek_delete_requested_at', String(Date.now()))
-                  showToast('Запрос на удаление принят. У вас 30 дней чтобы передумать.', 'default')
-                }}
-                style={{ borderColor: '#e53', color: '#e53' }}
-              >
-                Удалить навсегда
-              </button>
+              {deleteStep === 0 && (
+                <button
+                  className="kb-btn"
+                  onClick={() => {
+                    setDeleteStep(1)
+                    deleteTimerRef.current = setTimeout(() => setDeleteStep(0), 8000)
+                  }}
+                  style={{ borderColor: '#e53', color: '#e53' }}
+                >
+                  Удалить аккаунт
+                </button>
+              )}
+              {deleteStep === 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <p style={{ fontSize: 13, color: '#e53', margin: 0 }}>
+                    ⚠️ Прогресс, миры и покупки будут помечены на удаление. Необратимо через 30 дней.
+                  </p>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      className="kb-btn"
+                      onClick={() => {
+                        if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+                        setDeleteStep(0)
+                      }}
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      className="kb-btn"
+                      onClick={() => {
+                        if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+                        localStorage.setItem('ek_delete_requested_at', String(Date.now()))
+                        setDeleteStep(0)
+                        showToast('Запрос на удаление принят. У вас 30 дней чтобы передумать.', 'default')
+                      }}
+                      style={{ borderColor: '#e53', color: '#e53' }}
+                    >
+                      Да, удалить
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '8px 0' }} />
@@ -411,11 +443,15 @@ export default function Settings() {
 /** Карточка настройки вечернего напоминания о стрике. */
 function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'success' | 'info' | 'error') => void }) {
   const [enabled, setEnabled] = useState(() => isStreakReminderEnabled())
+  const [toggling, setToggling] = useState(false)
   const [perm, setPerm] = useState<NotificationPermission>(
     typeof Notification === 'undefined' ? 'denied' : Notification.permission
   )
 
   const toggle = async () => {
+    if (toggling) return
+    setToggling(true)
+    try {
     if (!enabled) {
       // Включаем — спросим разрешение браузера
       if (typeof Notification === 'undefined') {
@@ -436,6 +472,9 @@ function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'succes
       setEnabled(false)
       onToast('Напоминание выключено', 'info')
     }
+    } finally {
+      setToggling(false)
+    }
   }
 
   return (
@@ -451,8 +490,9 @@ function StreakReminderCard({ onToast }: { onToast: (msg: string, kind?: 'succes
         <input
           type="checkbox"
           checked={enabled}
+          disabled={toggling}
           onChange={toggle}
-          style={{ width: 18, height: 18, cursor: 'pointer' }}
+          style={{ width: 18, height: 18, cursor: toggling ? 'wait' : 'pointer' }}
         />
         <span style={{ fontSize: 15, fontWeight: 600 }}>
           {enabled ? 'Включено' : 'Включить вечернее напоминание'}

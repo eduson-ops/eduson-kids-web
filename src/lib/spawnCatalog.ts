@@ -1587,6 +1587,90 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'tomb-entrance-b37',  label: 'Вход в гробницу',   emoji: '🚪', defaultColor: '#b8924a', tags: ['гробница','tomb entrance','вход','пирамида','мрак'], hint: 'Таинственный вход в гробницу фараона' },
     ],
   },
+  {
+    id: 'pirate-cove', name: 'Пиратская бухта', icon: '🏴‍☠️',
+    items: [
+      { kind: 'pirate-ship-b38',     label: 'Пиратский корабль',  emoji: '⛵', defaultColor: '#8B4513', tags: ['корабль','pirate ship','парус','пират','море'], hint: 'Грозный пиратский корабль с парусами' },
+      { kind: 'treasure-chest-b38',  label: 'Сундук с сокровищами',emoji: '📦', defaultColor: '#8B4513', tags: ['сундук','treasure chest','золото','сокровища','пират'], hint: 'Деревянный сундук с золотым замком' },
+      { kind: 'cannon-b38',          label: 'Пушка',              emoji: '💥', defaultColor: '#333', tags: ['пушка','cannon','выстрел','ядро','пират'], hint: 'Корабельная пушка на лафете' },
+      { kind: 'anchor-b38',          label: 'Якорь',              emoji: '⚓', defaultColor: '#444', tags: ['якорь','anchor','море','корабль','металл'], hint: 'Тяжёлый морской якорь' },
+      { kind: 'skull-flag-b38',      label: 'Флаг черепа',        emoji: '🏴', defaultColor: '#f0f0f0', tags: ['флаг','skull flag','череп','пират','jolly roger'], hint: 'Пиратский флаг с черепом' },
+      { kind: 'pirate-barrel-b38',   label: 'Бочка',              emoji: '🛢️', defaultColor: '#8B4513', tags: ['бочка','barrel','дерево','порох','пират'], hint: 'Дубовая бочка с металлическими обручами' },
+    ],
+  },
+  {
+    id: 'fairy-tale-forest', name: 'Сказочный лес', icon: '🧚',
+    items: [
+      { kind: 'fairy-mushroom-b38', label: 'Волшебный гриб',    emoji: '🍄', defaultColor: '#ff4444', tags: ['гриб','fairy mushroom','мухомор','белый','сказка'], hint: 'Большой красный мухомор с белыми точками' },
+      { kind: 'fairy-lantern-b38',  label: 'Феерический фонарик', emoji: '✨', defaultColor: '#88ffcc', tags: ['фонарик','fairy lantern','свет','фея','светится'], hint: 'Светящийся магический фонарик феи' },
+      { kind: 'enchanted-tree-b38', label: 'Заколдованное дерево', emoji: '🌳', defaultColor: '#228B22', tags: ['дерево','enchanted tree','магия','светится','лес'], hint: 'Дерево с магическими огоньками' },
+      { kind: 'fairy-wing-b38',     label: 'Крылья феи',        emoji: '🧚', defaultColor: '#cc88ff', tags: ['крылья','fairy wing','фея','прозрачные','летит'], hint: 'Переливающиеся крылья феи' },
+      { kind: 'pixie-dust-b38',     label: 'Пыльца пикси',      emoji: '✨', defaultColor: '#ffdd44', tags: ['пыльца','pixie dust','золотая','пикси','вращается'], hint: 'Кружащиеся золотые искры пикси' },
+      { kind: 'magic-wand-b38',     label: 'Волшебная палочка', emoji: '🪄', defaultColor: '#cc00ff', tags: ['палочка','magic wand','звезда','заклинание','магия'], hint: 'Волшебная палочка со звёздным навершием' },
+      { kind: 'story-book-b38',     label: 'Сказочная книга',   emoji: '📖', defaultColor: '#8B0000', tags: ['книга','story book','сказка','страницы','открытая'], hint: 'Волшебная открытая книга сказок' },
+    ],
+  },
+  {
+    id: 'dinosaur-world', name: 'Мир динозавров', icon: '🦕',
+    items: [
+      { kind: 't-rex-b39',       label: 'Тираннозавр',    emoji: '🦖', defaultColor: '#5a8a2e', tags: ['тирекс','t-rex','динозавр','хищник','зубы'], hint: 'Грозный тираннозавр Рекс' },
+      { kind: 'triceratops-b39', label: 'Трицератопс',    emoji: '🦏', defaultColor: '#6a8a3e', tags: ['трицератопс','triceratops','рога','травоядный','динозавр'], hint: 'Трицератопс с тремя рогами' },
+      { kind: 'stegosaurus-b39', label: 'Стегозавр',      emoji: '🦕', defaultColor: '#4a7a2e', tags: ['стегозавр','stegosaurus','пластины','динозавр','травоядный'], hint: 'Стегозавр с красными пластинами' },
+      { kind: 'dino-egg-b39',    label: 'Яйцо динозавра', emoji: '🥚', defaultColor: '#c4b47a', tags: ['яйцо','dino egg','динозавр','гнездо','пятнистое'], hint: 'Пятнистое яйцо динозавра' },
+      { kind: 'pterodactyl-b39', label: 'Птеродактиль',   emoji: '🦅', defaultColor: '#7a6a4a', tags: ['птеродактиль','pterodactyl','летает','крылья','динозавр'], hint: 'Летящий птеродактиль машет крыльями' },
+    ],
+  },
+  {
+    id: 'music-studio', name: 'Музыкальная студия', icon: '🎵',
+    items: [
+      { kind: 'guitar-b39',        label: 'Гитара',          emoji: '🎸', defaultColor: '#c87432', tags: ['гитара','guitar','струны','музыка','рок'], hint: 'Акустическая гитара со струнами' },
+      { kind: 'drum-kit-b39',      label: 'Барабанная установка', emoji: '🥁', defaultColor: '#cc3300', tags: ['барабаны','drum kit','ритм','музыка','джаз'], hint: 'Полная барабанная установка' },
+      { kind: 'piano-b39',         label: 'Фортепиано',      emoji: '🎹', defaultColor: '#111111', tags: ['пианино','piano','клавиши','чёрный','белый'], hint: 'Классическое фортепиано с клавишами' },
+      { kind: 'microphone-b39',    label: 'Микрофон',        emoji: '🎤', defaultColor: '#888888', tags: ['микрофон','microphone','вокал','студия','пение'], hint: 'Студийный микрофон на стойке' },
+      { kind: 'vinyl-record-b39',  label: 'Виниловая пластинка', emoji: '💿', defaultColor: '#cc2244', tags: ['винил','vinyl record','пластинка','вращается','музыка'], hint: 'Вращающаяся виниловая пластинка' },
+      { kind: 'speaker-b39',       label: 'Колонка',         emoji: '🔊', defaultColor: '#222222', tags: ['колонка','speaker','звук','бас','музыка'], hint: 'Мощная студийная колонка' },
+    ],
+  },
+  {
+    id: 'sports', name: 'Спорт', icon: '⚽',
+    items: [
+      { kind: 'soccer-ball-b40',      label: 'Футбольный мяч',    emoji: '⚽', defaultColor: '#ffffff', tags: ['мяч','soccer ball','футбол','прыгает','спорт'], hint: 'Прыгающий футбольный мяч' },
+      { kind: 'trophy-b40',           label: 'Кубок',             emoji: '🏆', defaultColor: '#c8a000', tags: ['кубок','trophy','золото','победа','чемпион'], hint: 'Золотой чемпионский кубок' },
+      { kind: 'basketball-hoop-b40',  label: 'Баскетбольное кольцо', emoji: '🏀', defaultColor: '#888', tags: ['кольцо','basketball hoop','баскетбол','стойка','оранжевый'], hint: 'Баскетбольная стойка с кольцом' },
+      { kind: 'starting-block-b40',   label: 'Стартовые колодки', emoji: '🏃', defaultColor: '#cc4400', tags: ['колодки','starting block','старт','бег','спорт'], hint: 'Лёгкоатлетические стартовые колодки' },
+    ],
+  },
+  {
+    id: 'halloween', name: 'Хэллоуин', icon: '🎃',
+    items: [
+      { kind: 'jack-o-lantern-b40', label: 'Тыква Джека',    emoji: '🎃', defaultColor: '#ff6600', tags: ['тыква','jack o lantern','хэллоуин','улыбка','светится'], hint: 'Мигающая тыква Джека' },
+      { kind: 'ghost-b40',          label: 'Призрак',         emoji: '👻', defaultColor: '#f0f0ff', tags: ['призрак','ghost','белый','летит','хэллоуин'], hint: 'Парящий полупрозрачный призрак' },
+      { kind: 'witch-hat-b40',      label: 'Шляпа ведьмы',   emoji: '🧙', defaultColor: '#1a0a2e', tags: ['шляпа','witch hat','ведьма','чёрная','хэллоуин'], hint: 'Остроконечная шляпа ведьмы' },
+      { kind: 'spider-web-b40',     label: 'Паутина',         emoji: '🕸️', defaultColor: '#cccccc', tags: ['паутина','spider web','паук','страшный','белый'], hint: 'Тонкая паутина с пауком' },
+      { kind: 'cauldron-b40',       label: 'Котёл',           emoji: '🪄', defaultColor: '#00cc44', tags: ['котёл','cauldron','зелье','ведьма','зелёный'], hint: 'Кипящий котёл с зеленым зельем' },
+      { kind: 'bat-b40',            label: 'Летучая мышь',    emoji: '🦇', defaultColor: '#2a1a3e', tags: ['мышь','bat','летит','ночь','хэллоуин'], hint: 'Летящая летучая мышь' },
+    ],
+  },
+  {
+    id: 'ocean-life', name: 'Морская жизнь', icon: '🐬',
+    items: [
+      { kind: 'dolphin-b41',    label: 'Дельфин',      emoji: '🐬', defaultColor: '#4488cc', tags: ['дельфин','dolphin','море','прыгает','умный'], hint: 'Прыгающий дельфин' },
+      { kind: 'clown-fish-b41', label: 'Рыба-клоун',   emoji: '🐠', defaultColor: '#ff6600', tags: ['рыба','clown fish','немо','полосатая','коралл'], hint: 'Рыба-клоун с белыми полосами' },
+      { kind: 'sea-horse-b41',  label: 'Морской конёк', emoji: '🐴', defaultColor: '#ff8800', tags: ['конёк','sea horse','море','хвост','красивый'], hint: 'Изящный морской конёк' },
+    ],
+  },
+  {
+    id: 'christmas', name: 'Рождество', icon: '🎄',
+    items: [
+      { kind: 'christmas-tree-b41', label: 'Рождественская ёлка', emoji: '🎄', defaultColor: '#228B22', tags: ['ёлка','christmas tree','гирлянда','рождество','украшена'], hint: 'Нарядная рождественская ёлка с огнями' },
+      { kind: 'snowman-b41',        label: 'Снеговик',            emoji: '⛄', defaultColor: '#f0f8ff', tags: ['снеговик','snowman','зима','снег','шляпа'], hint: 'Весёлый снеговик в шляпе и шарфе' },
+      { kind: 'gift-box-b41',       label: 'Подарок',             emoji: '🎁', defaultColor: '#cc2200', tags: ['подарок','gift box','бант','рождество','сюрприз'], hint: 'Завязанная лентой подарочная коробка' },
+      { kind: 'reindeer-b41',       label: 'Олень',               emoji: '🦌', defaultColor: '#8B4513', tags: ['олень','reindeer','рога','красный нос','рождество'], hint: 'Рождественский олень с красным носом' },
+      { kind: 'santa-hat-b41',      label: 'Шапка Санты',         emoji: '🎅', defaultColor: '#cc0000', tags: ['шапка','santa hat','красная','помпон','рождество'], hint: 'Красная шапка Санта-Клауса' },
+      { kind: 'bell-b41',           label: 'Колокольчик',         emoji: '🔔', defaultColor: '#c8a000', tags: ['колокольчик','bell','золотой','звон','рождество'], hint: 'Золотой рождественский колокольчик' },
+      { kind: 'candle-b41',         label: 'Свеча',               emoji: '🕯️', defaultColor: '#f5deb3', tags: ['свеча','candle','огонь','пламя','рождество'], hint: 'Мерцающая рождественская свеча' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

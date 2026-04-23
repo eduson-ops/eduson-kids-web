@@ -328,6 +328,25 @@ export type PropKind =
   // Egyptian Pyramids
   | 'pyramid-b37' | 'sphinx-b37' | 'obelisk-b37' | 'egyptian-vase-b37'
   | 'anubis-statue-b37' | 'scarab-b37' | 'tomb-entrance-b37'
+  // Pirate Cove
+  | 'pirate-ship-b38' | 'treasure-chest-b38' | 'cannon-b38' | 'anchor-b38'
+  | 'skull-flag-b38' | 'pirate-barrel-b38'
+  // Fairy Tale Forest
+  | 'fairy-mushroom-b38' | 'fairy-lantern-b38' | 'enchanted-tree-b38' | 'fairy-wing-b38'
+  | 'pixie-dust-b38' | 'magic-wand-b38' | 'story-book-b38'
+  // Dinosaur World
+  | 't-rex-b39' | 'triceratops-b39' | 'stegosaurus-b39' | 'dino-egg-b39' | 'pterodactyl-b39'
+  // Music Studio
+  | 'guitar-b39' | 'drum-kit-b39' | 'piano-b39' | 'microphone-b39' | 'vinyl-record-b39' | 'speaker-b39'
+  // Sports
+  | 'soccer-ball-b40' | 'trophy-b40' | 'basketball-hoop-b40' | 'starting-block-b40'
+  // Halloween
+  | 'jack-o-lantern-b40' | 'ghost-b40' | 'witch-hat-b40' | 'spider-web-b40' | 'cauldron-b40' | 'bat-b40'
+  // Ocean Life
+  | 'dolphin-b41' | 'clown-fish-b41' | 'sea-horse-b41'
+  // Christmas
+  | 'christmas-tree-b41' | 'snowman-b41' | 'gift-box-b41' | 'reindeer-b41'
+  | 'santa-hat-b41' | 'bell-b41' | 'candle-b41'
 
 export interface SpawnedPart {
   id: string

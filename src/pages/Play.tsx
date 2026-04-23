@@ -190,7 +190,7 @@ export default function Play() {
               <button
                 className="edit-mode-exit"
                 style={{ background: 'rgba(255,84,100,0.5)', borderColor: 'rgba(255,84,100,0.8)' }}
-                onClick={() => { resetWorldEdits(gameId); location.reload() }}
+                onClick={(e) => { (e.currentTarget as HTMLButtonElement).disabled = true; resetWorldEdits(gameId); location.reload() }}
               >Да</button>
               <button className="edit-mode-exit" onClick={() => setConfirmReset(false)}>Нет</button>
             </span>

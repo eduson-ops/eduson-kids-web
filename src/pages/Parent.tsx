@@ -445,15 +445,19 @@ function VkConnectBanner() {
   const [user, setUser] = useState(getVkUser())
   const [link] = useState(getParentLink())
   const [err, setErr] = useState<string | null>(null)
+  const [connecting, setConnecting] = useState(false)
   const appConfigured = vkConfig().appId.length > 0
 
   const onConnect = async () => {
     setErr(null)
+    setConnecting(true)
     try {
       sessionStorage.setItem('ek_vk_next', '/parent')
       await startVkLogin('parent')
     } catch (e) {
       setErr((e as Error).message)
+    } finally {
+      setConnecting(false)
     }
   }
 
@@ -505,7 +509,7 @@ function VkConnectBanner() {
           )}
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="vk-btn" onClick={onConnect} disabled={!appConfigured}>
+          <button className="vk-btn" onClick={onConnect} disabled={!appConfigured || connecting}>
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
               <path fill="currentColor" d="M12.62 17.25c-5.51 0-9-3.81-9-9.75h2.77c0 4.13 1.85 5.95 3.34 6.32V7.5h2.64v4.01c1.5-.16 3.07-1.86 3.6-4.01h2.64c-.41 2.61-2.08 4.5-3.27 5.26 1.2.62 3.12 2.25 3.85 5.49h-2.9c-.56-1.84-2.05-3.26-3.92-3.45v3.45h-0.75z" />
             </svg>

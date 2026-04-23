@@ -4,6 +4,7 @@ import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
 import NikselIcon from '../design/mascot/NikselIcon'
 import { pluralize } from '../lib/plural'
+import { useToast } from '../hooks/useToast'
 
 /**
  * /teacher — учительская консоль (MVP-заглушка для B2B/B2G-питча).
@@ -144,9 +145,9 @@ export default function Teacher() {
         <div className="kb-cover-meta">
           <span className="eyebrow">Учительская консоль · демо</span>
           <span className="kb-cover-meta-row">
-            <span>{MOCK_CLASSES.length} {pluralize(MOCK_CLASSES.length, 'day').split(' ')[1] === 'дней' ? 'классов' : 'класса'}</span>
+            <span>{pluralize(MOCK_CLASSES.length, 'class')}</span>
             <span className="dot" />
-            <span>{MOCK_CLASSES.reduce((s, c) => s + c.students.length, 0)} учеников</span>
+            <span>{pluralize(MOCK_CLASSES.reduce((s, c) => s + c.students.length, 0), 'student')}</span>
           </span>
         </div>
         <h1 className="kb-cover-title kb-cover-title--md">
@@ -218,6 +219,7 @@ export default function Teacher() {
 
 function ClassesTab() {
   const [showCreate, setShowCreate] = useState(false)
+  const { showToast } = useToast()
   return (
     <>
       <section style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
@@ -271,8 +273,11 @@ function ClassesTab() {
                 </div>
               </div>
               <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="kb-btn kb-btn--sm kb-btn--secondary">Открыть →</button>
-                <button className="kb-btn kb-btn--sm" onClick={() => navigator.clipboard?.writeText(c.inviteCode)}>📋 Скопировать код</button>
+                <button className="kb-btn kb-btn--sm kb-btn--secondary" disabled title="Детали класса — скоро">Открыть →</button>
+                <button className="kb-btn kb-btn--sm" onClick={() => {
+                  navigator.clipboard?.writeText(c.inviteCode)
+                  showToast(`✓ Код ${c.inviteCode} скопирован`, 'success')
+                }}>📋 Скопировать код</button>
               </div>
             </div>
           )

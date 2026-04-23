@@ -45,6 +45,7 @@ export default function NikselChat() {
   const [pendingImage, setPendingImage] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  const [confirmReset, setConfirmReset] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -118,11 +119,11 @@ export default function NikselChat() {
   }
 
   const reset = () => {
-    if (!confirm('Очистить историю чата с Никселем?')) return
     setHistory([])
     setInput('')
     setPendingImage(null)
     setErr(null)
+    setConfirmReset(false)
   }
 
   return (
@@ -148,14 +149,21 @@ export default function NikselChat() {
                 <small>Спрашивай — помогу разобраться</small>
               </div>
             </div>
-            <button
-              className="nk-chat-reset"
-              onClick={reset}
-              title="Очистить историю"
-              aria-label="Очистить историю"
-            >
-              ↻
-            </button>
+            {confirmReset ? (
+              <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                <button className="nk-chat-reset" onClick={reset} title="Подтвердить очистку" style={{ color: '#ff5464' }}>✓</button>
+                <button className="nk-chat-reset" onClick={() => setConfirmReset(false)} title="Отмена">✕</button>
+              </span>
+            ) : (
+              <button
+                className="nk-chat-reset"
+                onClick={() => setConfirmReset(true)}
+                title="Очистить историю"
+                aria-label="Очистить историю"
+              >
+                ↻
+              </button>
+            )}
           </header>
 
           <div className="nk-chat-scroll" ref={scrollRef}>

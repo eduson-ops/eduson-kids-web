@@ -29,6 +29,7 @@ const Leagues = lazy(() => import('./pages/Leagues'))
 const AuthSSO = lazy(() => import('./pages/AuthSSO'))
 const Enterprise = lazy(() => import('./pages/Enterprise'))
 const Certificate = lazy(() => import('./pages/Certificate'))
+const AdaptiveQuiz = lazy(() => import('./pages/AdaptiveQuiz'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -287,6 +288,14 @@ export default function App() {
           element={
             <Suspense fallback={<RouteLoader label="Загружаю сертификат…" />}>
               <Certificate />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/quiz"
+          element={
+            <Suspense fallback={<RouteLoader label="Открываю квиз…" />}>
+              <AdaptiveQuiz />
             </Suspense>
           }
         />
