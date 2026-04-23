@@ -190,6 +190,12 @@ export type PropKind =
   // Arctic Research
   | 'igloo-lab' | 'ice-drill' | 'polar-buoy' | 'snowcat' | 'blizzard-shield'
   | 'aurora-post' | 'ice-core-rack' | 'penguin-prop' | 'walrus-statue' | 'arctic-tent'
+  // Pirate Cove
+  | 'pirate-ship' | 'ship-cannon' | 'treasure-map' | 'jolly-roger' | 'plank-bridge'
+  | 'pirate-chest' | 'anchor-prop' | 'sea-mine' | 'crow-nest' | 'pirate-tavern'
+  // Candy Land
+  | 'candy-tree' | 'lollipop-tower' | 'gingerbread-house' | 'candy-cane-gate' | 'cupcake-throne'
+  | 'cotton-candy-cloud' | 'chocolate-river' | 'donut-arch' | 'jellybean-path' | 'sugar-castle'
 
 export interface SpawnedPart {
   id: string

@@ -930,6 +930,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'arctic-tent',     label: 'Полярная палатка',       emoji: '⛺', defaultColor: '#ff4444', tags: ['палатка','arctic tent','красная','экспедиция','арктика'], hint: 'Ярко-красная полярная палатка' },
     ],
   },
+  {
+    id: 'pirate-cove', name: 'Пиратская бухта', icon: '🏴‍☠️',
+    items: [
+      { kind: 'pirate-ship',      label: 'Пиратский корабль',      emoji: '⛵', defaultColor: '#8B4513', tags: ['корабль','pirate ship','пираты','море','парус'], hint: 'Деревянный пиратский парусник' },
+      { kind: 'ship-cannon',      label: 'Корабельная пушка',      emoji: '💣', defaultColor: '#333333', tags: ['пушка','cannon','чугунная','ядро','орудие'], hint: 'Тяжёлая чугунная пушка на лафете' },
+      { kind: 'treasure-map',     label: 'Карта сокровищ',         emoji: '🗺', defaultColor: '#d4a853', tags: ['карта','treasure map','свиток','X','клад'], hint: 'Потрёпанная карта с крестом' },
+      { kind: 'jolly-roger',      label: 'Весёлый Роджер',         emoji: '🏴‍☠️', defaultColor: '#111111', tags: ['флаг','jolly roger','череп','кости','пираты'], hint: 'Чёрный флаг с черепом' },
+      { kind: 'plank-bridge',     label: 'Доска над водой',        emoji: '🪵', defaultColor: '#a0522d', tags: ['доска','plank','мостик','ходить','деревянная'], hint: 'Доска над пропастью' },
+      { kind: 'pirate-chest',     label: 'Пиратский сундук',       emoji: '📦', defaultColor: '#8b5a1a', tags: ['сундук','chest','золото','клад','пираты'], hint: 'Деревянный сундук с золотом' },
+      { kind: 'anchor-prop',      label: 'Якорь',                  emoji: '⚓', defaultColor: '#555555', tags: ['якорь','anchor','железный','цепь','море'], hint: 'Массивный корабельный якорь' },
+      { kind: 'sea-mine',         label: 'Морская мина',           emoji: '💣', defaultColor: '#222222', tags: ['мина','sea mine','шипы','опасно','вода'], hint: 'Шаровая мина с шипами' },
+      { kind: 'crow-nest',        label: 'Воронье гнездо',         emoji: '🔭', defaultColor: '#6b3a1f', tags: ['гнездо','crow nest','наблюдатель','мачта','бочка'], hint: 'Бочка-наблюдательный пункт на мачте' },
+      { kind: 'pirate-tavern',    label: 'Пиратская таверна',      emoji: '🍺', defaultColor: '#a0522d', tags: ['таверна','tavern','трактир','пираты','здание'], hint: 'Деревянное здание таверны' },
+    ],
+  },
+  {
+    id: 'candy-land', name: 'Страна сладостей', icon: '🍭',
+    items: [
+      { kind: 'candy-tree',          label: 'Конфетное дерево',     emoji: '🍬', defaultColor: '#ff44aa', tags: ['дерево','candy tree','конфеты','сладкое','розовое'], hint: 'Дерево с конфетами вместо листьев' },
+      { kind: 'lollipop-tower',      label: 'Башня-леденец',        emoji: '🍭', defaultColor: '#ff2266', tags: ['башня','lollipop','леденец','спираль','высокая'], hint: 'Гигантский леденец-спираль' },
+      { kind: 'gingerbread-house',   label: 'Пряничный домик',      emoji: '🏠', defaultColor: '#c67a30', tags: ['домик','gingerbread','пряник','конфеты','сказочный'], hint: 'Домик из пряников с глазурью' },
+      { kind: 'candy-cane-gate',     label: 'Ворота-карамель',      emoji: '🚪', defaultColor: '#ff2222', tags: ['ворота','candy cane','карамель','полосатая','вход'], hint: 'Арка из красно-белой карамели' },
+      { kind: 'cupcake-throne',      label: 'Трон-кекс',            emoji: '🧁', defaultColor: '#ff88cc', tags: ['трон','cupcake','кекс','кремовый','сладкий'], hint: 'Трон в форме кекса с кремом' },
+      { kind: 'cotton-candy-cloud',  label: 'Сахарная вата-облако', emoji: '☁️', defaultColor: '#ffaaee', tags: ['облако','cotton candy','вата','розовое','воздушное'], hint: 'Пушистое облако из сахарной ваты' },
+      { kind: 'chocolate-river',     label: 'Шоколадная река',      emoji: '🍫', defaultColor: '#5c2d0a', tags: ['река','chocolate','шоколад','текущая','вкусная'], hint: 'Поток тёмного шоколада' },
+      { kind: 'donut-arch',          label: 'Арка-пончик',          emoji: '🍩', defaultColor: '#d4874a', tags: ['арка','donut','пончик','глазурь','ворота'], hint: 'Гигантский пончик с глазурью' },
+      { kind: 'jellybean-path',      label: 'Дорожка из желе',      emoji: '🫘', defaultColor: '#44cc44', tags: ['дорожка','jellybean','мармелад','цветная','путь'], hint: 'Мощёная разноцветными мармеладками дорожка' },
+      { kind: 'sugar-castle',        label: 'Сахарный замок',       emoji: '🏰', defaultColor: '#ffeedd', tags: ['замок','sugar castle','сахарный','башни','сладкий'], hint: 'Замок из сахара и глазури' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
