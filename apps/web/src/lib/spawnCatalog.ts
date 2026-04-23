@@ -1515,6 +1515,31 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'cyber-bridge-b34',    label: 'Кибер-мост',         emoji: '🌉', defaultColor: '#00ccff', tags: ['мост','cyber bridge','неон','переход','киберпанк'], hint: 'Неоновый мост с подсветкой опор' },
     ],
   },
+  {
+    id: 'arctic-tundra', name: 'Арктика', icon: '🧊',
+    items: [
+      { kind: 'igloo-b35',           label: 'Иглу',                emoji: '🏠', defaultColor: '#d8f0f8', tags: ['иглу','igloo','снег','лёд','eskimo'], hint: 'Снежный дом иглу с тоннелем' },
+      { kind: 'polar-bear-b35',      label: 'Белый медведь',       emoji: '🐻', defaultColor: '#f0f8ff', tags: ['медведь','polar bear','белый','арктика','животное'], hint: 'Белый медведь покачивает головой' },
+      { kind: 'arctic-fox-b35',      label: 'Арктическая лиса',    emoji: '🦊', defaultColor: '#f5f5f5', tags: ['лиса','arctic fox','белая','снег','животное'], hint: 'Белая арктическая лиса с пышным хвостом' },
+      { kind: 'snow-drift-b35',      label: 'Снежный сугроб',      emoji: '❄️', defaultColor: '#e8f4ff', tags: ['сугроб','snow drift','снег','зима','белый'], hint: 'Пышные снежные сугробы' },
+      { kind: 'walrus-b35',          label: 'Морж',                emoji: '🦭', defaultColor: '#8B7355', tags: ['морж','walrus','клыки','арктика','море'], hint: 'Морж с длинными белыми клыками' },
+      { kind: 'iceberg-b35',         label: 'Айсберг',             emoji: '🧊', defaultColor: '#cceeff', tags: ['айсберг','iceberg','лёд','океан','белый'], hint: 'Полупрозрачный голубой айсберг' },
+      { kind: 'northern-lights-b35', label: 'Северное сияние',     emoji: '🌌', defaultColor: '#00ff88', tags: ['аврора','northern lights','сияние','зелёный','небо'], hint: 'Мерцающее северное сияние' },
+      { kind: 'penguin-b35',         label: 'Пингвин',             emoji: '🐧', defaultColor: '#f5f5f5', tags: ['пингвин','penguin','птица','арктика','чёрно-белый'], hint: 'Смешной пингвин покачивается' },
+    ],
+  },
+  {
+    id: 'medieval-castle', name: 'Средневековый замок', icon: '🏰',
+    items: [
+      { kind: 'castle-tower-b35',  label: 'Замковая башня',    emoji: '🗼', defaultColor: '#8B7355', tags: ['башня','castle tower','замок','камень','зубцы'], hint: 'Каменная башня замка с зубцами' },
+      { kind: 'drawbridge-b35',    label: 'Подъёмный мост',    emoji: '🌉', defaultColor: '#8B4513', tags: ['мост','drawbridge','подъёмный','ров','деревянный'], hint: 'Деревянный подъёмный мост с цепями' },
+      { kind: 'knight-armor-b35',  label: 'Рыцарские доспехи', emoji: '⚔️', defaultColor: '#aaaaaa', tags: ['доспехи','knight armor','рыцарь','металл','средневековье'], hint: 'Полный комплект рыцарских доспехов' },
+      { kind: 'catapult-b35',      label: 'Катапульта',        emoji: '💣', defaultColor: '#8B4513', tags: ['катапульта','catapult','осада','дерево','метатель'], hint: 'Деревянная катапульта с камнем' },
+      { kind: 'medieval-well-b35', label: 'Средневековый колодец', emoji: '🪣', defaultColor: '#888', tags: ['колодец','well','камень','вода','деревянный'], hint: 'Каменный колодец с деревянной рукояткой' },
+      { kind: 'torch-b35',         label: 'Факел',             emoji: '🔥', defaultColor: '#ff6600', tags: ['факел','torch','огонь','свет','стена'], hint: 'Пылающий средневековый факел' },
+      { kind: 'banner-b35',        label: 'Знамя',             emoji: '🚩', defaultColor: '#cc0000', tags: ['знамя','banner','флаг','геральдика','замок'], hint: 'Развевающееся знамя замка' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

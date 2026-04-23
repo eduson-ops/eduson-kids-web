@@ -311,6 +311,12 @@ export type PropKind =
   // Cyberpunk City
   | 'neon-sign-b34' | 'cyber-tower-b34' | 'hover-car-b34' | 'data-terminal-b34'
   | 'cyber-blade-b34' | 'synth-plant-b34' | 'cyber-drone-b34' | 'power-core-b34' | 'cyber-bridge-b34'
+  // Arctic Tundra
+  | 'igloo-b35' | 'polar-bear-b35' | 'arctic-fox-b35' | 'snow-drift-b35' | 'walrus-b35'
+  | 'iceberg-b35' | 'northern-lights-b35' | 'penguin-b35'
+  // Medieval Castle
+  | 'castle-tower-b35' | 'drawbridge-b35' | 'knight-armor-b35' | 'catapult-b35'
+  | 'medieval-well-b35' | 'torch-b35' | 'banner-b35'
 
 export interface SpawnedPart {
   id: string
