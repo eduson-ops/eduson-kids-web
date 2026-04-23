@@ -1731,6 +1731,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'craft-bench-b43',  label: 'Рабочий стол',    emoji: '🔨', defaultColor: '#8B4513', tags: ['стол','craft bench','мастерская','инструменты','дерево'], hint: 'Столярный верстак с инструментами' },
     ],
   },
+  {
+    id: 'cyberpunk-market', name: 'Киберпанк-рынок', icon: '🌆',
+    items: [
+      { kind: 'neon-stand-b44',      label: 'Неоновый стенд',    emoji: '💡', defaultColor: '#ff00aa', tags: ['стенд','neon stand','неон','рынок','киберпанк'], hint: 'Светящийся торговый стенд с неоном' },
+      { kind: 'cyber-food-cart-b44', label: 'Фудкорт',           emoji: '🍜', defaultColor: '#222244', tags: ['фудкорт','food cart','еда','киберпанк','уличная'], hint: 'Мобильная кухня с голографическим меню' },
+      { kind: 'hack-terminal-b44',   label: 'Хак-терминал',      emoji: '💻', defaultColor: '#00ff88', tags: ['терминал','hack','хакер','код','матрица'], hint: 'Терминал взлома с бегущим кодом' },
+      { kind: 'synth-fruit-b44',     label: 'Синт-фрукты',       emoji: '🍎', defaultColor: '#aa00ff', tags: ['фрукты','synth fruit','синтетика','еда','будущее'], hint: 'Стопки синтетических светящихся фруктов' },
+      { kind: 'glitch-sign-b44',     label: 'Глитч-вывеска',     emoji: '📺', defaultColor: '#ff4444', tags: ['вывеска','glitch sign','глитч','сбой','реклама'], hint: 'Мигающая реклама с артефактами глитча' },
+    ],
+  },
+  {
+    id: 'ice-lab', name: 'Ледяная лаборатория', icon: '🧊',
+    items: [
+      { kind: 'cryo-chamber-b44',  label: 'Крио-камера',    emoji: '❄️', defaultColor: '#a0d8ef', tags: ['крио','cryo','заморозка','камера','лаб'], hint: 'Вертикальная капсула крио-заморозки' },
+      { kind: 'ice-console-b44',   label: 'Ледяная консоль', emoji: '🖥️', defaultColor: '#c8f0ff', tags: ['консоль','ice console','лёд','управление','лаб'], hint: 'Пульт управления в ледяном корпусе' },
+      { kind: 'freeze-ray-b44',    label: 'Заморозочная пушка',emoji: '🔫', defaultColor: '#66aaff', tags: ['пушка','freeze ray','замораживатель','лёд','оружие'], hint: 'Пушка создающая ледяной луч' },
+      { kind: 'ice-specimen-b44',  label: 'Образец во льду', emoji: '🦕', defaultColor: '#b0e8ff', tags: ['образец','ice specimen','лёд','заморозка','динозавр'], hint: 'Существо, законсервированное в ледяной глыбе' },
+      { kind: 'blizzard-core-b44', label: 'Ядро метели',     emoji: '🌀', defaultColor: '#e0f0ff', tags: ['ядро','blizzard core','метель','энергия','лёд'], hint: 'Сфера из сконцентрированного снежного шторма' },
+    ],
+  },
+  {
+    id: 'pirate-island', name: 'Пиратский остров', icon: '🏝️',
+    items: [
+      { kind: 'palm-with-flag-b44', label: 'Пальма с флагом',  emoji: '🌴', defaultColor: '#5a9a3a', tags: ['пальма','palm flag','пиратский флаг','остров','береговой'], hint: 'Пальма с прикреплённым черепом-флагом' },
+      { kind: 'crab-trap-b44',      label: 'Крабья ловушка',   emoji: '🦀', defaultColor: '#cc6622', tags: ['краб','crab trap','ловушка','рыбалка','пиратский'], hint: 'Плетёная ловушка для крабов с уловом' },
+      { kind: 'message-bottle-b44', label: 'Бутылка с посланием',emoji: '🍾', defaultColor: '#88cc66', tags: ['бутылка','message bottle','послание','записка','пиратский'], hint: 'Бутылка с запечатанным секретным посланием' },
+      { kind: 'treasure-x-b44',     label: 'Крест «X» на карте',emoji: '❌', defaultColor: '#c87020', tags: ['крест','treasure x','клад','карта','пиратский'], hint: 'Деревянный крест — метка сокровища на земле' },
+      { kind: 'parrot-perch-b44',   label: 'Жердь попугая',    emoji: '🦜', defaultColor: '#44bb44', tags: ['попугай','parrot perch','жердь','птица','пиратский'], hint: 'Кольцевая жердь с разноцветным попугаем' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

@@ -1676,6 +1676,24 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'wooden-horse-b43': return <WoodenHorseB43 pos={pos} color={color} size={size} />
     case 'toy-castle-b43': return <ToyCastleB43 pos={pos} color={color} size={size} />
     case 'craft-bench-b43': return <CraftBenchB43 pos={pos} color={color} size={size} />
+    // Batch 44 — Cyberpunk Market
+    case 'neon-stand-b44': return <NeonStandB44 pos={pos} color={color} size={size} />
+    case 'cyber-food-cart-b44': return <CyberFoodCartB44 pos={pos} color={color} size={size} />
+    case 'hack-terminal-b44': return <HackTerminalB44 pos={pos} color={color} size={size} />
+    case 'synth-fruit-b44': return <SynthFruitB44 pos={pos} color={color} size={size} />
+    case 'glitch-sign-b44': return <GlitchSignB44 pos={pos} color={color} size={size} />
+    // Batch 44 — Ice Lab
+    case 'cryo-chamber-b44': return <CryoChamberB44 pos={pos} color={color} size={size} />
+    case 'ice-console-b44': return <IceConsoleB44 pos={pos} color={color} size={size} />
+    case 'freeze-ray-b44': return <FreezeRayB44 pos={pos} color={color} size={size} />
+    case 'ice-specimen-b44': return <IceSpecimenB44 pos={pos} color={color} size={size} />
+    case 'blizzard-core-b44': return <BlizzardCoreB44 pos={pos} color={color} size={size} />
+    // Batch 44 — Pirate Island
+    case 'palm-with-flag-b44': return <PalmWithFlagB44 pos={pos} color={color} size={size} />
+    case 'crab-trap-b44': return <CrabTrapB44 pos={pos} color={color} size={size} />
+    case 'message-bottle-b44': return <MessageBottleB44 pos={pos} color={color} size={size} />
+    case 'treasure-x-b44': return <TreasureXB44 pos={pos} color={color} size={size} />
+    case 'parrot-perch-b44': return <ParrotPerchB44 pos={pos} color={color} size={size} />
 
     default:
       return null
@@ -1683,6 +1701,7 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
 }
 
 interface P43 { pos: [number,number,number]; color: string; size: number }
+interface P44 { pos: [number,number,number]; color: string; size: number }
 
 function KelpHutB43({ pos, color, size: s }: P43) {
   return (
@@ -30774,6 +30793,446 @@ function CandleB41({ pos, color, size }: P41) {
         <cylinderGeometry args={[size*0.18, size*0.18, size*0.06, 8]} />
         <meshStandardMaterial color="#aaa" roughness={0.4} metalness={0.5} />
       </mesh>
+    </group>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  BATCH 44 — Cyberpunk Market · Ice Lab · Pirate Island
+// ═══════════════════════════════════════════════════════════════════
+
+function NeonStandB44({ pos, color, size: s }: P44) {
+  const sign = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (sign.current) (sign.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.7 + Math.sin(clock.elapsedTime * 3) * 0.3
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <boxGeometry args={[0.8, 1.0, 0.35]} />
+        <meshStandardMaterial color="#111122" roughness={0.4} metalness={0.3} />
+      </mesh>
+      <mesh ref={sign} position={[0, 0.6, 0.18]}>
+        <boxGeometry args={[0.65, 0.4, 0.02]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} transparent opacity={0.85} />
+      </mesh>
+      <mesh position={[0, 0.05, 0]}>
+        <boxGeometry args={[0.85, 0.1, 0.4]} />
+        <meshStandardMaterial color="#222233" metalness={0.5} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.2, 0.18]}>
+        <boxGeometry args={[0.5, 0.15, 0.02]} />
+        <meshStandardMaterial color="#222" roughness={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+function CyberFoodCartB44({ pos, color, size: s }: P44) {
+  const screen = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (screen.current) (screen.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4 + Math.sin(clock.elapsedTime * 2) * 0.15
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.45, 0]}>
+        <boxGeometry args={[0.9, 0.9, 0.6]} />
+        <meshStandardMaterial color={color} metalness={0.4} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.92, 0]}>
+        <boxGeometry args={[1.0, 0.04, 0.65]} />
+        <meshStandardMaterial color="#333" metalness={0.6} roughness={0.2} />
+      </mesh>
+      <mesh ref={screen} position={[0, 0.7, 0.31]}>
+        <boxGeometry args={[0.5, 0.3, 0.02]} />
+        <meshStandardMaterial color="#00aaff" emissive="#0044ff" emissiveIntensity={0.4} />
+      </mesh>
+      {[-0.35, 0.35].map((x, i) => (
+        <mesh key={i} position={[x, 0.1, 0]}>
+          <cylinderGeometry args={[0.06, 0.06, 0.2, 8]} />
+          <meshStandardMaterial color="#888" metalness={0.7} roughness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function HackTerminalB44({ pos, color, size: s }: P44) {
+  const code = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (code.current) (code.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(clock.elapsedTime * 4 + 1) * 0.25
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.3, 0]}>
+        <boxGeometry args={[0.6, 0.6, 0.25]} />
+        <meshStandardMaterial color="#111" metalness={0.5} roughness={0.3} />
+      </mesh>
+      <mesh ref={code} position={[0, 0.35, 0.13]}>
+        <boxGeometry args={[0.5, 0.4, 0.02]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} transparent opacity={0.9} />
+      </mesh>
+      <mesh position={[0, 0.1, 0.13]}>
+        <boxGeometry args={[0.45, 0.06, 0.02]} />
+        <meshStandardMaterial color="#333" roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 0.03, 0]}>
+        <boxGeometry args={[0.65, 0.06, 0.3]} />
+        <meshStandardMaterial color="#222" metalness={0.6} roughness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function SynthFruitB44({ pos, color, size: s }: P44) {
+  const glow = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (glow.current) glow.current.children.forEach((c, i) => {
+      ;(c as THREE.Mesh).material && ((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity !== undefined &&
+        (((c as THREE.Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 2 + i * 0.9) * 0.2)
+    })
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.15, 0]}>
+        <boxGeometry args={[0.7, 0.3, 0.5]} />
+        <meshStandardMaterial color="#222" metalness={0.4} roughness={0.3} />
+      </mesh>
+      <group ref={glow}>
+        {[[-0.2, 0.4, 0], [0, 0.5, 0.05], [0.2, 0.42, -0.05], [-0.1, 0.55, 0.1]].map(([x, y, z], i) => (
+          <mesh key={i} position={[x, y, z]}>
+            <sphereGeometry args={[0.1, 6, 5]} />
+            <meshStandardMaterial color={[color, '#ff6600', '#aa00ff', '#00ffaa'][i]} emissive={[color, '#ff6600', '#aa00ff', '#00ffaa'][i]} emissiveIntensity={0.3} transparent opacity={0.85} roughness={0.2} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  )
+}
+
+function GlitchSignB44({ pos, color, size: s }: P44) {
+  const panel = useRef<THREE.Mesh>(null!)
+  const offset = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (panel.current) {
+      const t = clock.elapsedTime
+      ;(panel.current.material as THREE.MeshStandardMaterial).emissiveIntensity = Math.random() > 0.95 ? 0 : 0.6 + Math.sin(t * 5) * 0.3
+    }
+    if (offset.current) {
+      offset.current.position.x = Math.random() > 0.9 ? (Math.random() - 0.5) * 0.05 : 0
+    }
+  })
+  return (
+    <group position={pos} scale={s}>
+      {[-0.38, 0.38].map((x, i) => (
+        <mesh key={i} position={[x, 0.55, 0]}>
+          <boxGeometry args={[0.05, 1.1, 0.05]} />
+          <meshStandardMaterial color="#555" metalness={0.7} roughness={0.3} />
+        </mesh>
+      ))}
+      <mesh ref={panel} position={[0, 0.65, 0]}>
+        <boxGeometry args={[0.72, 0.5, 0.04]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} />
+      </mesh>
+      <mesh ref={offset} position={[0, 0.65, 0.03]}>
+        <boxGeometry args={[0.68, 0.12, 0.02]} />
+        <meshStandardMaterial color="#ff0000" emissive="#ff0000" emissiveIntensity={0.5} transparent opacity={0.5} />
+      </mesh>
+    </group>
+  )
+}
+
+function CryoChamberB44({ pos, color, size: s }: P44) {
+  const frost = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (frost.current) (frost.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.2 + Math.sin(clock.elapsedTime * 0.8) * 0.1
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.7, 0]}>
+        <cylinderGeometry args={[0.25, 0.28, 1.4, 8]} />
+        <meshStandardMaterial color={color} transparent opacity={0.5} roughness={0.1} metalness={0.1} />
+      </mesh>
+      <mesh ref={frost} position={[0, 0.7, 0]}>
+        <cylinderGeometry args={[0.22, 0.25, 1.3, 8]} />
+        <meshStandardMaterial color="#ccf0ff" emissive="#88ccff" emissiveIntensity={0.2} transparent opacity={0.4} />
+      </mesh>
+      <mesh position={[0, 1.42, 0]}>
+        <cylinderGeometry args={[0.27, 0.25, 0.08, 8]} />
+        <meshStandardMaterial color="#aaa" metalness={0.8} roughness={0.1} />
+      </mesh>
+      <mesh position={[0, -0.02, 0]}>
+        <cylinderGeometry args={[0.3, 0.3, 0.06, 8]} />
+        <meshStandardMaterial color="#888" metalness={0.8} roughness={0.1} />
+      </mesh>
+      <mesh position={[0.15, 0.7, 0.25]}>
+        <boxGeometry args={[0.08, 0.9, 0.02]} />
+        <meshStandardMaterial color="#aaddff" roughness={0.2} metalness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function IceConsoleB44({ pos, color, size: s }: P44) {
+  const screen = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (screen.current) (screen.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4 + Math.sin(clock.elapsedTime * 1.5) * 0.15
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.3, 0]}>
+        <boxGeometry args={[0.8, 0.5, 0.5]} />
+        <meshStandardMaterial color={color} roughness={0.2} metalness={0.2} transparent opacity={0.8} />
+      </mesh>
+      <mesh ref={screen} position={[0, 0.42, 0.26]}>
+        <boxGeometry args={[0.6, 0.25, 0.02]} />
+        <meshStandardMaterial color="#00aaff" emissive="#0066ff" emissiveIntensity={0.4} transparent opacity={0.8} />
+      </mesh>
+      <mesh position={[0, 0.18, 0.26]}>
+        <boxGeometry args={[0.5, 0.08, 0.02]} />
+        <meshStandardMaterial color="#88ccff" roughness={0.3} transparent opacity={0.7} />
+      </mesh>
+      <mesh position={[0, 0.05, 0]}>
+        <boxGeometry args={[0.85, 0.1, 0.55]} />
+        <meshStandardMaterial color="#aaccee" metalness={0.5} roughness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function FreezeRayB44({ pos, color, size: s }: P44) {
+  const beam = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (beam.current) (beam.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(clock.elapsedTime * 3) * 0.25
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.18, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.1, 0.14, 0.6, 8]} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.2} />
+      </mesh>
+      <mesh position={[0.35, 0.18, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.06, 0.1, 0.35, 8]} />
+        <meshStandardMaterial color="#aaccff" metalness={0.7} roughness={0.1} />
+      </mesh>
+      <mesh ref={beam} position={[0.6, 0.18, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.03, 0.06, 0.3, 6]} />
+        <meshStandardMaterial color="#88ddff" emissive="#44aaff" emissiveIntensity={0.5} transparent opacity={0.8} />
+      </mesh>
+      <mesh position={[-0.1, 0.1, 0]}>
+        <boxGeometry args={[0.12, 0.2, 0.1]} />
+        <meshStandardMaterial color="#556677" metalness={0.5} roughness={0.3} />
+      </mesh>
+    </group>
+  )
+}
+
+function IceSpecimenB44({ pos, color, size: s }: P44) {
+  const glow = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (glow.current) (glow.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.1 + Math.sin(clock.elapsedTime * 0.5) * 0.06
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.55, 0.8, 0.45]} />
+        <meshStandardMaterial color={color} transparent opacity={0.55} roughness={0.05} metalness={0.05} />
+      </mesh>
+      <mesh ref={glow} position={[0, 0.4, 0]}>
+        <boxGeometry args={[0.52, 0.76, 0.42]} />
+        <meshStandardMaterial color="#aaddff" emissive="#88ccff" emissiveIntensity={0.1} transparent opacity={0.25} />
+      </mesh>
+      <mesh position={[0, 0.38, 0]} rotation={[0.1, 0.2, 0.05]}>
+        <cylinderGeometry args={[0.08, 0.12, 0.45, 6]} />
+        <meshStandardMaterial color="#e8d5a0" roughness={0.5} transparent opacity={0.85} />
+      </mesh>
+      <mesh position={[0.05, 0.54, 0]} rotation={[-0.1, 0.3, 0.2]}>
+        <sphereGeometry args={[0.1, 5, 4]} />
+        <meshStandardMaterial color="#d4bfa0" roughness={0.5} transparent opacity={0.85} />
+      </mesh>
+    </group>
+  )
+}
+
+function BlizzardCoreB44({ pos, color, size: s }: P44) {
+  const sphere = useRef<THREE.Mesh>(null!)
+  const ring = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (sphere.current) {
+      sphere.current.rotation.y = clock.elapsedTime * 2
+      ;(sphere.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.4 + Math.sin(clock.elapsedTime * 2.5) * 0.2
+    }
+    if (ring.current) ring.current.rotation.z = clock.elapsedTime * 3
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.45, 0]}>
+        <cylinderGeometry args={[0.1, 0.12, 0.4, 6]} />
+        <meshStandardMaterial color="#aaccdd" metalness={0.5} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.05, 0]}>
+        <cylinderGeometry args={[0.2, 0.2, 0.08, 8]} />
+        <meshStandardMaterial color="#88aacc" metalness={0.6} roughness={0.2} />
+      </mesh>
+      <mesh ref={sphere} position={[0, 0.75, 0]}>
+        <dodecahedronGeometry args={[0.2]} />
+        <meshStandardMaterial color={color} emissive="#aaddff" emissiveIntensity={0.4} transparent opacity={0.75} roughness={0.05} />
+      </mesh>
+      <mesh ref={ring} position={[0, 0.75, 0]}>
+        <torusGeometry args={[0.25, 0.025, 6, 16]} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.5} roughness={0.1} />
+      </mesh>
+    </group>
+  )
+}
+
+function PalmWithFlagB44({ pos, color, size: s }: P44) {
+  const flag = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (flag.current) flag.current.rotation.y = Math.sin(clock.elapsedTime * 1.2) * 0.2
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.6, 0]} rotation={[0, 0, 0.12]}>
+        <cylinderGeometry args={[0.06, 0.1, 1.2, 6]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </mesh>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <mesh key={i} position={[Math.sin(i * 1.26) * 0.32, 1.22, Math.cos(i * 1.26) * 0.32]} rotation={[0.4, i * 1.26, 0]}>
+          <boxGeometry args={[0.05, 0.4, 0.15]} />
+          <meshStandardMaterial color={color} roughness={0.7} />
+        </mesh>
+      ))}
+      <mesh position={[0.08, 1.15, 0]}>
+        <cylinderGeometry args={[0.01, 0.01, 0.5, 4]} />
+        <meshStandardMaterial color="#888" metalness={0.5} />
+      </mesh>
+      <mesh ref={flag} position={[0.22, 1.36, 0]}>
+        <boxGeometry args={[0.28, 0.18, 0.01]} />
+        <meshStandardMaterial color="#111" roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function CrabTrapB44({ pos, color, size: s }: P44) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.2, 0]}>
+        <cylinderGeometry args={[0.28, 0.3, 0.4, 8]} />
+        <meshStandardMaterial color={color} transparent opacity={0.5} wireframe />
+      </mesh>
+      <mesh position={[0, 0.2, 0]}>
+        <cylinderGeometry args={[0.26, 0.28, 0.38, 8]} />
+        <meshStandardMaterial color="#8B4513" transparent opacity={0.3} roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.42, 0]}>
+        <cylinderGeometry args={[0.28, 0.28, 0.04, 8]} />
+        <meshStandardMaterial color="#777" metalness={0.4} roughness={0.5} />
+      </mesh>
+      <mesh position={[0.1, 0.22, 0]} rotation={[0, 0.4, 0.2]}>
+        <boxGeometry args={[0.12, 0.08, 0.1]} />
+        <meshStandardMaterial color="#cc4400" roughness={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function MessageBottleB44({ pos, color, size: s }: P44) {
+  const bottle = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (bottle.current) bottle.current.rotation.z = Math.sin(clock.elapsedTime * 0.7) * 0.1
+  })
+  return (
+    <group ref={bottle} position={pos} scale={s}>
+      <mesh position={[0, 0.28, 0]}>
+        <cylinderGeometry args={[0.14, 0.16, 0.56, 8]} />
+        <meshStandardMaterial color={color} transparent opacity={0.6} roughness={0.15} />
+      </mesh>
+      <mesh position={[0, 0.58, 0]}>
+        <cylinderGeometry args={[0.06, 0.14, 0.1, 8]} />
+        <meshStandardMaterial color={color} transparent opacity={0.6} roughness={0.15} />
+      </mesh>
+      <mesh position={[0, 0.66, 0]}>
+        <cylinderGeometry args={[0.05, 0.06, 0.12, 8]} />
+        <meshStandardMaterial color={color} transparent opacity={0.6} roughness={0.15} />
+      </mesh>
+      <mesh position={[0, 0.73, 0]}>
+        <cylinderGeometry args={[0.07, 0.05, 0.05, 8]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.3, 0]}>
+        <boxGeometry args={[0.1, 0.18, 0.02]} />
+        <meshStandardMaterial color="#f0e8c8" roughness={0.7} />
+      </mesh>
+    </group>
+  )
+}
+
+function TreasureXB44({ pos, color, size: s }: P44) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.04, 0]}>
+        <boxGeometry args={[0.7, 0.08, 0.7]} />
+        <meshStandardMaterial color="#9a7030" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.09, 0]} rotation={[0, 0, 0]}>
+        <boxGeometry args={[0.08, 0.06, 0.56]} />
+        <meshStandardMaterial color={color} roughness={0.7} metalness={0.2} />
+      </mesh>
+      <mesh position={[0, 0.09, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <boxGeometry args={[0.08, 0.06, 0.56]} />
+        <meshStandardMaterial color={color} roughness={0.7} metalness={0.2} />
+      </mesh>
+      {[[-0.25, 0.05, -0.25], [0.25, 0.05, 0.25], [-0.25, 0.05, 0.25], [0.25, 0.05, -0.25]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <sphereGeometry args={[0.04, 5, 4]} />
+          <meshStandardMaterial color="#c8a000" metalness={0.7} roughness={0.2} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function ParrotPerchB44({ pos, color, size: s }: P44) {
+  const parrot = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (parrot.current) parrot.current.rotation.z = Math.sin(clock.elapsedTime * 1.5) * 0.06
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.04, 0.06, 1.0, 6]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 1.02, 0]}>
+        <torusGeometry args={[0.2, 0.03, 6, 14]} />
+        <meshStandardMaterial color="#c8a000" metalness={0.5} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, 0.05, 0]}>
+        <cylinderGeometry args={[0.1, 0.1, 0.1, 6]} />
+        <meshStandardMaterial color="#555" metalness={0.4} roughness={0.5} />
+      </mesh>
+      <group ref={parrot} position={[0.2, 1.08, 0]}>
+        <mesh>
+          <sphereGeometry args={[0.09, 6, 5]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+        <mesh position={[0, 0.12, 0]}>
+          <sphereGeometry args={[0.06, 5, 4]} />
+          <meshStandardMaterial color={color} roughness={0.4} />
+        </mesh>
+        <mesh position={[0.06, 0.12, 0]}>
+          <coneGeometry args={[0.02, 0.06, 4]} rotation={[0, 0, Math.PI / 2]} />
+          <meshStandardMaterial color="#ffaa00" roughness={0.4} />
+        </mesh>
+        {[-1, 1].map((side, i) => (
+          <mesh key={i} position={[0, -0.05, side * 0.05]}>
+            <boxGeometry args={[0.04, 0.1, 0.02]} />
+            <meshStandardMaterial color="#ff6600" roughness={0.5} />
+          </mesh>
+        ))}
+      </group>
     </group>
   )
 }

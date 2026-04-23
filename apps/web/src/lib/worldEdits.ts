@@ -359,6 +359,12 @@ export type PropKind =
   | 'witch-cauldron-b43' | 'gnarled-tree-b43' | 'crystal-orb-b43' | 'potion-shelf-b43' | 'raven-post-b43'
   // Toy Workshop 2
   | 'jack-box-b43' | 'spinning-top-b43' | 'wooden-horse-b43' | 'toy-castle-b43' | 'craft-bench-b43'
+  // Cyberpunk Market
+  | 'neon-stand-b44' | 'cyber-food-cart-b44' | 'hack-terminal-b44' | 'synth-fruit-b44' | 'glitch-sign-b44'
+  // Ice Lab
+  | 'cryo-chamber-b44' | 'ice-console-b44' | 'freeze-ray-b44' | 'ice-specimen-b44' | 'blizzard-core-b44'
+  // Pirate Island
+  | 'palm-with-flag-b44' | 'crab-trap-b44' | 'message-bottle-b44' | 'treasure-x-b44' | 'parrot-perch-b44'
 
 export interface SpawnedPart {
   id: string
