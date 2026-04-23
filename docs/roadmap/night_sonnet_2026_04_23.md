@@ -54,16 +54,40 @@
 | 39 | Dinosaur World + Music Studio | 11 |
 | 40 | Sports + Halloween | 10 |
 | 41 | Ocean Life + Christmas | 10 |
+| 42 | Futuristic Kitchen + Archaeology + Bazaar | 15 |
+| 43 | Underwater Village + Witch Forest + Toy Workshop | 15 |
+| 44 | Cyberpunk Market + Ice Lab + Pirate Island | 15 |
+| 45 | Village Market + Neon Jungle + Medieval Tavern | 15 |
+| 46 | Space Bazaar + Fairy Garden + Steampunk Factory | 15 |
+| 47 | Arctic Station + Pirate Ship + Crystal Caves | 15 |
+| 48 | Desert Oasis + Volcanic Island + Japanese Garden | 15 |
+| 49 | Haunted Mansion + Ocean Lab + Carnival Midway | 15 |
+| 50 | Robot Factory + Magical Library + Underwater City | 15 |
+| 51 | Ancient Egypt + Dinosaur Park + Cloud Kingdom | 15 |
+| 52 | Viking Village + Futuristic City + Zen Garden | 15 |
+| 53 | Treehouse Village + Neon Arcade + Ice Kingdom | 15 |
+| 54 | Mushroom Forest + Wild West + Space Station | 15 |
 
-**Итого новых пропсов**: ~567 (батчи 10-41)  
-**Всего пропсов**: 1002+ across 145+ categories  
-**MILESTONE: 1000+ достигнуто ✅**
+**Итого новых пропсов**: 1123+ (батчи 10-54)  
+**Всего пропсов**: 1123+ across 185+ categories  
+**MILESTONE: 1000+ давно достигнуто ✅**
 
-## QA исправления
+## QA исправления (этой сессии)
 
-- `Settings.tsx`: React key на `<Fragment>` вместо дочерних элементов
-- `Settings.tsx`: `ToastKind 'info'` → `'default'`
-- Дубликаты функций в WorldAdditions.tsx: переименованы по паттерну B21/B26/B28/B30 и с тематическим префиксом
+- `PlatformShell.tsx:73`: `{ showToast }` → `{ show: showToast }` — hook возвращает `{ toast, show }`, не `{ showToast }`
+- `Studio.tsx`: `void warmPyodide()` → `warmPyodide().catch(console.error)` — логируем ошибки прогрева
+- `Teacher.tsx`: useToast destructuring + clipboard error handling
+- `NikselChat.tsx`: 2-step confirm вместо browser confirm()
+- `AuthSSO.tsx`: inline notice вместо alert()
+- `Parent.tsx`: popupBlocked hint вместо alert()
+- `pyodide-executor.ts`: withTimeout() на warmPyodide (30s) + runPython (10s)
+- `nikselChat.ts`: resp.clone() до resp.json() — fix body-already-read
+- `SpawnMenu.tsx`: a11y — backdrop role=button + tabIndex, fav button keyboard accessible
+
+## Деплой
+
+Последний деплой: batches 44-53, 1078+ props, PlatformShell useToast fix  
+URL: https://eduson-ops.github.io/eduson-kids-web/
 
 ## Live URL
 

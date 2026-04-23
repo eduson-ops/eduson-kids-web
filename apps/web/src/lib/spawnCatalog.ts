@@ -2031,6 +2031,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'frost-lamp-b53',    label: 'Морозный фонарь',      emoji: '💙', defaultColor: '#88aaff', tags: ['фонарь','frost lamp','лёд','свет','зима'], hint: 'Фонарь заключённый в ледяной кристалл' },
     ],
   },
+  {
+    id: 'mushroom-forest-b54', name: '🍄 Грибной лес', icon: '🍄',
+    items: [
+      { kind: 'giant-shroom-b54',  label: 'Гигантский гриб',      emoji: '🍄', defaultColor: '#cc4400', tags: ['гриб','giant shroom','лес','гигантский','природа'], hint: 'Огромный мухомор выше человека' },
+      { kind: 'spore-cloud-b54',   label: 'Облако спор',          emoji: '✨', defaultColor: '#cc88ff', tags: ['споры','spore cloud','гриб','облако','магия'], hint: 'Светящееся облако грибных спор' },
+      { kind: 'mushroom-ring-b54', label: 'Кольцо грибов',        emoji: '⭕', defaultColor: '#ff6644', tags: ['кольцо','mushroom ring','грибы','магический','круг'], hint: 'Магический круг из грибов' },
+      { kind: 'toad-stool-b54',    label: 'Мухомор-стул',         emoji: '🪑', defaultColor: '#ff2200', tags: ['мухомор','toad stool','гриб','стул','сказка'], hint: 'Мухомор удобный для сиденья' },
+      { kind: 'fungi-lamp-b54',    label: 'Грибной фонарь',       emoji: '💡', defaultColor: '#88ffaa', tags: ['фонарь','fungi lamp','гриб','свет','биолюминесценция'], hint: 'Светящийся биолюминесцентный гриб' },
+    ],
+  },
+  {
+    id: 'wild-west-b54', name: '🤠 Дикий Запад', icon: '🤠',
+    items: [
+      { kind: 'saloon-sign-b54',   label: 'Вывеска салуна',       emoji: '🍺', defaultColor: '#cc8800', tags: ['вывеска','saloon sign','салун','запад','деревянный'], hint: 'Качающаяся деревянная вывеска салуна' },
+      { kind: 'barrel-cactus-b54', label: 'Кактус-бочонок',       emoji: '🌵', defaultColor: '#228822', tags: ['кактус','barrel cactus','пустыня','запад','природа'], hint: 'Толстый бочонковый кактус в цвету' },
+      { kind: 'wanted-poster-b54', label: 'Плакат разыскивается', emoji: '📋', defaultColor: '#deb887', tags: ['плакат','wanted poster','запад','преступник','розыск'], hint: 'Потёртый бумажный плакат «Разыскивается»' },
+      { kind: 'sheriff-badge-b54', label: 'Звезда шерифа',        emoji: '⭐', defaultColor: '#ffcc00', tags: ['звезда','sheriff badge','шериф','запад','металл'], hint: 'Начищенная металлическая звезда шерифа' },
+      { kind: 'hitching-post-b54', label: 'Коновязь',             emoji: '🐴', defaultColor: '#8B4513', tags: ['коновязь','hitching post','лошадь','запад','деревянный'], hint: 'Деревянный столб для привязи лошадей' },
+    ],
+  },
+  {
+    id: 'space-station-b54', name: '🛰️ Космическая станция', icon: '🛰️',
+    items: [
+      { kind: 'airlock-door-b54',  label: 'Шлюзовая дверь',       emoji: '🚪', defaultColor: '#888888', tags: ['шлюз','airlock door','космос','дверь','станция'], hint: 'Герметичная дверь с круглым иллюминатором' },
+      { kind: 'solar-panel-b54',   label: 'Солнечная панель',      emoji: '☀️', defaultColor: '#4488cc', tags: ['панель','solar panel','космос','энергия','солнце'], hint: 'Большие синие панели солнечных батарей' },
+      { kind: 'antennae-array-b54',label: 'Антенная решётка',      emoji: '📡', defaultColor: '#aaaaaa', tags: ['антенна','antennae array','космос','связь','решётка'], hint: 'Ряд параболических антенн' },
+      { kind: 'docking-arm-b54',   label: 'Стыковочный манипулятор', emoji: '🦾', defaultColor: '#888888', tags: ['манипулятор','docking arm','стыковка','космос','рука'], hint: 'Механическая рука для стыковки кораблей' },
+      { kind: 'habitat-module-b54',label: 'Жилой модуль',          emoji: '🏠', defaultColor: '#aaaacc', tags: ['модуль','habitat module','жильё','космос','станция'], hint: 'Цилиндрический жилой отсек станции' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

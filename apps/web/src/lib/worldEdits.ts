@@ -419,6 +419,12 @@ export type PropKind =
   | 'arcade-cabinet-b53' | 'prize-counter-b53' | 'pinball-machine-b53' | 'token-slot-b53' | 'score-board-b53'
   // Ice Kingdom
   | 'ice-throne-b53' | 'frozen-waterfall-b53' | 'snowflake-arch-b53' | 'glacier-shard-b53' | 'frost-lamp-b53'
+  // Mushroom Forest
+  | 'giant-shroom-b54' | 'spore-cloud-b54' | 'mushroom-ring-b54' | 'toad-stool-b54' | 'fungi-lamp-b54'
+  // Wild West
+  | 'saloon-sign-b54' | 'barrel-cactus-b54' | 'wanted-poster-b54' | 'sheriff-badge-b54' | 'hitching-post-b54'
+  // Space Station
+  | 'airlock-door-b54' | 'solar-panel-b54' | 'antennae-array-b54' | 'docking-arm-b54' | 'habitat-module-b54'
 
 export interface SpawnedPart {
   id: string

@@ -1865,6 +1865,25 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
     case 'glacier-shard-b53': return <GlacierShardB53 pos={pos} color={color} size={size} />
     case 'frost-lamp-b53': return <FrostLampB53 pos={pos} color={color} size={size} />
 
+    // Batch 54 — Mushroom Forest
+    case 'giant-shroom-b54': return <GiantShroomB54 pos={pos} color={color} size={size} />
+    case 'spore-cloud-b54': return <SporeCloudB54 pos={pos} color={color} size={size} />
+    case 'mushroom-ring-b54': return <MushroomRingB54 pos={pos} color={color} size={size} />
+    case 'toad-stool-b54': return <ToadStoolB54 pos={pos} color={color} size={size} />
+    case 'fungi-lamp-b54': return <FungiLampB54 pos={pos} color={color} size={size} />
+    // Batch 54 — Wild West
+    case 'saloon-sign-b54': return <SaloonSignB54 pos={pos} color={color} size={size} />
+    case 'barrel-cactus-b54': return <BarrelCactusB54 pos={pos} color={color} size={size} />
+    case 'wanted-poster-b54': return <WantedPosterB54 pos={pos} color={color} size={size} />
+    case 'sheriff-badge-b54': return <SheriffBadgeB54 pos={pos} color={color} size={size} />
+    case 'hitching-post-b54': return <HitchingPostB54 pos={pos} color={color} size={size} />
+    // Batch 54 — Space Station
+    case 'airlock-door-b54': return <AirlockDoorB54 pos={pos} color={color} size={size} />
+    case 'solar-panel-b54': return <SolarPanelB54 pos={pos} color={color} size={size} />
+    case 'antennae-array-b54': return <AntennaeArrayB54 pos={pos} color={color} size={size} />
+    case 'docking-arm-b54': return <DockingArmB54 pos={pos} color={color} size={size} />
+    case 'habitat-module-b54': return <HabitatModuleB54 pos={pos} color={color} size={size} />
+
     default:
       return null
   }
@@ -34633,6 +34652,352 @@ function FrostLampB53({ pos, color, size: s }: P53) {
         <mesh key={i} position={[Math.cos((i / 6) * Math.PI * 2) * 0.14, 0.48, Math.sin((i / 6) * Math.PI * 2) * 0.14]}>
           <coneGeometry args={[0.02, 0.08, 4]} rotation={[Math.PI / 2, 0, 0]} />
           <meshStandardMaterial color={color} transparent opacity={0.7} roughness={0.1} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+interface P54 { pos: [number,number,number]; color: string; size: number }
+
+function GiantShroomB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.35, 0]}>
+        <cylinderGeometry args={[0.1, 0.14, 0.7, 8]} />
+        <meshStandardMaterial color="#f5e6d0" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.78, 0]}>
+        <sphereGeometry args={[0.45, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      {[[0.22, 0.92, 0.18],[0.0, 0.98, 0.3],[-0.2, 0.88, 0.22],[0.15, 0.78, 0.36],[0.0, 0.7, 0.38]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <sphereGeometry args={[0.05, 5, 4]} />
+          <meshStandardMaterial color="#fff" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SporeCloudB54({ pos, color, size: s }: P54) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const t = clock.getElapsedTime()
+    ref.current.children.forEach((c, i) => {
+      if (c instanceof THREE.Mesh) {
+        c.position.y = pos[1] + 0.4 + i * 0.06 + Math.sin(t * 1.2 + i * 0.8) * 0.08
+        ;(c.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.3 + Math.sin(t * 2 + i) * 0.2
+      }
+    })
+  })
+  return (
+    <group ref={ref} position={pos} scale={s}>
+      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+        <mesh key={i} position={[Math.cos((i / 7) * Math.PI * 2) * 0.18, 0.4 + i * 0.06, Math.sin((i / 7) * Math.PI * 2) * 0.18]}>
+          <sphereGeometry args={[0.06 + Math.random() * 0.02, 5, 4]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.3} transparent opacity={0.6} roughness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function MushroomRingB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <group key={i} position={[Math.cos((i / 8) * Math.PI * 2) * 0.36, 0, Math.sin((i / 8) * Math.PI * 2) * 0.36]}>
+          <mesh position={[0, 0.12, 0]}>
+            <cylinderGeometry args={[0.03, 0.04, 0.24, 6]} />
+            <meshStandardMaterial color="#f5e6d0" roughness={0.7} />
+          </mesh>
+          <mesh position={[0, 0.28, 0]}>
+            <sphereGeometry args={[0.1, 7, 5, 0, Math.PI * 2, 0, Math.PI * 0.65]} />
+            <meshStandardMaterial color={i % 2 === 0 ? color : '#ffffff'} roughness={0.4} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+function ToadStoolB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.22, 0]}>
+        <cylinderGeometry args={[0.12, 0.15, 0.44, 8]} />
+        <meshStandardMaterial color="#f5e6d0" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.48, 0]}>
+        <sphereGeometry args={[0.36, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.62]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      {[[0.14, 0.6, 0.22],[0.0, 0.66, 0.28],[-0.16, 0.56, 0.2],[0.22, 0.52, 0.16]].map(([x, y, z], i) => (
+        <mesh key={i} position={[x, y, z]}>
+          <sphereGeometry args={[0.055, 5, 4]} />
+          <meshStandardMaterial color="#fff" roughness={0.5} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function FungiLampB54({ pos, color, size: s }: P54) {
+  const ref = useRef<THREE.Mesh>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ;(ref.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.5 + Math.sin(clock.getElapsedTime() * 1.8) * 0.35
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.18, 0]}>
+        <cylinderGeometry args={[0.05, 0.07, 0.36, 7]} />
+        <meshStandardMaterial color="#ddd8cc" roughness={0.6} />
+      </mesh>
+      <mesh ref={ref} position={[0, 0.44, 0]}>
+        <sphereGeometry args={[0.18, 9, 7, 0, Math.PI * 2, 0, Math.PI * 0.7]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.3} transparent opacity={0.9} />
+      </mesh>
+    </group>
+  )
+}
+
+function SaloonSignB54({ pos, color, size: s }: P54) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ref.current.rotation.z = Math.sin(clock.getElapsedTime() * 0.8) * 0.08
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.88, 0]}>
+        <boxGeometry args={[0.06, 0.1, 0.04]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.7} />
+      </mesh>
+      <group ref={ref} position={[0, 0.68, 0]}>
+        <mesh>
+          <boxGeometry args={[0.6, 0.26, 0.06]} />
+          <meshStandardMaterial color={color} roughness={0.6} />
+        </mesh>
+        <mesh position={[0, 0, 0.04]}>
+          <boxGeometry args={[0.52, 0.18, 0.02]} />
+          <meshStandardMaterial color="#f5e6d0" roughness={0.7} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+function BarrelCactusB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.3, 0]}>
+        <sphereGeometry args={[0.28, 10, 9, 0, Math.PI * 2, 0, Math.PI * 0.85]} />
+        <meshStandardMaterial color={color} roughness={0.5} />
+      </mesh>
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <mesh key={i} position={[Math.cos((i / 6) * Math.PI * 2) * 0.28, 0.32, Math.sin((i / 6) * Math.PI * 2) * 0.28]}>
+          <coneGeometry args={[0.015, 0.06, 4]} rotation={[0, 0, (Math.cos((i / 6) * Math.PI * 2) > 0 ? 1 : -1) * Math.PI / 3]} />
+          <meshStandardMaterial color="#888" roughness={0.4} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.58, 0]}>
+        <sphereGeometry args={[0.08, 7, 5]} />
+        <meshStandardMaterial color="#ffaacc" roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function WantedPosterB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.6, -0.12]}>
+        <boxGeometry args={[0.42, 0.58, 0.06]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.6, -0.09]}>
+        <boxGeometry args={[0.36, 0.5, 0.02]} />
+        <meshStandardMaterial color="#f5e6c8" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 0.68, -0.08]}>
+        <sphereGeometry args={[0.1, 7, 6]} />
+        <meshStandardMaterial color="#8B6040" roughness={0.5} />
+      </mesh>
+      {[-1, 1].map((ss, i) => (
+        <mesh key={i} position={[ss * 0.2, 0.92, -0.11]}>
+          <boxGeometry args={[0.02, 0.04, 0.02]} />
+          <meshStandardMaterial color="#888" metalness={0.5} roughness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+function SheriffBadgeB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <mesh key={i} position={[Math.cos((i / 6) * Math.PI * 2) * 0.22, 0.5, Math.sin((i / 6) * Math.PI * 2) * 0.22]}>
+          <coneGeometry args={[0.06, 0.16, 4]} rotation={[0, 0, (i / 6) * Math.PI * 2 + Math.PI]} />
+          <meshStandardMaterial color={color} metalness={0.6} roughness={0.2} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[0.12, 0.12, 0.04, 10]} />
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.2} />
+      </mesh>
+      <mesh position={[0, 0.5, 0.03]}>
+        <sphereGeometry args={[0.04, 6, 5]} />
+        <meshStandardMaterial color="#ffeeaa" roughness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function HitchingPostB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      {[-0.3, 0.3].map((x, i) => (
+        <mesh key={i} position={[x, 0.4, 0]}>
+          <cylinderGeometry args={[0.04, 0.05, 0.8, 6]} />
+          <meshStandardMaterial color={color} roughness={0.8} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.72, 0]}>
+        <cylinderGeometry args={[0.03, 0.03, 0.68, 5]} rotation={[0, 0, Math.PI / 2]} />
+        <meshStandardMaterial color={color} roughness={0.8} />
+      </mesh>
+      <mesh position={[0, 0.02, 0]}>
+        <boxGeometry args={[0.7, 0.04, 0.1]} />
+        <meshStandardMaterial color="#888877" roughness={0.8} />
+      </mesh>
+    </group>
+  )
+}
+
+function AirlockDoorB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.52, -0.08]}>
+        <boxGeometry args={[0.5, 1.04, 0.1]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 0.52, -0.03]}>
+        <cylinderGeometry args={[0.2, 0.2, 0.04, 14]} rotation={[Math.PI / 2, 0, 0]} />
+        <meshStandardMaterial color="#88aacc" transparent opacity={0.6} roughness={0.1} metalness={0.2} />
+      </mesh>
+      {[-1, 1].map((ss, i) => (
+        <mesh key={i} position={[0, 0.52, 0]} rotation={[0, 0, ss * Math.PI / 4]}>
+          <boxGeometry args={[0.38, 0.025, 0.06]} />
+          <meshStandardMaterial color="#888" metalness={0.5} roughness={0.3} />
+        </mesh>
+      ))}
+      <mesh position={[0.16, 0.52, -0.02]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.04, 8]} rotation={[Math.PI / 2, 0, 0]} />
+        <meshStandardMaterial color="#888" metalness={0.6} roughness={0.2} />
+      </mesh>
+    </group>
+  )
+}
+
+function SolarPanelB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.28, 0]}>
+        <cylinderGeometry args={[0.02, 0.025, 0.56, 5]} />
+        <meshStandardMaterial color="#888" metalness={0.5} roughness={0.4} />
+      </mesh>
+      {[-0.35, 0.35].map((x, i) => (
+        <mesh key={i} position={[x, 0.56, 0]} rotation={[Math.PI / 6, 0, 0]}>
+          <boxGeometry args={[0.55, 0.28, 0.04]} />
+          <meshStandardMaterial color={color} metalness={0.3} roughness={0.3} />
+        </mesh>
+      ))}
+      <mesh position={[0, 0.56, 0]}>
+        <boxGeometry args={[0.08, 0.06, 0.06]} />
+        <meshStandardMaterial color="#888" metalness={0.5} roughness={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+function AntennaeArrayB54({ pos, color, size: s }: P54) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    ref.current.rotation.y = clock.getElapsedTime() * 0.4
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.16, 0]}>
+        <boxGeometry args={[0.3, 0.32, 0.2]} />
+        <meshStandardMaterial color={color} metalness={0.4} roughness={0.4} />
+      </mesh>
+      <group ref={ref} position={[0, 0.46, 0]}>
+        {[-0.1, 0, 0.1].map((x, i) => (
+          <mesh key={i} position={[x, 0.22, 0]} rotation={[Math.PI / 8, 0, 0]}>
+            <sphereGeometry args={[0.12, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+            <meshStandardMaterial color={color} metalness={0.5} roughness={0.3} side={2} />
+          </mesh>
+        ))}
+      </group>
+    </group>
+  )
+}
+
+function DockingArmB54({ pos, color, size: s }: P54) {
+  const ref = useRef<THREE.Group>(null!)
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const t = clock.getElapsedTime()
+    if (ref.current.children[0]) ref.current.children[0].rotation.z = Math.sin(t * 0.5) * 0.3
+    if (ref.current.children[1]) ref.current.children[1].rotation.z = Math.sin(t * 0.5 + 0.5) * 0.25
+  })
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.08, 0]}>
+        <boxGeometry args={[0.18, 0.16, 0.14]} />
+        <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+      </mesh>
+      <group ref={ref}>
+        <mesh position={[0, 0.3, 0]}>
+          <boxGeometry args={[0.08, 0.3, 0.08]} />
+          <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+        </mesh>
+        <mesh position={[0.1, 0.55, 0]}>
+          <boxGeometry args={[0.08, 0.28, 0.07]} />
+          <meshStandardMaterial color={color} metalness={0.5} roughness={0.4} />
+        </mesh>
+      </group>
+      <mesh position={[0.18, 0.67, 0]}>
+        <sphereGeometry args={[0.06, 6, 5]} />
+        <meshStandardMaterial color="#00ffcc" emissive="#00ffcc" emissiveIntensity={0.6} />
+      </mesh>
+    </group>
+  )
+}
+
+function HabitatModuleB54({ pos, color, size: s }: P54) {
+  return (
+    <group position={pos} scale={s}>
+      <mesh position={[0, 0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.26, 0.26, 0.7, 10]} />
+        <meshStandardMaterial color={color} metalness={0.4} roughness={0.4} />
+      </mesh>
+      {[-0.32, 0.32].map((x, i) => (
+        <mesh key={i} position={[x, 0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.27, 0.27, 0.06, 10]} />
+          <meshStandardMaterial color="#888" metalness={0.5} roughness={0.3} />
+        </mesh>
+      ))}
+      {[0, 1].map((i) => (
+        <mesh key={i} position={[i === 0 ? 0.06 : -0.06, 0.3, 0.27]}>
+          <circleGeometry args={[0.07, 8]} />
+          <meshStandardMaterial color="#88aacc" transparent opacity={0.65} roughness={0.1} />
         </mesh>
       ))}
     </group>
