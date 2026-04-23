@@ -1881,6 +1881,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'tea-pavilion-b48',  label: 'Чайный павильон',     emoji: '🫖', defaultColor: '#8B4513', tags: ['павильон','tea pavilion','чай','японский','архитектура'], hint: 'Изящный традиционный чайный домик' },
     ],
   },
+  {
+    id: 'haunted-mansion-b49', name: '👻 Дом с привидениями', icon: '👻',
+    items: [
+      { kind: 'ghost-statue-b49',   label: 'Статуя призрака',    emoji: '👻', defaultColor: '#ccccff', tags: ['призрак','ghost statue','страх','хэллоуин','мистика'], hint: 'Полупрозрачная статуя парящего духа' },
+      { kind: 'coffin-gate-b49',    label: 'Ворота-гроб',        emoji: '⚰️', defaultColor: '#333333', tags: ['гроб','coffin gate','ворота','хэллоуин','страшный'], hint: 'Мрачные ворота в форме гроба' },
+      { kind: 'spider-web-b49',     label: 'Паутина',            emoji: '🕸️', defaultColor: '#dddddd', tags: ['паутина','spider web','паук','хэллоуин','страшный'], hint: 'Большая паутина с пауком' },
+      { kind: 'creepy-window-b49',  label: 'Жуткое окно',        emoji: '🪟', defaultColor: '#664466', tags: ['окно','creepy window','дом','хэллоуин','мистика'], hint: 'Светящееся окно с силуэтом внутри' },
+      { kind: 'grave-cross-b49',    label: 'Надгробный крест',   emoji: '✝️', defaultColor: '#888888', tags: ['крест','grave cross','могила','хэллоуин','кладбище'], hint: 'Покосившийся надгробный крест' },
+    ],
+  },
+  {
+    id: 'ocean-lab-b49', name: '🔬 Подводная лаборатория', icon: '🔬',
+    items: [
+      { kind: 'submarine-pod-b49',  label: 'Субмарина-капсула',  emoji: '🚢', defaultColor: '#ffdd00', tags: ['субмарина','submarine pod','подводный','лаборатория','наука'], hint: 'Компактная исследовательская субмарина' },
+      { kind: 'deep-probe-b49',     label: 'Глубоководный зонд', emoji: '🤿', defaultColor: '#4488cc', tags: ['зонд','deep probe','подводный','исследование','наука'], hint: 'Автономный зонд для глубин' },
+      { kind: 'coral-arch-b49',     label: 'Коралловая арка',    emoji: '🪸', defaultColor: '#ff6644', tags: ['коралл','coral arch','арка','подводный','природа'], hint: 'Живая арка из розового коралла' },
+      { kind: 'specimen-jar-b49',   label: 'Банка с образцом',   emoji: '🫙', defaultColor: '#88ddcc', tags: ['банка','specimen jar','образец','лаборатория','биология'], hint: 'Большая банка с морским существом' },
+      { kind: 'sonar-dish-b49',     label: 'Гидролокатор',       emoji: '📡', defaultColor: '#aaaaaa', tags: ['гидролокатор','sonar dish','эхолот','подводный','техника'], hint: 'Параболическая антенна сонара' },
+    ],
+  },
+  {
+    id: 'carnival-midway-b49', name: '🎡 Карнавал', icon: '🎡',
+    items: [
+      { kind: 'ring-toss-b49',      label: 'Бросание колец',     emoji: '🎯', defaultColor: '#ff4422', tags: ['кольца','ring toss','карнавал','игра','аттракцион'], hint: 'Стойка с кольцами для набрасывания' },
+      { kind: 'popcorn-cart-b49',   label: 'Тележка с попкорном',emoji: '🍿', defaultColor: '#ff8800', tags: ['попкорн','popcorn cart','тележка','карнавал','еда'], hint: 'Яркая тележка с попкорном' },
+      { kind: 'carnival-sign-b49',  label: 'Карнавальная вывеска',emoji: '🎪', defaultColor: '#ff2288', tags: ['вывеска','carnival sign','карнавал','реклама','цирк'], hint: 'Световая вывеска с мигающими огнями' },
+      { kind: 'prize-balloon-b49',  label: 'Воздушный шар-приз', emoji: '🎈', defaultColor: '#ff4499', tags: ['шар','prize balloon','карнавал','приз','яркий'], hint: 'Связка разноцветных воздушных шаров' },
+      { kind: 'game-bell-b49',      label: 'Колокол силы',       emoji: '🔔', defaultColor: '#ffcc00', tags: ['колокол','game bell','сила','карнавал','игра'], hint: 'Аттракцион «проверь силу» с молотом' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

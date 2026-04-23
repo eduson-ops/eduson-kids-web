@@ -389,6 +389,12 @@ export type PropKind =
   | 'lava-vent-b48' | 'obsidian-spire-b48' | 'fire-geyser-b48' | 'volcanic-rock-b48' | 'ember-pool-b48'
   // Japanese Garden
   | 'stone-lantern-b48' | 'bamboo-fence-b48' | 'koi-pond-b48' | 'cherry-tree-b48' | 'tea-pavilion-b48'
+  // Haunted Mansion
+  | 'ghost-statue-b49' | 'coffin-gate-b49' | 'spider-web-b49' | 'creepy-window-b49' | 'grave-cross-b49'
+  // Ocean Floor Lab
+  | 'submarine-pod-b49' | 'deep-probe-b49' | 'coral-arch-b49' | 'specimen-jar-b49' | 'sonar-dish-b49'
+  // Carnival Midway
+  | 'ring-toss-b49' | 'popcorn-cart-b49' | 'carnival-sign-b49' | 'prize-balloon-b49' | 'game-bell-b49'
 
 export interface SpawnedPart {
   id: string
