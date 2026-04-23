@@ -31,9 +31,16 @@
 | 16 | Volcano World + Neon City | 20 |
 | 17 | Ancient Egypt + Fairy Garden | 20 |
 | 18 | Western Town + Haunted Mansion | 20 |
+| 19 | Robot Factory + Underwater City | 20 |
+| 20 | Sky Kingdom + Crystal Cave | 20 |
+| 21 | Dinosaur Park + Atlantis City | 20 |
+| 22 | Magic School + Jungle Temple | 20 |
+| 23 | Ice Palace + Lava Forge | 20 |
+| 24 | Mushroom Kingdom + Space Outpost | 20 |
+| 25 | Toy Workshop + Garden Party | 20 |
 
-**Итого новых пропсов**: 180  
-**Всего пропсов**: ~592 across ~97 categories
+**Итого новых пропсов**: 320  
+**Всего пропсов**: ~752 across ~107 categories
 
 ## QA исправления
 
@@ -58,7 +65,7 @@ https://eduson-ops.github.io/eduson-kids-web/
 ### UX polish (P2)
 - Global "My Blocks" library shared across projects
 - HtmlBlocklyWorkspace: 16 новых типов секций сайта
-- Batch 14+ 3D props: Rainforest, Arctic Research, Pirate Cove, etc.
+- Batch 26+: продолжение 3D-пропсов (цель 1000+)
 
 ## Технические решения (locked)
 
