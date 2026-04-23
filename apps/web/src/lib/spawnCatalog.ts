@@ -1701,6 +1701,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'hanging-lantern-b42', label: 'Фонарь',           emoji: '🏮', defaultColor: '#e03030', tags: ['фонарь','lantern','красный','базар','свет'], hint: 'Подвесной восточный фонарь с орнаментом' },
     ],
   },
+  {
+    id: 'underwater-village', name: 'Подводная деревня', icon: '🐠',
+    items: [
+      { kind: 'kelp-hut-b43',    label: 'Домик из водорослей', emoji: '🌿', defaultColor: '#2a7a3a', tags: ['хижина','kelp hut','водоросли','подводный','домик'], hint: 'Уютный домик из морских водорослей' },
+      { kind: 'pearl-gate-b43',  label: 'Жемчужные ворота',   emoji: '🦪', defaultColor: '#f0e8d8', tags: ['ворота','pearl gate','жемчуг','ракушка','вход'], hint: 'Арка из гигантских жемчужных раковин' },
+      { kind: 'sea-lantern-b43', label: 'Морской фонарь',      emoji: '🪸', defaultColor: '#00cfcf', tags: ['фонарь','sea lantern','биолюминесценция','свет','коралл'], hint: 'Фонарь из биолюминесцентных кораллов' },
+      { kind: 'coral-bench-b43', label: 'Коралловая скамья',   emoji: '🐡', defaultColor: '#ff7070', tags: ['скамья','coral bench','коралл','сиденье','подводный'], hint: 'Скамья из ветвистых кораллов' },
+      { kind: 'bubble-tower-b43',label: 'Пузырьковая башня',   emoji: '🫧', defaultColor: '#80d8ff', tags: ['башня','bubble tower','пузыри','подводный','прозрачный'], hint: 'Башня из пузырьков поднимается из глубины' },
+    ],
+  },
+  {
+    id: 'witch-forest', name: 'Лес ведьмы', icon: '🧙',
+    items: [
+      { kind: 'witch-cauldron-b43', label: 'Котёл',           emoji: '🪄', defaultColor: '#1a1a2e', tags: ['котёл','cauldron','ведьма','зелье','магия'], hint: 'Кипящий котёл со светящимся варевом' },
+      { kind: 'gnarled-tree-b43',   label: 'Скрюченное дерево',emoji: '🌳', defaultColor: '#3a2a1a', tags: ['дерево','gnarled tree','скрюченное','жуткое','лес'], hint: 'Дерево с перекрученными ветвями' },
+      { kind: 'crystal-orb-b43',    label: 'Хрустальный шар', emoji: '🔮', defaultColor: '#9b59b6', tags: ['шар','crystal orb','хрусталь','гадание','магия'], hint: 'Светящийся хрустальный шар на подставке' },
+      { kind: 'potion-shelf-b43',   label: 'Полка зелий',     emoji: '⚗️', defaultColor: '#2a4a1a', tags: ['полка','potion shelf','зелье','колба','магия'], hint: 'Полка с рядами цветных флаконов' },
+      { kind: 'raven-post-b43',     label: 'Жердь ворона',    emoji: '🐦‍⬛', defaultColor: '#2a2a2a', tags: ['ворон','raven post','жердь','птица','мрачный'], hint: 'Деревянная жердь с сидящим вороном' },
+    ],
+  },
+  {
+    id: 'toy-workshop-2', name: 'Мастерская игрушек 2', icon: '🎪',
+    items: [
+      { kind: 'jack-box-b43',     label: 'Чёртик в коробке', emoji: '🎁', defaultColor: '#e07030', tags: ['чёртик','jack in box','сюрприз','пружина','игрушка'], hint: 'Коробочка с выпрыгивающим чёртиком' },
+      { kind: 'spinning-top-b43', label: 'Волчок',           emoji: '🌀', defaultColor: '#4488ff', tags: ['волчок','spinning top','вращение','игрушка','юла'], hint: 'Яркий волчок в движении' },
+      { kind: 'wooden-horse-b43', label: 'Деревянная лошадка',emoji: '🐴', defaultColor: '#c87941', tags: ['лошадка','wooden horse','деревянная','качалка','игрушка'], hint: 'Классическая деревянная лошадка-качалка' },
+      { kind: 'toy-castle-b43',   label: 'Замок из блоков',  emoji: '🏰', defaultColor: '#c8c8d8', tags: ['замок','toy castle','блоки','башенки','игрушка'], hint: 'Миниатюрный замок из цветных блоков' },
+      { kind: 'craft-bench-b43',  label: 'Рабочий стол',    emoji: '🔨', defaultColor: '#8B4513', tags: ['стол','craft bench','мастерская','инструменты','дерево'], hint: 'Столярный верстак с инструментами' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

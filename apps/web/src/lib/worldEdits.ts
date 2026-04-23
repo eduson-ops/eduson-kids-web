@@ -353,6 +353,12 @@ export type PropKind =
   | 'excavation-pit-b42' | 'fossil-dig-b42' | 'field-tent-b42' | 'specimen-table-b42' | 'rope-barrier-b42'
   // Bazaar Market
   | 'spice-jar-b42' | 'fabric-roll-b42' | 'merchant-scale-b42' | 'fruit-basket-b42' | 'hanging-lantern-b42'
+  // Underwater Village
+  | 'kelp-hut-b43' | 'pearl-gate-b43' | 'sea-lantern-b43' | 'coral-bench-b43' | 'bubble-tower-b43'
+  // Witch Forest
+  | 'witch-cauldron-b43' | 'gnarled-tree-b43' | 'crystal-orb-b43' | 'potion-shelf-b43' | 'raven-post-b43'
+  // Toy Workshop 2
+  | 'jack-box-b43' | 'spinning-top-b43' | 'wooden-horse-b43' | 'toy-castle-b43' | 'craft-bench-b43'
 
 export interface SpawnedPart {
   id: string
