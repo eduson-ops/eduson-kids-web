@@ -1230,6 +1230,36 @@ export const CATALOG: CatalogCategory[] = [
       { kind: 'hull-breach-patch',  label: 'Заплатка обшивки',       emoji: '🔩', defaultColor: '#445566', tags: ['заплатка','hull breach patch','ремонт','обшивка','лава'], hint: 'Аварийная заплатка на пробоине корпуса' },
     ],
   },
+  {
+    id: 'toy-workshop', name: 'Мастерская игрушек', icon: '🪀',
+    items: [
+      { kind: 'toy-train-b25',       label: 'Игрушечный паровоз',     emoji: '🚂', defaultColor: '#cc2222', tags: ['паровоз','toy train','игрушка','локомотив','красный'], hint: 'Деревянный игрушечный паровоз' },
+      { kind: 'building-block-tower',label: 'Башня из кубиков',       emoji: '🧱', defaultColor: '#ffcc00', tags: ['кубики','building block tower','башня','разноцветные','стопка'], hint: 'Разноцветная башня из кубиков' },
+      { kind: 'wind-up-robot',       label: 'Заводной робот',         emoji: '🤖', defaultColor: '#4488ff', tags: ['робот','wind up robot','заводной','металл','игрушка'], hint: 'Заводной жестяной роботик' },
+      { kind: 'teddy-bear-b25',      label: 'Плюшевый мишка',         emoji: '🧸', defaultColor: '#cc8844', tags: ['мишка','teddy bear','плюшевый','мягкий','коричневый'], hint: 'Мягкий плюшевый медвежонок' },
+      { kind: 'kaleidoscope-tower',  label: 'Калейдоскоп',            emoji: '🌈', defaultColor: '#aa44ff', tags: ['калейдоскоп','kaleidoscope tower','цвета','вращается','яркий'], hint: 'Вращающийся калейдоскоп на подставке' },
+      { kind: 'snow-globe',          label: 'Снежный шар',            emoji: '🌨', defaultColor: '#aaeeff', tags: ['снежный шар','snow globe','прозрачный','домик','снег'], hint: 'Стеклянный шар со снежной сценкой' },
+      { kind: 'toy-chest-b25',       label: 'Сундук с игрушками',     emoji: '📦', defaultColor: '#cc4422', tags: ['сундук','toy chest','игрушки','деревянный','хранение'], hint: 'Деревянный сундук полный игрушек' },
+      { kind: 'music-box-b25',       label: 'Музыкальная шкатулка',   emoji: '🎵', defaultColor: '#cc4488', tags: ['шкатулка','music box','музыка','балерина','вращается'], hint: 'Шкатулка с вращающейся фигуркой' },
+      { kind: 'puppet-stage',        label: 'Кукольный театр',        emoji: '🎭', defaultColor: '#cc2222', tags: ['театр','puppet stage','куклы','сцена','шоу'], hint: 'Маленькая сцена для кукольного театра' },
+      { kind: 'marble-machine',      label: 'Машина шариков',         emoji: '🎱', defaultColor: '#886644', tags: ['шарики','marble machine','прыгают','цветные','механизм'], hint: 'Деревянный ящик с прыгающими шариками' },
+    ],
+  },
+  {
+    id: 'garden-party', name: 'Садовая вечеринка', icon: '🌸',
+    items: [
+      { kind: 'garden-pavilion',   label: 'Садовый павильон',      emoji: '⛺', defaultColor: '#cc8844', tags: ['павильон','garden pavilion','садовый','крыша','праздник'], hint: 'Деревянный павильон с цветной крышей' },
+      { kind: 'rose-arbor',        label: 'Розовая арка',          emoji: '🌹', defaultColor: '#ff4466', tags: ['арка','rose arbor','розы','цветы','романтика'], hint: 'Деревянная арка, увитая розами' },
+      { kind: 'garden-bench',      label: 'Садовая скамья',        emoji: '🪑', defaultColor: '#8B4513', tags: ['скамья','garden bench','деревянная','отдых','сад'], hint: 'Уютная деревянная скамейка с лейками' },
+      { kind: 'flower-arrangement',label: 'Букет цветов',          emoji: '💐', defaultColor: '#ff6688', tags: ['букет','flower arrangement','цветы','ваза','красивый'], hint: 'Яркий букет разноцветных цветов' },
+      { kind: 'party-balloons',    label: 'Воздушные шарики',      emoji: '🎈', defaultColor: '#ff4444', tags: ['шарики','party balloons','праздник','летят','яркие'], hint: 'Связка разноцветных воздушных шаров' },
+      { kind: 'cake-tower',        label: 'Торт со свечами',       emoji: '🎂', defaultColor: '#ff99bb', tags: ['торт','cake tower','свечи','многоярусный','праздник'], hint: 'Многоярусный торт с горящими свечами' },
+      { kind: 'garden-sunflower',  label: 'Подсолнух',             emoji: '🌻', defaultColor: '#ffcc00', tags: ['подсолнух','garden sunflower','жёлтый','лепестки','высокий'], hint: 'Высокий солнечный подсолнух' },
+      { kind: 'garden-windmill',   label: 'Декоративная мельница', emoji: '🎡', defaultColor: '#4488ff', tags: ['мельница','garden windmill','вращается','декор','сад'], hint: 'Маленькая декоративная мельница для сада' },
+      { kind: 'garden-bird-bath',  label: 'Купальня для птиц',     emoji: '🐦', defaultColor: '#aabb99', tags: ['купальня','garden bird bath','птицы','вода','камень'], hint: 'Каменная купальня с водой для птиц' },
+      { kind: 'picnic-blanket',    label: 'Пикниковая скатерть',   emoji: '🧺', defaultColor: '#ff6644', tags: ['скатерть','picnic blanket','пикник','корзина','еда'], hint: 'Яркая скатерть с едой для пикника' },
+    ],
+  },
 ]
 
 export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)

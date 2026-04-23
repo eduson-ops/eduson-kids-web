@@ -250,6 +250,12 @@ export type PropKind =
   // Space Outpost
   | 'satellite-dish-b24' | 'habitat-module' | 'space-antenna' | 'outpost-cryo-pod' | 'airblock-door'
   | 'space-tool-rack' | 'meteor-fragment' | 'outpost-beacon' | 'space-turret' | 'hull-breach-patch'
+  // Toy Workshop
+  | 'toy-train-b25' | 'building-block-tower' | 'wind-up-robot' | 'teddy-bear-b25' | 'kaleidoscope-tower'
+  | 'snow-globe' | 'toy-chest-b25' | 'music-box-b25' | 'puppet-stage' | 'marble-machine'
+  // Garden Party
+  | 'garden-pavilion' | 'rose-arbor' | 'garden-bench' | 'flower-arrangement' | 'party-balloons'
+  | 'cake-tower' | 'garden-sunflower' | 'garden-windmill' | 'garden-bird-bath' | 'picnic-blanket'
 
 export interface SpawnedPart {
   id: string
