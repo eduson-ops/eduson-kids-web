@@ -134,7 +134,6 @@ jobs:
       - name: Deploy container revision
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ github.sha }}' | cut -c1-7)"
-          SECRET_ID="${{ secrets.YC_LOCKBOX_SECRET_ID }}"
           yc serverless container revision deploy \
             --container-name eduson-api \
             --image "$IMAGE" \
@@ -152,11 +151,11 @@ jobs:
             --environment REDIS_HOST=${{ secrets.YC_REDIS_HOST }} \
             --environment REDIS_PORT=6380 \
             --environment REDIS_TLS=true \
-            --secret "environment-variable=DB_PASSWORD,id=${SECRET_ID},version-id=latest,key=DB_PASSWORD" \
-            --secret "environment-variable=REDIS_PASSWORD,id=${SECRET_ID},version-id=latest,key=DB_PASSWORD" \
-            --secret "environment-variable=JWT_ACCESS_SECRET,id=${SECRET_ID},version-id=latest,key=JWT_ACCESS_SECRET" \
-            --secret "environment-variable=JWT_REFRESH_SECRET,id=${SECRET_ID},version-id=latest,key=JWT_REFRESH_SECRET" \
-            --secret "environment-variable=PII_KEY,id=${SECRET_ID},version-id=latest,key=PII_KEY"
+            --environment DB_PASSWORD=${{ secrets.APP_DB_PASSWORD }} \
+            --environment REDIS_PASSWORD=${{ secrets.APP_DB_PASSWORD }} \
+            --environment JWT_ACCESS_SECRET=${{ secrets.APP_JWT_ACCESS_SECRET }} \
+            --environment JWT_REFRESH_SECRET=${{ secrets.APP_JWT_REFRESH_SECRET }} \
+            --environment PII_KEY=${{ secrets.APP_PII_KEY }}
 
       - name: Smoke test
         run: |
