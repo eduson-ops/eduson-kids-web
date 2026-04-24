@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 44 — Проект «Dino-раннер / Asteroids»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#0F1522;
+    --panel:rgba(255,255,255,0.04);
+    --panel-br:rgba(255,255,255,0.08);
+    --text:#E7ECF3;
+    --muted:#9AA3B2;
+    --violet:#7C3AED;
+    --cyan:#06B6D4;
+    --ok:#22C55E;
+    --warn:#F59E0B;
+    --danger:#EF4444;
+    --gold:#F6C453;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;overflow:hidden;height:100vh}
+  body::before{
+    content:"";position:fixed;inset:-20%;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(50% 40% at 15% 20%, rgba(124,58,237,0.25), transparent 60%),
+      radial-gradient(40% 35% at 85% 80%, rgba(6,182,212,0.22), transparent 60%),
+      radial-gradient(35% 30% at 70% 15%, rgba(124,58,237,0.15), transparent 60%);
+    filter:blur(20px);
+  }
+  .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");}
+  .deck{position:relative;z-index:2;height:100vh;width:100vw;overflow:hidden}
+  .slide{
+    position:absolute;inset:0;
+    padding:56px 72px 80px;
+    display:none;
+    flex-direction:column;
+    animation:fade .5s ease both;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* progress */
+  .progress{position:fixed;left:0;top:0;right:0;height:3px;background:rgba(255,255,255,.05);z-index:5}
+  .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--cyan));transition:width .4s ease}
+  /* HUD */
+  .hud{position:fixed;z-index:5;left:24px;bottom:20px;display:flex;gap:12px;align-items:center;color:var(--muted);font-size:13px;letter-spacing:.02em}
+  .hud .dot{width:6px;height:6px;border-radius:50%;background:var(--violet);box-shadow:0 0 12px var(--violet)}
+  .hud .dot.cy{background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+  .hud kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:2px 7px;border-radius:6px;font-size:11px}
+  .pager{position:fixed;z-index:5;right:24px;bottom:20px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px}
+  .brand{position:fixed;z-index:5;right:28px;top:22px;display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px;letter-spacing:.15em;text-transform:uppercase}
+  .brand .lg{width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,var(--violet),var(--cyan));box-shadow:0 0 16px rgba(124,58,237,.7)}
+  /* typography */
+  h1,h2,h3{margin:0;letter-spacing:-.02em;line-height:1.1}
+  h1{font-size:76px;font-weight:800}
+  h2{font-size:46px;font-weight:800}
+  h3{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  p{line-height:1.55;color:var(--muted);font-size:18px;margin:0}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan)}
+  .grad{background:linear-gradient(92deg,var(--violet) 10%,var(--cyan) 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  /* cards */
+  .glass{
+    background:var(--panel);
+    border:1px solid var(--panel-br);
+    border-radius:18px;
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+  .card{padding:22px 24px}
+  .grid{display:grid;gap:18px}
+  .two{grid-template-columns:1fr 1fr}
+  .three{grid-template-columns:repeat(3,1fr)}
+  .four{grid-template-columns:repeat(4,1fr)}
+  .center{align-items:center;justify-content:center;text-align:center;height:100%}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.35);color:#D8C7FF;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+  .pill.cy{background:rgba(6,182,212,.12);border-color:rgba(6,182,212,.35);color:#B6ECF5}
+  .pill.gold{background:rgba(246,196,83,.1);border-color:rgba(246,196,83,.35);color:#F6C453}
+  .tag{display:inline-block;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px;margin-right:6px}
+  /* code */
+  pre[class*="language-"]{
+    border-radius:14px !important;
+    background:rgba(6,8,14,.75) !important;
+    border:1px solid rgba(255,255,255,.07);
+    font-size:14px !important;
+    padding:18px 20px !important;
+    font-family:'JetBrains Mono',monospace !important;
+    max-height:460px;overflow:auto;
+  }
+  code{font-family:'JetBrains Mono',monospace}
+  /* misc */
+  ul{margin:0;padding:0 0 0 18px}
+  ul li{margin:6px 0;color:var(--text);font-size:17px;line-height:1.5}
+  ul li::marker{color:var(--cyan)}
+  .kbd-row{display:flex;gap:10px;flex-wrap:wrap}
+  .kbd-row kbd{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text)}
+  .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);margin:14px 0}
+  .big-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:64px;background:linear-gradient(135deg,var(--violet),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .step{display:flex;gap:14px;align-items:flex-start}
+  .step .n{flex:none;width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--violet),var(--cyan));color:white;font-family:'JetBrains Mono',monospace;font-weight:700;display:flex;align-items:center;justify-content:center}
+  /* hero visuals */
+  .hero-visual{position:absolute;right:-40px;top:-40px;width:640px;height:640px;z-index:0;pointer-events:none;opacity:.9}
+  .hero-visual .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(124,58,237,.25)}
+  .hero-visual .ring:nth-child(2){inset:60px;border-color:rgba(6,182,212,.25)}
+  .hero-visual .ring:nth-child(3){inset:120px;border-color:rgba(124,58,237,.18)}
+  .hero-visual .glow{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at center,rgba(124,58,237,.3),transparent 60%);filter:blur(30px)}
+  .hero-visual .dino{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:220px;filter:drop-shadow(0 8px 40px rgba(124,58,237,.5))}
+  /* timeline */
+  .timeline{display:flex;gap:0;align-items:stretch;margin-top:12px}
+  .tl-step{flex:1;padding:14px 16px;border-right:1px dashed rgba(255,255,255,.1);position:relative}
+  .tl-step:last-child{border-right:none}
+  .tl-step .tm{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--cyan);letter-spacing:.1em}
+  .tl-step h4{margin:6px 0 4px;font-size:15px}
+  .tl-step p{font-size:13px;color:var(--muted)}
+  /* speaker notes */
+  .notes{
+    position:fixed;left:50%;bottom:56px;transform:translateX(-50%) translateY(120%);
+    width:min(880px,92vw);max-height:52vh;overflow:auto;z-index:10;
+    padding:20px 24px;transition:transform .35s ease;
+  }
+  .notes.open{transform:translateX(-50%) translateY(0)}
+  .notes h4{margin:0 0 10px;color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+  .notes p{color:var(--text);font-size:15px;line-height:1.55}
+  .notes small{color:var(--muted)}
+  /* small helpers */
+  .flex{display:flex}
+  .col{flex-direction:column}
+  .gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}.gap-24{gap:24px}
+  .mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+  .muted{color:var(--muted)}
+  .strong{color:var(--text);font-weight:600}
+  .ribbon{
+    display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;
+    background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(6,182,212,.2));
+    border:1px solid rgba(255,255,255,.08);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.15em;text-transform:uppercase
+  }
+  .icon{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.35);font-size:18px;color:#E4D8FF}
+  .icon.cy{background:rgba(6,182,212,.15);border-color:rgba(6,182,212,.35);color:#BFEAF2}
+  .icon.gold{background:rgba(246,196,83,.1);border-color:rgba(246,196,83,.35);color:var(--gold)}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .spawn{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06)}
+  .spawn .num{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--cyan);width:28px}
+  .warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);color:#FFE0A8;padding:10px 14px;border-radius:10px;font-size:14px}
+  .ok{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.3);color:#B6F0C8;padding:10px 14px;border-radius:10px;font-size:14px}
+  .two-col-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:22px}
+  .logo-dot{width:8px;height:8px;border-radius:50%}
+  .vs{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:14px;padding:4px 10px;border:1px dashed rgba(255,255,255,.15);border-radius:999px}
+  .hint-bar{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);padding:8px 14px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1);border-radius:999px;color:var(--muted);font-size:12px;z-index:6;opacity:0;transition:opacity .3s}
+  .hint-bar.show{opacity:1}
+  /* small responsive */
+  @media (max-width:1100px){
+    .slide{padding:40px 48px 70px}
+    h1{font-size:56px}h2{font-size:36px}
+    .hero-visual{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="progress"><i id="pbar"></i></div>
+<div class="noise"></div>
+<div class="brand"><span class="lg"></span><span>Eduson Kids · Python + AI</span></div>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1 — Обложка -->
+<section class="slide">
+  <div class="hero-visual">
+    <div class="glow"></div>
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="dino">🦖</div>
+  </div>
+  <div class="flex col gap-16" style="margin:auto 0">
+    <span class="pill">Урок № 44 · Неделя 22 · 8–14 лет</span>
+    <h1>Проект: <span class="grad">Dino-раннер</span><br/>или <span class="grad">Asteroids</span></h1>
+    <p style="max-width:640px">Собираем всё, что изучили в уроках 37–43, в одну большую игру. Выбор за тобой, защита — за тобой, бейдж «Геймдев» — твой.</p>
+    <div class="flex gap-12 mt-12">
+      <span class="chip">🎮 150–250 строк кода</span>
+      <span class="chip">🎨 Kandinsky</span>
+      <span class="chip">🔊 freesound.org</span>
+      <span class="chip">🤖 YandexGPT</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2 — Что будет сегодня -->
+<section class="slide">
+  <span class="eyebrow">Слайд 02 · Расписание</span>
+  <h2 class="mt-8">Что мы сегодня сделаем</h2>
+  <p class="mt-12" style="max-width:760px">За 60 минут ты пройдёшь путь от чистого листа до защищаемой игры. Это не туториал, это — репетиция того, как работают настоящие разработчики.</p>
+  <div class="timeline mt-24 glass">
+    <div class="tl-step"><div class="tm">0 — 5</div><h4>Показ двух игр</h4><p>Смотрим референс, выбираем тему</p></div>
+    <div class="tl-step"><div class="tm">5 — 10</div><h4>Декомпозиция</h4><p>8 пунктов плана на доске</p></div>
+    <div class="tl-step"><div class="tm">10 — 35</div><h4>Разработка</h4><p>Пишешь сам, преподаватель рядом</p></div>
+    <div class="tl-step"><div class="tm">35 — 50</div><h4>Полировка</h4><p>Gameover, пауза, хай-скор</p></div>
+    <div class="tl-step"><div class="tm">50 — 60</div><h4>Защита</h4><p>3–5 мин + бейдж «Геймдев»</p></div>
+  </div>
+  <div class="grid three mt-24">
+    <div class="glass card"><span class="icon">🎯</span><h3 class="mt-8">Цель</h3><p class="mt-8">Один готовый проект в портфолио №10</p></div>
+    <div class="glass card"><span class="icon cy">🧠</span><h3 class="mt-8">Навык</h3><p class="mt-8">Собирать игру по плану, а не по инструкции</p></div>
+    <div class="glass card"><span class="icon gold">🏅</span><h3 class="mt-8">Итог</h3><p class="mt-8">Бейдж «Геймдев» и защита 3–5 мин</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 3 — Цель и результаты -->
+<section class="slide">
+  <span class="eyebrow">Слайд 03 · Цель</span>
+  <h2 class="mt-8">Зачем этот урок</h2>
+  <div class="two-col-grid mt-24">
+    <div class="glass card">
+      <h3>🎯 Главная цель</h3>
+      <p class="mt-12">Собрать всё, что изучено в уроках 37–43, в одну большую игру. Выбор ребёнка: <span class="strong">платформер-раннер</span> (динозавр Chrome, уворачивающийся от кактусов) или <span class="strong">Asteroids</span> (корабль + астероиды + выстрелы).</p>
+      <div class="divider"></div>
+      <p class="muted">Результат — защищаемый проект для портфолио №10.</p>
+    </div>
+    <div class="glass card">
+      <h3>📚 Ты будешь уметь</h3>
+      <ul class="mt-12">
+        <li>Собирать игру с меню и игровым экраном</li>
+        <li>Работать с клавиатурным вводом и анимацией</li>
+        <li>Подключать звук и коллизии</li>
+        <li>Управлять состояниями и счётом</li>
+        <li>Защищать проект 3–5 минут перед аудиторией</li>
+      </ul>
+    </div>
+  </div>
+  <div class="flex gap-12 mt-24">
+    <span class="ribbon">🎮 150–250 строк</span>
+    <span class="ribbon">🏅 Бейдж «Геймдев»</span>
+    <span class="ribbon">📁 Проект №10</span>
+  </div>
+</section>
+
+<!-- SLIDE 4 — Что изучено ранее -->
+<section class="slide">
+  <span class="eyebrow">Слайд 04 · Повторение</span>
+  <h2 class="mt-8">Откуда ты пришёл в этот урок</h2>
+  <p class="mt-12 muted" style="max-width:760px">Семь предыдущих уроков — это не скучная теория, а инструменты у тебя в рюкзаке. Сегодня ты открываешь рюкзак и достаёшь нужное.</p>
+  <div class="grid four mt-24">
+    <div class="glass card"><span class="pill cy">Урок 37</span><h3 class="mt-12">Игровой цикл</h3><p class="mt-8">draw() и update(), 60 fps, Actor</p></div>
+    <div class="glass card"><span class="pill cy">Урок 38</span><h3 class="mt-12">Мышь</h3><p class="mt-8">on_mouse_move, on_mouse_down</p></div>
+    <div class="glass card"><span class="pill cy">Урок 39</span><h3 class="mt-12">Списки + колизии</h3><p class="mt-8">apples[], colliderect, spawn</p></div>
+    <div class="glass card"><span class="pill cy">Урок 40</span><h3 class="mt-12">Состояния</h3><p class="mt-8">menu / playing / gameover</p></div>
+    <div class="glass card"><span class="pill">Урок 41</span><h3 class="mt-12">Звук и музыка</h3><p class="mt-8">sounds.play, music.play</p></div>
+    <div class="glass card"><span class="pill">Урок 42</span><h3 class="mt-12">Клавиатура + анимация</h3><p class="mt-8">keyboard.left, frame cycling</p></div>
+    <div class="glass card"><span class="pill">Урок 43</span><h3 class="mt-12">UX</h3><p class="mt-8">Кнопки, ховер, подсказки</p></div>
+    <div class="glass card" style="background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(6,182,212,.12));border-color:rgba(124,58,237,.35)">
+      <span class="pill gold">Урок 44</span><h3 class="mt-12">Синтез 💥</h3><p class="mt-8">Собираем ВСЁ в одну игру</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 5 — Две игры: выбор -->
+<section class="slide">
+  <span class="eyebrow">Слайд 05 · Выбор темы</span>
+  <h2 class="mt-8">Выбери свою игру</h2>
+  <div class="grid two mt-24" style="gap:24px">
+    <div class="glass card" style="padding:28px">
+      <div class="flex gap-12" style="align-items:center"><span class="icon">🦖</span><h3>Dino-раннер</h3></div>
+      <p class="mt-12">Динозавр из Chrome бежит по пустыне, прыгает через кактусы. Чем дольше живёшь — тем выше счёт.</p>
+      <ul class="mt-12">
+        <li>Земля и фон с параллаксом</li>
+        <li>Динозавр с анимацией бега</li>
+        <li>Прыжок с гравитацией (урок 42)</li>
+        <li>Кактусы в списке, двигаются влево</li>
+        <li>Счёт = пройденное расстояние</li>
+      </ul>
+      <div class="flex gap-8 mt-16"><span class="tag">space</span><span class="tag">gravity</span><span class="tag">endless</span></div>
+    </div>
+    <div class="glass card" style="padding:28px">
+      <div class="flex gap-12" style="align-items:center"><span class="icon cy">🚀</span><h3>Asteroids</h3></div>
+      <p class="mt-12">Классика 1979 года. Твой корабль в космосе. Астероиды летят отовсюду. Ты стреляешь — они разлетаются на куски.</p>
+      <ul class="mt-12">
+        <li>Корабль вращается стрелками</li>
+        <li>Астероиды 3 размеров, летят по прямой</li>
+        <li>Пули и их столкновения</li>
+        <li>Разбиение большого астероида на два</li>
+        <li>Счёт = очки за уничтожение</li>
+      </ul>
+      <div class="flex gap-8 mt-16"><span class="tag">arrows</span><span class="tag">shoot</span><span class="tag">physics</span></div>
+    </div>
+  </div>
+  <div class="flex gap-12 mt-24" style="align-items:center">
+    <span class="vs">Dino vs Asteroids</span>
+    <span class="muted">На мини-группе — голосование. Индивидуально — выбор за тобой.</span>
+  </div>
+</section>
+
+<!-- SLIDE 6 — Декомпозиция -->
+<section class="slide">
+  <span class="eyebrow">Слайд 06 · План</span>
+  <h2 class="mt-8">Декомпозиция: 8 кирпичей</h2>
+  <p class="mt-12 muted">Профессионалы не пишут 200 строк подряд. Они разбивают задачу. Вот твой план на сегодня — каждая строка = одна задача = один паттерн из прошлых уроков.</p>
+  <div class="grid two mt-24">
+    <div class="glass card">
+      <h3 style="color:var(--violet)">🦖 Dino-раннер</h3>
+      <div class="flex col gap-8 mt-12">
+        <div class="spawn"><span class="num">1</span><span>Земля и фон (заливка + полоса)</span></div>
+        <div class="spawn"><span class="num">2</span><span>Динозавр с анимацией бега (ур. 42)</span></div>
+        <div class="spawn"><span class="num">3</span><span>Прыжок с гравитацией (ур. 42)</span></div>
+        <div class="spawn"><span class="num">4</span><span>Кактусы: список, спавн, движение (ур. 39)</span></div>
+        <div class="spawn"><span class="num">5</span><span>Коллизия → gameover (ур. 40)</span></div>
+        <div class="spawn"><span class="num">6</span><span>Счёт = пройденное расстояние</span></div>
+        <div class="spawn"><span class="num">7</span><span>Звук + музыка (ур. 41)</span></div>
+        <div class="spawn"><span class="num">8</span><span>Меню с кнопкой (ур. 43)</span></div>
+      </div>
+    </div>
+    <div class="glass card">
+      <h3 style="color:var(--cyan)">🚀 Asteroids</h3>
+      <div class="flex col gap-8 mt-12">
+        <div class="spawn"><span class="num">1</span><span>Космический фон + корабль в центре</span></div>
+        <div class="spawn"><span class="num">2</span><span>Поворот корабля стрелками ← →</span></div>
+        <div class="spawn"><span class="num">3</span><span>Движение вперёд + инерция</span></div>
+        <div class="spawn"><span class="num">4</span><span>Астероиды: список, спавн, скорости (ур. 39)</span></div>
+        <div class="spawn"><span class="num">5</span><span>Пули: список + пробел (ур. 42)</span></div>
+        <div class="spawn"><span class="num">6</span><span>Коллизия пуля↔астероид, разбиение</span></div>
+        <div class="spawn"><span class="num">7</span><span>Звук выстрела, взрыва (ур. 41)</span></div>
+        <div class="spawn"><span class="num">8</span><span>Меню + gameover (ур. 40, 43)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 7 — Структура файлов -->
+<section class="slide">
+  <span class="eyebrow">Слайд 07 · Проект</span>
+  <h2 class="mt-8">Как выглядит папка</h2>
+  <p class="mt-12 muted">Красивый проект — это не только код. Это порядок в файлах, понятные имена, папки для картинок и звуков. Возьми за привычку.</p>
+  <div class="grid two mt-24" style="gap:24px">
+    <div class="glass card">
+<pre class="language-bash"><code>dino_run/
+├── game.py                ← основной файл
+├── images/
+│   ├── dino_run1.png      ← 3 кадра бега
+│   ├── dino_run2.png
+│   ├── dino_run3.png
+│   ├── dino_jump.png
+│   ├── cactus_small.png
+│   ├── cactus_big.png
+│   ├── cloud.png
+│   └── ground.png
+├── sounds/
+│   ├── jump.wav
+│   ├── hit.wav
+│   └── point.wav
+└── music/
+    └── bg.ogg             ← зацикленный фон</code></pre>
+    </div>
+    <div class="flex col gap-16">
+      <div class="glass card">
+        <h3>📂 Правила</h3>
+        <ul class="mt-12">
+          <li><span class="strong">images/</span> — PyGame Zero сам сюда смотрит</li>
+          <li><span class="strong">sounds/</span> — .wav / .ogg, до 100 КБ</li>
+          <li><span class="strong">music/</span> — .ogg / .mp3, длинный трек</li>
+          <li>Имена только на латинице, без пробелов</li>
+        </ul>
+      </div>
+      <div class="warn">⚠️ Регистр важен: <code>Dino.png</code> и <code>dino.png</code> — разные файлы. PyGame Zero на Linux и Mac это увидит моментально.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 8 — Скелет кода -->
+<section class="slide">
+  <span class="eyebrow">Слайд 08 · Скелет</span>
+  <h2 class="mt-8">Начинаем с пустого окна</h2>
+  <p class="mt-12 muted">Правило профессионалов: сначала бегаем пустой фигурой, потом добавляем графику. Если работает логика на квадратах — она будет работать и на спрайтах.</p>
+<pre class="language-python mt-16"><code>WIDTH = 800
+HEIGHT = 400
+GROUND_Y = 320
+
+# состояния игры
+game_state = 'menu'   # 'menu' | 'playing' | 'gameover'
+score = 0
+tick = 0
+
+def draw():
+    screen.fill((11, 15, 23))       # тёмный фон
+    if game_state == 'menu':
+        screen.draw.text('DINO RUN', center=(WIDTH/2, 150),
+                         fontsize=80, color='white')
+        screen.draw.text('Нажми ПРОБЕЛ', center=(WIDTH/2, 230),
+                         fontsize=36, color=(124, 58, 237))
+    elif game_state == 'playing':
+        draw_game()
+    elif game_state == 'gameover':
+        draw_gameover()
+
+def update():
+    global tick
+    tick += 1
+    if game_state == 'playing':
+        update_game()</code></pre>
+</section>
+
+<!-- SLIDE 9 — Герой, прыжок, гравитация -->
+<section class="slide">
+  <span class="eyebrow">Слайд 09 · Dino</span>
+  <h2 class="mt-8">Герой, прыжок и гравитация</h2>
+  <div class="two-col-grid mt-16" style="gap:24px">
+<pre class="language-python"><code>dino = Actor('dino_run1', (100, GROUND_Y))
+dino.vy = 0                 # вертикальная скорость
+dino.on_ground = True
+RUN_FRAMES = ['dino_run1', 'dino_run2', 'dino_run3']
+
+def on_key_down(key):
+    if key == keys.SPACE:
+        if game_state == 'menu':
+            start_game()
+        elif game_state == 'playing' and dino.on_ground:
+            dino.vy = -14
+            dino.on_ground = False
+            sounds.jump.play()
+
+def update_game():
+    # гравитация
+    dino.vy += 0.7
+    dino.y += dino.vy
+    if dino.y >= GROUND_Y:
+        dino.y = GROUND_Y
+        dino.vy = 0
+        dino.on_ground = True
+    # анимация бега
+    if dino.on_ground:
+        dino.image = RUN_FRAMES[(tick // 6) % 3]
+    else:
+        dino.image = 'dino_jump'</code></pre>
+    <div class="flex col gap-12">
+      <div class="glass card">
+        <h3>🧪 Что тут происходит</h3>
+        <ul class="mt-12">
+          <li><span class="strong">vy = -14</span> — импульс вверх (минус — потому что y=0 сверху)</li>
+          <li><span class="strong">vy += 0.7</span> — гравитация каждый кадр</li>
+          <li><span class="strong">on_ground</span> защищает от бесконечного прыжка</li>
+          <li><span class="strong">tick // 6</span> — смена кадра каждые 6 тиков = ~10 fps анимации</li>
+        </ul>
+      </div>
+      <div class="ok">✅ Паттерн знакомый? Да — он целиком из урока 42. Сегодня мы его применяем.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 10 — Кактусы списком -->
+<section class="slide">
+  <span class="eyebrow">Слайд 10 · Препятствия</span>
+  <h2 class="mt-8">Кактусы: список + спавн + коллизии</h2>
+<pre class="language-python mt-16"><code>import random
+
+cacti = []                           # список препятствий
+SPEED = 5                            # скорость движения мира
+
+def spawn_cactus():
+    kind = random.choice(['cactus_small', 'cactus_big'])
+    cacti.append(Actor(kind, (WIDTH + 30, GROUND_Y)))
+
+clock.schedule_interval(spawn_cactus, 1.5)    # новый кактус каждые 1.5 сек
+
+def update_game():
+    global score
+    score += 1                       # счёт = пройденное расстояние
+
+    # двигаем все кактусы влево, удаляем улетевшие и проверяем столкновение
+    for c in cacti[:]:                # идём по копии — безопасно удалять
+        c.x -= SPEED
+        if c.x < -50:
+            cacti.remove(c)
+        elif dino.colliderect(c):
+            sounds.hit.play()
+            game_over()</code></pre>
+  <div class="grid three mt-16">
+    <div class="glass card"><h3>🔁 Копия списка</h3><p class="mt-8">Итерируемся по <code>cacti[:]</code>, чтобы безопасно вызывать <code>cacti.remove()</code> внутри цикла.</p></div>
+    <div class="glass card"><h3>🎲 Случайность</h3><p class="mt-8"><code>random.choice</code> — без неё все кактусы одинаковые. А мы хотим игру, а не тир.</p></div>
+    <div class="glass card"><h3>💥 Коллизия</h3><p class="mt-8"><code>dino.colliderect(c)</code> — та же функция, что с яблоками в уроке 39. Переиспользуй.</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 11 — Состояния и счёт -->
+<section class="slide">
+  <span class="eyebrow">Слайд 11 · Состояния</span>
+  <h2 class="mt-8">Меню → игра → gameover → меню</h2>
+  <div class="two-col-grid mt-16" style="gap:24px">
+<pre class="language-python"><code>def start_game():
+    global game_state, score
+    game_state = 'playing'
+    score = 0
+    cacti.clear()                     # обнуляем мир
+    dino.pos = (100, GROUND_Y)
+    dino.vy = 0
+    music.play('bg')
+    music.set_volume(0.3)
+
+def game_over():
+    global game_state
+    game_state = 'gameover'
+    music.stop()
+
+def on_key_down(key):
+    if key == keys.SPACE:
+        if game_state in ('menu', 'gameover'):
+            start_game()
+        elif game_state == 'playing' and dino.on_ground:
+            dino.vy = -14
+            dino.on_ground = False
+            sounds.jump.play()
+
+def draw_gameover():
+    draw_game()                       # показываем последний кадр
+    screen.draw.filled_rect(
+        Rect(0, 0, WIDTH, HEIGHT),
+        (0, 0, 0, 160)                # полупрозрачная пелена
+    )
+    screen.draw.text(f'SCORE: {score}',
+        center=(WIDTH/2, HEIGHT/2 - 20),
+        fontsize=60, color='white')
+    screen.draw.text('Пробел — заново',
+        center=(WIDTH/2, HEIGHT/2 + 40),
+        fontsize=28, color=(6, 182, 212))</code></pre>
+    <div class="flex col gap-12">
+      <div class="glass card">
+        <h3>🔄 Карта состояний</h3>
+        <div class="flex col gap-8 mt-12">
+          <div class="flex gap-8" style="align-items:center"><span class="tag">menu</span><span class="muted">→ SPACE</span><span class="tag">playing</span></div>
+          <div class="flex gap-8" style="align-items:center"><span class="tag">playing</span><span class="muted">→ hit</span><span class="tag">gameover</span></div>
+          <div class="flex gap-8" style="align-items:center"><span class="tag">gameover</span><span class="muted">→ SPACE</span><span class="tag">playing</span></div>
+        </div>
+      </div>
+      <div class="glass card">
+        <h3>💡 Ключевые идеи</h3>
+        <ul class="mt-12">
+          <li>Перезапуск — это обнуление переменных, а не перезапуск программы</li>
+          <li>Один экран = одна ветка <code>if/elif</code></li>
+          <li>На gameover — пелена поверх последнего кадра</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 12 — Звук и полировка -->
+<section class="slide">
+  <span class="eyebrow">Слайд 12 · Полировка</span>
+  <h2 class="mt-8">Звук, пауза, хай-скор</h2>
+  <p class="mt-12 muted">Пять минут полировки превращают прототип в проект, которым не стыдно поделиться.</p>
+  <div class="grid three mt-24">
+    <div class="glass card">
+      <h3>🔊 Звук</h3>
+<pre class="language-python mt-12"><code>sounds.jump.play()
+sounds.hit.play()
+music.play('bg')
+music.set_volume(0.3)
+# при паузе:
+music.pause()
+music.unpause()</code></pre>
+    </div>
+    <div class="glass card">
+      <h3>⏸ Пауза</h3>
+<pre class="language-python mt-12"><code>if key == keys.P:
+    if game_state == 'playing':
+        game_state = 'paused'
+        music.pause()
+    elif game_state == 'paused':
+        game_state = 'playing'
+        music.unpause()</code></pre>
+    </div>
+    <div class="glass card">
+      <h3>🏆 Хай-скор</h3>
+<pre class="language-python mt-12"><code># при старте
+with open('hi.txt') as f:
+    hi = int(f.read())
+
+# при gameover
+if score > hi:
+    with open('hi.txt','w') as f:
+        f.write(str(score))</code></pre>
+    </div>
+  </div>
+  <div class="ok mt-16">✅ Три маленькие вещи = три больших «вау» на защите. Минимум кода, максимум впечатления.</div>
+</section>
+
+<!-- SLIDE 13 — Asteroids паттерны -->
+<section class="slide">
+  <span class="eyebrow">Слайд 13 · Asteroids</span>
+  <h2 class="mt-8">Специфика Asteroids: вращение и выстрелы</h2>
+  <div class="two-col-grid mt-16" style="gap:24px">
+<pre class="language-python"><code>import math
+
+ship = Actor('ship', (WIDTH/2, HEIGHT/2))
+ship.angle = 0         # градусы
+bullets = []
+
+def update_game():
+    # поворот стрелками
+    if keyboard.left:  ship.angle += 4
+    if keyboard.right: ship.angle -= 4
+    # движение вперёд по пробелу (или UP)
+    if keyboard.up:
+        rad = math.radians(ship.angle)
+        ship.x += math.cos(rad) * 5
+        ship.y -= math.sin(rad) * 5
+
+    # движение пуль
+    for b in bullets[:]:
+        b.x += b.dx
+        b.y += b.dy
+        if not (0 < b.x < WIDTH and 0 < b.y < HEIGHT):
+            bullets.remove(b)
+
+def on_key_down(key):
+    if key == keys.SPACE and game_state == 'playing':
+        rad = math.radians(ship.angle)
+        b = Actor('bullet', ship.pos)
+        b.dx = math.cos(rad) * 10
+        b.dy = -math.sin(rad) * 10
+        bullets.append(b)
+        sounds.shoot.play()</code></pre>
+    <div class="flex col gap-12">
+      <div class="glass card">
+        <h3>🧭 Углы и радианы</h3>
+        <p class="mt-12">PyGame Zero вращает в градусах (<code>actor.angle</code>), а <code>math.cos/sin</code> хотят радианы. Поэтому <code>math.radians(angle)</code>.</p>
+      </div>
+      <div class="glass card">
+        <h3>💥 Разбиение астероидов</h3>
+<pre class="language-python mt-8"><code>for b in bullets[:]:
+    for a in asteroids[:]:
+        if b.colliderect(a):
+            bullets.remove(b)
+            asteroids.remove(a)
+            if a.size > 1:
+                split(a)
+            sounds.boom.play()
+            break</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 14 — Управление и UX -->
+<section class="slide">
+  <span class="eyebrow">Слайд 14 · Управление</span>
+  <h2 class="mt-8">Чистое управление = хорошая игра</h2>
+  <p class="mt-12 muted">UX — это не красота, это предсказуемость. Игрок должен понять управление за 3 секунды без чтения.</p>
+  <div class="grid two mt-24">
+    <div class="glass card">
+      <h3>🦖 Dino-раннер</h3>
+      <div class="kbd-row mt-12">
+        <kbd>SPACE</kbd><span class="muted">прыжок / старт / рестарт</span>
+      </div>
+      <div class="kbd-row mt-12"><kbd>P</kbd><span class="muted">пауза</span></div>
+      <div class="kbd-row mt-12"><kbd>M</kbd><span class="muted">звук вкл/выкл</span></div>
+      <div class="divider"></div>
+      <p class="muted">Одна клавиша — 95% геймплея. Это то, что делает динозавр Chrome гениальной игрой.</p>
+    </div>
+    <div class="glass card">
+      <h3>🚀 Asteroids</h3>
+      <div class="kbd-row mt-12"><kbd>←</kbd><kbd>→</kbd><span class="muted">поворот корабля</span></div>
+      <div class="kbd-row mt-12"><kbd>↑</kbd><span class="muted">ускорение</span></div>
+      <div class="kbd-row mt-12"><kbd>SPACE</kbd><span class="muted">выстрел</span></div>
+      <div class="kbd-row mt-12"><kbd>P</kbd><span class="muted">пауза</span></div>
+      <div class="divider"></div>
+      <p class="muted">Больше клавиш — больше свободы, но и выше порог входа. Показывай подсказку на экране меню.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 15 — ИИ в уроке -->
+<section class="slide">
+  <span class="eyebrow">Слайд 15 · ИИ</span>
+  <h2 class="mt-8">Где сегодня помогает ИИ</h2>
+  <p class="mt-12 muted" style="max-width:760px">Три инструмента, три роли. Все три — помощники, а не замена тебе. На защите будешь честно говорить, где сделал сам, а где помогли.</p>
+  <div class="grid three mt-24">
+    <div class="glass card">
+      <span class="icon">🎨</span>
+      <h3 class="mt-12">Kandinsky</h3>
+      <p class="mt-8">Все спрайты: динозавр, кактусы, корабль, астероиды, взрыв. 3–4 кадра анимации в одном стиле.</p>
+      <div class="divider"></div>
+      <p class="muted">Промпт-приём: «тот же персонаж, та же поза, только нога поднята».</p>
+    </div>
+    <div class="glass card">
+      <span class="icon cy">🤖</span>
+      <h3 class="mt-12">YandexGPT</h3>
+      <p class="mt-8">Идеи «что добавить, чтобы было оригинально». Дебаг ошибок: «объясни, что значит <code>TypeError</code>».</p>
+      <div class="divider"></div>
+      <p class="muted">Не «напиши мне игру», а «почему этот кусок не работает».</p>
+    </div>
+    <div class="glass card">
+      <span class="icon gold">🔊</span>
+      <h3 class="mt-12">freesound.org</h3>
+      <p class="mt-8">Прыжок, удар, выстрел, взрыв, фоновый трек. Фильтр «CC0» — можно свободно использовать.</p>
+      <div class="divider"></div>
+      <p class="muted">Формат .wav для sounds, .ogg для music.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 16 — Частые ошибки -->
+<section class="slide">
+  <span class="eyebrow">Слайд 16 · Дебаг</span>
+  <h2 class="mt-8">Топ-5 ошибок, которые тебя найдут</h2>
+  <div class="grid two mt-24">
+    <div class="glass card">
+      <h3>🪲 «Прыгает бесконечно»</h3>
+      <p class="mt-8 muted">Причина: забыл флаг <code>on_ground</code> или не сбросил <code>vy = 0</code> при касании земли.</p>
+      <div class="ok mt-12">Решение: в <code>update</code> чётко <code>if dino.y >= GROUND_Y: on_ground = True, vy = 0</code>.</div>
+    </div>
+    <div class="glass card">
+      <h3>🪲 «Все кактусы исчезают разом»</h3>
+      <p class="mt-8 muted">Причина: <code>for c in cacti:</code> + <code>cacti.remove(c)</code> — ломает индексы.</p>
+      <div class="ok mt-12">Решение: итерация по копии — <code>for c in cacti[:]</code>.</div>
+    </div>
+    <div class="glass card">
+      <h3>🪲 «Звук не играет»</h3>
+      <p class="mt-8 muted">Причина: файл не в папке <code>sounds/</code>, неправильное расширение или указан <code>.wav</code> в коде.</p>
+      <div class="ok mt-12">Решение: имя <b>без</b> расширения — <code>sounds.jump.play()</code>.</div>
+    </div>
+    <div class="glass card">
+      <h3>🪲 «Рестарт оставляет старые объекты»</h3>
+      <p class="mt-8 muted">Причина: забыл <code>cacti.clear()</code> / <code>bullets.clear()</code> в <code>start_game</code>.</p>
+      <div class="ok mt-12">Решение: всё, что набирается за игру — чисти при старте.</div>
+    </div>
+    <div class="glass card" style="grid-column:1 / -1;background:linear-gradient(135deg,rgba(124,58,237,.12),rgba(6,182,212,.08));border-color:rgba(124,58,237,.3)">
+      <h3>🪲 «ИИ дал код — не работает»</h3>
+      <p class="mt-8">Причина: YandexGPT сгаллюцинировал функцию, которой нет в PyGame Zero (например <code>actor.rotate()</code>).</p>
+      <div class="warn mt-12">Решение: проверяй в документации, не верь ИИ на слово. Это нормальный рабочий приём.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 17 — Таблица «было → стало» -->
+<section class="slide">
+  <span class="eyebrow">Слайд 17 · Прогресс</span>
+  <h2 class="mt-8">От «пустого окна» до игры за 60 минут</h2>
+  <div class="grid four mt-24">
+    <div class="glass card center" style="text-align:center">
+      <div class="big-num">0'</div>
+      <p class="mt-8 strong">Пустой файл</p>
+      <p class="muted mt-8">WIDTH, HEIGHT, чистый <code>draw()</code></p>
+    </div>
+    <div class="glass card center" style="text-align:center">
+      <div class="big-num">15'</div>
+      <p class="mt-8 strong">Герой двигается</p>
+      <p class="muted mt-8">Прыжок, гравитация, анимация</p>
+    </div>
+    <div class="glass card center" style="text-align:center">
+      <div class="big-num">35'</div>
+      <p class="mt-8 strong">Препятствия + колизии</p>
+      <p class="muted mt-8">Спавн, проверка, счёт</p>
+    </div>
+    <div class="glass card center" style="text-align:center;background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(6,182,212,.12));border-color:rgba(124,58,237,.35)">
+      <div class="big-num">60'</div>
+      <p class="mt-8 strong">Игра + меню</p>
+      <p class="muted mt-8">Звук, gameover, защита</p>
+    </div>
+  </div>
+  <div class="glass card mt-24">
+    <h3>📊 Что получишь на выходе</h3>
+    <div class="flex gap-12 mt-12" style="flex-wrap:wrap">
+      <span class="chip">150–250 строк кода</span>
+      <span class="chip">4+ спрайта</span>
+      <span class="chip">3+ звука</span>
+      <span class="chip">3 состояния игры</span>
+      <span class="chip">1 бейдж «Геймдев»</span>
+      <span class="chip">1 видео-запись защиты</span>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 18 — Защита -->
+<section class="slide">
+  <span class="eyebrow">Слайд 18 · Защита</span>
+  <h2 class="mt-8">3–5 минут, которые важнее кода</h2>
+  <p class="mt-12 muted">Защита — это не экзамен. Это история твоего пути. Преподаватель и родители хотят увидеть не идеальный код, а тебя — автора и разработчика.</p>
+  <div class="grid four mt-24">
+    <div class="glass card">
+      <span class="pill cy">1 мин</span>
+      <h3 class="mt-12">Что делает</h3>
+      <p class="mt-8">2–3 предложения о игре. Жанр, управление, цель.</p>
+    </div>
+    <div class="glass card">
+      <span class="pill cy">1–2 мин</span>
+      <h3 class="mt-12">Живое демо</h3>
+      <p class="mt-8">Запуск → меню → игра 30 сек → проигрыш → рестарт.</p>
+    </div>
+    <div class="glass card">
+      <span class="pill">1 мин</span>
+      <h3 class="mt-12">Сложность</h3>
+      <p class="mt-8">Самое трудное и как ты это решил. Конкретно.</p>
+    </div>
+    <div class="glass card">
+      <span class="pill">30 сек</span>
+      <h3 class="mt-12">Будущее</h3>
+      <p class="mt-8">2 конкретных улучшения, которые ты бы добавил.</p>
+    </div>
+  </div>
+  <div class="glass card mt-24" style="background:linear-gradient(135deg,rgba(124,58,237,.14),rgba(6,182,212,.08))">
+    <h3>💬 Три правила защиты</h3>
+    <ul class="mt-12">
+      <li>Не говори <span class="strong">«я тупил»</span> — говори <span class="strong">«столкнулся со сложностью, вот как решил»</span></li>
+      <li>Про ИИ говори честно: «картинки — Kandinsky, код писал сам, YandexGPT помог с двумя ошибками»</li>
+      <li>Паузы — это нормально. Слушатели думают, не тараторь</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SLIDE 19 — Критерии успеха -->
+<section class="slide">
+  <span class="eyebrow">Слайд 19 · Чек-лист</span>
+  <h2 class="mt-8">Как понять, что всё получилось</h2>
+  <div class="grid two mt-24">
+    <div class="glass card">
+      <h3>✅ Минимум (урок зачтён)</h3>
+      <ul class="mt-12">
+        <li>Игра запускается и работает 3 минуты без вылетов</li>
+        <li>Есть меню и хотя бы 2 состояния</li>
+        <li>Работает клавиатурный ввод</li>
+        <li>Есть хотя бы одна анимация</li>
+        <li>Есть хотя бы один звук и коллизии</li>
+        <li>Счёт считается и отображается</li>
+      </ul>
+    </div>
+    <div class="glass card" style="background:linear-gradient(135deg,rgba(246,196,83,.12),rgba(124,58,237,.08));border-color:rgba(246,196,83,.3)">
+      <h3>🏅 Звёздная задача</h3>
+      <ul class="mt-12">
+        <li>Два уровня сложности (easy / hard) — выбор в меню</li>
+        <li>Разная скорость спавна и препятствий</li>
+        <li>Хай-скор в файле <code>highscore.txt</code></li>
+        <li>Частицы при взрыве или комбо-очки</li>
+        <li>Обложка проекта в Kandinsky</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid three mt-24">
+    <div class="glass card"><h3>📹 Видео</h3><p class="mt-8 muted">90-сек трейлер в чат курса</p></div>
+    <div class="glass card"><h3>🏷 Иконка</h3><p class="mt-8 muted">Спрайт игры в меню</p></div>
+    <div class="glass card"><h3>🔇 Звук</h3><p class="mt-8 muted">Выключается одной клавишей</p></div>
+  </div>
+</section>
+
+<!-- SLIDE 20 — ДЗ -->
+<section class="slide">
+  <span class="eyebrow">Слайд 20 · Домашнее задание</span>
+  <h2 class="mt-8">Только полировка, ≤ 20 минут</h2>
+  <p class="mt-12 muted" style="max-width:760px">Это не новая фича — это три маленьких штриха, после которых проект засияет. Все три делаются за 20 минут.</p>
+  <div class="grid three mt-24">
+    <div class="glass card">
+      <div class="flex gap-12" style="align-items:center"><span class="icon">1</span><h3>Иконка в меню</h3></div>
+      <p class="mt-12">Добавь спрайт игры (дино или корабль) рядом с названием в меню. Через <code>Actor('logo', (200, 150))</code>.</p>
+    </div>
+    <div class="glass card">
+      <div class="flex gap-12" style="align-items:center"><span class="icon cy">2</span><h3>Звук выключается</h3></div>
+      <p class="mt-12">Кнопка «M» или иконка динамика — <code>music.set_volume(0)</code>. Должна работать в любом состоянии игры.</p>
+    </div>
+    <div class="glass card">
+      <div class="flex gap-12" style="align-items:center"><span class="icon gold">3</span><h3>Трейлер 90 сек</h3></div>
+      <p class="mt-12">Запись экрана: меню → 30 сек геймплея → проигрыш → рестарт. Отправь в Telegram-чат курса.</p>
+    </div>
+  </div>
+  <div class="ok mt-24">✅ Завтра — урок 45. Ты уже знаешь всё, чтобы начать свой финальный проект. Осталось выбрать тему.</div>
+</section>
+
+<!-- SLIDE 21 — Мотивация/финал -->
+<section class="slide">
+  <div class="hero-visual" style="right:-80px;top:-100px">
+    <div class="glow"></div>
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="dino">🏅</div>
+  </div>
+  <div class="flex col gap-16" style="margin:auto 0;max-width:720px">
+    <span class="pill gold">Бейдж «Геймдев»</span>
+    <h1>Ты собрал <span class="grad">свою игру</span>.</h1>
+    <p style="font-size:20px">Ещё месяц назад ты не знал, что такое <code>update()</code>. Сегодня у тебя 10-й проект в портфолио — игра, которую можно показать друзьям, отправить родителям и добавить в Steam своей мечты.</p>
+    <div class="glass card mt-16">
+      <div class="flex gap-16" style="align-items:center">
+        <span class="icon gold">✨</span>
+        <div>
+          <h3>Следующий шаг — финальный проект</h3>
+          <p class="mt-8">Уроки 45–48: ты выбираешь тему сам, декомпозируешь, защищаешь на демо-дне перед родителями. Начинаем завтра.</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-12 mt-16">
+      <span class="chip">🎮 Проект №10</span>
+      <span class="chip">🏅 Бейдж «Геймдев»</span>
+      <span class="chip">🚀 Впереди — финальный проект</span>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- speaker notes -->
+<aside class="notes glass" id="notes">
+  <h4>Speaker notes · <span id="notes-num">1</span> / 21</h4>
+  <p id="notes-body"></p>
+  <small class="muted">Клавиша <kbd>N</kbd> — скрыть/показать · <kbd>←</kbd> <kbd>→</kbd> — слайды · <kbd>Home</kbd>/<kbd>End</kbd> — в начало/конец</small>
+</aside>
+
+<div class="hud">
+  <span class="dot"></span>
+  <span>Нажми <kbd>N</kbd> для speaker notes</span>
+  <span style="margin:0 8px">·</span>
+  <span class="dot cy"></span>
+  <span><kbd>←</kbd> <kbd>→</kbd> или <kbd>Space</kbd></span>
+</div>
+<div class="pager"><span id="cur">1</span> / <span id="total">21</span></div>
+<div class="hint-bar" id="hint">Нажми N для speaker notes</div>
+
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const bar = document.getElementById('pbar');
+  const cur = document.getElementById('cur');
+  const tot = document.getElementById('total');
+  const notes = document.getElementById('notes');
+  const notesNum = document.getElementById('notes-num');
+  const notesBody = document.getElementById('notes-body');
+  const hint = document.getElementById('hint');
+  tot.textContent = total;
+  let idx = 0;
+
+  const SPEAKER = [
+    "Обложка. 10 секунд: «Сегодня ты впервые собираешь проект не по инструкции, а по плану. План — твой». Покажи обе готовые игры в действии, дай выбрать.",
+    "План на 60 минут. Акцент: этот урок = синтез, а не новая теория. Ребёнок видит — знакомые паттерны, новая комбинация. Время «10–35» — самое длинное, это ядро урока.",
+    "Цель урока. Проговори: «защищаемый проект для портфолио №10». Ключевая фраза: «лучше простая доделанная игра, чем сложная недоделанная». Настрой на реализм.",
+    "Повторение. Пройдись по 7 карточкам — по 10 секунд на каждую. Это быстрый «чек» в голове: где что лежит. Если ребёнок завис на уроке 44 — он знает, в какой урок вернуться за шаблоном.",
+    "Выбор темы. Дай выбрать осознанно. Если мини-группа — голосование. Если индивидуально — спроси: «что тебе ближе — платформер или космос?». Обе игры равноценны по сложности.",
+    "Декомпозиция. Самый важный слайд после выбора. Пункт за пунктом — каждый привязан к уроку-шаблону. Проговори: «если застрял — открывай код того урока и копируй паттерн».",
+    "Структура проекта. Покажи заранее созданную папку. Объясни регистр имён: «dino.png и Dino.png — разные файлы». Упомяни: «images/» PyGame Zero ищет автоматически.",
+    "Скелет кода. Правило: «сначала бегаем пустой фигурой, потом добавляем графику». Это порядок профессионалов. Покажи, как окно открывается с тремя состояниями БЕЗ спрайтов.",
+    "Герой, прыжок, гравитация. Ключевая фраза: «никакой магии, +0.7 к vy каждый кадр». Объясни `on_ground` как защиту от бесконечного прыжка. Это прямо из урока 42.",
+    "Кактусы в списке. Повторение урока 39. Акцентируй `cacti[:]` — «нельзя менять таблицу, пока по ней идёшь». Это бывшая сложность 90% детей, дай ей время.",
+    "Состояния и рестарт. «Перезапуск — это не перезапуск программы, а обнуление переменных». Покажи `cacti.clear()` — частая забытая строка. `draw_gameover` поверх последнего кадра = красиво.",
+    "Полировка. Три маленькие вещи, каждая за 1-2 минуты. Хай-скор в файл — возвращение к уроку 22. Пауза — обязательный UX.",
+    "Asteroids специфика. Только если ребёнок выбрал Asteroids. Ключ: радианы vs градусы. Инерция может быть слишком сложной — можно упростить до «нажал вперёд = движение, отпустил = стоп».",
+    "Управление и UX. «Игрок должен понять за 3 секунды без чтения». Меньше клавиш — лучше. Покажи экран подсказок — это частый бонус.",
+    "ИИ в уроке. Проведи границу: «YandexGPT для объяснений, а не для готового кода». Kandinsky — для спрайтов одним стилем. freesound.org — фильтр «CC0» обязателен.",
+    "Топ-5 ошибок. Пройдись быстро, по 20 секунд. Пятая карточка — про ИИ-галлюцинации — это важный урок медиаграмотности. Не верь ИИ на слово.",
+    "Прогресс за 60 минут. Визуализация результата: «вот что у тебя будет к 60-й минуте». Поднимает мотивацию перед самой длинной частью урока.",
+    "Защита. 3-5 минут = короче, чем кажется. Шаблон защиты — хорошая опора. Ключевое: «не говори я тупил — говори решил сложность».",
+    "Критерии успеха. Пройдись по минимуму — это гарантия зачёта. Звёздную часть упомяни как бонус, не давить. Частицы — хорошая идея для звёздной задачи.",
+    "ДЗ. Только 20 минут — не новая фича, а полировка. Трейлер 90 сек — обязателен, он идёт в портфолио. Закрепи: «урок 45 — начинаем финальный».",
+    "Финал. Эмоциональная точка. Напомни путь: «месяц назад не знал update(), сегодня собрал игру». Выдай бейдж, сделай фото. Это ритуал — он важен."
+  ];
+
+  function show(i){
+    idx = Math.max(0, Math.min(total-1, i));
+    slides.forEach((s,j)=>s.classList.toggle('active', j===idx));
+    bar.style.width = ((idx+1)/total*100)+'%';
+    cur.textContent = idx+1;
+    notesNum.textContent = idx+1;
+    notesBody.textContent = SPEAKER[idx] || '';
+  }
+  function toggleNotes(){ notes.classList.toggle('open'); }
+  function flashHint(text){
+    hint.textContent = text;
+    hint.classList.add('show');
+    clearTimeout(flashHint._t);
+    flashHint._t = setTimeout(()=>hint.classList.remove('show'), 1600);
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){
+      e.preventDefault(); show(idx+1);
+    } else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){
+      e.preventDefault(); show(idx-1);
+    } else if(e.key === 'Home'){ show(0); }
+    else if(e.key === 'End'){ show(total-1); }
+    else if(e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т'){
+      toggleNotes();
+    } else if(/^[0-9]$/.test(e.key)){
+      const n = parseInt(e.key,10);
+      if(n>0) show(n-1);
+    }
+  });
+
+  // touch swipe
+  let sx=0;
+  document.addEventListener('touchstart', e=>{sx=e.touches[0].clientX});
+  document.addEventListener('touchend', e=>{
+    const dx = e.changedTouches[0].clientX - sx;
+    if(Math.abs(dx)>50) show(idx + (dx<0 ? 1 : -1));
+  });
+
+  show(0);
+  setTimeout(()=>flashHint('Стрелки ← → · N — speaker notes'), 900);
+})();
+</script>
+</body>
+</html>

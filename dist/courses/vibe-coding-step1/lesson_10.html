@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 10. Промпты, температура, токены — Vibe Coding Step 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1522;
+    --bg-3: #131B2B;
+    --ink: #E6EAF3;
+    --ink-dim: #9AA4BA;
+    --ink-faint: #5A657F;
+    --violet: #7C3AED;
+    --violet-2: #9F67FF;
+    --cyan: #06B6D4;
+    --cyan-2: #22D3EE;
+    --pink: #F472B6;
+    --green: #10B981;
+    --orange: #F59E0B;
+    --red: #EF4444;
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --glass: rgba(255,255,255,0.04);
+    --glass-2: rgba(255,255,255,0.07);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Декоративный фон */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(1000px 600px at 15% 10%, rgba(124,58,237,0.18), transparent 60%),
+      radial-gradient(900px 600px at 85% 90%, rgba(6,182,212,0.14), transparent 60%),
+      radial-gradient(700px 500px at 50% 100%, rgba(244,114,182,0.08), transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+
+  .deck {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 56px 72px;
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+    opacity: 0;
+    transform: translateX(24px);
+    transition: opacity .36s ease, transform .36s cubic-bezier(.2,.7,.2,1);
+  }
+
+  .slide.active {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* HUD */
+  .hud {
+    position: fixed;
+    z-index: 20;
+    pointer-events: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+  }
+
+  .hud-top-left {
+    top: 20px;
+    left: 24px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .hud-top-left .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan);
+  }
+
+  .hud-top-right {
+    top: 20px;
+    right: 24px;
+    letter-spacing: 0.08em;
+  }
+
+  .hud-bottom-left {
+    bottom: 20px;
+    left: 24px;
+    letter-spacing: 0.06em;
+  }
+
+  .hud-bottom-right {
+    bottom: 20px;
+    right: 24px;
+    letter-spacing: 0.08em;
+    display: flex; gap: 10px; align-items: center;
+    pointer-events: auto;
+  }
+
+  .hud-bottom-right button {
+    all: unset;
+    cursor: pointer;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: var(--ink-dim);
+    transition: all .18s ease;
+  }
+  .hud-bottom-right button:hover {
+    background: var(--glass-2);
+    color: var(--ink);
+    border-color: var(--border-2);
+  }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    box-shadow: 0 0 12px var(--violet);
+    z-index: 30;
+    transition: width .3s ease;
+  }
+
+  /* Типографика */
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 28px; height: 1px;
+    background: var(--cyan);
+    display: inline-block;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(38px, 5.4vw, 78px);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(30px, 3.8vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  p, li {
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+  }
+
+  .lead {
+    font-size: 22px;
+    color: var(--ink);
+    max-width: 880px;
+    line-height: 1.5;
+  }
+
+  .grad {
+    background: linear-gradient(90deg, #9F67FF 0%, #22D3EE 60%, #F472B6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .accent-violet { color: var(--violet-2); }
+  .accent-cyan { color: var(--cyan-2); }
+  .accent-pink { color: var(--pink); }
+  .accent-green { color: var(--green); }
+
+  .kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em;
+    padding: 2px 8px;
+    background: var(--glass-2);
+    border: 1px solid var(--border-2);
+    border-radius: 6px;
+    color: var(--ink);
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92em;
+    color: var(--cyan-2);
+    background: rgba(6,182,212,0.08);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* Карточки glass */
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 24px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+
+  .pill.violet { color: var(--violet-2); border-color: rgba(124,58,237,0.35); background: rgba(124,58,237,0.08); }
+  .pill.cyan { color: var(--cyan-2); border-color: rgba(6,182,212,0.35); background: rgba(6,182,212,0.08); }
+  .pill.pink { color: var(--pink); border-color: rgba(244,114,182,0.35); background: rgba(244,114,182,0.08); }
+  .pill.green { color: var(--green); border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.08); }
+  .pill.orange { color: var(--orange); border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
+
+  /* Сетки */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .flex-col { display: flex; flex-direction: column; }
+  .flex-row { display: flex; flex-direction: row; }
+  .gap-10 { gap: 10px; }
+  .gap-14 { gap: 14px; }
+  .gap-20 { gap: 20px; }
+  .gap-28 { gap: 28px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .flex-1 { flex: 1; }
+
+  /* Code блоки */
+  pre[class*="language-"] {
+    background: rgba(0,0,0,0.45) !important;
+    border: 1px solid var(--border);
+    border-radius: 14px !important;
+    padding: 18px 20px !important;
+    margin: 0 !important;
+    font-size: 15px !important;
+    line-height: 1.55 !important;
+    overflow: auto;
+    max-height: 100%;
+  }
+  code[class*="language-"] {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 15px !important;
+    background: none !important;
+    padding: 0 !important;
+    color: #E6EAF3 !important;
+  }
+  .code-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .code-head .dots { display: inline-flex; gap: 6px; }
+  .code-head .dots span { width: 10px; height: 10px; border-radius: 50%; background: #2b3244; }
+  .code-head .dots span:nth-child(1) { background: #ff5f56; }
+  .code-head .dots span:nth-child(2) { background: #ffbd2e; }
+  .code-head .dots span:nth-child(3) { background: #27c93f; }
+  .code-wrap .code-body { border-top-left-radius: 0; border-top-right-radius: 0; }
+  .code-wrap pre[class*="language-"] { border-top-left-radius: 0 !important; border-top-right-radius: 0 !important; }
+
+  /* Титульный */
+  .title-hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    gap: 26px;
+  }
+  .title-hero .meta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Вахтёр/метафоры */
+  .meta-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 22px;
+    border-radius: 16px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+  }
+  .meta-box .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--violet-2);
+    letter-spacing: 0.12em;
+  }
+  .meta-box h3 { font-size: 18px; }
+  .meta-box p { font-size: 15px; margin: 0; }
+
+  /* Роли */
+  .role {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 20px;
+    padding: 20px 22px;
+    border-radius: 16px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    align-items: center;
+  }
+  .role .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 10px;
+    text-align: center;
+    letter-spacing: 0.04em;
+    font-size: 14px;
+  }
+  .role.system .tag { background: rgba(124,58,237,0.15); color: var(--violet-2); border: 1px solid rgba(124,58,237,0.3); }
+  .role.user .tag { background: rgba(6,182,212,0.15); color: var(--cyan-2); border: 1px solid rgba(6,182,212,0.3); }
+  .role.assistant .tag { background: rgba(244,114,182,0.15); color: var(--pink); border: 1px solid rgba(244,114,182,0.3); }
+  .role p { margin: 0; font-size: 16px; color: var(--ink); }
+  .role p span.small { display: block; font-size: 14px; color: var(--ink-dim); margin-top: 4px; }
+
+  /* Температурная шкала */
+  .thermo {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .thermo-card {
+    border-radius: 16px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .thermo-card.cold { background: radial-gradient(500px 300px at 20% 0%, rgba(6,182,212,0.18), transparent 70%); }
+  .thermo-card.mid  { background: radial-gradient(500px 300px at 50% 0%, rgba(124,58,237,0.18), transparent 70%); }
+  .thermo-card.hot  { background: radial-gradient(500px 300px at 80% 0%, rgba(244,114,182,0.22), transparent 70%); }
+  .thermo-card .bignum {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .thermo-card.cold .bignum { color: var(--cyan-2); }
+  .thermo-card.mid .bignum { color: var(--violet-2); }
+  .thermo-card.hot .bignum { color: var(--pink); }
+  .thermo-card h3 { margin-top: 6px; font-size: 20px; }
+  .thermo-card p { margin: 8px 0 0; font-size: 14px; color: var(--ink-dim); }
+  .thermo-card .ex {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    border: 1px solid var(--border);
+  }
+
+  /* Токены */
+  .token-viz {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 16px 18px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .tok {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    letter-spacing: 0.02em;
+  }
+  .tok.v1 { background: rgba(124,58,237,0.18); color: var(--violet-2); }
+  .tok.v2 { background: rgba(6,182,212,0.18); color: var(--cyan-2); }
+  .tok.v3 { background: rgba(244,114,182,0.18); color: var(--pink); }
+  .tok.v4 { background: rgba(16,185,129,0.18); color: var(--green); }
+  .tok.v5 { background: rgba(245,158,11,0.18); color: var(--orange); }
+
+  /* Чеклист */
+  .checks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .check {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+  }
+  .check .mark {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(16,185,129,0.14);
+    border: 1px solid rgba(16,185,129,0.4);
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: var(--green);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .check p { margin: 0; font-size: 15px; color: var(--ink); }
+
+  /* Бейдж */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(6,182,212,0.15));
+    border: 1px solid rgba(124,58,237,0.4);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .badge .star {
+    width: 20px; height: 20px;
+    background: linear-gradient(135deg, var(--violet-2), var(--cyan-2));
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 6.9L12 17.5 5.8 21.1l1.6-6.9L2 9.5l7.1-.6z'/></svg>") center/contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 6.9L12 17.5 5.8 21.1l1.6-6.9L2 9.5l7.1-.6z'/></svg>") center/contain no-repeat;
+  }
+
+  /* Тайм-лайн */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tl-row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 18px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    align-items: center;
+  }
+  .tl-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan-2);
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+  .tl-row p { margin: 0; font-size: 15px; color: var(--ink); }
+
+  /* Speaker notes */
+  .notes {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    color: var(--ink);
+    z-index: 50;
+    display: none;
+    padding: 48px 72px;
+    overflow-y: auto;
+    backdrop-filter: blur(22px);
+  }
+  .notes.open { display: block; }
+  .notes h3 {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan-2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .notes h2 { margin-top: 4px; margin-bottom: 18px; }
+  .notes p { font-size: 17px; line-height: 1.6; color: var(--ink); max-width: 900px; }
+  .notes .notes-inner { max-width: 1000px; }
+  .notes ul { padding-left: 22px; }
+  .notes li { font-size: 16px; margin: 6px 0; color: var(--ink-dim); }
+
+  .note-hint {
+    position: fixed;
+    bottom: 60px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    z-index: 25;
+    pointer-events: none;
+    letter-spacing: 0.08em;
+  }
+
+  /* Slide layouts */
+  .slide.title-slide { justify-content: center; align-items: flex-start; }
+  .slide-head {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .slide-body { flex: 1; display: flex; flex-direction: column; gap: 18px; min-height: 0; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 28px;
+    flex: 1;
+    min-height: 0;
+  }
+  .two-col > div { min-width: 0; }
+
+  /* Ошибки */
+  .err-card {
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(239,68,68,0.06);
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+  .err-card .bad {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(239,68,68,0.2);
+    color: var(--red);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .err-card p { margin: 0; font-size: 14px; color: var(--ink); }
+  .err-card p span { color: var(--ink-dim); font-size: 13px; display: block; margin-top: 2px; }
+
+  /* Prism overrides */
+  .token.comment { color: #5A657F !important; font-style: italic; }
+  .token.keyword { color: #F472B6 !important; }
+  .token.string { color: #22D3EE !important; }
+  .token.function { color: #9F67FF !important; }
+  .token.number { color: #F59E0B !important; }
+  .token.operator { color: #E6EAF3 !important; background: none !important; }
+  .token.punctuation { color: #9AA4BA !important; }
+  .token.builtin { color: #22D3EE !important; }
+
+  /* Table */
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .tbl th, .tbl td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .tbl th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    font-weight: 500;
+  }
+  .tbl td code { background: rgba(124,58,237,0.1); color: var(--violet-2); }
+
+  /* Dialog mockup */
+  .chat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-height: 100%;
+    overflow: auto;
+  }
+  .msg {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 88%;
+    font-size: 14px;
+  }
+  .msg .who {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+  }
+  .msg.system { align-self: flex-start; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); color: var(--ink); }
+  .msg.user { align-self: flex-end; background: rgba(6,182,212,0.12); border: 1px solid rgba(6,182,212,0.3); color: var(--ink); }
+  .msg.assistant { align-self: flex-start; background: rgba(244,114,182,0.12); border: 1px solid rgba(244,114,182,0.3); color: var(--ink); }
+
+  /* Finale */
+  .finale-big {
+    font-size: clamp(64px, 8vw, 120px);
+    font-weight: 900;
+    line-height: 0.96;
+    letter-spacing: -0.04em;
+  }
+
+  @media (max-width: 900px) {
+    .slide { padding: 28px 22px; }
+    .grid-2, .thermo, .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* Subtle entrance for cards */
+  .slide.active .card,
+  .slide.active .role,
+  .slide.active .thermo-card,
+  .slide.active .check,
+  .slide.active .tl-row,
+  .slide.active .meta-box {
+    animation: up .45s ease both;
+  }
+  .slide.active .card:nth-child(2) { animation-delay: .06s; }
+  .slide.active .card:nth-child(3) { animation-delay: .12s; }
+  .slide.active .card:nth-child(4) { animation-delay: .18s; }
+  @keyframes up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<div class="hud hud-top-left"><span class="dot"></span>VIBE CODING · STEP 1 · MODULE 1</div>
+<div class="hud hud-top-right" id="slideCounter">01 / 20</div>
+<div class="hud hud-bottom-left">УРОК 10 · ПРОМПТЫ, ТЕМПЕРАТУРА, ТОКЕНЫ</div>
+<div class="hud hud-bottom-right">
+  <button id="prevBtn" title="Предыдущий слайд (←)">&#8592;</button>
+  <button id="notesBtn" title="Speaker notes (N)">N</button>
+  <button id="fsBtn" title="Fullscreen (F)">⛶</button>
+  <button id="nextBtn" title="Следующий слайд (→)">&#8594;</button>
+</div>
+
+<div class="note-hint">N — заметки · F — fullscreen · ← → навигация</div>
+
+<div class="deck" id="deck">
+
+  <!-- Слайд 1 — Титул -->
+  <section class="slide title-slide active" data-notes='{"title":"Урок 10. Открытие","body":"Поприветствуй ученика тепло, напомни про прошлый урок (первый запрос к GigaChat). Скажи, что сегодня научим ИИ помнить разговор, управлять его характером и объясним, почему нельзя ставить температуру 5.0. В конце — работающий мини-чат-бот с личностью. Настрой: сегодня станешь почти промпт-инженером."}'>
+    <span class="eyebrow">Модуль 1 · Неделя 10 · 60 минут · 11–12 лет</span>
+    <div class="title-hero">
+      <h1>Системный и пользовательский <span class="grad">промпт</span>.<br>Температура и токены</h1>
+      <p class="lead">Научим нейросеть помнить разговор, играть роль и отвечать так, как нам нужно — от робота-калькулятора до поэта.</p>
+      <div class="meta-row">
+        <span class="pill violet">ИИ с памятью</span>
+        <span class="pill cyan">Контекст-диалог</span>
+        <span class="pill pink">Характер по заказу</span>
+        <span class="pill orange">Финал: чат-бот</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 2 — Что будет на уроке -->
+  <section class="slide" data-notes='{"title":"Карта урока","body":"Покажи ученику всю структуру занятия. Пять блоков, 60 минут. Подчеркни: финал — это собственный чат-бот с характером на выбор. Спроси: „Как думаешь, что сложнее — научить ИИ помнить или играть роль?“ — и сразу к следующему слайду."}'>
+    <div class="slide-head">
+      <span class="eyebrow">План занятия</span>
+      <h2>За 60 минут мы <span class="grad">пройдём путь</span> от одного вопроса до чат-бота</h2>
+    </div>
+    <div class="slide-body">
+      <div class="timeline">
+        <div class="tl-row"><span class="tm">0–5 мин</span><p>Разбор ДЗ: три ответа GigaChat из прошлого урока</p></div>
+        <div class="tl-row"><span class="tm">5–15 мин</span><p>Теория: роли, температура, токены — три новых слова сразу</p></div>
+        <div class="tl-row"><span class="tm">15–45 мин</span><p>Практика: 3 задания — сравним температуры, дадим роль, соберём диалог с памятью</p></div>
+        <div class="tl-row"><span class="tm">45–55 мин</span><p>Мини-проект: <code>chat_with_context.py</code> — консольный чат с выбором личности</p></div>
+        <div class="tl-row"><span class="tm">55–60 мин</span><p>Демо и рефлексия: покажешь диалог, ответишь на 2 вопроса</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 3 — Цель занятия -->
+  <section class="slide" data-notes='{"title":"Цель = измеримый результат","body":"Цель у нас одна, но конкретная. Ученик должен в конце урока иметь на экране диалог из 5 реплик, где ИИ отвечает с учётом предыдущих вопросов. Если ИИ говорит „я не знаю, о чём вы“ — значит контекст не передаётся. Это наш маячок успеха."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Цель урока</span>
+      <h2>Что <span class="grad">должно появиться</span> к концу 60 минут</h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="flex-col gap-14">
+        <div class="card">
+          <h3 class="accent-violet">Результат ученика</h3>
+          <p class="mt-8">Скрипт задаёт нейросети 3 вопроса <b>подряд</b> с сохранением контекста. ИИ помнит предыдущую реплику и отвечает с учётом неё.</p>
+        </div>
+        <div class="card">
+          <h3 class="accent-cyan">Новые навыки</h3>
+          <ul class="mt-8">
+            <li>Менять роль ассистента системным промптом</li>
+            <li>Управлять «характером» через <code>temperature</code></li>
+            <li>Объяснять, что такое токен и зачем его считать</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex-col gap-14">
+        <div class="card">
+          <h3 class="accent-pink">Словарь урока</h3>
+          <div class="flex-row gap-10" style="flex-wrap:wrap; margin-top:10px">
+            <span class="pill violet">role</span>
+            <span class="pill violet">system prompt</span>
+            <span class="pill cyan">user message</span>
+            <span class="pill pink">assistant response</span>
+            <span class="pill orange">temperature</span>
+            <span class="pill green">token</span>
+            <span class="pill">context window</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="accent-green">Награда в финале</h3>
+          <p class="mt-8">Если диалог работает — ты почти <b>промпт-инженер</b>. Это профессия, за которую платят деньги прямо сейчас.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 4 — Метафора рыбки -->
+  <section class="slide" data-notes='{"title":"Ключевая метафора","body":"Это центральная идея всего урока. Повторяй её в каждом затруднении: „помни, нейросеть — это рыбка“. Когда ученик удивится, что ИИ „забыл“ предыдущий вопрос — сразу напомни: мы забыли передать ему всю историю. Без этой метафоры дальше будет сложно."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Метафора</span>
+      <h2>Нейросеть — это <span class="grad">собеседник с амнезией</span></h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="flex-col gap-14">
+        <p class="lead">Каждый раз, когда ты ей пишешь — она <b>с нуля</b> не помнит ничего из прошлого разговора.</p>
+        <div class="card">
+          <h3>Чтобы помнила — надо пересказать всю историю</h3>
+          <p class="mt-8">В каждом запросе ты отправляешь весь разговор целиком: system-промпт, твой вопрос, её прошлый ответ, твой новый вопрос…</p>
+        </div>
+        <div class="card">
+          <h3 class="accent-cyan">Как у рыбки в аквариуме</h3>
+          <p class="mt-8">3 секунды памяти. Ты ей напоминаешь <b>в каждом письме</b> всё, что она должна знать, чтобы ответить осмысленно.</p>
+        </div>
+      </div>
+      <div class="card" style="display:flex; align-items:center; justify-content:center; background:radial-gradient(500px 400px at 50% 50%, rgba(6,182,212,0.12), transparent 70%);">
+        <svg viewBox="0 0 400 400" width="100%" height="320" style="max-width:360px">
+          <defs>
+            <linearGradient id="fish" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#9F67FF"/>
+              <stop offset="1" stop-color="#22D3EE"/>
+            </linearGradient>
+          </defs>
+          <!-- Аквариум -->
+          <rect x="30" y="70" width="340" height="280" rx="14" fill="rgba(6,182,212,0.06)" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>
+          <path d="M30 270 Q 120 240 200 270 T 370 270 L 370 350 L 30 350 Z" fill="rgba(6,182,212,0.12)"/>
+          <!-- Пузырьки -->
+          <circle cx="90" cy="260" r="4" fill="rgba(255,255,255,0.4)"/>
+          <circle cx="110" cy="230" r="3" fill="rgba(255,255,255,0.35)"/>
+          <circle cx="100" cy="200" r="5" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="300" cy="240" r="3" fill="rgba(255,255,255,0.3)"/>
+          <circle cx="320" cy="210" r="4" fill="rgba(255,255,255,0.4)"/>
+          <!-- Рыбка -->
+          <g transform="translate(160, 190)">
+            <ellipse cx="40" cy="20" rx="50" ry="22" fill="url(#fish)"/>
+            <polygon points="-18,20 -2,8 -2,32" fill="url(#fish)" opacity="0.8"/>
+            <circle cx="60" cy="14" r="4" fill="#0B0F17"/>
+            <circle cx="61" cy="13" r="1.5" fill="#fff"/>
+          </g>
+          <!-- Мысль -->
+          <circle cx="260" cy="130" r="22" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.2)"/>
+          <circle cx="235" cy="150" r="6" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.2)"/>
+          <circle cx="225" cy="165" r="3" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.2)"/>
+          <text x="260" y="136" text-anchor="middle" fill="#E6EAF3" font-size="24" font-family="JetBrains Mono">?</text>
+          <!-- Подпись -->
+          <text x="200" y="55" text-anchor="middle" fill="#9AA4BA" font-family="JetBrains Mono" font-size="13" letter-spacing="2">3s memory</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 5 — Три роли -->
+  <section class="slide" data-notes='{"title":"Три роли — три шляпы","body":"Важно: объясни, что role — это свойство каждого сообщения в списке messages. Мы не меняем роль программы, мы маркируем, кто что говорит. System — один раз в начале, user — то, что пишет ребёнок, assistant — то, что отвечает нейросеть. Ассистент складывает обратно в список, чтобы не забыть."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Три роли</span>
+      <h2>Каждое сообщение в диалоге имеет <span class="grad">роль</span></h2>
+    </div>
+    <div class="slide-body flex-col gap-14">
+      <div class="role system">
+        <span class="tag">system</span>
+        <p><b>Настройка характера</b> — один раз в начале.<span class="small">«Ты умный друг 11-летнего ребёнка. Отвечай коротко и с юмором.»</span></p>
+      </div>
+      <div class="role user">
+        <span class="tag">user</span>
+        <p><b>Что сказал ты</b> — каждая реплика пользователя.<span class="small">«Почему небо синее?»</span></p>
+      </div>
+      <div class="role assistant">
+        <span class="tag">assistant</span>
+        <p><b>Что ответила нейросеть</b> — её собственные слова.<span class="small">«Потому что молекулы воздуха разбрасывают синий свет сильнее других.»</span></p>
+      </div>
+      <div class="card" style="border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.05);">
+        <h3 class="accent-pink">Главное правило</h3>
+        <p class="mt-8">Чтобы ИИ помнил разговор — <b>все три типа</b> должны копиться в одном списке <code>messages</code> и отправляться целиком в каждом запросе.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 6 — Структура messages -->
+  <section class="slide" data-notes='{"title":"Как выглядит messages","body":"Покажи ученику реальный список messages до и после двух обменов. Обрати внимание: порядок важен — system всегда первый. Если написать system после user — ИИ уже „наговорил“ мимо настройки и может игнорировать её. У GigaChat/OpenAI одинаково: [{role, content}]."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Под капотом</span>
+      <h2>Список <code>messages</code> — <span class="grad">память диалога</span></h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="code-wrap">
+        <div class="code-head"><span class="dots"><span></span><span></span><span></span></span><span>messages_example.py</span></div>
+        <pre class="code-body"><code class="language-python">messages = [
+    {"role": "system",
+     "content": "Ты умный друг. Отвечай с юмором."},
+
+    {"role": "user",
+     "content": "Почему небо синее?"},
+
+    {"role": "assistant",
+     "content": "Молекулы рассеивают синий..."},
+
+    {"role": "user",
+     "content": "А ночью тогда почему чёрное?"},
+]</code></pre>
+      </div>
+      <div class="chat">
+        <div class="msg system"><span class="who">system</span>Ты умный друг. Отвечай с юмором.</div>
+        <div class="msg user"><span class="who">user</span>Почему небо синее?</div>
+        <div class="msg assistant"><span class="who">assistant</span>Молекулы рассеивают синий — остальные цвета пролетают мимо. Физика, не магия!</div>
+        <div class="msg user"><span class="who">user</span>А ночью тогда почему чёрное?</div>
+        <div class="msg assistant"><span class="who">assistant</span>Ночью солнца нет — нет света, который можно было бы разбросать. Космос просто подмигивает звёздами.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 7 — Температура: шкала -->
+  <section class="slide" data-notes='{"title":"Температура: 3 персонажа","body":"Сегодня самая зрелищная часть. Один и тот же вопрос, три температуры, три разных ответа. Детям нравится — это как будто у нейросети есть настроение. Напомни: GigaChat максимум 2.0, OpenAI тоже. Число больше — ошибка. Значение по умолчанию у GigaChat обычно 1.0."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Параметр temperature</span>
+      <h2>Температура = <span class="grad">градус творчества</span></h2>
+    </div>
+    <div class="slide-body">
+      <div class="thermo">
+        <div class="thermo-card cold">
+          <div class="bignum">0.1</div>
+          <h3>Как калькулятор</h3>
+          <p>Строго, предсказуемо. Одинаковые ответы на один и тот же вопрос.</p>
+          <div class="ex">Название игры: «Путь Героя»</div>
+        </div>
+        <div class="thermo-card mid">
+          <div class="bignum">1.0</div>
+          <h3>Как человек</h3>
+          <p>Норма. Живые, но адекватные ответы. Значение по умолчанию.</p>
+          <div class="ex">Название: «Звёздный Охотник»</div>
+        </div>
+        <div class="thermo-card hot">
+          <div class="bignum">1.5</div>
+          <h3>Как поэт</h3>
+          <p>Неожиданно, креативно. Иногда странно. Хорошо для идей.</p>
+          <div class="ex">«Пицца-Грибница: Возвращение»</div>
+        </div>
+      </div>
+      <div class="card mt-16" style="border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.05);">
+        <h3 class="accent-pink">Лимит: 0 – 2.0</h3>
+        <p class="mt-8">Больше 2.0 нельзя — получишь ошибку <code>out of range</code>. Если нужна креативность — ставь 1.5, не 5.0.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 8 — Токены -->
+  <section class="slide" data-notes='{"title":"Токены — валюта ИИ","body":"Объясни: токен — это кусочек слова. Покажи, как одно слово бьётся на 2-3 токена в русском (больше, чем в английском). Лимит GigaChat — 1 млн токенов/месяц на бесплатном тарифе. Спроси: „если один запрос — 500 токенов, сколько запросов влезет?“ Ответ: 2000. Это не бесконечно, но на уроки хватит."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Токены</span>
+      <h2>Нейросеть считает не слова, а <span class="grad">токены</span></h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="flex-col gap-14">
+        <p class="lead">Токен — это кусочек слова. Примерно 1 слово ≈ <b>1.3 токена</b> в английском, <b>2–3</b> в русском.</p>
+        <div class="token-viz">
+          <span class="tok v1">При</span>
+          <span class="tok v1">вет</span>
+          <span class="tok v2">,</span>
+          <span class="tok v3">мир</span>
+          <span class="tok v2">!</span>
+          <span class="tok v4"> Се</span>
+          <span class="tok v4">год</span>
+          <span class="tok v4">ня</span>
+          <span class="tok v5"> ур</span>
+          <span class="tok v5">ок</span>
+          <span class="tok v1"> Py</span>
+          <span class="tok v1">thon</span>
+          <span class="tok v2">.</span>
+        </div>
+        <p style="margin:0; font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--ink-faint);">«Привет, мир! Сегодня урок Python.» ≈ <b>13 токенов</b></p>
+        <div class="card mt-8">
+          <h3 class="accent-cyan">Зачем считать?</h3>
+          <ul class="mt-8">
+            <li>Бесплатный тариф GigaChat — <b>1 000 000</b> токенов / месяц</li>
+            <li>Один ответ в диалоге = 100–500 токенов</li>
+            <li>Вся история разговора тоже ест токены</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="background:radial-gradient(600px 400px at 50% 0%, rgba(124,58,237,0.14), transparent 70%);">
+        <h3 class="accent-pink">Контекст-окно</h3>
+        <p class="mt-8" style="font-size:15px;">Максимум, сколько токенов ИИ «видит» в одном запросе. Если диалог разросся — старые реплики обрежутся.</p>
+        <div style="margin-top:16px;">
+          <div style="display:flex; gap:6px; align-items:flex-end; height:140px;">
+            <div style="width:20%; background:linear-gradient(180deg, var(--violet-2), var(--violet)); height:30%; border-radius:6px 6px 0 0"></div>
+            <div style="width:20%; background:linear-gradient(180deg, var(--cyan-2), var(--cyan)); height:60%; border-radius:6px 6px 0 0"></div>
+            <div style="width:20%; background:linear-gradient(180deg, var(--pink), #c64291); height:100%; border-radius:6px 6px 0 0"></div>
+            <div style="width:20%; background:linear-gradient(180deg, var(--orange), #c07a08); height:85%; border-radius:6px 6px 0 0"></div>
+            <div style="width:20%; background:linear-gradient(180deg, var(--green), #0a8158); height:45%; border-radius:6px 6px 0 0"></div>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:6px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint);">
+            <div style="width:20%; text-align:center">sys</div>
+            <div style="width:20%; text-align:center">q1</div>
+            <div style="width:20%; text-align:center">a1</div>
+            <div style="width:20%; text-align:center">q2</div>
+            <div style="width:20%; text-align:center">a2</div>
+          </div>
+        </div>
+        <p class="mt-16" style="font-size:13px; color:var(--ink-dim);">Окно GigaChat-Lite ≈ <b>8 000 токенов</b>. На 50 реплик нам хватит с запасом.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 9 — Практика 1: температура -->
+  <section class="slide" data-notes='{"title":"Задание 1 — Температурный тест","body":"8 минут. Цель — показать эффект наглядно. Попроси ученика запустить скрипт 2 раза подряд с temperature=0.1 — он получит почти одинаковые ответы. Потом 1.5 — ответы будут разные, иногда странные. Это вау-момент. Если ребёнок смеётся — урок идёт правильно."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Задание 1 · 8 минут</span>
+      <h2>Сравним <span class="grad">холодную и горячую</span> нейросеть</h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="flex-col gap-14">
+        <div class="card">
+          <h3>Один промпт. Две температуры.</h3>
+          <p class="mt-8">Один и тот же запрос: «Придумай название для компьютерной игры».<br>Запусти <b>2 раза с temperature=0.1</b> → сравни.<br>Потом <b>2 раза с temperature=1.5</b> → сравни.</p>
+        </div>
+        <div class="card">
+          <h3 class="accent-cyan">Что должно получиться</h3>
+          <ul class="mt-8">
+            <li>0.1 — названия почти одинаковые</li>
+            <li>1.5 — каждое новое, иногда дикое</li>
+            <li>Аргумент «почему»: чем выше температура, тем больше разнообразия</li>
+          </ul>
+        </div>
+      </div>
+      <div class="code-wrap">
+        <div class="code-head"><span class="dots"><span></span><span></span><span></span></span><span>temp_test.py</span></div>
+        <pre class="code-body"><code class="language-python">from gigachat import GigaChat
+
+with GigaChat(credentials=key, verify_ssl_certs=False) as g:
+    for temp in (0.1, 1.5):
+        print(f"\n--- temperature={temp} ---")
+        for i in range(2):
+            resp = g.chat({
+                "messages": [
+                    {"role": "user",
+                     "content": "Придумай название игры"}
+                ],
+                "temperature": temp,
+            })
+            print(i+1, "→", resp.choices[0].message.content)</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 10 — Практика 2: роль -->
+  <section class="slide" data-notes='{"title":"Задание 2 — Злой робот","body":"10 минут. Системный промпт — это самое весёлое для детей. Пусть ребёнок придумает свой персонаж (только мягко фильтруй — не должен быть обидный). Предложи: робот, пират, кот-ученый. Задаёт 2 вопроса из обычной жизни („что сегодня на завтрак“) — и смотрим, держит ли роль."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Задание 2 · 10 минут</span>
+      <h2>Дадим нейросети <span class="grad">характер</span> через system-промпт</h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="code-wrap">
+        <div class="code-head"><span class="dots"><span></span><span></span><span></span></span><span>role_robot.py</span></div>
+        <pre class="code-body"><code class="language-python">system_prompt = (
+    "Ты — злой робот 1950-х годов. "
+    "Отвечай строго, зловеще, "
+    "короткими фразами. "
+    "В конце каждой реплики добавляй: "
+    "‘БИИП-БУП’."
+)
+
+messages = [
+    {"role": "system",  "content": system_prompt},
+    {"role": "user",    "content": "Как у тебя дела?"},
+]
+
+resp = giga.chat({"messages": messages})
+print(resp.choices[0].message.content)</code></pre>
+      </div>
+      <div class="flex-col gap-14">
+        <div class="card">
+          <h3 class="accent-pink">Как это сработает</h3>
+          <p class="mt-8">Ответ будет в духе:<br><i>«ФУНКЦИОНАЛЬНОСТЬ В НОРМЕ. ЧЕЛОВЕЧЕСКИЕ ЭМОЦИИ НЕ ЗАРЕГИСТРИРОВАНЫ. БИИП-БУП.»</i></p>
+        </div>
+        <div class="card">
+          <h3 class="accent-cyan">Твоя задача</h3>
+          <ul class="mt-8">
+            <li>Придумай своего персонажа: пират / котик / бабушка</li>
+            <li>Задай <b>2 вопроса</b> из обычной жизни</li>
+            <li>Сравни с ответом без system-промпта</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color: rgba(124,58,237,0.35); background: rgba(124,58,237,0.05);">
+          <h3>Идея</h3>
+          <p class="mt-8" style="font-size:14px;">System-промпт — это как роль в театре. Написал один раз — нейросеть играет её до конца диалога.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 11 — Практика 3: контекст -->
+  <section class="slide" data-notes='{"title":"Задание 3 — Контекст!","body":"Самое важное задание урока. 15 минут. Обрати внимание: после каждого ответа мы добавляем ассистента в messages. Если этого не сделать — нейросеть не помнит предыдущий вопрос. Пусть ученик сначала попробует БЕЗ этой строки — чтобы увидеть амнезию, потом добавим. Контраст и понимание."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Задание 3 · 15 минут</span>
+      <h2>Главный трюк: <span class="grad">копим messages</span> и отправляем целиком</h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="code-wrap">
+        <div class="code-head"><span class="dots"><span></span><span></span><span></span></span><span>context_loop.py</span></div>
+        <pre class="code-body"><code class="language-python">messages = [
+    {"role": "system",
+     "content": "Ты умный друг. Отвечай коротко."}
+]
+
+for _ in range(3):
+    q = input("Ты: ")
+    messages.append({"role": "user", "content": q})
+
+    resp = giga.chat({"messages": messages})
+    answer = resp.choices[0].message.content
+    print("ИИ:", answer)
+
+    # ← БЕЗ этой строки нейросеть забудет разговор
+    messages.append({"role": "assistant",
+                     "content": answer})</code></pre>
+      </div>
+      <div class="flex-col gap-14">
+        <div class="card" style="border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.05);">
+          <h3 class="accent-green">Тестовая серия</h3>
+          <ul class="mt-8">
+            <li>1-й вопрос: «Что такое Python?»</li>
+            <li>2-й: «А можно пример кода?»</li>
+            <li>3-й: «А если я хочу игру?»</li>
+          </ul>
+          <p class="mt-8" style="font-size:14px;">Если ИИ понимает «пример» и «игру» как продолжение — всё работает.</p>
+        </div>
+        <div class="err-card">
+          <span class="bad">!</span>
+          <p><b>Эксперимент:</b> сначала убери последнюю append-строку.<span>ИИ будет отвечать как в первый раз каждый раз.</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 12 — Поток запроса -->
+  <section class="slide" data-notes='{"title":"Как запрос идёт по проводам","body":"Покажи схему: что реально отправляется в API и что возвращается. В запросе — весь messages + параметры (model, temperature, max_tokens). В ответе — новая реплика ассистента + сколько токенов израсходовано. Это важно для будущего — когда начнём мониторить расход на Уроке 11-12."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Под капотом</span>
+      <h2>Что <span class="grad">уходит в API</span> и что возвращается</h2>
+    </div>
+    <div class="slide-body grid-2">
+      <div class="card">
+        <span class="pill cyan">запрос</span>
+        <pre class="code-body mt-8" style="margin-top:10px!important;"><code class="language-json">{
+  "model": "GigaChat",
+  "messages": [
+    {"role":"system",    "content":"..."},
+    {"role":"user",      "content":"..."},
+    {"role":"assistant", "content":"..."},
+    {"role":"user",      "content":"..."}
+  ],
+  "temperature": 0.7,
+  "max_tokens": 512
+}</code></pre>
+      </div>
+      <div class="card">
+        <span class="pill pink">ответ</span>
+        <pre class="code-body mt-8" style="margin-top:10px!important;"><code class="language-json">{
+  "choices": [{
+    "message": {
+      "role": "assistant",
+      "content": "новый ответ нейросети..."
+    }
+  }],
+  "usage": {
+    "prompt_tokens":     120,
+    "completion_tokens":  45,
+    "total_tokens":      165
+  }
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 13 — Мини-проект -->
+  <section class="slide" data-notes='{"title":"Мини-проект — 10 минут","body":"Собираем всё вместе: роль на выбор + температура + контекст + выход по слову „стоп“. Пусть ребёнок сам выберет, кем будет ИИ — учителем, другом или тренером. Каждому персонажу — своя температура (учителю 0.3, другу 0.9, тренеру 0.6). Это уже настоящий чат-бот — скажи ему об этом."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Мини-проект · 45–55 мин</span>
+      <h2><span class="grad">Консольный чат</span> с настраиваемой личностью</h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="code-wrap">
+        <div class="code-head"><span class="dots"><span></span><span></span><span></span></span><span>chat_with_context.py</span></div>
+        <pre class="code-body"><code class="language-python">PERSONAS = {
+    "1": ("Учитель",  "Ты — строгий учитель. "
+                      "Объясняй просто и по шагам.", 0.3),
+    "2": ("Друг",     "Ты — весёлый друг. "
+                      "Используй эмодзи и сленг.",   0.9),
+    "3": ("Тренер",   "Ты — мотивационный тренер. "
+                      "Каждая фраза — вдохновляет!", 0.6),
+}
+
+print("1-Учитель  2-Друг  3-Тренер")
+name, sys_p, temp = PERSONAS[input("Выбор: ")]
+print(f"--- Говорим с {name} ---")
+
+messages = [{"role": "system", "content": sys_p}]
+
+while True:
+    q = input("Ты: ")
+    if q.lower() == "стоп":
+        break
+    messages.append({"role": "user", "content": q})
+    r = giga.chat({"messages": messages, "temperature": temp})
+    a = r.choices[0].message.content
+    print(f"{name}:", a)
+    messages.append({"role": "assistant", "content": a})</code></pre>
+      </div>
+      <div class="flex-col gap-14">
+        <div class="card">
+          <h3 class="accent-violet">Из чего собирается</h3>
+          <ul class="mt-8">
+            <li>Словарь <code>PERSONAS</code> — 3 персонажа</li>
+            <li>System-промпт + температура подбираются автоматически</li>
+            <li>Цикл <code>while</code> с выходом по «стоп»</li>
+            <li>Контекст накапливается в <code>messages</code></li>
+          </ul>
+        </div>
+        <div class="card" style="border-color: rgba(16,185,129,0.35); background: rgba(16,185,129,0.05);">
+          <h3 class="accent-green">Проверочная серия</h3>
+          <p class="mt-8" style="font-size:14px;">Задай серию связанных вопросов:<br>«что такое Python?» → «а можно пример?» → «а для игры?»<br>Если ответ на 3-й связан с первыми двумя — победа.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 14 — Типичные ошибки -->
+  <section class="slide" data-notes='{"title":"Типичные сложности","body":"Пройди по всем 5 ошибкам — они реальные, встречаются на каждом уроке. Особенно первая: ребёнок часто забывает добавить ответ ассистента в messages и удивляется, что ИИ „тупит“. Покажи сразу: вот здесь append, вот здесь нет. Разница очевидная."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Троллит код?</span>
+      <h2><span class="grad">5 типичных</span> проблем и как их решить</h2>
+    </div>
+    <div class="slide-body grid-2">
+      <div class="err-card">
+        <span class="bad">1</span>
+        <p><b>Ответы не зависят от предыдущих</b>.<span>Забыл <code>messages.append</code> с ролью <code>assistant</code>. Без этого каждый запрос — как первый.</span></p>
+      </div>
+      <div class="err-card">
+        <span class="bad">2</span>
+        <p><b>Ошибка: <code>Context too long</code></b>.<span>Диалог разросся. Лимит 4 000–8 000 токенов. На уроке не дойдём, но помни.</span></p>
+      </div>
+      <div class="err-card">
+        <span class="bad">3</span>
+        <p><b>Ответы обрываются на полуслове</b>.<span>Увеличь <code>max_tokens</code> в параметрах (например, <code>max_tokens=1024</code>).</span></p>
+      </div>
+      <div class="err-card">
+        <span class="bad">4</span>
+        <p><b>Ошибка: <code>temperature out of range</code></b>.<span>Поставил 5.0 или 10. Максимум — <b>2.0</b>. Поставь 1.5 для креатива.</span></p>
+      </div>
+      <div class="err-card" style="grid-column: 1 / -1;">
+        <span class="bad">5</span>
+        <p><b>Цикл диалога не выходит</b>.<span>Добавь условие выхода: <code>if q.lower() in ("стоп", "exit", "выход"): break</code>. Без этого Ctrl+C — единственный путь.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 15 — Шпаргалка параметров -->
+  <section class="slide" data-notes='{"title":"Шпаргалка","body":"Эту таблицу сохранить в голове — она пригодится на всех следующих уроках. Обрати внимание на max_tokens — часто забывают и получают обрезанные ответы. И model: у GigaChat есть GigaChat, GigaChat-Pro, GigaChat-Max. На бесплатном тарифе — GigaChat."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Справочник</span>
+      <h2>Параметры API — <span class="grad">шпаргалка</span> на всю жизнь</h2>
+    </div>
+    <div class="slide-body">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Параметр</th>
+            <th>Что делает</th>
+            <th>Диапазон</th>
+            <th>Пример</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>model</code></td>
+            <td>Какую нейросеть используем</td>
+            <td>название</td>
+            <td><code>"GigaChat"</code></td>
+          </tr>
+          <tr>
+            <td><code>messages</code></td>
+            <td>Вся история диалога</td>
+            <td>список dict</td>
+            <td><code>[{"role":"user","content":"..."}]</code></td>
+          </tr>
+          <tr>
+            <td><code>temperature</code></td>
+            <td>Градус креативности</td>
+            <td>0.0 – 2.0</td>
+            <td><code>0.7</code> (баланс)</td>
+          </tr>
+          <tr>
+            <td><code>max_tokens</code></td>
+            <td>Максимум токенов в ответе</td>
+            <td>1 – 8000</td>
+            <td><code>512</code></td>
+          </tr>
+          <tr>
+            <td><code>top_p</code></td>
+            <td>Похоже на temperature, но фильтр</td>
+            <td>0.0 – 1.0</td>
+            <td><code>0.9</code></td>
+          </tr>
+          <tr>
+            <td><code>repetition_penalty</code></td>
+            <td>Штраф за повторы слов</td>
+            <td>1.0 – 2.0</td>
+            <td><code>1.07</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Слайд 16 — Ключевые фразы -->
+  <section class="slide" data-notes='{"title":"Твои фразы на уроке","body":"Эти фразы — не заучивать, а как ориентир. Каждая соотносится с моментом: начало, объяснение, застревание, похвала, закрытие. Выучи одну-две, остальное скажется само. Главное — не быть роботом; фразы — это лёгкий скелет."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Скрипт преподавателя</span>
+      <h2>Ключевые фразы на <span class="grad">каждый момент</span> урока</h2>
+    </div>
+    <div class="slide-body grid-2">
+      <div class="meta-box">
+        <span class="num">01 · ПРИВЕТСТВИЕ</span>
+        <h3>«Сегодня научим ИИ помнить, о чём он с тобой говорил»</h3>
+        <p>Начни с интриги: прошлый урок был про один вопрос, сегодня — диалог.</p>
+      </div>
+      <div class="meta-box">
+        <span class="num">02 · МЕТАФОРА</span>
+        <h3>«Нейросеть как аквариумная рыбка — 3 секунды памяти»</h3>
+        <p>«Мы ей подкидываем весь разговор в каждом письме».</p>
+      </div>
+      <div class="meta-box">
+        <span class="num">03 · ЗАСТРЯЛ</span>
+        <h3>«Ты не добавляешь ответ в messages — она думает, что каждый раз первый раз»</h3>
+        <p>Покажи пальцем на место в коде, где не хватает append.</p>
+      </div>
+      <div class="meta-box">
+        <span class="num">04 · ПОХВАЛА</span>
+        <h3>«Ты сделал system-промпт „как Гомер Симпсон“ — и реально звучит!»</h3>
+        <p>Отметь креативность отдельно от техники — дети это чувствуют.</p>
+      </div>
+      <div class="meta-box" style="grid-column: 1 / -1;">
+        <span class="num">05 · ЗАКРЫТИЕ</span>
+        <h3>«Ты научился управлять характером нейросети. Это уже почти промпт-инженер»</h3>
+        <p>Намекни на будущую профессию. Подведи к ДЗ — вариативность персонажей.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 17 — Критерии успеха -->
+  <section class="slide" data-notes='{"title":"Чек-лист проверки","body":"Пройдись по всем 4 критериям вслух в конце урока. Если хотя бы один не выполнен — не засчитываем, подтягиваем на следующей неделе. Особенно важен 1-й пункт: если контекст не держится, значит главное, что мы хотели показать, не произошло."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Критерии успешного занятия</span>
+      <h2>Что <span class="grad">должно быть отмечено</span> в конце урока</h2>
+    </div>
+    <div class="slide-body">
+      <div class="checks">
+        <div class="check">
+          <span class="mark">✓</span>
+          <p>Диалог поддерживает контекст — ИИ помнит предыдущие реплики, отвечает связно</p>
+        </div>
+        <div class="check">
+          <span class="mark">✓</span>
+          <p>Ученик менял <code>temperature</code> и <b>увидел разницу</b> в ответах</p>
+        </div>
+        <div class="check">
+          <span class="mark">✓</span>
+          <p>Использован системный промпт с характером — ИИ играет роль</p>
+        </div>
+        <div class="check">
+          <span class="mark">✓</span>
+          <p>Ученик объяснил своими словами, что такое <code>role</code> и зачем она нужна</p>
+        </div>
+        <div class="check">
+          <span class="mark">✓</span>
+          <p><b>Бонус:</b> проект работает без падений 3 раза подряд, есть выход по «стоп»</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 18 — Домашнее задание -->
+  <section class="slide" data-notes='{"title":"ДЗ — 20 минут","body":"Три персонажа, 3 вопроса каждому. ДЗ получится весёлым — Гарри Поттер, Шерлок и Айболит будут отвечать одинаково на один вопрос, и это смешно. Попроси прислать скрин в TG-чат. Если ребёнок хочет своих персонажей — разрешай, главное — 3 разных."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Домашнее задание · до 20 минут</span>
+      <h2>Три <span class="grad">альтернативных личности</span> для ИИ</h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="flex-col gap-14">
+        <div class="card">
+          <h3>Задача</h3>
+          <p class="mt-8">Сделай скрипт с меню из <b>3 вариантов</b> system-промпта:</p>
+          <ul class="mt-8">
+            <li>🕵️ Шерлок Холмс — логичен, использует дедукцию</li>
+            <li>⚕️ Доктор Айболит — добрый, советует лечение</li>
+            <li>🧙 Гарри Поттер — упоминает заклинания и Хогвартс</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="accent-cyan">Формат сдачи</h3>
+          <ul class="mt-8">
+            <li>Файл <code>homework_10.py</code></li>
+            <li>Скрин диалога в TG-чат преподавателю</li>
+            <li>Коротко написать, кто из трёх персонажей получился смешнее всего</li>
+          </ul>
+        </div>
+      </div>
+      <div class="chat">
+        <div class="msg system"><span class="who">system</span>Ты — Шерлок Холмс. Используй дедукцию, короткие выводы, «мой дорогой Ватсон».</div>
+        <div class="msg user"><span class="who">user</span>Почему у меня кошка такая ленивая?</div>
+        <div class="msg assistant"><span class="who">assistant</span>Элементарно, мой дорогой Ватсон. Вы кормите её до отвала, окно закрыто, игрушки на полке. Энергии некуда деть. Вывод: мало движения, много еды.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 19 — Бонус для опережающих -->
+  <section class="slide" data-notes='{"title":"Бонус — только для быстрых","body":"Этот бонус — для учеников, которые закончили всё раньше других за 45 минут. Сохраняем диалог в JSON, файл с датой. Это уже настоящий продакшен-навык: логирование разговоров. Если ребёнок это сделал — сразу похвала и „это я покажу коллегам“."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Бонус для опережающих</span>
+      <h2>Сохраняй <span class="grad">историю диалога</span> в файл с датой</h2>
+    </div>
+    <div class="slide-body two-col">
+      <div class="code-wrap">
+        <div class="code-head"><span class="dots"><span></span><span></span><span></span></span><span>chat_log.py</span></div>
+        <pre class="code-body"><code class="language-python">import json
+from datetime import datetime
+
+def save_chat(messages):
+    date = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    filename = f"chat_log_{date}.json"
+
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(messages, f,
+                  ensure_ascii=False,
+                  indent=2)
+
+    print(f"Сохранено: {filename}")
+
+# в конце цикла:
+save_chat(messages)</code></pre>
+      </div>
+      <div class="flex-col gap-14">
+        <div class="card">
+          <h3 class="accent-violet">Чему научит</h3>
+          <ul class="mt-8">
+            <li>Формат JSON для диалогов (это стандарт в индустрии)</li>
+            <li>Даты в именах файлов — как реальные логи</li>
+            <li>Флаг <code>ensure_ascii=False</code> — чтобы русский не портился</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:rgba(244,114,182,0.35); background:rgba(244,114,182,0.05);">
+          <h3 class="accent-pink">В будущем</h3>
+          <p class="mt-8" style="font-size:14px;">В Модуле 2 научишься открывать такие логи в веб-интерфейсе. А потом — анализировать диалоги статистикой. Маленький шаг, большой задел.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Слайд 20 — Финал -->
+  <section class="slide" data-notes='{"title":"Завершение урока","body":"Последний слайд. Поздравь ученика, назови три конкретных вещи, которые он освоил сегодня (система/температура/контекст). Скажи: „теперь ты умеешь делать чат-бота с характером — это очень мощно“. Напомни про ДЗ. Скажи, что на следующем уроке начинаем финальный проект модуля — ассистент-болталка."}'>
+    <div class="slide-head">
+      <span class="eyebrow">Финал урока 10</span>
+    </div>
+    <div class="slide-body flex-col" style="justify-content:center; gap:28px;">
+      <div class="finale-big">Ты теперь <span class="grad">управляешь</span> характером ИИ</div>
+      <p class="lead">За 60 минут: три роли диалога, шкала температуры от 0 до 2, понятие токена, настоящий чат-бот с памятью и персонажем.</p>
+      <div class="flex-row gap-10" style="flex-wrap:wrap;">
+        <span class="badge"><span class="star"></span>Промпт-инженер (младший разряд)</span>
+        <span class="pill violet">3 роли</span>
+        <span class="pill cyan">temperature 0–2</span>
+        <span class="pill pink">messages = память</span>
+        <span class="pill green">chat_with_context.py ✓</span>
+      </div>
+      <div class="card mt-16" style="background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(6,182,212,0.1)); border-color: rgba(124,58,237,0.3);">
+        <h3>Следующий урок — №11</h3>
+        <p class="mt-8">Начинаем финальный проект модуля: «Ассистент-болталка». Разобьём код на 3 файла, как настоящие программисты. К 12-му уроку — защита проекта и бейдж «Ассистент собран».</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Speaker notes panel -->
+<div class="notes" id="notes" role="dialog" aria-label="Speaker notes">
+  <div class="notes-inner">
+    <h3>Speaker Notes</h3>
+    <h2 id="notesTitle">—</h2>
+    <div id="notesBody"></div>
+    <p style="margin-top:28px; color:var(--ink-faint); font-size:14px; font-family:'JetBrains Mono',monospace;">Нажми <span class="kbd">N</span> или <span class="kbd">Esc</span> чтобы закрыть</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+
+  const counter = document.getElementById('slideCounter');
+  const progress = document.getElementById('progress');
+  const notesEl = document.getElementById('notes');
+  const notesTitle = document.getElementById('notesTitle');
+  const notesBody = document.getElementById('notesBody');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    counter.textContent = pad(idx + 1) + ' / ' + pad(total);
+    progress.style.width = ((idx + 1) / total * 100) + '%';
+    // Update notes if panel is open
+    if (notesEl.classList.contains('open')) updateNotes();
+  }
+
+  function go(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    render();
+  }
+
+  function next() { go(idx + 1); }
+  function prev() { go(idx - 1); }
+
+  function updateNotes() {
+    const raw = slides[idx].getAttribute('data-notes');
+    if (!raw) {
+      notesTitle.textContent = 'Нет заметок';
+      notesBody.innerHTML = '';
+      return;
+    }
+    try {
+      const obj = JSON.parse(raw);
+      notesTitle.textContent = obj.title || '';
+      notesBody.innerHTML = '<p>' + (obj.body || '').replace(/\n/g, '<br>') + '</p>';
+    } catch (e) {
+      notesTitle.textContent = 'Заметки';
+      notesBody.innerHTML = '<p>' + raw + '</p>';
+    }
+  }
+
+  function toggleNotes() {
+    notesEl.classList.toggle('open');
+    if (notesEl.classList.contains('open')) updateNotes();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+      e.preventDefault();
+      next();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prev();
+    } else if (e.key === 'Home') {
+      e.preventDefault(); go(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); go(total - 1);
+    } else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      toggleNotes();
+    } else if (e.key === 'Escape') {
+      if (notesEl.classList.contains('open')) toggleNotes();
+    } else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      toggleFullscreen();
+    } else if (/^[0-9]$/.test(e.key)) {
+      const n = parseInt(e.key, 10);
+      if (n === 0) go(9); else go(n - 1);
+    }
+  });
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(()=>{});
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', prev);
+  document.getElementById('nextBtn').addEventListener('click', next);
+  document.getElementById('notesBtn').addEventListener('click', toggleNotes);
+  document.getElementById('fsBtn').addEventListener('click', toggleFullscreen);
+
+  // Touch swipe
+  let touchStartX = null;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', (e) => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+    touchStartX = null;
+  }, {passive:true});
+
+  render();
+  // Re-highlight on load (CDN async)
+  window.addEventListener('load', () => {
+    if (window.Prism) Prism.highlightAll();
+  });
+})();
+</script>
+</body>
+</html>

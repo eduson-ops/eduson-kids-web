@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Урок 4 — Циклы for/while. Списки | Vibe Coding Step 1</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<!-- Prism.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+
+<style>
+/* ---------- Reset & base ---------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0B0F17;
+  --bg-2: #141A26;
+  --bg-3: #1C2333;
+  --violet: #7C3AED;
+  --violet-2: #A78BFA;
+  --cyan: #06B6D4;
+  --cyan-2: #67E8F9;
+  --text: #E6EAF2;
+  --text-dim: #9CA3AF;
+  --text-mute: #6B7280;
+  --border: rgba(255,255,255,0.08);
+  --glass: rgba(255,255,255,0.04);
+  --glass-2: rgba(124,58,237,0.08);
+  --good: #10B981;
+  --warn: #F59E0B;
+  --bad: #EF4444;
+}
+html, body {
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+code, pre, .mono { font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace; }
+
+/* ---------- Background gradient layer ---------- */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(1200px 800px at 15% 10%, rgba(124,58,237,0.18), transparent 60%),
+    radial-gradient(1000px 700px at 85% 90%, rgba(6,182,212,0.15), transparent 60%),
+    radial-gradient(600px 600px at 50% 50%, rgba(124,58,237,0.06), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---------- Slide deck ---------- */
+.deck {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+}
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  padding: 56px 72px 72px 72px;
+  flex-direction: column;
+  animation: fadeIn .45s ease;
+  overflow-y: auto;
+}
+.slide.active { display: flex; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Typography ---------- */
+h1, h2, h3 { font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+h1 { font-size: 64px; }
+h2 { font-size: 40px; }
+h3 { font-size: 24px; font-weight: 700; }
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cyan-2);
+  margin-bottom: 14px;
+}
+.lead { font-size: 22px; color: var(--text-dim); line-height: 1.5; max-width: 900px; }
+.muted { color: var(--text-dim); }
+
+.gradient-text {
+  background: linear-gradient(135deg, #A78BFA 0%, #67E8F9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ---------- Glass card ---------- */
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.glass-hi {
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.08));
+  border: 1px solid rgba(124,58,237,0.25);
+}
+
+/* ---------- Grid helpers ---------- */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stack  { display: flex; flex-direction: column; gap: 16px; }
+.row    { display: flex; gap: 16px; align-items: center; }
+.wrap   { flex-wrap: wrap; }
+
+/* ---------- Header & footer ---------- */
+.slide-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 14px; letter-spacing: 0.04em;
+}
+.brand .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  box-shadow: 0 0 14px rgba(124,58,237,0.6);
+}
+.slide-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-mute);
+  font-size: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- Chips / badges ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px; font-weight: 600;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.chip.hi { color: var(--violet-2); border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.12); }
+.chip.cy { color: var(--cyan-2); border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.10); }
+
+/* ---------- Code block ---------- */
+pre[class*="language-"] {
+  background: #0A0E17 !important;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02), 0 10px 30px rgba(0,0,0,0.35);
+  overflow: auto;
+}
+code[class*="language-"] { font-family: 'JetBrains Mono', monospace !important; font-size: 15px !important; }
+.code-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: var(--text-dim);
+  padding: 10px 16px;
+  background: #0A0E17;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+.code-title + pre[class*="language-"] { border-radius: 0 0 14px 14px; margin-top: -1px; }
+.code-title .d { width: 11px; height: 11px; border-radius: 50%; }
+.d.r { background: #ff5f56; } .d.y { background: #ffbd2e; } .d.g { background: #27c93f; }
+
+/* ---------- Lists ---------- */
+.list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 18px; color: var(--text);
+  line-height: 1.55;
+}
+.list li::before {
+  content: '';
+  flex: 0 0 8px;
+  width: 8px; height: 8px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+}
+.check li::before { background: var(--good); mask: none; }
+
+/* ---------- Metric cards ---------- */
+.metric {
+  padding: 20px;
+  border-radius: 14px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+}
+.metric .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 42px; font-weight: 700;
+  background: linear-gradient(135deg, var(--violet-2), var(--cyan-2));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.metric .lbl { font-size: 13px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* ---------- Nav controls ---------- */
+.nav {
+  position: fixed;
+  bottom: 18px; right: 22px;
+  display: flex; gap: 8px;
+  z-index: 50;
+}
+.nav button {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  width: 38px; height: 38px;
+  font-size: 18px; cursor: pointer;
+  transition: all .15s ease;
+  backdrop-filter: blur(10px);
+}
+.nav button:hover { background: rgba(124,58,237,0.18); border-color: rgba(124,58,237,0.45); }
+.counter {
+  position: fixed;
+  bottom: 24px; left: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--text-dim);
+  z-index: 50;
+  background: var(--glass);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
+.progress {
+  position: fixed; top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--cyan));
+  transition: width .35s ease;
+  z-index: 100;
+  box-shadow: 0 0 12px rgba(124,58,237,0.5);
+}
+
+/* ---------- Speaker notes ---------- */
+.notes {
+  position: fixed;
+  left: 22px; bottom: 64px;
+  max-width: 600px;
+  padding: 18px 20px;
+  background: rgba(11,15,23,0.95);
+  border: 1px solid rgba(124,58,237,0.35);
+  border-radius: 14px;
+  display: none;
+  z-index: 60;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.notes.show { display: block; }
+.notes .label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--violet-2); font-weight: 700; margin-bottom: 8px;
+}
+.notes .content { font-size: 14px; line-height: 1.5; color: var(--text); }
+
+/* ---------- Title slide ---------- */
+.title-wrap {
+  display: flex; flex-direction: column; justify-content: center;
+  height: 100%;
+  max-width: 1100px;
+}
+.mega {
+  font-size: 104px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+.title-meta {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-top: 32px;
+}
+
+/* ---------- Two column layout ---------- */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  flex: 1;
+}
+.two-col.small-l { grid-template-columns: 0.8fr 1.2fr; }
+.two-col.small-r { grid-template-columns: 1.2fr 0.8fr; }
+
+/* ---------- Step box ---------- */
+.step {
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  position: relative;
+}
+.step .sn {
+  position: absolute; top: -14px; left: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  color: white;
+}
+.step h3 { margin-bottom: 6px; }
+.step p { font-size: 15px; color: var(--text-dim); line-height: 1.5; }
+
+/* ---------- Compare table ---------- */
+.cmp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.cmp > div {
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+.cmp .a { background: rgba(124,58,237,0.10); border-color: rgba(124,58,237,0.3); }
+.cmp .b { background: rgba(6,182,212,0.08); border-color: rgba(6,182,212,0.3); }
+.cmp h3 { margin-bottom: 10px; }
+.cmp .tag {
+  display: inline-block; margin-bottom: 12px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.a .tag { background: rgba(124,58,237,0.25); color: var(--violet-2); }
+.b .tag { background: rgba(6,182,212,0.22); color: var(--cyan-2); }
+
+/* ---------- Timeline ---------- */
+.timeline {
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative;
+}
+.tl-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.tl-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 14px;
+  color: var(--cyan-2);
+  padding: 10px 14px;
+  background: rgba(6,182,212,0.10);
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid rgba(6,182,212,0.25);
+}
+.tl-body {
+  padding: 12px 18px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.tl-body h3 { font-size: 16px; margin-bottom: 4px; }
+.tl-body p { font-size: 14px; color: var(--text-dim); line-height: 1.5; }
+
+/* ---------- Badge (бейдж) ---------- */
+.badge-box {
+  padding: 36px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.22), rgba(6,182,212,0.14));
+  border: 2px solid rgba(124,58,237,0.4);
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(124,58,237,0.2);
+}
+.badge-big {
+  font-size: 140px;
+  line-height: 1;
+}
+.badge-box h2 { margin-top: 10px; }
+
+/* ---------- Terminal ---------- */
+.term {
+  background: #05080F;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.term .prompt { color: var(--cyan-2); }
+.term .out { color: var(--text); }
+.term .var { color: var(--violet-2); }
+.term .sys { color: var(--text-mute); }
+
+/* Cursor keyboard hint */
+.kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+/* Responsive-ish */
+@media (max-width: 1200px) {
+  .slide { padding: 44px 48px; }
+  h1 { font-size: 52px; }
+  h2 { font-size: 34px; }
+  .mega { font-size: 80px; }
+}
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+
+<body>
+<div class="progress" id="progress" style="width: 0%"></div>
+
+<div class="deck" id="deck">
+
+<!-- ============================================================ -->
+<!-- 1. TITLE -->
+<!-- ============================================================ -->
+<section class="slide active" data-note="Привет, вайб-кодер! Сегодня 4-й урок. Заставим компьютер повторять за нас действия сотни раз. Два мощных инструмента — for и while. И ещё списки. В конце ты получишь бейдж «Повелитель циклов».">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Vibe Coding · Step 1 · 11–12 лет</div>
+    <span class="chip cy">Модуль 1 · Неделя 4</span>
+  </div>
+
+  <div class="title-wrap">
+    <div class="eyebrow">Урок № 4 · 60 минут</div>
+    <h1 class="mega">Циклы <span class="gradient-text">for</span> и <span class="gradient-text">while</span>.<br/>Списки.</h1>
+    <p class="lead" style="margin-top: 24px">
+      Заставляем компьютер пахать. Таблица умножения за 1 секунду, игра «Угадай число» с 10 попытками и первый бейдж повелителя циклов.
+    </p>
+
+    <div class="title-meta">
+      <span class="chip hi">for i in range(...)</span>
+      <span class="chip hi">while &lt;условие&gt;</span>
+      <span class="chip hi">list + .append()</span>
+      <span class="chip cy">break</span>
+      <span class="chip cy">random</span>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Eduson Kids · Vibe Coding Step 1</span>
+    <span>Модуль «Я управляю компьютером» · 2026</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 2. AGENDA -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Поминутный план. 60 минут делим по блокам — разбор ДЗ, теория, три задания, мини-проект, рефлексия. Важно: к 45-й минуте у ребёнка должна быть готова заготовка игры.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> План занятия</div>
+    <span class="chip">60 минут · pacing</span>
+  </div>
+
+  <h2>План на сегодня</h2>
+  <p class="lead" style="margin: 10px 0 28px">От разбора домашки до бейджа «Повелитель циклов».</p>
+
+  <div class="timeline" style="flex: 1">
+    <div class="tl-row">
+      <div class="tl-time">0 – 5</div>
+      <div class="tl-body">
+        <h3>Разбор ДЗ — подсказка пароля</h3>
+        <p>Лайкаем, переходим: «а теперь дадим компьютеру повторять действия сотни раз, пока не надоест».</p>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">5 – 15</div>
+      <div class="tl-body">
+        <h3>Теория-демо: for, while, list</h3>
+        <p>Метафора будильника и чистки зубов. Бесконечный цикл и Ctrl+C. Новый словарь: цикл, итерация, range, break, append.</p>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">15 – 45</div>
+      <div class="tl-body">
+        <h3>Практика: 3 задания</h3>
+        <p>Таблица умножения · Список друзей · Игра «угадай число» с random.</p>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">45 – 55</div>
+      <div class="tl-body">
+        <h3>Мини-проект: «Угадай число — 10 попыток»</h3>
+        <p>Финал игры с счётчиком попыток и сообщением «Загадано было N».</p>
+      </div>
+    </div>
+    <div class="tl-row">
+      <div class="tl-time">55 – 60</div>
+      <div class="tl-body">
+        <h3>Демо + бейдж «Повелитель циклов»</h3>
+        <p>Преподаватель играет при ученике. Выдача бейджа в Notion-доску.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Урок 4 · План</span><span>02 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 3. GOAL & RESULTS -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Цель и результаты. Если к концу урока ребёнок запустил игру угадай число и сам угадал — мы молодцы. Проверяем 4 критерия: for работает, while с break, список с append, игра проходится.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Цель урока</div>
+    <span class="chip hi">Образовательные результаты</span>
+  </div>
+
+  <div class="two-col" style="flex: 1">
+    <div class="glass glass-hi" style="padding: 32px; display: flex; flex-direction: column; justify-content: center;">
+      <div class="eyebrow">Главное за 60 минут</div>
+      <h2 style="margin-bottom: 16px">Ребёнок написал два скрипта:</h2>
+      <ul class="list">
+        <li><strong>Генератор таблицы умножения</strong> — через <code>for</code></li>
+        <li><strong>Игра «Угадай число»</strong> — через <code>while</code> + <code>break</code></li>
+        <li>Выдаётся бейдж <span class="chip hi" style="margin-left: 4px">Повелитель циклов</span></li>
+      </ul>
+    </div>
+
+    <div class="stack">
+      <div>
+        <h3 style="color: var(--cyan-2); margin-bottom: 12px">Ученик знает</h3>
+        <ul class="list">
+          <li><code>for i in range(...)</code>, <code>while</code>, <code>break</code></li>
+          <li>структуру <code>list</code> и метод <code>.append()</code></li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color: var(--cyan-2); margin-bottom: 12px">Ученик понимает</h3>
+        <ul class="list">
+          <li>Разницу: <code>for</code> — известно сколько; <code>while</code> — пока условие истинно</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color: var(--cyan-2); margin-bottom: 12px">Ученик умеет</h3>
+        <ul class="list">
+          <li>генерировать числа и перебирать список</li>
+          <li>выходить из бесконечного цикла — <code>break</code> или <code>Ctrl+C</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Цель · Результаты</span><span>03 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 4. METAPHOR -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Главная метафора. Цикл = будильник, который звенит каждое утро. Или как ты чистишь зубы — повторяешь одно движение много раз. Визуал: три иконки с подписями.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Метафора</div>
+    <span class="chip cy">Теория · 5–15 мин</span>
+  </div>
+
+  <div class="eyebrow">Главная идея</div>
+  <h2 style="margin-bottom: 36px">Цикл — это <span class="gradient-text">повторение действия</span> много раз</h2>
+
+  <div class="grid-3" style="flex: 1; align-content: center;">
+    <div class="glass" style="padding: 32px; text-align: center;">
+      <div style="font-size: 72px; margin-bottom: 12px;">⏰</div>
+      <h3 style="margin-bottom: 10px">Будильник</h3>
+      <p class="muted" style="font-size: 15px; line-height: 1.5">Звенит каждое утро. Действие одно — повторяется по расписанию.</p>
+    </div>
+    <div class="glass" style="padding: 32px; text-align: center;">
+      <div style="font-size: 72px; margin-bottom: 12px;">🦷</div>
+      <h3 style="margin-bottom: 10px">Чистка зубов</h3>
+      <p class="muted" style="font-size: 15px; line-height: 1.5">Сверху вниз, движение за движением. Ты знаешь: зубов 32 — значит столько итераций.</p>
+    </div>
+    <div class="glass" style="padding: 32px; text-align: center;">
+      <div style="font-size: 72px; margin-bottom: 12px;">🫖</div>
+      <h3 style="margin-bottom: 10px">Чайник</h3>
+      <p class="muted" style="font-size: 15px; line-height: 1.5">Кипит, пока не закипит. Сколько раз булькнуть — неизвестно. Условие: «температура не достигла 100°».</p>
+    </div>
+  </div>
+
+  <div class="glass glass-hi" style="padding: 22px 28px; margin-top: 28px;">
+    <p style="font-size: 17px; color: var(--text)">
+      <strong style="color: var(--violet-2)">for</strong> — когда знаешь, сколько повторить (зубы). &nbsp;•&nbsp;
+      <strong style="color: var(--cyan-2)">while</strong> — пока условие истинно (чайник).
+    </p>
+  </div>
+
+  <div class="slide-footer"><span>Метафора</span><span>04 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 5. GLOSSARY -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Словарь урока. 7 терминов. Произносим каждый, пусть повторит. В конце урока вернёмся и проверим — помнит ли.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Словарь урока</div>
+    <span class="chip">7 новых терминов</span>
+  </div>
+
+  <h2>Словарь вайб-кодера</h2>
+  <p class="lead" style="margin: 10px 0 28px">Термины, которые сегодня войдут в активный лексикон.</p>
+
+  <div class="grid-4" style="gap: 18px; flex: 1; align-content: start;">
+    <div class="glass" style="padding: 20px;">
+      <div class="eyebrow">01</div>
+      <h3 style="color: var(--violet-2)">Цикл</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Повторение блока кода много раз.</p>
+    </div>
+    <div class="glass" style="padding: 20px;">
+      <div class="eyebrow">02</div>
+      <h3 style="color: var(--violet-2)">Итерация</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Один «проход» цикла. 10 итераций = 10 повторов.</p>
+    </div>
+    <div class="glass" style="padding: 20px;">
+      <div class="eyebrow">03</div>
+      <h3 style="color: var(--cyan-2)">range</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Генератор чисел: <code>range(1, 11)</code> → 1..10.</p>
+    </div>
+    <div class="glass" style="padding: 20px;">
+      <div class="eyebrow">04</div>
+      <h3 style="color: var(--cyan-2)">break</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Выход из цикла. Сразу. Без лишних слов.</p>
+    </div>
+    <div class="glass" style="padding: 20px;">
+      <div class="eyebrow">05</div>
+      <h3 style="color: var(--violet-2)">list (список)</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Коллекция значений в квадратных скобках.</p>
+    </div>
+    <div class="glass" style="padding: 20px;">
+      <div class="eyebrow">06</div>
+      <h3 style="color: var(--violet-2)">append</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Метод: добавить элемент в конец списка.</p>
+    </div>
+    <div class="glass" style="padding: 20px;">
+      <div class="eyebrow">07</div>
+      <h3 style="color: var(--cyan-2)">index</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Номер элемента. Считаем <strong>с нуля</strong>.</p>
+    </div>
+    <div class="glass glass-hi" style="padding: 20px;">
+      <div class="eyebrow">+</div>
+      <h3>Ctrl + C</h3>
+      <p class="muted" style="font-size: 14px; margin-top: 6px">Стоп-кран в терминале. Если цикл завис.</p>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Словарь</span><span>05 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 6. FOR — syntax -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Демо 1: for. Разбираем построчно. Особенно обращаем внимание, что range(1, 11) даёт 1..10 — правая граница не включается. Это любимая ошибка.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Цикл <code style="color: var(--violet-2)">for</code></div>
+    <span class="chip hi">Известное количество</span>
+  </div>
+
+  <div class="two-col" style="flex: 1">
+    <div class="stack">
+      <h2>Когда знаешь, <span class="gradient-text">сколько раз</span></h2>
+      <p class="lead" style="font-size: 19px">
+        <code>for</code> проходит по последовательности (числа, список, строка) и выполняет блок для каждого элемента.
+      </p>
+
+      <div class="glass" style="padding: 18px 22px;">
+        <div class="eyebrow">Синтаксис</div>
+        <pre class="mono" style="font-size: 16px; color: var(--cyan-2); padding-top: 6px;">for <span style="color: var(--violet-2)">&lt;переменная&gt;</span> in <span style="color: var(--cyan-2)">&lt;последовательность&gt;</span>:
+    <span style="color: var(--text-dim)"># тело цикла — с отступом</span></pre>
+      </div>
+
+      <ul class="list">
+        <li><code>range(5)</code> → 0, 1, 2, 3, 4</li>
+        <li><code>range(1, 11)</code> → 1..10 <span class="muted">(правая граница не включается!)</span></li>
+        <li><code>range(0, 10, 2)</code> → 0, 2, 4, 6, 8</li>
+      </ul>
+    </div>
+
+    <div class="stack">
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; hello_for.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">for i in range(5):
+    print("Привет", i)
+
+# Вывод:
+# Привет 0
+# Привет 1
+# Привет 2
+# Привет 3
+# Привет 4</div><div class="compiler-output"></div></div>
+
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; over_list.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">fruits = ["яблоко", "банан", "груша"]
+
+for f in fruits:
+    print(f)</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>for · range</span><span>06 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 7. WHILE — syntax -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Демо 2: while. Показываем while True и сразу же Ctrl+C. Ребёнок должен один раз реально остановить бесконечный цикл — это важный навык.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Цикл <code style="color: var(--cyan-2)">while</code></div>
+    <span class="chip cy">Пока условие истинно</span>
+  </div>
+
+  <div class="two-col" style="flex: 1">
+    <div class="stack">
+      <h2>Когда знаешь <span class="gradient-text">«пока что»</span></h2>
+      <p class="lead" style="font-size: 19px">
+        <code>while</code> проверяет условие <strong>перед каждой итерацией</strong>. Пока <code>True</code> — работает. Стало <code>False</code> — выходит.
+      </p>
+
+      <div class="glass" style="padding: 18px 22px;">
+        <div class="eyebrow">Синтаксис</div>
+        <pre class="mono" style="font-size: 16px; color: var(--cyan-2); padding-top: 6px;">while <span style="color: var(--cyan-2)">&lt;условие&gt;</span>:
+    <span style="color: var(--text-dim)"># тело — выполняется пока True</span></pre>
+      </div>
+
+      <div class="glass glass-hi" style="padding: 16px 20px;">
+        <div class="row" style="gap: 10px;">
+          <span style="font-size: 24px">⚠️</span>
+          <p style="font-size: 15px; line-height: 1.5">
+            <strong>Бесконечный цикл?</strong> Если забыл поменять условие внутри — программа зависнет. Стоп-кран: <span class="kbd">Ctrl</span> + <span class="kbd">C</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; countdown.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">count = 5
+while count &gt; 0:
+    print(count)
+    count = count - 1
+
+print("Старт!")
+
+# 5  4  3  2  1  Старт!</div><div class="compiler-output"></div></div>
+
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; infinite.py <span style="color:#ff5f56;">— Ctrl+C чтобы остановить</span></div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">while True:
+    print("спам...")
+    # нет условия выхода!
+    # → работает вечно</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>while · бесконечность</span><span>07 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 8. FOR vs WHILE -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Главный водораздел. Когда знаешь сколько — for. Когда не знаешь — while. Пусть ребёнок приведёт свой пример каждого типа.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> <code style="color: var(--violet-2)">for</code> vs <code style="color: var(--cyan-2)">while</code></div>
+    <span class="chip">Главный выбор</span>
+  </div>
+
+  <h2>Как выбрать <span class="gradient-text">правильный цикл</span></h2>
+  <p class="lead" style="margin: 10px 0 28px">Главный вопрос: <strong>я знаю заранее, сколько раз повторять?</strong></p>
+
+  <div class="cmp" style="flex: 1">
+    <div class="a">
+      <span class="tag">FOR</span>
+      <h3>Известное количество шагов</h3>
+      <p class="muted" style="margin: 10px 0 16px; font-size: 15px">Есть конкретная последовательность или число повторов.</p>
+      <ul class="list" style="margin-bottom: 18px;">
+        <li>Таблица умножения 1..10</li>
+        <li>Перебор списка друзей</li>
+        <li>Печать 100 звёздочек</li>
+        <li>Обход символов в строке</li>
+      </ul>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">for i in range(1, 11):
+    print(f"7 × {i} = {7*i}")</div><div class="compiler-output"></div></div>
+    </div>
+
+    <div class="b">
+      <span class="tag">WHILE</span>
+      <h3>Неизвестное количество</h3>
+      <p class="muted" style="margin: 10px 0 16px; font-size: 15px">Пока выполняется условие — работаем. Когда остановится — не знаем.</p>
+      <ul class="list" style="margin-bottom: 18px;">
+        <li>Пока пользователь не угадал</li>
+        <li>Пока ответ сервера ≠ 200</li>
+        <li>Пока не ввели «стоп»</li>
+        <li>Пока вода не закипит</li>
+      </ul>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">secret = 42
+while guess != secret:
+    guess = int(input("? "))</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Выбор цикла</span><span>08 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 9. LISTS -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Списки. Коллекция значений. Индексы с нуля — это типичная путаница. Повторяем: friends[0] — это первый элемент. Да, программисты странные.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Списки (<code>list</code>)</div>
+    <span class="chip hi">Коллекция значений</span>
+  </div>
+
+  <div class="two-col small-r" style="flex: 1">
+    <div class="stack">
+      <h2>Список — <span class="gradient-text">коробка с ячейками</span></h2>
+      <p class="lead" style="font-size: 18px">
+        Хранит несколько значений в одной переменной. Каждое — по своему номеру (индексу).
+      </p>
+
+      <div class="glass" style="padding: 18px 22px">
+        <div class="eyebrow">Индексация — с нуля!</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; margin-top: 6px">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px">
+            <div style="background: rgba(124,58,237,0.15); padding: 10px; border-radius: 8px; border: 1px solid rgba(124,58,237,0.4); text-align: center;">
+              <div style="color: var(--text-mute); font-size: 11px;">[0]</div>
+              <div>"Ваня"</div>
+            </div>
+            <div style="background: rgba(6,182,212,0.15); padding: 10px; border-radius: 8px; border: 1px solid rgba(6,182,212,0.4); text-align: center;">
+              <div style="color: var(--text-mute); font-size: 11px;">[1]</div>
+              <div>"Катя"</div>
+            </div>
+            <div style="background: rgba(16,185,129,0.15); padding: 10px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.4); text-align: center;">
+              <div style="color: var(--text-mute); font-size: 11px;">[2]</div>
+              <div>"Петя"</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ul class="list">
+        <li><code>friends[0]</code> → "Ваня"</li>
+        <li><code>friends[-1]</code> → последний</li>
+        <li><code>len(friends)</code> → 3</li>
+        <li><code>friends.append("Маша")</code> → добавит в конец</li>
+      </ul>
+    </div>
+
+    <div class="stack">
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; friends.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">friends = ["Ваня", "Катя", "Петя"]
+
+# цикл — здороваемся с каждым
+for name in friends:
+    print(f"Привет, {name}!")
+
+# добавили нового
+friends.append("Маша")
+
+print(f"Теперь друзей: {len(friends)}")
+print(friends)
+
+# Привет, Ваня!
+# Привет, Катя!
+# Привет, Петя!
+# Теперь друзей: 4
+# ['Ваня', 'Катя', 'Петя', 'Маша']</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>list · append · index</span><span>09 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 10. TASK 1 — multiplication -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Задание 1. 8 минут. Таблица умножения на 7. Ребёнок сам пишет цикл. Подсказка: range(1, 11) — иначе не будет 10-й строчки.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Задание 1 · Практика</div>
+    <span class="chip cy">8 минут · 15–23 мин</span>
+  </div>
+
+  <div class="eyebrow">Практика под руководством · №1</div>
+  <h2 style="margin-bottom: 18px">Таблица умножения на <span class="gradient-text">7</span></h2>
+
+  <div class="two-col" style="flex: 1">
+    <div class="stack">
+      <div class="step">
+        <span class="sn">ШАГ 1</span>
+        <h3>Сформулируй задачу словами</h3>
+        <p>«Повтори 10 раз: напечатай „7 × i = результат“, где i меняется от 1 до 10».</p>
+      </div>
+      <div class="step">
+        <span class="sn">ШАГ 2</span>
+        <h3>Выбери цикл</h3>
+        <p>Известно, сколько повторов (10)? Значит — <code>for</code> с <code>range(1, 11)</code>.</p>
+      </div>
+      <div class="step">
+        <span class="sn">ШАГ 3</span>
+        <h3>Собери f-строку</h3>
+        <p>Вывод красивый: <code>f"7 × {i} = {7*i}"</code> — умножение считается прямо в шаблоне.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; mult_table.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">for i in range(1, 11):
+    print(f"7 × {i} = {7*i}")</div><div class="compiler-output"></div></div>
+
+      <div class="term">
+        <div class="prompt">$ python mult_table.py</div>
+        <div class="out">7 × 1 = 7</div>
+        <div class="out">7 × 2 = 14</div>
+        <div class="out">7 × 3 = 21</div>
+        <div class="out">7 × 4 = 28</div>
+        <div class="sys">...</div>
+        <div class="out">7 × 10 = 70</div>
+      </div>
+
+      <div class="chip hi"><span>🚀</span> Бонус: спроси у пользователя число и сделай таблицу на его выбор</div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Задание 1</span><span>10 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 11. TASK 2 — friends list -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Задание 2. 10 минут. Список друзей + append. Пусть ребёнок впишет реальные имена одноклассников — это и цепляет.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Задание 2 · Практика</div>
+    <span class="chip cy">10 минут · 23–33 мин</span>
+  </div>
+
+  <div class="eyebrow">Практика под руководством · №2</div>
+  <h2 style="margin-bottom: 18px">Список друзей <span class="gradient-text">+ append</span></h2>
+
+  <div class="two-col" style="flex: 1">
+    <div class="stack">
+      <p class="lead">
+        Сделай три вещи: создай список имён, поздоровайся с каждым через цикл, добавь нового друга через <code>.append()</code> и снова поздоровайся со всеми.
+      </p>
+
+      <div class="grid-2" style="gap: 14px">
+        <div class="metric">
+          <div class="num">1</div>
+          <div class="lbl">создать список</div>
+        </div>
+        <div class="metric">
+          <div class="num">2</div>
+          <div class="lbl">цикл for</div>
+        </div>
+        <div class="metric">
+          <div class="num">3</div>
+          <div class="lbl">.append()</div>
+        </div>
+        <div class="metric">
+          <div class="num">4</div>
+          <div class="lbl">снова цикл</div>
+        </div>
+      </div>
+
+      <div class="glass glass-hi" style="padding: 16px 20px;">
+        <p style="font-size: 15px; line-height: 1.5">
+          💡 <strong>Фишка:</strong> впиши реальные имена одноклассников — потом покажешь им: «смотри, я с вами поздоровался программой».
+        </p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; friends.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">friends = ["Ваня", "Катя", "Петя"]
+
+for name in friends:
+    print(f"Привет, {name}!")
+
+# добавляем ещё одного
+friends.append("Маша")
+
+print("---")
+print("После добавления:")
+
+for name in friends:
+    print(f"Привет, {name}!")</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Задание 2</span><span>11 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 12. TASK 3 — guess game (intro) -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Задание 3. 15 минут. Самое большое и интересное. Угадай число. Здесь встречается всё: while, if, random, break. Разбираем по шагам.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Задание 3 · Практика</div>
+    <span class="chip cy">15 минут · 30–45 мин</span>
+  </div>
+
+  <div class="eyebrow">Практика под руководством · №3 — главное задание урока</div>
+  <h2 style="margin-bottom: 6px">Игра <span class="gradient-text">«Угадай число»</span></h2>
+  <p class="lead" style="margin-bottom: 28px">Python загадывает число от 1 до 100. Ты угадываешь. Он подсказывает «больше» или «меньше».</p>
+
+  <div class="grid-3" style="flex: 1; align-content: start;">
+    <div class="step">
+      <span class="sn">01</span>
+      <h3>import random</h3>
+      <p>Стандартная библиотека. Даёт случайные числа. <code>random.randint(1, 100)</code> — случайное целое от 1 до 100 <strong>включительно</strong>.</p>
+    </div>
+    <div class="step">
+      <span class="sn">02</span>
+      <h3>while True</h3>
+      <p>Бесконечный цикл. Пока не угадали — продолжаем. Когда угадали — <code>break</code>.</p>
+    </div>
+    <div class="step">
+      <span class="sn">03</span>
+      <h3>Сравнение + подсказка</h3>
+      <p>Внутри цикла: спросили число, сравнили с секретом. Больше / меньше / точно.</p>
+    </div>
+    <div class="step">
+      <span class="sn">04</span>
+      <h3>Счётчик попыток</h3>
+      <p>Переменная <code>tries = 0</code>, внутри цикла <code>tries += 1</code>. В конце — сколько раз пытался.</p>
+    </div>
+    <div class="step">
+      <span class="sn">05</span>
+      <h3>Ограничение попыток</h3>
+      <p>Если <code>tries == 10</code> — выход по <code>break</code> с сообщением: «Загадано было N».</p>
+    </div>
+    <div class="step">
+      <span class="sn">06</span>
+      <h3>Поздравление</h3>
+      <p>После цикла — финальный <code>print</code> с количеством попыток и победной фразой.</p>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Задание 3 · разбор</span><span>12 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 13. GUESS GAME — code -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Полный код. Разбираем каждую строку. Особое внимание на break — выход из цикла. И на tries += 1 — так короче, чем tries = tries + 1.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> guess_game.py</div>
+    <span class="chip hi">Полный листинг</span>
+  </div>
+
+  <div class="two-col small-r" style="flex: 1">
+    <div class="stack">
+      <h2>Код игры</h2>
+      <p class="lead" style="font-size: 16px">Всего 14 строк — и у тебя рабочая игра с 10 попытками.</p>
+
+      <ul class="list">
+        <li><code>randint(1, 100)</code> — случайное число</li>
+        <li><code>while tries &lt; 10</code> — пока попытки есть</li>
+        <li><code>guess = int(input(...))</code> — не забыть <code>int</code>!</li>
+        <li><code>break</code> — выход при угадывании</li>
+      </ul>
+
+      <div class="glass glass-hi" style="padding: 14px 18px;">
+        <p style="font-size: 14px;">💡 <code>tries += 1</code> — это короткая запись <code>tries = tries + 1</code></p>
+      </div>
+    </div>
+
+    <div>
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; guess_game.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+secret = random.randint(1, 100)
+tries = 0
+
+print("Я загадал число от 1 до 100. У тебя 10 попыток!")
+
+while tries &lt; 10:
+    guess = int(input("Твой вариант: "))
+    tries += 1
+
+    if guess == secret:
+        print(f"🎉 Угадал за {tries} попыток!")
+        break
+    elif guess &lt; secret:
+        print("Больше ⬆️")
+    else:
+        print("Меньше ⬇️")
+else:
+    print(f"Попытки закончились. Загадано было {secret}")</div><div class="compiler-output"></div></div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>guess_game.py · 14 строк</span><span>13 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 14. TERMINAL DEMO -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Показываем, как выглядит игра в терминале. Пусть ребёнок прямо на уроке сыграет пару раундов.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Демо в терминале</div>
+    <span class="chip cy">Играем прямо сейчас</span>
+  </div>
+
+  <h2 style="margin-bottom: 18px">Как выглядит <span class="gradient-text">работающая игра</span></h2>
+
+  <div class="two-col" style="flex: 1">
+    <div class="term">
+      <div class="prompt">$ python guess_game.py</div>
+      <div class="out">Я загадал число от 1 до 100. У тебя 10 попыток!</div>
+      <div class="out">Твой вариант: <span class="var">50</span></div>
+      <div class="out">Больше ⬆️</div>
+      <div class="out">Твой вариант: <span class="var">75</span></div>
+      <div class="out">Меньше ⬇️</div>
+      <div class="out">Твой вариант: <span class="var">62</span></div>
+      <div class="out">Больше ⬆️</div>
+      <div class="out">Твой вариант: <span class="var">68</span></div>
+      <div class="out">Меньше ⬇️</div>
+      <div class="out">Твой вариант: <span class="var">65</span></div>
+      <div class="out">🎉 Угадал за 5 попыток!</div>
+    </div>
+
+    <div class="stack">
+      <div class="glass glass-hi" style="padding: 24px;">
+        <h3 style="margin-bottom: 12px; color: var(--cyan-2)">Что тестируем на уроке</h3>
+        <ul class="list">
+          <li>Ввожу <strong>50</strong> — стратегия «пополам»</li>
+          <li>Ввожу <strong>200</strong> — нет проверки диапазона!</li>
+          <li>Ввожу <strong>буквы</strong> — <code>ValueError</code> (это ок, разберём позже)</li>
+          <li>Специально <strong>не угадываю</strong> 10 раз — смотрим выход</li>
+        </ul>
+      </div>
+
+      <div class="glass" style="padding: 20px;">
+        <div class="eyebrow">Вопрос рефлексии</div>
+        <p style="font-size: 16px; line-height: 1.5">
+          <strong>А если бы я ввёл 200 в игре 1–100, что бы случилось?</strong>
+          Игра бы приняла — а смысла нет. На следующих уроках добавим валидацию.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Демо · терминал</span><span>14 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 15. MINI-PROJECT -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Мини-проект. 10 минут. Собираем финальную версию игры. Обязательно счётчик и верхний лимит 10.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Мини-проект урока</div>
+    <span class="chip hi">45–55 мин · финал</span>
+  </div>
+
+  <div class="eyebrow">Мини-проект</div>
+  <h2>«Угадай число — <span class="gradient-text">100 уровней зла</span>»</h2>
+  <p class="lead" style="margin: 10px 0 24px">
+    Финальная сборка: интерактивная игра с лимитом попыток. Полный цикл «угадал / не угадал / закончились попытки».
+  </p>
+
+  <div class="grid-3" style="flex: 1; align-content: start;">
+    <div class="glass glass-hi" style="padding: 24px;">
+      <div class="eyebrow">Что должно работать</div>
+      <ul class="list" style="margin-top: 12px">
+        <li>Python загадывает 1–100</li>
+        <li>Ровно 10 попыток</li>
+        <li>Подсказки «больше / меньше»</li>
+        <li>Счётчик в реальном времени</li>
+        <li>Финал: победа или спойлер</li>
+      </ul>
+    </div>
+
+    <div class="glass" style="padding: 24px;">
+      <div class="eyebrow">Как проверяется</div>
+      <ul class="list" style="margin-top: 12px">
+        <li>Ученик играет сам 1 раз</li>
+        <li>Преподаватель играет 1 раз</li>
+        <li>Специально сливаем 10 попыток</li>
+        <li>Специально угадываем с 3-го раза</li>
+      </ul>
+    </div>
+
+    <div class="glass" style="padding: 24px;">
+      <div class="eyebrow">Куда идёт проект</div>
+      <ul class="list" style="margin-top: 12px">
+        <li>📸 Скрин в TG-чат</li>
+        <li>📤 Отправь другу — пусть играет</li>
+        <li>🗂 В папку <code>step1/lesson4/</code></li>
+        <li>🏆 Бейдж «Повелитель циклов»</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Мини-проект</span><span>15 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 16. BADGE -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Бейдж. Это важный момент — геймификация курса. Сразу после демо заводим в Notion-доске, делаем скрин ребёнку.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Награда</div>
+    <span class="chip hi">55–60 мин</span>
+  </div>
+
+  <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 60px;">
+    <div class="badge-box" style="min-width: 380px;">
+      <div class="badge-big">🏆</div>
+      <div class="eyebrow" style="color: var(--violet-2)">Bedge unlocked</div>
+      <h2 style="font-size: 32px; margin-top: 8px">Повелитель циклов</h2>
+      <p class="muted" style="margin-top: 10px; font-size: 15px">Заслужил: рабочий <code>for</code>, рабочий <code>while</code>, 1 список с <code>.append()</code>, пройденная игра «Угадай число»</p>
+    </div>
+
+    <div class="stack" style="max-width: 480px;">
+      <div class="eyebrow">Критерии успеха урока</div>
+      <h2 style="margin-bottom: 10px">Что должно быть <span class="gradient-text">к 60-й минуте</span></h2>
+
+      <ul class="list check" style="font-size: 17px;">
+        <li>Работающий <code>for</code> с <code>range</code></li>
+        <li>Работающий <code>while</code> с выходом по <code>break</code></li>
+        <li>Список с <code>.append()</code></li>
+        <li>Игра «Угадай число» запускается и проходится до конца</li>
+      </ul>
+
+      <div class="glass glass-hi" style="padding: 16px 20px; margin-top: 8px;">
+        <p style="font-size: 15px; line-height: 1.5">
+          ✅ Все 4 галочки — <strong>бейдж выдан</strong>, фиксируем в Notion-доске.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Бейдж · аттестация урока</span><span>16 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 17. KEY PHRASES -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Ключевые фразы — это методика. Повторять их на каждом уроке. Особенно «жми Ctrl+C — это стоп-кран». Ребёнок должен знать это как таблицу умножения.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Фразы преподавателя</div>
+    <span class="chip">Методика Eduson Kids</span>
+  </div>
+
+  <h2 style="margin-bottom: 28px">Ключевые фразы <span class="gradient-text">на уроке</span></h2>
+
+  <div class="grid-2" style="flex: 1; align-content: start;">
+    <div class="glass" style="padding: 22px; border-left: 3px solid var(--violet);">
+      <div class="eyebrow">Приветствие</div>
+      <p style="font-size: 17px; margin-top: 8px; line-height: 1.5;">
+        «Вайб-кодер в эфире. Сегодня мы заставим компьютер пахать».
+      </p>
+    </div>
+
+    <div class="glass" style="padding: 22px; border-left: 3px solid var(--cyan);">
+      <div class="eyebrow">При объяснении</div>
+      <p style="font-size: 17px; margin-top: 8px; line-height: 1.5;">
+        «<code>for</code> — когда знаешь, сколько раз. <code>while</code> — пока не надоест. Как чайник кипит „пока не закипит“».
+      </p>
+    </div>
+
+    <div class="glass" style="padding: 22px; border-left: 3px solid var(--warn);">
+      <div class="eyebrow">Когда застрял</div>
+      <p style="font-size: 17px; margin-top: 8px; line-height: 1.5;">
+        «Программа зависла? Жми <span class="kbd">Ctrl</span>+<span class="kbd">C</span> — это стоп-кран. Потом найдём, почему цикл бесконечный».
+      </p>
+    </div>
+
+    <div class="glass" style="padding: 22px; border-left: 3px solid var(--good);">
+      <div class="eyebrow">При креативе</div>
+      <p style="font-size: 17px; margin-top: 8px; line-height: 1.5;">
+        «Ты сам добавил счётчик попыток — это уровень».
+      </p>
+    </div>
+
+    <div class="glass" style="padding: 22px; border-left: 3px solid var(--violet-2); grid-column: span 2;">
+      <div class="eyebrow">Закрытие урока</div>
+      <p style="font-size: 20px; margin-top: 8px; line-height: 1.5; font-weight: 500;">
+        «Поздравляю, ты повелитель циклов. <span style="color: var(--violet-2)">Бейдж в копилку</span>. На следующем уроке научим программу помнить — неделя пройдёт, а она всё равно помнит, что ты ей рассказал».
+      </p>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Ключевые фразы</span><span>17 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 18. PITFALLS -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Типичные сложности. Жду каждую из них. Бесконечный цикл будет точно. range с 1 до 10 — тоже точно. Разбираем лечение сразу.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Типичные сложности</div>
+    <span class="chip cy">Заранее готовы</span>
+  </div>
+
+  <h2 style="margin-bottom: 28px">Что пойдёт не так <span class="gradient-text">(и как лечить)</span></h2>
+
+  <div class="stack" style="flex: 1; gap: 14px;">
+    <div class="glass" style="padding: 20px 24px; display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: center;">
+      <div>
+        <div class="chip" style="color: var(--bad); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.12);">🔥 бесконечный цикл</div>
+      </div>
+      <div>
+        <strong style="display: block; margin-bottom: 2px">Программа зависла</strong>
+        <p class="muted" style="font-size: 14px">Показать <span class="kbd">Ctrl</span>+<span class="kbd">C</span>, потом вместе разобрать: забыл изменить переменную внутри цикла.</p>
+      </div>
+    </div>
+
+    <div class="glass" style="padding: 20px 24px; display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: center;">
+      <div>
+        <div class="chip" style="color: var(--warn); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.12);">⚠️ range(1, 10)</div>
+      </div>
+      <div>
+        <strong style="display: block; margin-bottom: 2px">Выводит 1..9, а не 1..10</strong>
+        <p class="muted" style="font-size: 14px">«У Python правая граница не включается, такая у него привычка. Надо <code>range(1, 11)</code>».</p>
+      </div>
+    </div>
+
+    <div class="glass" style="padding: 20px 24px; display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: center;">
+      <div>
+        <div class="chip" style="color: var(--bad); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.12);">❌ NameError: random</div>
+      </div>
+      <div>
+        <strong style="display: block; margin-bottom: 2px">random.randint не работает</strong>
+        <p class="muted" style="font-size: 14px">Проверь <code>import random</code> в первой строке. Без импорта — Python не знает, кто такой random.</p>
+      </div>
+    </div>
+
+    <div class="glass" style="padding: 20px 24px; display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: center;">
+      <div>
+        <div class="chip" style="color: var(--warn); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.12);">🎲 не тестирует границы</div>
+      </div>
+      <div>
+        <strong style="display: block; margin-bottom: 2px">Ребёнок угадывает сам</strong>
+        <p class="muted" style="font-size: 14px">«Специально введи 0 и 101 — посмотри реакцию. Ты тестировщик своей программы».</p>
+      </div>
+    </div>
+
+    <div class="glass" style="padding: 20px 24px; display: grid; grid-template-columns: 1fr 2fr; gap: 24px; align-items: center;">
+      <div>
+        <div class="chip" style="color: var(--warn); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.12);">🔢 путаница индексов</div>
+      </div>
+      <div>
+        <strong style="display: block; margin-bottom: 2px">friends[0] — это первый?</strong>
+        <p class="muted" style="font-size: 14px">«Да, программисты считают с нуля. Привыкай — это будет сопровождать тебя всегда».</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Типичные ошибки</span><span>18 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 19. HOMEWORK -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Домашнее задание. 20 минут максимум. Три уровня сложности. Пусть выберет, какой хочет, но минимум два сделал.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Домашнее задание</div>
+    <span class="chip cy">≤ 20 минут</span>
+  </div>
+
+  <div class="eyebrow">Домашнее задание до следующего урока</div>
+  <h2>Прокачать игру — <span class="gradient-text">3 уровня сложности</span></h2>
+
+  <div class="two-col" style="flex: 1; margin-top: 20px">
+    <div class="stack">
+      <p class="lead">
+        Добавь выбор в начале: «1 — лёгкий, 2 — средний, 3 — хардкор». Каждый уровень — свой диапазон и свои попытки.
+      </p>
+
+      <div class="grid-3" style="gap: 12px">
+        <div class="metric" style="text-align: center">
+          <div style="font-size: 28px; margin-bottom: 4px">🌱</div>
+          <div class="num" style="font-size: 26px;">1–10</div>
+          <div class="lbl">15 попыток</div>
+        </div>
+        <div class="metric" style="text-align: center">
+          <div style="font-size: 28px; margin-bottom: 4px">🔥</div>
+          <div class="num" style="font-size: 26px;">1–100</div>
+          <div class="lbl">10 попыток</div>
+        </div>
+        <div class="metric" style="text-align: center">
+          <div style="font-size: 28px; margin-bottom: 4px">💀</div>
+          <div class="num" style="font-size: 26px;">1–1000</div>
+          <div class="lbl">12 попыток</div>
+        </div>
+      </div>
+
+      <div class="glass glass-hi" style="padding: 16px 20px;">
+        <div class="eyebrow">Формат сдачи</div>
+        <ul class="list" style="font-size: 15px; margin-top: 8px;">
+          <li>📄 файл <code>guess_game.py</code></li>
+          <li>📸 скрин игры</li>
+          <li>🎤 голосовое 20 сек «как играется»</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="code-title"><span class="d r"></span><span class="d y"></span><span class="d g"></span>&nbsp; guess_game.py <span style="color: var(--cyan-2)">— скелет</span></div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+print("Выбери уровень:")
+print("1 — лёгкий (1–10)")
+print("2 — средний (1–100)")
+print("3 — хардкор (1–1000)")
+
+level = int(input("→ "))
+
+if level == 1:
+    max_n, tries_left = 10, 15
+elif level == 2:
+    max_n, tries_left = 100, 10
+else:
+    max_n, tries_left = 1000, 12
+
+secret = random.randint(1, max_n)
+# ... дальше твоя игра</div><div class="compiler-output"></div></div>
+
+      <div class="chip hi"><span>🚀</span> Бонус: режим «компьютер угадывает» — бинарный поиск за 7 ходов</div>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>ДЗ</span><span>19 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 20. REFLECTION -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Рефлексия. 5 минут. Обязательно задать эти 3 вопроса. Не отвечаем за ребёнка, ждём.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Рефлексия</div>
+    <span class="chip cy">Последние 5 минут</span>
+  </div>
+
+  <h2 style="margin-bottom: 28px">Вопросы <span class="gradient-text">к ученику</span></h2>
+
+  <div class="stack" style="flex: 1; gap: 18px;">
+    <div class="glass" style="padding: 26px 32px; display: grid; grid-template-columns: 80px 1fr; gap: 24px; align-items: center;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 48px; font-weight: 800;" class="gradient-text">Q1</div>
+      <div>
+        <h3 style="margin-bottom: 4px">Что такое итерация?</h3>
+        <p class="muted">Один проход цикла. Если <code>range(5)</code> — значит 5 итераций.</p>
+      </div>
+    </div>
+
+    <div class="glass" style="padding: 26px 32px; display: grid; grid-template-columns: 80px 1fr; gap: 24px; align-items: center;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 48px; font-weight: 800;" class="gradient-text">Q2</div>
+      <div>
+        <h3 style="margin-bottom: 4px">Если бы я ввёл 200 в игре 1–100 — что бы случилось?</h3>
+        <p class="muted">Игра бы приняла и сказала «меньше». На следующих уроках добавим проверку диапазона.</p>
+      </div>
+    </div>
+
+    <div class="glass" style="padding: 26px 32px; display: grid; grid-template-columns: 80px 1fr; gap: 24px; align-items: center;">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 48px; font-weight: 800;" class="gradient-text">Q3</div>
+      <div>
+        <h3 style="margin-bottom: 4px">Почему мы использовали while, а не for?</h3>
+        <p class="muted">Потому что мы не знали заранее, сколько попыток сделает пользователь. Могло быть 2, могло быть 10.</p>
+      </div>
+    </div>
+
+    <div class="glass glass-hi" style="padding: 22px 28px; margin-top: 8px;">
+      <div class="eyebrow" style="color: var(--violet-2)">Похвала (всегда!)</div>
+      <p style="font-size: 18px; margin-top: 6px; line-height: 1.5;">
+        «Ты сам добавил счётчик попыток — это <strong>уровень</strong>. Ты сегодня стал <span class="gradient-text" style="font-weight: 700">повелителем циклов</span>. Бейдж в копилку. На следующей неделе научимся сохранять записи в файлы — твоя программа начнёт <strong>помнить</strong>».
+      </p>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Рефлексия</span><span>20 / 21</span></div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 21. NEXT -->
+<!-- ============================================================ -->
+<section class="slide" data-note="Финальный слайд. Показываем, что ждёт на уроке 5 — работа с файлами, дневник, первая программа, которая помнит.">
+  <div class="slide-head">
+    <div class="brand"><span class="dot"></span> Что дальше</div>
+    <span class="chip hi">Урок 5 — через неделю</span>
+  </div>
+
+  <div class="title-wrap" style="justify-content: center;">
+    <div class="eyebrow">Следующая неделя</div>
+    <h1 class="mega" style="font-size: 84px;">Программа, которая <span class="gradient-text">помнит</span></h1>
+    <p class="lead" style="margin-top: 22px; font-size: 22px;">
+      Урок 5: Работа с файлами. Чтение и запись <code>.txt</code>. Пишем <strong>личный дневник</strong> с датой и временем. Твоя программа закроется — а записи останутся.
+    </p>
+
+    <div class="grid-3" style="margin-top: 36px; gap: 20px;">
+      <div class="glass" style="padding: 22px;">
+        <div class="eyebrow">Что освоишь</div>
+        <h3 style="margin-top: 8px;"><code>open()</code></h3>
+        <p class="muted" style="font-size: 14px; margin-top: 6px;">режимы <code>r</code>, <code>w</code>, <code>a</code>, кодировка UTF-8</p>
+      </div>
+      <div class="glass" style="padding: 22px;">
+        <div class="eyebrow">Новый модуль</div>
+        <h3 style="margin-top: 8px;"><code>datetime</code></h3>
+        <p class="muted" style="font-size: 14px; margin-top: 6px;">метка времени для каждой записи</p>
+      </div>
+      <div class="glass glass-hi" style="padding: 22px;">
+        <div class="eyebrow">Мини-проект</div>
+        <h3 style="margin-top: 8px;">Дневник вайб-кодера</h3>
+        <p class="muted" style="font-size: 14px; margin-top: 6px;">3 записи, поиск по слову, меню</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px; display: flex; gap: 12px; align-items: center;">
+      <span class="chip hi">До встречи, повелитель циклов!</span>
+      <span class="chip">Vibe Coding · Step 1</span>
+      <span class="chip cy">Модуль 1 · Неделя 5</span>
+    </div>
+  </div>
+
+  <div class="slide-footer"><span>Урок 4 завершён · следующий — через 7 дней</span><span>21 / 21</span></div>
+</section>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- UI: counter + nav + speaker notes -->
+<!-- ============================================================ -->
+<div class="counter" id="counter">01 / 21</div>
+
+<div class="notes" id="notes">
+  <div class="label">Speaker notes · N — скрыть</div>
+  <div class="content" id="notes-content"></div>
+</div>
+
+<div class="nav">
+  <button id="prev" title="Previous (←)">‹</button>
+  <button id="toggle-notes" title="Toggle notes (N)">N</button>
+  <button id="next" title="Next (→)">›</button>
+</div>
+
+<script>
+(() => {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+  let notesVisible = false;
+
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const notes = document.getElementById('notes');
+  const notesContent = document.getElementById('notes-content');
+
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    counter.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    progress.style.width = ((idx + 1) / total * 100) + '%';
+
+    const note = slides[idx].getAttribute('data-note') || '';
+    notesContent.textContent = note;
+
+    if (window.Prism) {
+      slides[idx].querySelectorAll('code[class*="language-"]').forEach(el => window.Prism.highlightElement(el));
+    }
+  }
+
+  function go(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    render();
+  }
+
+  document.getElementById('prev').addEventListener('click', () => go(idx - 1));
+  document.getElementById('next').addEventListener('click', () => go(idx + 1));
+  document.getElementById('toggle-notes').addEventListener('click', () => {
+    notesVisible = !notesVisible;
+    notes.classList.toggle('show', notesVisible);
+  });
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); go(idx + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(idx - 1); }
+    else if (e.key === 'Home') { go(0); }
+    else if (e.key === 'End')  { go(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      notesVisible = !notesVisible;
+      notes.classList.toggle('show', notesVisible);
+    }
+    else if (/^[0-9]$/.test(e.key)) {
+      const num = parseInt(e.key, 10);
+      if (num > 0 && num <= total) go(num - 1);
+    }
+  });
+
+  // Touch swipe
+  let touchStart = null;
+  document.addEventListener('touchstart', e => { touchStart = e.changedTouches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStart === null) return;
+    const dx = e.changedTouches[0].clientX - touchStart;
+    if (Math.abs(dx) > 50) go(idx + (dx < 0 ? 1 : -1));
+    touchStart = null;
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

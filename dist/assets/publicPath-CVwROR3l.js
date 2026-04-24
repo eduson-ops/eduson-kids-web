@@ -1,0 +1,1 @@
+var e="/eduson-kids-web/".replace(/\/$/,"");export{e as t};
