@@ -155,7 +155,12 @@ jobs:
             --environment "REDIS_PASSWORD=${{ secrets.APP_DB_PASSWORD }}" \
             --environment "JWT_ACCESS_SECRET=${{ secrets.APP_JWT_ACCESS_SECRET }}" \
             --environment "JWT_REFRESH_SECRET=${{ secrets.APP_JWT_REFRESH_SECRET }}" \
-            --environment "PII_KEY=${{ secrets.APP_PII_KEY }}"
+            --environment "PII_KEY=${{ secrets.APP_PII_KEY }}" \
+            --environment "LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}" \
+            --environment "LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}" \
+            --environment "LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}" \
+            --environment "CORS_WHITELIST=http://localhost:5173,http://localhost:4173,https://eduson-ops.github.io" \
+            --environment "SCHOOL_CODES=${{ secrets.SCHOOL_CODES }}"
 
       - name: Smoke test
         run: |
