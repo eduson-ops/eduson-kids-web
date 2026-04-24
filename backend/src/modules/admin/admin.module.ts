@@ -5,9 +5,10 @@ import { Classroom } from '../classroom/classroom.entity';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { AuthModule } from '../auth/auth.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Classroom]), AuthModule],
+  imports: [TypeOrmModule.forFeature([User, Classroom]), AuthModule, AuditModule],
   controllers: [AdminController],
   providers: [AdminService],
   exports: [AdminService],

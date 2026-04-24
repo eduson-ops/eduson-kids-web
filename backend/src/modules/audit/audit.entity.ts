@@ -35,6 +35,9 @@ export class AuditLog {
   @Column({ type: 'text', name: 'user_agent' })
   userAgent!: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  payload!: Record<string, unknown> | null;
+
   @CreateDateColumn({ name: 'created_at' })
   @Index()
   createdAt!: Date;

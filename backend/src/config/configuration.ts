@@ -55,6 +55,15 @@ export default () => ({
 
   schoolCodes: (process.env['SCHOOL_CODES'] ?? '').split(',').filter(Boolean),
 
+  ai: {
+    // Selects AiPipelineService provider: 'mock' (default) | 'anthropic' | 'openai' | 'yandexgpt'.
+    // Anthropic only activates when AI_PROVIDER=anthropic AND ANTHROPIC_API_KEY is set;
+    // otherwise the pipeline falls back to mock and logs a warning.
+    provider: process.env['AI_PROVIDER'] ?? 'mock',
+  },
+
+  ANTHROPIC_API_KEY: process.env['ANTHROPIC_API_KEY'] ?? '',
+
   throttle: {
     loginLimit: parseInt(process.env['THROTTLE_LOGIN_LIMIT'] ?? '5', 10),
     loginTtl: parseInt(process.env['THROTTLE_LOGIN_TTL'] ?? '900000', 10),

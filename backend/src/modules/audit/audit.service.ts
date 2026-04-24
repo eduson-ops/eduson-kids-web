@@ -11,6 +11,7 @@ interface AuditLogEntry {
   resourceId: string | null;
   ip: string;
   userAgent: string;
+  payload?: Record<string, unknown> | null;
 }
 
 @Injectable()
@@ -21,7 +22,10 @@ export class AuditService {
   ) {}
 
   async log(entry: AuditLogEntry): Promise<void> {
-    const log = this.auditRepo.create(entry);
+    const log = this.auditRepo.create({
+      ...entry,
+      payload: entry.payload ?? null,
+    });
     await this.auditRepo.save(log);
   }
 

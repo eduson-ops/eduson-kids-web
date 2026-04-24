@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +9,7 @@ import { Repository, Brackets } from 'typeorm';
 import { User, UserRole } from '../auth/entities/user.entity';
 import { Classroom } from '../classroom/classroom.entity';
 import { TenantContext } from '../../common/tenancy/tenant.context';
+import { AuditService } from '../audit/audit.service';
 
 /**
  * Admin operations service. Backed by an explicit role-permission matrix
@@ -23,8 +23,18 @@ import { TenantContext } from '../../common/tenancy/tenant.context';
  *   TEACHER         — non-admin
  *
  * Read operations enforce tenant scope by querying with `tenantId` filter.
- * Write operations additionally check role permissions.
+ * Write operations additionally check role permissions and emit an
+ * audit_logs entry (action prefix `admin.user.*`).
+ *
+ * Audit context (ip, userAgent) is passed in from the controller because
+ * AdminService is stateless and the request scope ends before fire-and-
+ * forget audit writes complete.
  */
+export interface AdminAuditContext {
+  ip: string;
+  userAgent: string;
+}
+
 @Injectable()
 export class AdminService {
   private readonly logger = new Logger(AdminService.name);
@@ -33,9 +43,11 @@ export class AdminService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Classroom) private readonly classrooms: Repository<Classroom>,
     private readonly tenantContext: TenantContext,
+    private readonly auditService: AuditService,
   ) {}
 
-  /** All users in the active tenant, optional role filter, paginated */
+  /** All users in the active tenant, optional role filter, paginated.
+   *  NOT audited — read operation, too noisy for the audit log. */
   async listUsers(opts: {
     role?: UserRole;
     page?: number;
@@ -66,11 +78,13 @@ export class AdminService {
   /**
    * Activate / deactivate a user. SCHOOL_ADMIN+ only.
    * Cannot deactivate yourself or someone with higher role.
+   * Audited as `admin.user.set_active`.
    */
   async setUserActive(
     actor: { sub: string; role: string },
     userId: string,
     isActive: boolean,
+    auditCtx: AdminAuditContext,
   ): Promise<User> {
     const ctx = this.tenantContext.require();
     if (actor.sub === userId) throw new ForbiddenException('Cannot toggle yourself');
@@ -84,17 +98,35 @@ export class AdminService {
       throw new ForbiddenException('Cannot modify user with equal or higher role');
     }
 
+    const oldActive = target.isActive;
     target.isActive = isActive;
-    return this.users.save(target);
+    const saved = await this.users.save(target);
+
+    // Audit (fire-and-forget — must not block the response or fail the action).
+    void this.auditService
+      .log({
+        userId: actor.sub,
+        action: 'admin.user.set_active',
+        resourceType: 'user',
+        resourceId: userId,
+        ip: auditCtx.ip,
+        userAgent: auditCtx.userAgent,
+        payload: { oldIsActive: oldActive, newIsActive: isActive },
+      })
+      .catch((err) => this.logger.warn(`audit log failed: ${(err as Error).message}`));
+
+    return saved;
   }
 
   /**
    * Change a user's role. PLATFORM_ADMIN only.
+   * Audited as `admin.user.set_role`.
    */
   async setUserRole(
     actor: { sub: string; role: string },
     userId: string,
     newRole: UserRole,
+    auditCtx: AdminAuditContext,
   ): Promise<User> {
     if (actor.role !== UserRole.PLATFORM_ADMIN) {
       throw new ForbiddenException('Only PLATFORM_ADMIN can change roles');
@@ -105,12 +137,28 @@ export class AdminService {
     const target = await this.users.findOne({ where: { id: userId, tenantId: ctx.tenantId } });
     if (!target) throw new NotFoundException('User not found');
 
+    const oldRole = target.role;
     target.role = newRole;
-    return this.users.save(target);
+    const saved = await this.users.save(target);
+
+    void this.auditService
+      .log({
+        userId: actor.sub,
+        action: 'admin.user.set_role',
+        resourceType: 'user',
+        resourceId: userId,
+        ip: auditCtx.ip,
+        userAgent: auditCtx.userAgent,
+        payload: { oldRole, newRole },
+      })
+      .catch((err) => this.logger.warn(`audit log failed: ${(err as Error).message}`));
+
+    return saved;
   }
 
   /**
    * Tenant-wide statistics. CURATOR+ can read.
+   * NOT audited — read operation.
    */
   async getTenantStats(): Promise<{
     activeUsers: number;

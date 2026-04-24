@@ -5,9 +5,11 @@ import {
   Body,
   Param,
   Query,
+  Req,
   ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -53,6 +55,15 @@ class SetRoleDto {
   role!: UserRole;
 }
 
+function extractAuditCtx(req: Request): { ip: string; userAgent: string } {
+  const ip =
+    (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ??
+    req.ip ??
+    '';
+  const userAgent = (req.headers['user-agent'] as string) ?? '';
+  return { ip, userAgent };
+}
+
 @ApiTags('admin')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -74,8 +85,9 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetActiveDto,
     @CurrentUser() actor: JwtPayload,
+    @Req() req: Request,
   ) {
-    return this.admin.setUserActive(actor, id, dto.isActive);
+    return this.admin.setUserActive(actor, id, dto.isActive, extractAuditCtx(req));
   }
 
   @Patch('users/:id/role')
@@ -85,8 +97,9 @@ export class AdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetRoleDto,
     @CurrentUser() actor: JwtPayload,
+    @Req() req: Request,
   ) {
-    return this.admin.setUserRole(actor, id, dto.role);
+    return this.admin.setUserRole(actor, id, dto.role, extractAuditCtx(req));
   }
 
   @Get('stats')

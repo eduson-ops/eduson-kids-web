@@ -5,13 +5,14 @@ import { LessonVersion } from './lesson-version.entity';
 import { AiPipelineService } from './ai-pipeline.service';
 import { LessonsController } from './lessons.controller';
 import { MockAiProvider } from './providers/mock.provider';
+import { AnthropicProvider } from './providers/anthropic.provider';
 import { TenantsModule } from '../tenants/tenants.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Lesson, LessonVersion]), TenantsModule, AuthModule],
   controllers: [LessonsController],
-  providers: [AiPipelineService, MockAiProvider],
+  providers: [AiPipelineService, MockAiProvider, AnthropicProvider],
   exports: [AiPipelineService],
 })
 export class LessonsModule {}

@@ -13,6 +13,7 @@ import { LessonVersion, LessonVersionSource } from './lesson-version.entity';
 import { TenantContext } from '../../common/tenancy/tenant.context';
 import { TenantsService } from '../tenants/tenants.service';
 import { MockAiProvider } from './providers/mock.provider';
+import { AnthropicProvider } from './providers/anthropic.provider';
 import {
   AiProvider,
   LessonGenerationInput,
@@ -48,6 +49,7 @@ export class AiPipelineService {
     private readonly tenantsService: TenantsService,
     private readonly config: ConfigService,
     private readonly mockProvider: MockAiProvider,
+    private readonly anthropicProvider: AnthropicProvider,
   ) {}
 
   /**
@@ -153,10 +155,29 @@ export class AiPipelineService {
   }
 
   private selectProvider(): AiProvider {
-    const envProvider = this.config.get<string>('ai.provider') ?? 'mock';
-    // For overnight scope only mock is implemented
+    const envProvider =
+      this.config.get<string>('ai.provider') ??
+      process.env['AI_PROVIDER'] ??
+      'mock';
+
+    if (envProvider === 'anthropic') {
+      const hasKey = !!(
+        this.config.get<string>('ANTHROPIC_API_KEY') ??
+        process.env['ANTHROPIC_API_KEY']
+      );
+      if (hasKey) {
+        return this.anthropicProvider;
+      }
+      this.logger.warn(
+        `AI_PROVIDER=anthropic but ANTHROPIC_API_KEY missing — falling back to mock`,
+      );
+      return this.mockProvider;
+    }
+
     if (envProvider !== 'mock') {
-      this.logger.warn(`Provider '${envProvider}' not implemented yet — falling back to mock`);
+      this.logger.warn(
+        `Provider '${envProvider}' not implemented yet — falling back to mock`,
+      );
     }
     return this.mockProvider;
   }
