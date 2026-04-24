@@ -292,6 +292,17 @@ export function addPart(p: Omit<PartObject, 'id' | 'name'>, name?: string): stri
 }
 
 export function updatePart(id: string, patch: Partial<PartObject>) {
+  const before = state.parts.find((p) => p.id === id)
+  if (!before) return
+  // Snapshot ONLY the keys we're about to overwrite so undo restores
+  // the prior values without touching anything else.
+  const beforePatch: Partial<PartObject> = {}
+  const afterPatch: Partial<PartObject> = {}
+  for (const k of Object.keys(patch) as Array<keyof PartObject>) {
+    ;(beforePatch as Record<string, unknown>)[k] = (before as Record<string, unknown>)[k]
+    ;(afterPatch as Record<string, unknown>)[k] = (patch as Record<string, unknown>)[k]
+  }
+  pushUndo({ kind: 'updatePart', partId: id, before: beforePatch, after: afterPatch })
   state = {
     ...state,
     parts: state.parts.map((p) => (p.id === id ? { ...p, ...patch } : p)),
@@ -406,6 +417,7 @@ export function resetScene() {
 type UndoOp =
   | { kind: 'add'; partId: string }
   | { kind: 'delete'; part: PartObject; prevSelectedId: string | null }
+  | { kind: 'updatePart'; partId: string; before: Partial<PartObject>; after: Partial<PartObject> }
 
 const undoStack: UndoOp[] = []
 const UNDO_LIMIT = 40
@@ -424,11 +436,19 @@ export function undoEditor(): boolean {
       parts: state.parts.filter((p) => p.id !== op.partId),
       selectedId: null,
     }
-  } else {
+  } else if (op.kind === 'delete') {
     state = {
       ...state,
       parts: [...state.parts, op.part],
       selectedId: op.prevSelectedId,
+    }
+  } else {
+    // updatePart — restore the prior values for the patched keys
+    state = {
+      ...state,
+      parts: state.parts.map((p) =>
+        p.id === op.partId ? { ...p, ...op.before } : p,
+      ),
     }
   }
   persist()

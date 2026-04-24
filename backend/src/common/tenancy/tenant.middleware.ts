@@ -66,7 +66,14 @@ export class TenantMiddleware implements NestMiddleware {
     }
 
     // 4. Default fallback (legacy compat — will be removed Q3 2026)
-    if (!tenantId) tenantId = DEFAULT_TENANT_ID;
+    // Audit each fallback hit so we know which routes still rely on the
+    // implicit default tenant before we yank it.
+    if (!tenantId) {
+      this.logger.warn(
+        `Tenant fallback to DEFAULT — path=${req.path} ip=${req.ip} host=${req.headers.host ?? 'unknown'}`,
+      );
+      tenantId = DEFAULT_TENANT_ID;
+    }
 
     this.tenantContext.run(
       { tenantId, tier, parentTenantId, bypass },

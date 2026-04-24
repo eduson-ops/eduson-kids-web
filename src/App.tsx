@@ -7,6 +7,7 @@ import MobileAppShell from './components/MobileAppShell'
 import ErrorBoundary from './components/ErrorBoundary'
 import { ensureAchievementsWatcher } from './lib/achievements'
 import { startStreakReminderWatcher } from './lib/streakReminder'
+import { seedDemoStateIfEmpty } from './lib/demoSeed'
 import { apiGetMe } from './lib/api'
 import { saveSession, loadSession } from './lib/auth'
 import { useTenantBranding } from './hooks/useTenantBranding'
@@ -73,6 +74,11 @@ export default function App() {
   }, [tenant?.name])
 
   useEffect(() => {
+    // Demo-mode seed — pre-fills progress so empty session looks lived-in
+    // for sales calls / screenshots. Gated by VITE_DEMO_SEED build flag.
+    if (import.meta.env.VITE_DEMO_SEED === 'true') {
+      seedDemoStateIfEmpty()
+    }
     ensureAchievementsWatcher()
     // Hydrate session from backend if we have a token but no session
     apiGetMe().then((me) => {
