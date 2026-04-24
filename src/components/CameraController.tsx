@@ -1,5 +1,6 @@
 import { useThree } from '@react-three/fiber'
 import { useEffect } from 'react'
+import { getBuildState } from '../lib/buildModeState'
 
 /**
  * Pointer-lock mouse-look для третьего лица.
@@ -8,6 +9,9 @@ import { useEffect } from 'react'
  *
  * Сохраняет текущие углы в window.__ekCam для доступа из Player (там мы
  * накладываем yaw на движение и camera follow).
+ *
+ * P-09: НЕ запрашиваем pointer-lock когда активен build mode — иначе
+ * клики по Scriptable / NPC / build-пикапу глотаются lock-запросом.
  */
 
 declare global {
@@ -28,6 +32,9 @@ export default function CameraController() {
     const canvas = gl.domElement
 
     const onClick = () => {
+      // P-09: пропускаем pointer-lock в build mode — он перехватывает клики по
+      // Scriptable/NPC/pick-up. Лок только в обычном play-mode.
+      if (getBuildState().active) return
       if (!cam.locked) {
         canvas.requestPointerLock?.()
       }

@@ -28,11 +28,13 @@ import ScriptGhosts from './ScriptGhosts'
 import { getWorldTargets } from './worlds/scriptableTargets'
 import type { GameMeta } from '../lib/games'
 import type { Avatar } from '../lib/avatars'
+import { getPhysicsTimestep, getShadowMapSize } from '../lib/deviceTier'
 
-// Определяем «слабый» клиент по числу логических ядер — на таких экономим на тенях.
-const IS_LOW_CORE =
-  typeof navigator !== 'undefined' && (navigator.hardwareConcurrency ?? 8) <= 4
-const SHADOW_MAP_SIZE = IS_LOW_CORE ? 512 : 1024
+// Размер теневой карты берём из централизованного deviceTier (256/512/1024/2048).
+const SHADOW_MAP_SIZE = getShadowMapSize()
+const PHYSICS_TIMESTEP = getPhysicsTimestep()
+// Когда добавим postprocessing (EffectComposer/Bloom/SSAO) — оборачивать в
+// `{canPostfx() && <EffectComposer>...}`, чтобы low-tier не платил за эффекты.
 
 const KEYS = [
   { name: 'forward', keys: ['KeyW', 'ArrowUp'] },
@@ -94,7 +96,7 @@ export default function GameScene({ game, avatar }: Props) {
         {/* Контровая подсветка с противоположной стороны — тень не чернеет */}
         <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
 
-        <Physics gravity={[0, -30, 0]}>
+        <Physics gravity={[0, -25, 0]} timeStep={PHYSICS_TIMESTEP}>
           <UniversalClickCatcher worldId={game.id}>
             <W />
             <WorldAdditions worldId={game.id} />

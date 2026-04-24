@@ -33,12 +33,26 @@ import { SFX } from '../lib/audio'
  * Raycast из камеры вперёд до 25 ед., снап-позиция = grid (2 ед.).
  */
 export default function BuildModeController() {
-  const { camera, gl, scene } = useThree()
+  const { camera, gl, scene, pointer } = useThree()
   const ghostRef = useRef<THREE.Mesh>(null!)
   const [bs, setBs] = useState<BuildModeState>(getBuildState())
   const raycaster = useRef(new THREE.Raycaster())
   const ghostPos = useRef(new THREE.Vector3())
   const validRef = useRef(false)
+
+  // P-08: Кэшированный список build-targets — обходим scene лишь по запросу
+  // и собираем объекты с пользовательским data.buildTarget=true либо name начинается
+  // с 'part-'. Это убирает full-tree raycast по всем childcen scene.
+  const collectBuildTargets = (): THREE.Object3D[] => {
+    const out: THREE.Object3D[] = []
+    scene.traverse((obj) => {
+      const ud = obj.userData as { buildTarget?: boolean } | undefined
+      if (ud?.buildTarget || (obj.name && obj.name.startsWith('part-'))) {
+        out.push(obj)
+      }
+    })
+    return out
+  }
 
   // Subscribe to build mode store
   useEffect(() => subscribeBuild(setBs), [])
@@ -68,10 +82,10 @@ export default function BuildModeController() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Place / pickup via mouse
+  // Place / pickup via pointer (mouse + touch unified)
   useEffect(() => {
     const canvas = gl.domElement
-    const onPointer = (e: MouseEvent) => {
+    const onPointer = (e: PointerEvent) => {
       const buildState = getBuildState()
       if (!buildState.active) return
 
@@ -98,9 +112,10 @@ export default function BuildModeController() {
       // ПКМ — pickup (забрать деталь под курсором)
       if (e.button === 2) {
         e.preventDefault()
-        // Raycast по всем meshes, ищем part- которым можно завладеть
-        raycaster.current.setFromCamera(new THREE.Vector2(0, 0), camera)
-        const hits = raycaster.current.intersectObjects(scene.children, true)
+        // P-08: используем актуальный pointer NDC + ограничиваем raycast build-targets
+        raycaster.current.setFromCamera(pointer, camera)
+        const targets = collectBuildTargets()
+        const hits = raycaster.current.intersectObjects(targets, true)
         for (const hit of hits) {
           // Ищем RigidBody с именем part-<id>
           let obj: THREE.Object3D | null = hit.object
@@ -130,13 +145,13 @@ export default function BuildModeController() {
     const onContextMenu = (e: MouseEvent) => {
       if (getBuildState().active) e.preventDefault()
     }
-    canvas.addEventListener('pointerdown', onPointer)
+    canvas.addEventListener('pointerdown', onPointer, { passive: false })
     canvas.addEventListener('contextmenu', onContextMenu)
     return () => {
       canvas.removeEventListener('pointerdown', onPointer)
       canvas.removeEventListener('contextmenu', onContextMenu)
     }
-  }, [camera, gl, scene])
+  }, [camera, gl, scene, pointer])
 
   // Raycast ghost по каждому кадру, когда build mode активен
   useFrame(() => {
@@ -146,7 +161,8 @@ export default function BuildModeController() {
     }
     ghostRef.current.visible = true
 
-    raycaster.current.setFromCamera(new THREE.Vector2(0, 0), camera)
+    // P-08: используем pointer NDC из R3F вместо хардкода (0,0)
+    raycaster.current.setFromCamera(pointer, camera)
     const origin = camera.position
     const dir = new THREE.Vector3()
     camera.getWorldDirection(dir)

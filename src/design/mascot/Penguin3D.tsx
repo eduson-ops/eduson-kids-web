@@ -55,6 +55,16 @@ const Penguin3D = forwardRef<PlayerVisualHandle, Props>(function Penguin3D(
 
     const t = performance.now() * 0.001
 
+    // M-03: reset rotations to defaults at frame start so pose transitions
+    // (walk→jump→cheer) don't leave residual rotation.x / rotation.z deltas.
+    if (rootRef.current)  rootRef.current.position.set(0, 0, 0)
+    if (bodyRef.current)  bodyRef.current.rotation.set(0, 0, 0)
+    if (headRef.current)  headRef.current.rotation.set(0, 0, 0)
+    if (wingLRef.current) wingLRef.current.rotation.set(0, 0, -0.15)
+    if (wingRRef.current) wingRRef.current.rotation.set(0, 0,  0.15)
+    if (legLRef.current)  legLRef.current.rotation.set(0, 0, 0)
+    if (legRRef.current)  legRRef.current.rotation.set(0, 0, 0)
+
     if (anim === 'idle') {
       // Лёгкое покачивание тела
       if (rootRef.current)  rootRef.current.position.y = Math.sin(t * 1.2) * 0.04

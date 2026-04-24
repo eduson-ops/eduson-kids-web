@@ -142,7 +142,7 @@ export default function NikselChat() {
           <header className="nk-chat-head">
             <div className="nk-chat-head-l">
               <div className="nk-chat-avatar">
-                <Niksel pose="wave" size={48} />
+                <Niksel pose={err ? 'confused' : sending ? 'think' : !history.length ? 'wave' : 'idle'} size={48} />
               </div>
               <div>
                 <strong>Никсель</strong>

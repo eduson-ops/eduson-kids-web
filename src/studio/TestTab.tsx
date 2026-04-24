@@ -314,7 +314,7 @@ export default function TestTab({ state }: { state: EditorState }) {
           />
           <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
 
-          <Physics gravity={[0, -30, 0]}>
+          <Physics gravity={[0, -25, 0]}>
             {state.parts.map((p) => (
               <StaticPart key={p.id} p={p} onTouch={onPartTouched} onClick={onPartClicked} />
             ))}

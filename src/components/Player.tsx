@@ -26,8 +26,11 @@ interface Props {
 
 const SPEED = 7
 const SPEED_SPRINT = 12
-const JUMP = 10
-const AIR_JUMP = 8
+// P-07: tuned for arcier feel — higher peak, punchier fall.
+const JUMP = 9
+const AIR_JUMP = 7
+const FALL_GRAVITY_MULT = 1.5    // во время падения добавочная гравитация поверх world-gravity
+const WORLD_GRAVITY = 25         // абсолютное значение g, должно матчить <Physics gravity={[0,-25,0]}>
 const CAP_HEIGHT = 0.5
 const CAP_RADIUS = 0.45
 
@@ -228,6 +231,12 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
     }
     // grace-period: одна frame задержка перед тем, как jump-cut разрешён
     justJumped.current = jumpedThisFrame
+
+    // P-07: punchier fall — дополнительная гравитация во время опускания (vy < 0).
+    // World уже тянет вниз с WORLD_GRAVITY; добавляем (mult-1) сверху.
+    if (!grounded && vy < 0) {
+      vy -= WORLD_GRAVITY * (FALL_GRAVITY_MULT - 1) * dt
+    }
 
     body.current.setLinvel({ x: vx, y: vy, z: vz }, true)
 
