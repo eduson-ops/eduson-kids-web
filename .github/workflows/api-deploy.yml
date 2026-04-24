@@ -121,8 +121,11 @@ jobs:
     steps:
       - name: Install YC CLI
         run: |
-          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /usr/local -n
-          yc --version
+          mkdir -p $HOME/yandex-cloud/bin
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/release/latest/linux/amd64/yc -o $HOME/yandex-cloud/bin/yc
+          chmod +x $HOME/yandex-cloud/bin/yc
+          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
+          $HOME/yandex-cloud/bin/yc --version
 
       - name: Authenticate YC CLI
         run: |
