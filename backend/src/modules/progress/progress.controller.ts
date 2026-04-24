@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Put,
   Get,
   Body,
   Param,
@@ -10,7 +11,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { IsEnum, IsObject } from 'class-validator';
+import { IsEnum, IsObject, IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
+import { Public } from '../../common/decorators/public.decorator';
 import { ProgressService } from './progress.service';
 import { ProgressEventKind } from './progress.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -25,6 +27,20 @@ class RecordEventDto {
 
   @IsObject()
   payload!: Record<string, unknown>;
+}
+
+class SaveProgressDto {
+  @IsString()
+  gameId!: string;
+
+  @IsNumber()
+  coins!: number;
+
+  @IsNumber()
+  timeMs!: number;
+
+  @IsBoolean()
+  completed!: boolean;
 }
 
 @ApiTags('progress')
@@ -54,5 +70,25 @@ export class ProgressController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.progressService.getChildSummary(user.sub, childId);
+  }
+
+  @Put()
+  @Roles('child')
+  @HttpCode(HttpStatus.OK)
+  async saveProgress(@Body() dto: SaveProgressDto, @CurrentUser() user: JwtPayload) {
+    await this.progressService.saveGameScore(user.sub, dto.gameId, dto.coins, dto.timeMs, dto.completed);
+    return { ok: true };
+  }
+}
+
+@ApiTags('leaderboard')
+@Controller('leaderboard')
+export class LeaderboardController {
+  constructor(private readonly progressService: ProgressService) {}
+
+  @Get(':gameId')
+  @Public()
+  getLeaderboard(@Param('gameId') gameId: string) {
+    return this.progressService.getLeaderboard(gameId);
   }
 }

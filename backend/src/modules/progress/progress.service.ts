@@ -92,6 +92,58 @@ export class ProgressService {
     return summary;
   }
 
+  async saveGameScore(
+    userId: string,
+    gameId: string,
+    coins: number,
+    timeMs: number,
+    completed: boolean,
+  ): Promise<void> {
+    await this.recordEvent(userId, ProgressEventKind.COINS_EARNED, {
+      gameId,
+      coins,
+      timeMs,
+      completed,
+      amount: coins,
+    });
+  }
+
+  async getLeaderboard(gameId: string): Promise<{
+    gameId: string;
+    top: Array<{ name: string; bestTimeMs: number; coins: number }>;
+  }> {
+    const events = await this.progressRepo
+      .createQueryBuilder('e')
+      .where('e.kind = :kind', { kind: ProgressEventKind.COINS_EARNED })
+      .andWhere("e.payload->>'gameId' = :gameId", { gameId })
+      .orderBy("(e.payload->>'coins')::int", 'DESC')
+      .limit(10)
+      .getMany();
+
+    const byUser = new Map<string, { coins: number; timeMs: number }>();
+    for (const ev of events) {
+      const coins = (ev.payload['coins'] as number) ?? 0;
+      const timeMs = (ev.payload['timeMs'] as number) ?? 0;
+      const prev = byUser.get(ev.userId);
+      if (!prev || coins > prev.coins) {
+        byUser.set(ev.userId, { coins, timeMs });
+      }
+    }
+
+    const userIds = [...byUser.keys()];
+    const users = userIds.length
+      ? await this.userRepo.findByIds(userIds)
+      : [];
+
+    const top = users.map((u: User) => {
+      const score = byUser.get(u.id)!;
+      return { name: u.login, bestTimeMs: score.timeMs, coins: score.coins };
+    });
+
+    top.sort((a: { coins: number }, b: { coins: number }) => b.coins - a.coins);
+    return { gameId, top };
+  }
+
   private calculateStreak(days: Set<string>): number {
     let streak = 0;
     const today = new Date();

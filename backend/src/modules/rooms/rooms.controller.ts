@@ -1,11 +1,22 @@
 import { Controller, Post, Body, UseGuards, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { IsString, Length, Matches } from 'class-validator';
+import { IsString, Length, Matches, IsOptional } from 'class-validator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/strategies/jwt.strategy';
 import { Public } from '../../common/decorators/public.decorator';
 import { RoomsService } from './rooms.service';
+
+class CreateRoomDto {
+  @IsString()
+  @IsOptional()
+  classroomId?: string;
+
+  @IsString()
+  @IsOptional()
+  @Length(1, 128)
+  name?: string;
+}
 
 class RoomTokenDto {
   @IsString()
@@ -22,6 +33,17 @@ class RoomTokenDto {
 @Controller('rooms')
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a video room (returns id + meetLink)' })
+  createRoom(@Body() dto: CreateRoomDto, @CurrentUser() user: JwtPayload) {
+    const id = require('crypto').randomBytes(6).toString('hex') as string;
+    const name = dto.name ?? (dto.classroomId ? `class-${dto.classroomId.slice(0, 6)}` : `room-${id}`);
+    const roomId = `${name.toLowerCase().replace(/\s+/g, '-')}-${id}`;
+    return { id: roomId, meetLink: `/room/${roomId}` };
+  }
 
   @Post('token')
   @UseGuards(JwtAuthGuard)

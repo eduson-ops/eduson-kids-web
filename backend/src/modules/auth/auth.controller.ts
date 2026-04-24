@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Put,
   Get,
   Body,
   Req,
@@ -12,7 +13,8 @@ import {
 import { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
+import { IsString, Length, IsOptional, IsObject } from 'class-validator';
+import { AuthService, AvatarData } from './auth.service';
 import { ChildLoginDto } from './dto/child-login.dto';
 import { ParentLoginDto } from './dto/parent-login.dto';
 import { TeacherLoginDto } from './dto/teacher-login.dto';
@@ -20,6 +22,21 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { JwtPayload } from './strategies/jwt.strategy';
+
+class ChildCodeDto {
+  @IsString()
+  @Length(1, 128)
+  code!: string;
+
+  @IsString()
+  @IsOptional()
+  name?: string;
+}
+
+class UpdateAvatarDto {
+  @IsObject()
+  avatar!: AvatarData;
+}
 
 const REFRESH_COOKIE = 'refresh_token';
 const COOKIE_OPTIONS = {
@@ -109,11 +126,38 @@ export class AuthController {
     res.clearCookie(REFRESH_COOKIE, { path: COOKIE_OPTIONS.path });
   }
 
+  @Public()
+  @Post('child-code')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ login: { ttl: 900000, limit: 5 } })
+  @ApiOperation({ summary: 'Child login via invite code (format: login:pin)' })
+  async childCodeLogin(@Body() dto: ChildCodeDto) {
+    return this.authService.loginChildByCode(dto.code, dto.name);
+  }
+
+  @Public()
+  @Post('guest')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { ttl: 60000, limit: 20 } })
+  @ApiOperation({ summary: 'Create a short-lived guest token (1h)' })
+  async guestLogin() {
+    return this.authService.loginGuest();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   async me(@CurrentUser() user: JwtPayload) {
     return this.authService.getMe(user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('avatar')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Update avatar (stored encrypted in profile)' })
+  async updateAvatar(@Body() dto: UpdateAvatarDto, @CurrentUser() user: JwtPayload) {
+    await this.authService.updateAvatar(user.sub, dto.avatar);
   }
 }

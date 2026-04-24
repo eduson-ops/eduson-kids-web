@@ -17,6 +17,14 @@ import { ChildLoginDto } from './dto/child-login.dto';
 import { ParentLoginDto } from './dto/parent-login.dto';
 import { TeacherLoginDto } from './dto/teacher-login.dto';
 
+export interface AvatarData {
+  bodyColor?: string;
+  eyeType?: string;
+  hatType?: string;
+  accessory?: string;
+  [key: string]: unknown;
+}
+
 const FAILED_LOGIN_KEY = (ip: string) => `failed_login:${ip}`;
 const REFRESH_KEY = (userId: string, jti: string) => `refresh:${userId}:${jti}`;
 const BLACKLIST_KEY = (jti: string) => `blacklist:${jti}`;
@@ -54,6 +62,52 @@ export class AuthService {
     await this.verifyPassword(user, dto.password, ip);
     await this.updateLastLogin(user.id);
     return this.issueTokens(user);
+  }
+
+  async loginGuest(): Promise<{ accessToken: string }> {
+    const guestId = require('crypto').randomBytes(8).toString('hex') as string;
+    const payload: JwtPayload = { sub: `guest-${guestId}`, role: 'guest' as UserRole };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.config.get<string>('jwt.accessSecret'),
+      expiresIn: 3600, // 1 hour
+    });
+    return { accessToken };
+  }
+
+  async loginChildByCode(code: string, displayName?: string): Promise<{ accessToken: string }> {
+    // code format: login:pin (e.g. "panda42:123456")
+    const [login, pin] = (code ?? '').split(':')
+    if (!login || !pin) throw new UnauthorizedException('Invalid code format')
+    const dto: ChildLoginDto = { login, pin }
+    const ip = 'internal'
+    await this.checkIpBlock(ip)
+    const user = await this.findByLogin(dto.login, UserRole.CHILD)
+    await this.verifyPassword(user, dto.pin, ip)
+    await this.updateLastLogin(user.id)
+    const tokens = this.issueTokens(user)
+    return { accessToken: tokens.accessToken }
+  }
+
+  async updateAvatar(userId: string, avatar: AvatarData): Promise<void> {
+    const user = await this.userRepo.findOne({ where: { id: userId, isActive: true } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    let profile: UserProfile = {};
+    if (user.encryptedProfile && user.profileIv && user.profileAuthTag) {
+      profile = this.piiCrypto.decryptObject({
+        ciphertext: user.encryptedProfile,
+        iv: user.profileIv,
+        authTag: user.profileAuthTag,
+      }) as UserProfile;
+    }
+
+    const updatedProfile = { ...profile, avatar };
+    const encrypted = this.piiCrypto.encryptObject(updatedProfile);
+    await this.userRepo.update(userId, {
+      encryptedProfile: encrypted.ciphertext,
+      profileIv: encrypted.iv,
+      profileAuthTag: encrypted.authTag,
+    });
   }
 
   async loginTeacher(dto: TeacherLoginDto, ip: string) {
