@@ -31,6 +31,7 @@ export interface UseCloudSaveResult {
   pendingInQueue: number
   manualSave: () => Promise<void>
   flushQueue: () => Promise<void>
+  scheduleAutosave: () => void
 }
 
 export function useCloudSave(
@@ -168,12 +169,9 @@ export function useCloudSave(
     if (timer.current) clearTimeout(timer.current)
   }, [])
 
-  // Expose scheduleAutosave indirectly by wiring caller's content change → manualSave
-  // For mvp: caller calls manualSave at end of a meaningful action OR the timer
-  // fires from the next render of caller via scheduleAutosave passed back.
-  // Keeping API minimal — caller can just call manualSave on debounce themselves.
-  // Provide scheduleAutosave for callers that prefer ref-based wiring:
-  ;(useCloudSave as any).schedule = scheduleAutosave
+  // scheduleAutosave is returned from the hook so callers can wire it onto
+  // every meaningful change. Each call resets the debounce timer; when the
+  // timer fires, we perform a save via `performSave('autosave')`.
 
   return {
     status,
@@ -182,5 +180,6 @@ export function useCloudSave(
     pendingInQueue,
     manualSave,
     flushQueue,
+    scheduleAutosave,
   }
 }

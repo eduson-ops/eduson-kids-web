@@ -60,6 +60,9 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
   const pendingRespawn = useRef(false)
   const coyoteTimer = useRef(0)
   const jumpBufferTimer = useRef(0)
+  // P-04: фиксируем кадр, на котором стартовал прыжок, чтобы jump-cut
+  // не срабатывал на том же кадре, когда release пришёл одновременно с press.
+  const justJumped = useRef(false)
   const shakeTimer = useRef(0)
   const shakeTotal = useRef(0)
   const shakeIntensity = useRef(0)
@@ -200,24 +203,31 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
     }
 
     // Jump execution (buffered + coyote + double-jump)
+    let jumpedThisFrame = false
     if (jumpBufferTimer.current > 0) {
       if (coyoteTimer.current > 0) {
         vy = JUMP
         coyoteTimer.current = 0
         jumpBufferTimer.current = 0
+        jumpedThisFrame = true
         SFX.jump()
       } else if (airJumps.current < 1) {
         airJumps.current++
         vy = AIR_JUMP
         jumpBufferTimer.current = 0
+        jumpedThisFrame = true
         SFX.jump()
       }
     }
 
-    // Variable-height jump: отпустил Space при подъёме — short hop
-    if (jumpReleased && vy > VAR_JUMP_MIN_Y) {
+    // Variable-height jump: отпустил Space при подъёме — short hop.
+    // P-04 fix: не режем, если прыжок стартовал на этом же кадре (justJumped) —
+    // иначе буферизованный press+release за один кадр убивает полный прыжок.
+    if (jumpReleased && vy > VAR_JUMP_MIN_Y && !justJumped.current && !jumpedThisFrame) {
       vy *= VAR_JUMP_CUT
     }
+    // grace-period: одна frame задержка перед тем, как jump-cut разрешён
+    justJumped.current = jumpedThisFrame
 
     body.current.setLinvel({ x: vx, y: vy, z: vz }, true)
 

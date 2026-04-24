@@ -8,6 +8,7 @@ import { GAMES } from '../lib/games'
 import { plural, pluralize } from '../lib/plural'
 import { useProgress } from '../hooks/useProgress'
 import { useMascotMood } from '../hooks/useMascotMood'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 /**
  * Hub — the new front door of Eduson Kids.
@@ -51,11 +52,46 @@ export default function Hub() {
   const currentLesson = p.currentLesson
   const coins = p.completedLessons * COINS_PER_LESSON
   const mood = useMascotMood('hub')
+  const isMobile = useIsMobile()
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     setName(localStorage.getItem('ek_child_name'))
   }, [])
+
+  // Pre-warm Pyodide during idle time so that when the user opens the
+  // Studio / Python IDE / Trainers, the runtime is already booted. We
+  // skip this on mobile to avoid burning data on users who may never
+  // touch Python features this session.
+  useEffect(() => {
+    if (isMobile) return
+    let cancelled = false
+    const run = () => {
+      if (cancelled) return
+      import('../lib/pyodide-executor')
+        .then((mod) => mod.warmPyodide())
+        .catch(() => { /* silent — best-effort warmup */ })
+    }
+    type IdleWindow = Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number
+      cancelIdleCallback?: (handle: number) => void
+    }
+    const w = window as IdleWindow
+    let idleHandle: number | null = null
+    let timeoutHandle: number | null = null
+    if (typeof w.requestIdleCallback === 'function') {
+      idleHandle = w.requestIdleCallback(run, { timeout: 4000 })
+    } else {
+      timeoutHandle = window.setTimeout(run, 2000)
+    }
+    return () => {
+      cancelled = true
+      if (idleHandle !== null && typeof w.cancelIdleCallback === 'function') {
+        w.cancelIdleCallback(idleHandle)
+      }
+      if (timeoutHandle !== null) clearTimeout(timeoutHandle)
+    }
+  }, [isMobile])
 
   // Плашки растворяются после 200px скролла — чтобы не отвлекали при чтении модулей
   useEffect(() => {

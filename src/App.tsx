@@ -3,11 +3,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Hub from './pages/Hub'
 import Login from './pages/Login'
 import AchievementToast from './components/AchievementToast'
+import MobileAppShell from './components/MobileAppShell'
+import ErrorBoundary from './components/ErrorBoundary'
 import { ensureAchievementsWatcher } from './lib/achievements'
 import { startStreakReminderWatcher } from './lib/streakReminder'
 import { apiGetMe } from './lib/api'
 import { saveSession, loadSession } from './lib/auth'
+import { useTenantBranding } from './hooks/useTenantBranding'
 import './App.css'
+import './styles/mobile.css'
+import './styles/pages-mobile.css'
 
 // Lazy-load heavy routes so the hub doesn't pull Three.js / Blockly on first paint.
 const Play = lazy(() => import('./pages/Play'))
@@ -49,10 +54,24 @@ function RouteLoader({ label }: { label: string }) {
   )
 }
 
-// Vite прокидывает сюда '/eduson-kids-web/' в проде и '/' локально.
-const ROUTER_BASENAME = import.meta.env.BASE_URL.replace(/\/$/, '')
+// Vite прокидывает сюда '/eduson-kids-web/' в GH Pages, '/' локально, './' в Capacitor.
+// BrowserRouter не понимает './' или '.' — для нативного target и dev корень пустой.
+const RAW_BASE = import.meta.env.BASE_URL
+const ROUTER_BASENAME =
+  RAW_BASE === '/' || RAW_BASE === './' || RAW_BASE === '.'
+    ? ''
+    : RAW_BASE.replace(/\/$/, '')
 
 export default function App() {
+  // Apply tenant branding CSS vars on mount; silent no-op if backend offline.
+  const tenant = useTenantBranding()
+
+  useEffect(() => {
+    if (tenant?.name && typeof document !== 'undefined') {
+      document.title = tenant.name
+    }
+  }, [tenant?.name])
+
   useEffect(() => {
     ensureAchievementsWatcher()
     // Hydrate session from backend if we have a token but no session
@@ -73,6 +92,8 @@ export default function App() {
   return (
     <BrowserRouter basename={ROUTER_BASENAME}>
       <AchievementToast />
+      <MobileAppShell>
+      <ErrorBoundary>
       <Routes>
         {/* New brand front door */}
         <Route path="/" element={<Hub />} />
@@ -344,6 +365,8 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </ErrorBoundary>
+      </MobileAppShell>
     </BrowserRouter>
   )
 }

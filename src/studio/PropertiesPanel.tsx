@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { EditorState, MaterialType } from './editorState'
 import {
   SCENE_PRESETS,
@@ -13,6 +13,8 @@ import { pluralize } from '../lib/plural'
 
 interface Props {
   state: EditorState
+  variant?: 'desktop' | 'bottom-sheet'
+  onClose?: () => void
 }
 
 const MATERIALS: Array<[MaterialType, string]> = [
@@ -30,13 +32,21 @@ const QUICK_COLORS = [
   '#6B5CE7', '#FFD43C', '#9FE8C7', '#FFB4C8', '#A9D8FF',
 ]
 
-export default function PropertiesPanel({ state }: Props) {
+export default function PropertiesPanel({ state, variant = 'desktop', onClose }: Props) {
   const selected = state.parts.find((p) => p.id === state.selectedId) ?? null
   const [editingScriptFor, setEditingScriptFor] = useState<string | null>(null)
   const editingPart = editingScriptFor ? state.parts.find((p) => p.id === editingScriptFor) : null
+  const isSheet = variant === 'bottom-sheet'
 
   return (
-    <aside className="studio-props">
+    <aside className={isSheet ? 'studio-props studio-props--sheet' : 'studio-props'}>
+      {isSheet && (
+        <div className="studio-sheet-header">
+          <div className="studio-sheet-grab" aria-hidden />
+          <h3 className="studio-sheet-title">Свойства</h3>
+          <button className="studio-sheet-close" onClick={onClose} aria-label="Закрыть">✕</button>
+        </div>
+      )}
       {selected ? (
         <>
           <section>
@@ -93,13 +103,12 @@ export default function PropertiesPanel({ state }: Props) {
               {(['x', 'y', 'z'] as const).map((axis, i) => (
                 <label key={axis}>
                   <span>{axis.toUpperCase()}</span>
-                  <input
-                    type="number"
+                  <NumberField
                     step={0.5}
                     value={selected.position[i]}
-                    onChange={(e) => {
+                    onCommit={(n) => {
                       const pos = [...selected.position] as [number, number, number]
-                      pos[i] = parseFloat(e.target.value) || 0
+                      pos[i] = n
                       updatePart(selected.id, { position: pos })
                     }}
                   />
@@ -114,14 +123,13 @@ export default function PropertiesPanel({ state }: Props) {
               {(['w', 'h', 'd'] as const).map((axis, i) => (
                 <label key={axis}>
                   <span>{axis.toUpperCase()}</span>
-                  <input
-                    type="number"
+                  <NumberField
                     step={0.5}
                     min={0.1}
                     value={selected.scale[i]}
-                    onChange={(e) => {
+                    onCommit={(n) => {
                       const s = [...selected.scale] as [number, number, number]
-                      s[i] = Math.max(0.1, parseFloat(e.target.value) || 1)
+                      s[i] = Math.max(0.1, n)
                       updatePart(selected.id, { scale: s })
                     }}
                   />
@@ -136,13 +144,12 @@ export default function PropertiesPanel({ state }: Props) {
               {(['x', 'y', 'z'] as const).map((axis, i) => (
                 <label key={axis}>
                   <span>{axis.toUpperCase()}</span>
-                  <input
-                    type="number"
+                  <NumberField
                     step={15}
                     value={Math.round((selected.rotation[i] * 180) / Math.PI)}
-                    onChange={(e) => {
+                    onCommit={(deg) => {
                       const rot = [...selected.rotation] as [number, number, number]
-                      rot[i] = ((parseFloat(e.target.value) || 0) * Math.PI) / 180
+                      rot[i] = (deg * Math.PI) / 180
                       updatePart(selected.id, { rotation: rot })
                     }}
                   />
@@ -260,6 +267,72 @@ export default function PropertiesPanel({ state }: Props) {
 function countEvents(python: string): number {
   const matches = python.match(/^def (on_\w+)\(/gm)
   return matches ? matches.length : 0
+}
+
+/**
+ * P-06 fix: draft-buffered number input.
+ *
+ * Raw <input type="number" value={n} onChange={parseFloat || 0}> съедает
+ * промежуточные состояния ввода: `'-'`, `'1.'`, `''` → 0, и пользователь
+ * не может набрать `-1` или `1.5` нормально.
+ *
+ * Решение: хранить в локальном state сырую строку, коммитить наружу только
+ * на blur / Enter. При невалидном вводе откатываемся к последнему числу.
+ */
+interface NumberFieldProps {
+  value: number
+  onCommit: (n: number) => void
+  step?: number
+  min?: number
+  max?: number
+}
+
+function NumberField({ value, onCommit, step, min, max }: NumberFieldProps) {
+  const [draft, setDraft] = useState<string>(String(value))
+  const [focused, setFocused] = useState(false)
+
+  // Синхронизируем draft, когда value меняется извне (но не пока юзер печатает)
+  useEffect(() => {
+    if (!focused) setDraft(String(value))
+  }, [value, focused])
+
+  const commit = () => {
+    const parsed = parseFloat(draft)
+    if (!Number.isFinite(parsed)) {
+      setDraft(String(value))
+      return
+    }
+    let n = parsed
+    if (typeof min === 'number') n = Math.max(min, n)
+    if (typeof max === 'number') n = Math.min(max, n)
+    setDraft(String(n))
+    if (n !== value) onCommit(n)
+  }
+
+  return (
+    <input
+      type="number"
+      step={step}
+      min={min}
+      max={max}
+      value={draft}
+      onFocus={() => setFocused(true)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        setFocused(false)
+        commit()
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          commit()
+          ;(e.currentTarget as HTMLInputElement).blur()
+        } else if (e.key === 'Escape') {
+          setDraft(String(value))
+          ;(e.currentTarget as HTMLInputElement).blur()
+        }
+      }}
+    />
+  )
 }
 
 function lightingLabel(p: string): string {

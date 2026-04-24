@@ -25,7 +25,16 @@ export default function Enemy({ pos, patrolX = 3, color = '#ff5464' }: Props) {
     const x = pos[0] + Math.sin(t0.current * 1.2) * patrolX
     const yBob = pos[1] + Math.sin(t0.current * 2) * 0.2
     rb.current.setNextKinematicTranslation({ x, y: yBob, z: pos[2] })
-    rb.current.setNextKinematicRotation({ x: 0, y: t0.current * 0.8, z: 0, w: 1 })
+    // P-05 fix: unit quaternion для поворота вокруг Y на угол θ = t*0.8.
+    // Раньше было {y: t*0.8, w: 1} — это НЕ единичный кватернион (|q| ≠ 1),
+    // Rapier постепенно накапливал ошибку и через минуты ротация уходила в NaN.
+    const halfAngle = t0.current * 0.8 * 0.5
+    rb.current.setNextKinematicRotation({
+      x: 0,
+      y: Math.sin(halfAngle),
+      z: 0,
+      w: Math.cos(halfAngle),
+    })
   })
 
   return (
