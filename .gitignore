@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 backend/dist/
 backend/node_modules/
+
+# Editor / batch tooling artifacts
+*.tmp
+wa_batch*.tmp

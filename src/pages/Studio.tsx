@@ -4,6 +4,7 @@ import BuildTab from '../studio/BuildTab'
 import ScriptTab from '../studio/ScriptTab'
 import TestTab from '../studio/TestTab'
 import StudioIntroOverlay from '../components/StudioIntroOverlay'
+import StudioLoadingOverlay from '../components/StudioLoadingOverlay'
 import StudioTour, { replayTour } from '../components/StudioTour'
 import StudioMobileBar from '../components/StudioMobileBar'
 import { useIsMobile } from '../hooks/useIsMobile'
@@ -25,6 +26,21 @@ export default function Studio() {
   const [scriptError, setScriptError] = useState<string | null>(null)
   const [publishToast, setPublishToast] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
+
+  // ─── Loading overlay state (Pyodide + Blockly + Monaco) ───
+  // step: 0=initial, 1=pyodide ready, 2=blockly ready, 3=editor ready, 4=hidden
+  const [loadingStep, setLoadingStep] = useState(0)
+  const pyReadyRef = useRef(false)
+  const blocklyReadyRef = useRef(false)
+  const editorReadyRef = useRef(false)
+
+  const advanceIfReady = () => {
+    const ready =
+      (pyReadyRef.current ? 1 : 0) +
+      (blocklyReadyRef.current ? 1 : 0) +
+      (editorReadyRef.current ? 1 : 0)
+    setLoadingStep(ready === 3 ? 4 : ready)
+  }
 
   useEffect(() => subscribe(setState), [])
 
@@ -49,7 +65,36 @@ export default function Studio() {
 
   // Прогреваем Pyodide сразу — первая попытка Live-режима должна быть быстрой
   useEffect(() => {
-    void warmPyodide()
+    void warmPyodide().then(() => {
+      pyReadyRef.current = true
+      advanceIfReady()
+    })
+
+    // Blockly / Monaco mount lazily внутри ScriptTab. Слушаем custom events,
+    // которые ScriptTab dispatch'ит при первом mount; плюс fallback-таймеры,
+    // чтобы overlay не залипал, если юзер сидит на Build/Test.
+    const onBlockly = () => {
+      blocklyReadyRef.current = true
+      advanceIfReady()
+    }
+    const onEditor = () => {
+      editorReadyRef.current = true
+      advanceIfReady()
+    }
+    window.addEventListener('ek:studio-blockly-ready', onBlockly)
+    window.addEventListener('ek:studio-editor-ready', onEditor)
+
+    // Fallback: chunks обычно подгружаются < 1.5s; даём 1200ms / 1800ms на staged advance
+    const t1 = window.setTimeout(onBlockly, 1200)
+    const t2 = window.setTimeout(onEditor, 1800)
+
+    return () => {
+      window.removeEventListener('ek:studio-blockly-ready', onBlockly)
+      window.removeEventListener('ek:studio-editor-ready', onEditor)
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ─── Глобальный Live-watcher (персистит между вкладками) ───
@@ -195,6 +240,7 @@ export default function Studio() {
 
       {isMobile && <StudioMobileBar tab={tab} onTabChange={setTab} />}
 
+      <StudioLoadingOverlay step={loadingStep} />
       <StudioIntroOverlay />
       <StudioTour />
     </div>

@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber'
 import { KeyboardControls } from '@react-three/drei'
 import { Physics, RigidBody } from '@react-three/rapier'
-import { useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import GradientSky from '../components/GradientSky'
 import Sun from '../components/Sun'
 import Player from '../components/Player'
@@ -60,11 +60,41 @@ function materialProps(m: MaterialType) {
 }
 
 /**
- * StaticPart — рендерит один PartObject из editorState. Если у части есть
- * `scripts`, добавляется sensor-collider чтобы ловить касание игроком и
- * вызывать on_touch().
+ * StaticPartMesh — pure-render mesh (без RigidBody). Используется ТОЛЬКО внутри
+ * объединённого <RigidBody type="fixed">: коллайдеры собираются автоматически
+ * из всех вложенных мешей по `colliders` родителя. Memoized — re-render
+ * только при реальных изменениях геометрии/цвета этой части.
  */
-function StaticPart({
+const StaticPartMesh = memo(function StaticPartMesh({ p }: { p: PartObject }) {
+  const mp = materialProps(p.material)
+  const isEmissive = p.type === 'coin' || p.type === 'finish' || p.material === 'neon'
+  return (
+    <mesh
+      position={p.position}
+      rotation={p.rotation}
+      scale={p.scale}
+      castShadow
+      receiveShadow
+      name={`part-${p.id}`}
+    >
+      <PartGeometry type={p.type} />
+      <meshStandardMaterial
+        color={p.color}
+        roughness={mp.roughness}
+        metalness={mp.metalness}
+        emissive={isEmissive ? p.color : '#000'}
+        emissiveIntensity={isEmissive ? 0.3 : 0}
+      />
+    </mesh>
+  )
+}, partsEqual)
+
+/**
+ * DynamicPart — для частей с пользовательскими скриптами. Собственный
+ * RigidBody-сенсор + ⚡-маркер сверху. Memoized — нет re-create RigidBody
+ * пока id/transform/material не меняется.
+ */
+const DynamicPart = memo(function DynamicPart({
   p,
   onTouch,
   onClick,
@@ -75,8 +105,6 @@ function StaticPart({
 }) {
   const mp = materialProps(p.material)
   const isEmissive = p.type === 'coin' || p.type === 'finish' || p.material === 'neon'
-  const hasScript = Boolean(p.scripts)
-
   return (
     <RigidBody
       type="fixed"
@@ -84,21 +112,17 @@ function StaticPart({
       position={p.position}
       rotation={p.rotation}
       name={`part-${p.id}`}
-      sensor={hasScript}
-      onIntersectionEnter={
-        hasScript
-          ? ({ other }) => {
-              if (other.rigidBodyObject?.name === 'player') onTouch?.(p.id)
-            }
-          : undefined
-      }
+      sensor
+      onIntersectionEnter={({ other }) => {
+        if (other.rigidBodyObject?.name === 'player') onTouch?.(p.id)
+      }}
     >
       <mesh
         scale={p.scale}
         castShadow
         receiveShadow
         onClick={
-          hasScript && onClick
+          onClick
             ? (e) => {
                 e.stopPropagation()
                 onClick(p.id)
@@ -116,13 +140,44 @@ function StaticPart({
         />
       </mesh>
       {/* Живой ⚡-маркер над запрограммированным объектом */}
-      {hasScript && (
-        <mesh position={[0, Math.max(p.scale[1], 1) + 0.6, 0]}>
-          <sphereGeometry args={[0.12, 10, 10]} />
-          <meshBasicMaterial color="#FFD43C" />
-        </mesh>
-      )}
+      <mesh position={[0, Math.max(p.scale[1], 1) + 0.6, 0]}>
+        <sphereGeometry args={[0.12, 10, 10]} />
+        <meshBasicMaterial color="#FFD43C" />
+      </mesh>
     </RigidBody>
+  )
+}, partsEqualWithCallbacks)
+
+/** memo-equality: сравниваем только то, что меняет геометрию/цвет/трансформ. */
+function partsEqual(prev: { p: PartObject }, next: { p: PartObject }): boolean {
+  const a = prev.p
+  const b = next.p
+  return (
+    a.id === b.id &&
+    a.type === b.type &&
+    a.color === b.color &&
+    a.material === b.material &&
+    a.position[0] === b.position[0] &&
+    a.position[1] === b.position[1] &&
+    a.position[2] === b.position[2] &&
+    a.rotation[0] === b.rotation[0] &&
+    a.rotation[1] === b.rotation[1] &&
+    a.rotation[2] === b.rotation[2] &&
+    a.scale[0] === b.scale[0] &&
+    a.scale[1] === b.scale[1] &&
+    a.scale[2] === b.scale[2]
+  )
+}
+
+/** memo-equality для DynamicPart: + проверяем стабильность колбэков. */
+function partsEqualWithCallbacks(
+  prev: { p: PartObject; onTouch?: (id: string) => void; onClick?: (id: string) => void },
+  next: { p: PartObject; onTouch?: (id: string) => void; onClick?: (id: string) => void }
+): boolean {
+  return (
+    partsEqual(prev, next) &&
+    prev.onTouch === next.onTouch &&
+    prev.onClick === next.onClick
   )
 }
 
@@ -213,15 +268,18 @@ export default function TestTab({ state }: { state: EditorState }) {
     }
   }, [state.parts])
 
-  // Touch events — дёргаются через StaticPart sensor ниже
-  const onPartTouched = (partId: string) => {
+  // Touch events — дёргаются через DynamicPart sensor ниже.
+  // useCallback — чтобы memo-сравнение в DynamicPart считало проп стабильным.
+  const onPartTouched = useCallback((partId: string) => {
     void runObjectHandler(partId, 'on_touch')
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Click события на объекты — ловим mesh.onClick в StaticPart
-  const onPartClicked = (partId: string) => {
+  // Click события на объекты — ловим mesh.onClick в DynamicPart
+  const onPartClicked = useCallback((partId: string) => {
     void runObjectHandler(partId, 'on_click')
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Key events — глобальный keydown раздаёт on_key_<Code> всем объектам,
   // которые определили такой handler
@@ -315,9 +373,25 @@ export default function TestTab({ state }: { state: EditorState }) {
           <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
 
           <Physics gravity={[0, -25, 0]}>
-            {state.parts.map((p) => (
-              <StaticPart key={p.id} p={p} onTouch={onPartTouched} onClick={onPartClicked} />
-            ))}
+            {/*
+             * Perf: вместо 287+ отдельных <RigidBody> на каждый prop —
+             * один общий fixed RigidBody для статических (без скриптов)
+             * частей с merged-collider (cuboid auto-собирает колайдеры
+             * по всем вложенным мешам). Динамические (со скриптами) —
+             * остаются с собственным sensor RigidBody для on_touch.
+             */}
+            <RigidBody type="fixed" colliders="cuboid" name="static-props">
+              {state.parts
+                .filter((p) => !p.scripts)
+                .map((p) => (
+                  <StaticPartMesh key={p.id} p={p} />
+                ))}
+            </RigidBody>
+            {state.parts
+              .filter((p) => Boolean(p.scripts))
+              .map((p) => (
+                <DynamicPart key={p.id} p={p} onTouch={onPartTouched} onClick={onPartClicked} />
+              ))}
             <Player avatar={avatar} startPos={spawnPos} />
           </Physics>
 
