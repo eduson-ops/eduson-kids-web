@@ -6,6 +6,7 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { LoggerModule } from 'nestjs-pino';
 import { ScheduleModule } from '@nestjs/schedule';
+import { randomUUID } from 'node:crypto';
 import * as path from 'path';
 import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
@@ -42,6 +43,15 @@ import { ThrottlerGuard } from '@nestjs/throttler';
           transport: config.get('isProduction')
             ? undefined
             : { target: 'pino-pretty', options: { colorize: true, singleLine: true } },
+          genReqId: (
+            req: { headers: Record<string, string | string[] | undefined> },
+            res: { setHeader: (k: string, v: string) => void },
+          ) => {
+            const headerVal = req.headers['x-request-id'];
+            const id = (Array.isArray(headerVal) ? headerVal[0] : headerVal) || randomUUID();
+            res.setHeader('x-request-id', id);
+            return id;
+          },
           redact: {
             paths: [
               'req.headers.authorization',

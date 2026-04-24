@@ -60,18 +60,20 @@ async function bootstrap() {
   // API prefix
   app.setGlobalPrefix('api/v1', { exclude: ['health'] });
 
-  // Swagger — only in non-production
-  if (!isProduction) {
+  // Swagger — disabled only when DISABLE_SWAGGER is set
+  if (!process.env.DISABLE_SWAGGER) {
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('Eduson Kids API')
-      .setDescription('Backend API для платформы Эдюсон Kids')
+      .setTitle('KubiK API')
+      .setDescription('Eduson Kids platform — backend API')
       .setVersion('1.0')
       .addBearerAuth()
       .addCookieAuth('refresh_token')
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
-    SwaggerModule.setup('api/docs', app, document);
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: { persistAuthorization: true },
+    });
   }
 
   // Random X-API-Version to obscure fingerprint
