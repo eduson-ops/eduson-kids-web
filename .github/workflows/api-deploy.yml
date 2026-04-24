@@ -151,11 +151,11 @@ jobs:
             --environment REDIS_HOST=${{ secrets.YC_REDIS_HOST }} \
             --environment REDIS_PORT=6380 \
             --environment REDIS_TLS=true \
-            --environment DB_PASSWORD=${{ secrets.APP_DB_PASSWORD }} \
-            --environment REDIS_PASSWORD=${{ secrets.APP_DB_PASSWORD }} \
-            --environment JWT_ACCESS_SECRET=${{ secrets.APP_JWT_ACCESS_SECRET }} \
-            --environment JWT_REFRESH_SECRET=${{ secrets.APP_JWT_REFRESH_SECRET }} \
-            --environment PII_KEY=${{ secrets.APP_PII_KEY }}
+            --environment "DB_PASSWORD=${{ secrets.APP_DB_PASSWORD }}" \
+            --environment "REDIS_PASSWORD=${{ secrets.APP_DB_PASSWORD }}" \
+            --environment "JWT_ACCESS_SECRET=${{ secrets.APP_JWT_ACCESS_SECRET }}" \
+            --environment "JWT_REFRESH_SECRET=${{ secrets.APP_JWT_REFRESH_SECRET }}" \
+            --environment "PII_KEY=${{ secrets.APP_PII_KEY }}"
 
       - name: Smoke test
         run: |
