@@ -144,7 +144,6 @@ jobs:
             --execution-timeout 30s \
             --network-id ${{ secrets.YC_NETWORK_ID }} \
             --environment NODE_ENV=production \
-            --environment PORT=3000 \
             --environment DB_HOST=${{ secrets.YC_DB_HOST }} \
             --environment DB_PORT=6432 \
             --environment DB_USER=eduson \

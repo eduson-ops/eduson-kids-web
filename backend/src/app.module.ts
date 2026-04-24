@@ -73,7 +73,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         database: config.get('db.name'),
         ssl: config.get<boolean>('db.ssl') ? { rejectUnauthorized: false } : false,
         entities: [path.resolve(__dirname, '**/*.entity.{ts,js}')],
-        migrations: [path.resolve(__dirname, '../migrations/*.{ts,js}')],
+        migrations: [path.resolve(__dirname, './migrations/*.{ts,js}')],
         migrationsRun: true,
         synchronize: false,
         logging: !config.get<boolean>('isProduction'),

@@ -13,7 +13,7 @@ export const AppDataSource = new DataSource({
   database: process.env['DB_NAME'] ?? 'eduson_kids',
   ssl: process.env['DB_SSL'] === 'true',
   entities: [path.resolve(__dirname, '../**/*.entity.{ts,js}')],
-  migrations: [path.resolve(__dirname, '../../migrations/*.{ts,js}')],
+  migrations: [path.resolve(__dirname, '../migrations/*.{ts,js}')],
   synchronize: false,
   logging: process.env['NODE_ENV'] !== 'production',
 });
