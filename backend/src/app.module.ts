@@ -100,6 +100,18 @@ import { ThrottlerGuard } from '@nestjs/throttler';
             ttl: config.get<number>('throttle.globalTtl') ?? 60000,
             limit: config.get<number>('throttle.globalLimit') ?? 100,
           },
+          {
+            // Named throttler used by auth + guest token endpoints. Routes override limits
+            // at the decorator via @Throttle({ login: {...} }) / @Throttle({ guest: {...} }).
+            name: 'login',
+            ttl: config.get<number>('throttle.loginTtl') ?? 900_000,
+            limit: config.get<number>('throttle.loginLimit') ?? 5,
+          },
+          {
+            name: 'guest',
+            ttl: 60_000,
+            limit: 5,
+          },
         ],
         storage: new ThrottlerStorageRedisService({
           host: config.get('redis.host'),

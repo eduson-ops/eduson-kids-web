@@ -1,13 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RoomsService {
   constructor(private readonly config: ConfigService) {}
 
+  isConfigured(): boolean {
+    return Boolean(
+      this.config.get<string | null>('livekit.url') &&
+        this.config.get<string | null>('livekit.apiKey') &&
+        this.config.get<string | null>('livekit.apiSecret'),
+    );
+  }
+
   async generateToken(roomName: string, identity: string, ttl = 7200): Promise<string> {
-    const apiKey = this.config.get<string>('livekit.apiKey') ?? '';
-    const apiSecret = this.config.get<string>('livekit.apiSecret') ?? '';
+    const apiKey = this.config.get<string | null>('livekit.apiKey');
+    const apiSecret = this.config.get<string | null>('livekit.apiSecret');
+
+    if (!apiKey || !apiSecret) {
+      throw new ServiceUnavailableException('LiveKit is not configured on this server');
+    }
+
+    // Cap TTL to 1 hour for guest/short-lived use, 2h max for authed
+    const effectiveTtl = Math.min(Math.max(60, ttl), 7200);
 
     const now = Math.floor(Date.now() / 1000);
     const header = this.b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -16,7 +31,7 @@ export class RoomsService {
         iss: apiKey,
         sub: identity,
         iat: now,
-        exp: now + ttl,
+        exp: now + effectiveTtl,
         video: {
           room: roomName,
           roomJoin: true,
@@ -50,6 +65,10 @@ export class RoomsService {
   }
 
   getLivekitUrl(): string {
-    return this.config.get<string>('livekit.url') ?? '';
+    const url = this.config.get<string | null>('livekit.url');
+    if (!url) {
+      throw new ServiceUnavailableException('LiveKit is not configured on this server');
+    }
+    return url;
   }
 }

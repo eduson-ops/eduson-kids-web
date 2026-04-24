@@ -7,7 +7,8 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  BadRequestException,
+  UnauthorizedException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
@@ -45,16 +46,27 @@ export class BillingController {
   @HttpCode(HttpStatus.OK)
   async yukassaWebhook(@Body() body: unknown, @Req() req: Request) {
     const hmacSecret = this.config.get<string>('yukassa.webhookHmacSecret') ?? '';
-    if (hmacSecret) {
-      const signature = req.headers['x-yukassa-signature'] as string;
-      const expected = crypto
-        .createHmac('sha256', hmacSecret)
-        .update(JSON.stringify(body))
-        .digest('hex');
+    // Fail closed: without a configured secret, we CANNOT verify — refuse to process.
+    // This prevents an attacker from forging payment events in environments where the
+    // secret was accidentally unset.
+    if (!hmacSecret) {
+      throw new ServiceUnavailableException(
+        'YuKassa webhook HMAC secret is not configured on this server',
+      );
+    }
 
-      if (signature !== expected) {
-        throw new BadRequestException('Invalid webhook signature');
-      }
+    const signature = (req.headers['x-yukassa-signature'] as string | undefined) ?? '';
+    const expected = crypto
+      .createHmac('sha256', hmacSecret)
+      .update(JSON.stringify(body))
+      .digest('hex');
+
+    const sigBuf = Buffer.from(signature, 'hex');
+    const expBuf = Buffer.from(expected, 'hex');
+    const valid =
+      sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
+    if (!valid) {
+      throw new UnauthorizedException('Invalid webhook signature');
     }
 
     // TODO: process YuKassa payment event

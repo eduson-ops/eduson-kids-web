@@ -3,6 +3,10 @@ export default () => ({
   port: parseInt(process.env['PORT'] ?? '3000', 10),
   isProduction: process.env['NODE_ENV'] === 'production',
 
+  app: {
+    publicBaseUrl: process.env['PUBLIC_BASE_URL'] ?? 'https://kubik.school',
+  },
+
   db: {
     host: process.env['DB_HOST'] ?? 'localhost',
     port: parseInt(process.env['DB_PORT'] ?? '5432', 10),
@@ -36,9 +40,11 @@ export default () => ({
   },
 
   livekit: {
-    url: process.env['LIVEKIT_URL'] ?? 'wss://edusonlms-apk4qgt4.livekit.cloud',
-    apiKey: process.env['LIVEKIT_API_KEY'] ?? 'APIsABHfKrBN9xG',
-    apiSecret: process.env['LIVEKIT_API_SECRET'] ?? 'fTjEXOUcKkeeDuIUxyqfRKzQbdZFq4MXBjQbrSM66qLC',
+    // SECURITY: never hardcode LiveKit credentials. Previous fallback strings leaked briefly
+    // to git history (incident 2026-04-24) and MUST be rotated in the LiveKit dashboard.
+    url: process.env['LIVEKIT_URL'] ?? null,
+    apiKey: process.env['LIVEKIT_API_KEY'] ?? null,
+    apiSecret: process.env['LIVEKIT_API_SECRET'] ?? null,
   },
 
   yukassa: {

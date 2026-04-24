@@ -70,6 +70,22 @@ class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
+  LIVEKIT_URL: string = '';
+
+  @IsString()
+  @IsOptional()
+  LIVEKIT_API_KEY: string = '';
+
+  @IsString()
+  @IsOptional()
+  LIVEKIT_API_SECRET: string = '';
+
+  @IsString()
+  @IsOptional()
+  PUBLIC_BASE_URL: string = '';
+
+  @IsString()
+  @IsOptional()
   YUKASSA_SHOP_ID: string = '';
 
   @IsString()
@@ -108,6 +124,17 @@ export function validateEnv(config: Record<string, unknown>) {
 
   if (errors.length > 0) {
     throw new Error(errors.toString());
+  }
+
+  // Cross-field validation: if LiveKit is enabled (URL set), keys must be present too.
+  // Dev without LiveKit just omits all three and the rooms endpoints return 503.
+  if (validatedConfig.LIVEKIT_URL) {
+    if (!validatedConfig.LIVEKIT_API_KEY || !validatedConfig.LIVEKIT_API_SECRET) {
+      throw new Error(
+        'LIVEKIT_URL is set but LIVEKIT_API_KEY / LIVEKIT_API_SECRET are missing. ' +
+          'Set both (from the LiveKit dashboard) or unset LIVEKIT_URL to disable rooms.',
+      );
+    }
   }
 
   return validatedConfig;
