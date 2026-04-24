@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 42 — Клавиатура и анимации в PyGame Zero</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #0B0F17;
+    font-family: 'Inter', sans-serif;
+    color: #E2E8F0;
+}
+body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+        radial-gradient(ellipse at 15% 20%, rgba(124, 58, 237, 0.25) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 80%, rgba(6, 182, 212, 0.22) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 50%, rgba(124, 58, 237, 0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+}
+.slide {
+    position: absolute; inset: 0;
+    display: none;
+    padding: 58px 72px 80px;
+    overflow-y: auto;
+    flex-direction: column;
+    animation: slideIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 1;
+}
+.slide.active { display: flex; }
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+/* Progress */
+.progress-bar {
+    position: fixed; top: 0; left: 0;
+    height: 3px; background: linear-gradient(90deg, #7C3AED 0%, #06B6D4 100%);
+    transition: width 0.3s ease; z-index: 100;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.6);
+}
+.slide-counter {
+    position: fixed; top: 22px; right: 28px;
+    padding: 8px 16px;
+    background: rgba(17, 24, 39, 0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: #94A3B8;
+    z-index: 100;
+}
+.slide-counter span { color: #06B6D4; font-weight: 600; }
+/* Typography */
+h1 {
+    font-size: clamp(38px, 4.4vw, 64px);
+    font-weight: 800; line-height: 1.05;
+    letter-spacing: -0.02em; margin-bottom: 22px;
+    background: linear-gradient(135deg, #FFFFFF 0%, #A78BFA 60%, #06B6D4 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+h2 {
+    font-size: clamp(30px, 3.2vw, 44px);
+    font-weight: 700; line-height: 1.15;
+    letter-spacing: -0.015em; margin-bottom: 28px;
+    color: #F1F5F9;
+}
+h3 {
+    font-size: clamp(18px, 1.5vw, 22px);
+    font-weight: 600; color: #A78BFA;
+    margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+}
+p { font-size: clamp(15px, 1.15vw, 18px); line-height: 1.65; color: #CBD5E1; }
+ul, ol { padding-left: 24px; }
+li { font-size: clamp(15px, 1.15vw, 18px); line-height: 1.75; color: #CBD5E1; margin-bottom: 10px; }
+strong { color: #F1F5F9; font-weight: 600; }
+em { color: #06B6D4; font-style: normal; font-weight: 500; }
+.accent { color: #A78BFA; font-weight: 600; }
+.cyan { color: #06B6D4; font-weight: 600; }
+/* Layout */
+.content { flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 1400px; margin: 0 auto; width: 100%; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 14px; }
+/* Glass cards */
+.glass {
+    background: rgba(17, 24, 39, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(124, 58, 237, 0.22);
+    border-radius: 18px;
+    padding: 26px 28px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+    transition: transform 0.3s, border-color 0.3s;
+}
+.glass:hover { transform: translateY(-3px); border-color: rgba(6, 182, 212, 0.45); }
+.glass-cyan { border-color: rgba(6, 182, 212, 0.3); }
+.glass-violet { border-color: rgba(124, 58, 237, 0.35); }
+.pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 14px;
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(124, 58, 237, 0.35);
+    border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+    color: #C4B5FD;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em; text-transform: uppercase;
+}
+.pill-cyan {
+    background: rgba(6, 182, 212, 0.12);
+    border-color: rgba(6, 182, 212, 0.35);
+    color: #67E8F9;
+}
+.meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+.num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(44px, 5vw, 72px);
+    font-weight: 700;
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+/* Title slide */
+.title-slide { justify-content: center; align-items: center; text-align: center; }
+.title-slide .hero-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(70px, 9vw, 130px);
+    font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 30px rgba(124, 58, 237, 0.4));
+}
+.title-slide .kicker { font-size: 14px; letter-spacing: 0.35em; color: #06B6D4; text-transform: uppercase; font-weight: 600; margin-bottom: 18px; }
+.title-slide h1 { max-width: 1100px; }
+.title-slide .sub { font-size: clamp(18px, 1.5vw, 22px); color: #94A3B8; max-width: 800px; margin: 18px auto 0; }
+.title-chips { margin-top: 40px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+/* Code */
+pre[class*="language-"] {
+    background: rgba(11, 15, 23, 0.75) !important;
+    border: 1px solid rgba(124, 58, 237, 0.2) !important;
+    border-radius: 14px !important;
+    padding: 20px 22px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    overflow-x: auto;
+}
+code[class*="language-"] { font-family: 'JetBrains Mono', monospace !important; }
+.inline-code {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(124, 58, 237, 0.15);
+    color: #C4B5FD;
+    padding: 2px 8px; border-radius: 6px;
+    font-size: 0.88em;
+    border: 1px solid rgba(124, 58, 237, 0.25);
+}
+/* Nav */
+.nav {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 10px;
+    padding: 8px 14px;
+    background: rgba(17, 24, 39, 0.65);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    border-radius: 999px;
+    z-index: 100;
+}
+.nav button {
+    background: transparent; border: none; color: #CBD5E1;
+    font-size: 14px; cursor: pointer; padding: 6px 14px;
+    font-family: 'Inter', sans-serif; font-weight: 500;
+    border-radius: 999px;
+    transition: all 0.2s;
+}
+.nav button:hover { background: rgba(124, 58, 237, 0.3); color: #fff; }
+.nav-hint {
+    position: fixed; bottom: 24px; right: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: #64748B;
+    z-index: 100;
+}
+.nav-hint kbd {
+    display: inline-block;
+    padding: 2px 7px;
+    background: rgba(124, 58, 237, 0.18);
+    border: 1px solid rgba(124, 58, 237, 0.35);
+    border-radius: 5px;
+    font-size: 10px; color: #C4B5FD;
+    margin: 0 2px;
+}
+/* Speaker notes */
+.notes-panel {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    max-height: 42vh; overflow-y: auto;
+    background: rgba(11, 15, 23, 0.96);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border-top: 2px solid #7C3AED;
+    padding: 28px 60px 32px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 200;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+}
+.notes-panel.open { transform: translateY(0); }
+.notes-panel h4 {
+    font-size: 13px; letter-spacing: 0.2em; color: #A78BFA;
+    text-transform: uppercase; margin-bottom: 14px; font-weight: 700;
+}
+.notes-panel p { font-size: 15px; line-height: 1.7; color: #CBD5E1; }
+.notes-panel .close-hint { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748B; margin-top: 12px; }
+/* Specific components */
+.timeline { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.timeline-row {
+    display: grid; grid-template-columns: 88px 1fr;
+    gap: 18px; align-items: start;
+    padding: 14px 18px;
+    background: rgba(17, 24, 39, 0.4);
+    border-left: 3px solid #7C3AED;
+    border-radius: 10px;
+    transition: all 0.25s;
+}
+.timeline-row:hover { background: rgba(124, 58, 237, 0.12); border-left-color: #06B6D4; }
+.timeline-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 600; color: #06B6D4;
+}
+.timeline-text { font-size: 15px; color: #CBD5E1; line-height: 1.55; }
+.badge-row { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.key-compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 18px;
+}
+.key-compare .col { padding: 22px 24px; border-radius: 16px; }
+.key-compare .event {
+    background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(124,58,237,0.04));
+    border: 1px solid rgba(124,58,237,0.35);
+}
+.key-compare .state {
+    background: linear-gradient(135deg, rgba(6,182,212,0.14), rgba(6,182,212,0.04));
+    border: 1px solid rgba(6,182,212,0.35);
+}
+.key-compare h4 { font-size: 20px; margin-bottom: 10px; }
+.key-compare .event h4 { color: #C4B5FD; }
+.key-compare .state h4 { color: #67E8F9; }
+.flipbook {
+    display: flex; gap: 14px; justify-content: center;
+    margin: 20px 0 10px;
+}
+.frame {
+    width: 110px; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(17,24,39,0.7);
+    border: 2px solid rgba(124,58,237,0.3);
+    border-radius: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 42px;
+    position: relative;
+    transition: all 0.3s;
+}
+.frame.active { border-color: #06B6D4; box-shadow: 0 0 24px rgba(6,182,212,0.4); transform: scale(1.08); }
+.frame-label {
+    position: absolute; bottom: -28px; left: 0; right: 0;
+    text-align: center; font-size: 11px; color: #64748B;
+    font-family: 'JetBrains Mono', monospace;
+}
+.keyboard-vis {
+    display: flex; gap: 8px; justify-content: center; margin: 18px 0;
+    flex-wrap: wrap;
+}
+.key-cap {
+    min-width: 52px; height: 52px; padding: 0 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, rgba(30,41,59,0.9) 0%, rgba(15,23,42,0.9) 100%);
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600; font-size: 15px;
+    color: #E2E8F0;
+    box-shadow: 0 4px 0 rgba(124,58,237,0.3), 0 6px 14px rgba(0,0,0,0.4);
+}
+.key-cap.space { min-width: 180px; }
+.key-cap.accent { background: linear-gradient(180deg, rgba(124,58,237,0.5) 0%, rgba(124,58,237,0.3) 100%); border-color: #A78BFA; }
+.checklist li { list-style: none; padding-left: 28px; position: relative; }
+.checklist li::before {
+    content: '✓'; position: absolute; left: 0; top: 0;
+    color: #06B6D4; font-weight: 700; font-size: 18px;
+}
+.xlist li { list-style: none; padding-left: 28px; position: relative; }
+.xlist li::before {
+    content: '⚠'; position: absolute; left: 0; top: 0;
+    color: #F59E0B; font-weight: 700; font-size: 16px;
+}
+.phrase-card {
+    padding: 16px 20px;
+    background: rgba(17,24,39,0.5);
+    border-left: 3px solid #06B6D4;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-style: italic;
+    color: #CBD5E1;
+    font-size: 15px;
+    line-height: 1.55;
+}
+.phrase-card::before { content: '"'; color: #06B6D4; font-size: 28px; font-weight: 800; margin-right: 4px; vertical-align: -6px; }
+.phrase-card::after { content: '"'; color: #06B6D4; font-size: 28px; font-weight: 800; margin-left: 2px; vertical-align: -6px; }
+.stat-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(48px, 5.5vw, 80px); font-weight: 800;
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+.stat-label { font-size: 13px; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.15em; margin-top: 8px; }
+.arrow { color: #06B6D4; font-weight: 700; font-size: 1.2em; }
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(17,24,39,0.3); }
+::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.6); }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+<div class="slide-counter"><span id="cur">01</span> / <span id="total">22</span></div>
+
+<!-- 1: Title -->
+<section class="slide active">
+    <div class="content title-slide">
+        <div class="kicker">Eduson Kids · Python и нейросети · Неделя 21</div>
+        <div class="hero-num">№ 42</div>
+        <h1>Клавиатура и анимации в PyGame Zero</h1>
+        <p class="sub">От мыши — к клавиатуре. От статичного спрайта — к живому персонажу, который бегает и прыгает. Сегодня закладываем фундамент платформера.</p>
+        <div class="title-chips">
+            <span class="pill">Отдел разработки</span>
+            <span class="pill pill-cyan">8–14 лет</span>
+            <span class="pill">60 минут</span>
+            <span class="pill pill-cyan">PyGame Zero</span>
+        </div>
+    </div>
+</section>
+
+<!-- 2: Goal -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Цель урока</span></div>
+        <h2>Оживляем персонажа</h2>
+        <div class="grid-2">
+            <div class="glass glass-violet">
+                <h3>Куда идём</h3>
+                <p>Перейти от мыши к <strong>клавиатуре</strong> и ввести <strong>покадровую анимацию</strong>. Это подготовка к будущему платформеру, где персонаж бегает стрелками.</p>
+            </div>
+            <div class="glass glass-cyan">
+                <h3>Что ребёнок почувствует</h3>
+                <p>«У меня в окне — живой человечек. Он идёт, когда я нажимаю стрелку. Прыгает, когда я жму пробел. Ноги мелькают. <em>Это я сделал</em>».</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3: Results -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Результаты</span></div>
+        <h2>Что освоит ученик</h2>
+        <div class="grid-2">
+            <div class="glass">
+                <h3>Знает</h3>
+                <ul class="checklist">
+                    <li>Два способа ввода клавиатуры в PyGame Zero</li>
+                    <li>Разницу между <strong>событием</strong> и <strong>состоянием</strong> клавиши</li>
+                    <li>Когда использовать <span class="inline-code">on_key_down</span>, а когда <span class="inline-code">keyboard.left</span></li>
+                    <li>Идею покадровой анимации через список кадров</li>
+                </ul>
+            </div>
+            <div class="glass glass-cyan">
+                <h3>Умеет</h3>
+                <ul class="checklist">
+                    <li>Двигать персонажа по стрелкам в <span class="inline-code">update()</span></li>
+                    <li>Реализовать прыжок с гравитацией</li>
+                    <li>Делать «флипбук»: <span class="inline-code">frames[tick // 5 % 3]</span></li>
+                    <li>Ограничивать героя полом и краями экрана</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 4: Tools & techreq -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Инструменты</span><span class="pill pill-cyan">Техтребования</span></div>
+        <h2>Стек урока</h2>
+        <div class="grid-3">
+            <div class="glass glass-violet">
+                <h3>Основное</h3>
+                <ul>
+                    <li>GigaIDE Desktop</li>
+                    <li>Python 3.11</li>
+                    <li>PyGame Zero</li>
+                </ul>
+            </div>
+            <div class="glass">
+                <h3>ИИ-помощники</h3>
+                <ul>
+                    <li>Kandinsky — 3–4 кадра анимации</li>
+                    <li>YandexGPT — объяснить формулу гравитации</li>
+                </ul>
+            </div>
+            <div class="glass glass-cyan">
+                <h3>Файлы в <span class="inline-code">walker/images/</span></h3>
+                <ul>
+                    <li><span class="inline-code">hero_idle.png</span></li>
+                    <li><span class="inline-code">hero_run1/2/3.png</span></li>
+                    <li><span class="inline-code">hero_jump.png</span></li>
+                </ul>
+            </div>
+        </div>
+        <div class="glass" style="margin-top:22px;">
+            <h3>Промпт для Kandinsky</h3>
+            <p><em>«пиксельный персонаж, мальчик, одна поза, прозрачный фон, 128×128»</em> — и потом тот же стиль, та же поза, но нога поднята. <span class="accent">Консистентность — ключ.</span></p>
+        </div>
+    </div>
+</section>
+
+<!-- 5: Timeline -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Поминутный план</span><span class="pill pill-cyan">60 минут</span></div>
+        <h2>Ход урока</h2>
+        <div class="timeline">
+            <div class="timeline-row"><div class="timeline-time">0–5</div><div class="timeline-text">Разбор ДЗ со звуками с урока 41. У всех ли работает фоновая музыка.</div></div>
+            <div class="timeline-row"><div class="timeline-time">5–15</div><div class="timeline-text"><strong>Теория:</strong> два режима клавиатуры. Живая демка — я прыгаю на <span class="inline-code">on_key_down</span>, бегу на <span class="inline-code">keyboard.left</span>.</div></div>
+            <div class="timeline-row"><div class="timeline-time">15–25</div><div class="timeline-text"><strong>Совместный кодинг:</strong> сцена, земля, <span class="inline-code">hero = Actor('hero_idle')</span>. Движение стрелками.</div></div>
+            <div class="timeline-row"><div class="timeline-time">25–40</div><div class="timeline-text"><strong>Самостоятельно:</strong> прыжок через <span class="inline-code">vy = -10</span>, гравитация <span class="inline-code">vy += 0.5</span>, ограничение на пол.</div></div>
+            <div class="timeline-row"><div class="timeline-time">40–55</div><div class="timeline-text"><strong>Анимация:</strong> флипбук. <span class="inline-code">tick += 1</span>, смена картинок через деление и модуль.</div></div>
+            <div class="timeline-row"><div class="timeline-time">55–60</div><div class="timeline-text">Итог. Персонаж бежит, прыгает, ноги мелькают. ДЗ.</div></div>
+        </div>
+    </div>
+</section>
+
+<!-- 6: Event vs State -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Главная идея</span></div>
+        <h2>Два лица клавиатуры</h2>
+        <div class="key-compare">
+            <div class="col event">
+                <h4>СОБЫТИЕ · <span class="inline-code">on_key_down(key)</span></h4>
+                <p style="margin-bottom: 14px;">Срабатывает <strong>ровно один раз</strong> в момент нажатия клавиши. Даже если держать её 10 секунд — сигнал будет только один.</p>
+                <p style="color:#C4B5FD;"><strong>Для чего:</strong> прыжок, выстрел, открыть меню, пауза — одноразовые действия.</p>
+            </div>
+            <div class="col state">
+                <h4>СОСТОЯНИЕ · <span class="inline-code">keyboard.left</span></h4>
+                <p style="margin-bottom: 14px;">Проверяется в <span class="inline-code">update()</span> каждый кадр: <strong>прямо сейчас нажата или нет</strong>. 60 раз в секунду.</p>
+                <p style="color:#67E8F9;"><strong>Для чего:</strong> бег, ходьба, прицеливание — всё, что должно длиться, пока держишь.</p>
+            </div>
+        </div>
+        <div class="glass" style="margin-top:22px; text-align:center;">
+            <p style="font-size:17px;">Аналогия дверного звонка: <span class="accent">нажал — динь</span> (событие), <span class="cyan">держу — проверяю, нажата ли</span> (состояние).</p>
+        </div>
+    </div>
+</section>
+
+<!-- 7: Keyboard visual -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Клавиатура в деле</span></div>
+        <h2>Какие кнопки используем</h2>
+        <div class="keyboard-vis">
+            <div class="key-cap accent">←</div>
+            <div class="key-cap accent">→</div>
+            <div class="key-cap space accent">SPACE</div>
+        </div>
+        <div class="grid-3" style="margin-top: 30px;">
+            <div class="glass">
+                <h3>Стрелка ←</h3>
+                <p><span class="inline-code">keyboard.left</span> — состояние. Пока держу — герой идёт влево со скоростью 3 пикселя/кадр.</p>
+            </div>
+            <div class="glass">
+                <h3>Стрелка →</h3>
+                <p><span class="inline-code">keyboard.right</span> — состояние. То же самое, только в другую сторону.</p>
+            </div>
+            <div class="glass glass-violet">
+                <h3>Пробел</h3>
+                <p><span class="inline-code">on_key_down + keys.SPACE</span> — событие. Одно нажатие = один прыжок.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 8: Code - movement -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Кодинг · шаг 1</span></div>
+        <h2>Базовое движение стрелками</h2>
+        <p style="margin-bottom: 16px;">В <span class="inline-code">update()</span> проверяем состояние клавиш <strong>каждый кадр</strong>. Если стрелка зажата — двигаем героя.</p>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">WIDTH = 800
+HEIGHT = 600
+
+hero = Actor('hero_idle', (100, 500))
+SPEED = 3
+
+def draw():
+    screen.fill('skyblue')
+    screen.draw.filled_rect(Rect(0, 540, WIDTH, 60), 'darkgreen')  # земля
+    hero.draw()
+
+def update():
+    if keyboard.left:
+        hero.x -= SPEED
+    if keyboard.right:
+        hero.x += SPEED</div><div class="compiler-output"></div></div>
+        <p style="margin-top:14px; color:#94A3B8; font-size:14px;"><span class="accent">Важно:</span> не <span class="inline-code">elif</span>, а два отдельных <span class="inline-code">if</span> — вдруг ребёнок зажмёт обе стрелки сразу (будет стоять на месте, как и должно).</p>
+    </div>
+</section>
+
+<!-- 9: Code - jump & gravity -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Кодинг · шаг 2</span></div>
+        <h2>Прыжок и гравитация</h2>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">hero.vy = 0  # вертикальная скорость
+GROUND_Y = 500
+
+def on_key_down(key):
+    if key == keys.SPACE and hero.y &gt;= GROUND_Y:
+        hero.vy = -10   # импульс вверх (минус — потому что y сверху вниз)
+
+def update():
+    # движение по земле
+    if keyboard.left:  hero.x -= 3
+    if keyboard.right: hero.x += 3
+
+    # гравитация
+    hero.vy += 0.5
+    hero.y  += hero.vy
+
+    # пол
+    if hero.y &gt; GROUND_Y:
+        hero.y  = GROUND_Y
+        hero.vy = 0</div><div class="compiler-output"></div></div>
+        <p style="margin-top:14px; font-size:15px;"><span class="cyan">Магия в +0.5:</span> каждый кадр скорость падения растёт. Прыгнул вверх → тормозим → остановились → падаем → всё быстрее. Это и есть гравитация.</p>
+    </div>
+</section>
+
+<!-- 10: Animation principle -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Анимация</span></div>
+        <h2>Флипбук — как в мультике</h2>
+        <p style="margin-bottom: 10px;">Три картинки, быстро сменяющиеся подряд, создают иллюзию бега. Взрослые называют это <em>frame cycling</em>.</p>
+        <div class="flipbook">
+            <div class="frame active">🏃<span class="frame-label">run1</span></div>
+            <div class="frame">🏃‍♂️<span class="frame-label">run2</span></div>
+            <div class="frame">🤸<span class="frame-label">run3</span></div>
+            <div class="frame">🏃<span class="frame-label">run1</span></div>
+            <div class="frame">🏃‍♂️<span class="frame-label">run2</span></div>
+        </div>
+        <div class="glass" style="margin-top: 40px;">
+            <h3>Формула смены кадров</h3>
+            <p style="font-family:'JetBrains Mono',monospace; font-size:20px; text-align:center; color:#C4B5FD; margin:10px 0;">
+                frames[ tick <span class="cyan">//</span> 5 <span class="cyan">%</span> 3 ]
+            </p>
+            <p style="font-size:15px;"><span class="accent">// 5</span> — меняем кадр каждые 5 игровых тиков (иначе мелькает). <span class="accent">% 3</span> — крутимся по кругу по трём кадрам: 0, 1, 2, 0, 1, 2…</p>
+        </div>
+    </div>
+</section>
+
+<!-- 11: Code - animation -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Кодинг · шаг 3</span></div>
+        <h2>Подключаем анимацию</h2>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">run_frames = ['hero_run1', 'hero_run2', 'hero_run3']
+tick = 0
+
+def update():
+    global tick
+    tick += 1
+
+    moving = False
+    if keyboard.left:
+        hero.x -= 3
+        moving = True
+    if keyboard.right:
+        hero.x += 3
+        moving = True
+
+    # выбираем картинку
+    if hero.y &lt; GROUND_Y:
+        hero.image = 'hero_jump'
+    elif moving:
+        hero.image = run_frames[tick // 5 % 3]
+    else:
+        hero.image = 'hero_idle'</div><div class="compiler-output"></div></div>
+        <p style="margin-top:14px; font-size:15px;"><span class="cyan">Порядок важен:</span> сначала проверяем прыжок (он главнее), потом бег, только если стоит на земле и не двигается — idle.</p>
+    </div>
+</section>
+
+<!-- 12: Why formula -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Разбор формулы</span></div>
+        <h2>Почему <span class="inline-code">tick // 5 % 3</span>?</h2>
+        <div class="grid-2">
+            <div class="glass glass-violet">
+                <h3>Если написать просто <span class="inline-code">tick % 3</span></h3>
+                <p>Кадры будут меняться <strong>каждый кадр</strong> — 60 раз в секунду. Ноги замелькают, как в неисправном телевизоре. Глаза устанут за 2 секунды.</p>
+            </div>
+            <div class="glass glass-cyan">
+                <h3>Целочисленное деление <span class="inline-code">// 5</span></h3>
+                <p>«Растягивает время»: пять кадров подряд значение одно и то же. Получается 12 смен в секунду — правильный ритм бега.</p>
+            </div>
+        </div>
+        <div class="glass" style="margin-top: 20px;">
+            <h3>Что видит программа</h3>
+            <p style="font-family:'JetBrains Mono',monospace; font-size:15px; line-height:2; color:#CBD5E1;">
+                tick =  0 1 2 3 4  5 6 7 8 9  10 11 12 13 14  15 16 17 18 19<br>
+                // 5 =  0 0 0 0 0  1 1 1 1 1   2  2  2  2  2   3  3  3  3  3<br>
+                % 3 =  <span style="color:#A78BFA;">0 0 0 0 0</span>  <span style="color:#06B6D4;">1 1 1 1 1</span>   <span style="color:#F59E0B;">2 2 2 2 2</span>   <span style="color:#A78BFA;">0 0 0 0 0</span>
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- 13: Teacher phrases -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Ключевые фразы</span></div>
+        <h2>Что говорит преподаватель</h2>
+        <div class="grid-2">
+            <div>
+                <div class="phrase-card">Клавиатура — два лица: событие и состояние. Прыжок — одно нажатие, бег — зажатая кнопка.</div>
+                <div class="phrase-card"><span class="inline-code">on_key_down</span> сработает один раз, даже если держишь кнопку 10 секунд.</div>
+                <div class="phrase-card"><span class="inline-code">keyboard.left</span> — это прямо сейчас нажата или нет, проверяется 60 раз в секунду.</div>
+            </div>
+            <div>
+                <div class="phrase-card">Анимация — это смена картинок по кругу. Взрослые называют frame cycling.</div>
+                <div class="phrase-card">Гравитация в играх — это просто +0.5 к vy каждый кадр. Никакой магии.</div>
+                <div class="phrase-card">Персонаж теперь живой. Это огромный прогресс.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 14: Mini project -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Мини-проект</span></div>
+        <h2>«Человечек»</h2>
+        <div class="grid-2">
+            <div class="glass glass-violet">
+                <h3>Что на экране</h3>
+                <ul>
+                    <li>Пустая сцена с землёй</li>
+                    <li>Персонаж-мальчик 128×128</li>
+                    <li>Бегает стрелками влево/вправо</li>
+                    <li>Прыгает пробелом с гравитацией</li>
+                    <li>Анимация ног при беге</li>
+                    <li>Idle-поза в покое</li>
+                </ul>
+            </div>
+            <div class="glass glass-cyan">
+                <h3>Зачем это</h3>
+                <p>Это <strong>заготовка платформера</strong>, который мы соберём на уроке 44: динозавр из Chrome или Asteroids.</p>
+                <p style="margin-top: 12px;">Сегодня — <em>скелет движения</em>. На уроке 43 добавим UX и кнопки. На 44 соберём всё в большую игру.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 15: Homework -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Домашнее задание</span><span class="pill pill-cyan">≤ 20 минут</span></div>
+        <h2>Что делаем дома</h2>
+        <div class="grid-3">
+            <div class="glass">
+                <div class="num">01</div>
+                <h3 style="margin-top:10px;">Разворот героя</h3>
+                <p>Если бежит влево — картинка отражается. Через <span class="inline-code">hero.flip = True</span> или через два набора спрайтов.</p>
+            </div>
+            <div class="glass glass-violet">
+                <div class="num">02</div>
+                <h3 style="margin-top:10px;">Моргание в покое</h3>
+                <p>В idle-позе раз в 2 секунды подменять <span class="inline-code">hero_idle</span> на <span class="inline-code">hero_idle_blink</span>. Использовать <span class="inline-code">clock.schedule</span>.</p>
+            </div>
+            <div class="glass glass-cyan">
+                <div class="num">03</div>
+                <h3 style="margin-top:10px;">Гифка в чат</h3>
+                <p>Записать короткое видео/гифку с бегом, прыжком и морганием. Отправить в чат курса.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 16: Success criteria -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Критерии успеха</span></div>
+        <h2>Что значит «урок зачтён»</h2>
+        <div class="grid-2">
+            <div class="glass glass-cyan">
+                <h3>Код работает</h3>
+                <ul class="checklist">
+                    <li>Герой двигается в обе стороны</li>
+                    <li>Прыгает по пробелу</li>
+                    <li>Анимация ног меняется при беге</li>
+                    <li>Не убегает за край экрана</li>
+                    <li>Возвращается в idle в покое</li>
+                </ul>
+            </div>
+            <div class="glass glass-violet">
+                <h3>Ребёнок понимает</h3>
+                <ul class="checklist">
+                    <li>Разницу между событием и состоянием — <strong>своими словами</strong></li>
+                    <li>Почему в формуле есть <span class="inline-code">// 5</span></li>
+                    <li>Откуда берётся «гравитация» (не магия)</li>
+                    <li>Зачем сбрасываем <span class="inline-code">vy = 0</span> на земле</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 17: Problems -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Сложности и решения</span></div>
+        <h2>Что может пойти не так</h2>
+        <div class="grid-3">
+            <div class="glass">
+                <h3 style="color:#F59E0B;">Прыгает бесконечно</h3>
+                <p><strong>Причина:</strong> забыт сброс <span class="inline-code">vy = 0</span> на земле или не проверяем «на земле ли» в <span class="inline-code">on_key_down</span>.</p>
+                <p style="margin-top:10px;"><span class="cyan">Фикс:</span> условие <span class="inline-code">if hero.y >= GROUND_Y</span> перед прыжком.</p>
+            </div>
+            <div class="glass">
+                <h3 style="color:#F59E0B;">Анимация мерцает</h3>
+                <p><strong>Причина:</strong> формула <span class="inline-code">tick % 3</span> без деления — кадры меняются 60 раз в секунду.</p>
+                <p style="margin-top:10px;"><span class="cyan">Фикс:</span> добавить <span class="inline-code">// 5</span> для замедления.</p>
+            </div>
+            <div class="glass">
+                <h3 style="color:#F59E0B;">Бежит и всплывает</h3>
+                <p><strong>Причина:</strong> случайно <span class="inline-code">hero.y -= 3</span> вместо <span class="inline-code">hero.x</span>.</p>
+                <p style="margin-top:10px;"><span class="cyan">Фикс:</span> проверить все координаты — движение по полу всегда через <span class="inline-code">x</span>.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 18: Bonus -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Звёздная задача</span></div>
+        <h2>Двойной прыжок</h2>
+        <div class="grid-2">
+            <div class="glass glass-violet">
+                <h3>Идея</h3>
+                <p>В воздухе можно нажать <strong>пробел ещё раз</strong> и получить второй импульс вверх. Максимум <strong>два прыжка подряд</strong>, после — нужно приземлиться.</p>
+                <p style="margin-top:12px;">Классика платформеров: Hollow Knight, Celeste, Rayman.</p>
+            </div>
+            <div class="glass glass-cyan">
+<pre style="margin:0;"><code class="language-python">jumps_left = 2
+
+def on_key_down(key):
+    global jumps_left
+    if key == keys.SPACE and jumps_left > 0:
+        hero.vy = -10
+        jumps_left -= 1
+
+def update():
+    # ... гравитация ...
+    if hero.y >= GROUND_Y:
+        hero.y = GROUND_Y
+        hero.vy = 0
+        jumps_left = 2  # сброс</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 19: AI -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Где подключаем ИИ</span></div>
+        <h2>Нейросети помогают</h2>
+        <div class="grid-2">
+            <div class="glass glass-violet">
+                <h3>Kandinsky</h3>
+                <p>Генерируем 3–4 кадра анимации бега. <strong>Приём консистентности:</strong></p>
+                <p style="margin-top:12px; padding: 14px; background: rgba(11,15,23,0.5); border-radius: 10px; font-style: italic; color:#C4B5FD;">«тот же персонаж, тот же стиль, та же поза, только нога поднята»</p>
+                <p style="margin-top:12px; font-size:14px; color:#94A3B8;">Учимся формулировать промпт так, чтобы ИИ повторял детали.</p>
+            </div>
+            <div class="glass glass-cyan">
+                <h3>YandexGPT</h3>
+                <p>Объяснение непонятного кода — без готовых решений.</p>
+                <p style="margin-top:12px; padding: 14px; background: rgba(11,15,23,0.5); border-radius: 10px; font-style: italic; color:#67E8F9;">«Объясни, почему в формуле гравитации vy += 0.5, а не vy = 0.5»</p>
+                <p style="margin-top:12px; font-size:14px; color:#94A3B8;">Ребёнок учится получать <em>понимание</em>, а не копировать куски кода.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 20: Why it matters -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Зачем это всё</span></div>
+        <h2>Куда ведёт этот урок</h2>
+        <div class="grid-4">
+            <div class="glass">
+                <div class="stat-big">42</div>
+                <div class="stat-label">Сегодня</div>
+                <p style="margin-top:12px; font-size:14px;">Клавиатура + анимация. Человечек бегает и прыгает.</p>
+            </div>
+            <div class="glass glass-violet">
+                <div class="stat-big">43</div>
+                <div class="stat-label">Следующий</div>
+                <p style="margin-top:12px; font-size:14px;">UX: кнопки, ховер, подсказки. Полировка игры.</p>
+            </div>
+            <div class="glass glass-cyan">
+                <div class="stat-big">44</div>
+                <div class="stat-label">Проект</div>
+                <p style="margin-top:12px; font-size:14px;">Платформер-раннер или Asteroids. Всё вместе.</p>
+            </div>
+            <div class="glass">
+                <div class="stat-big">45+</div>
+                <div class="stat-label">Финал</div>
+                <p style="margin-top:12px; font-size:14px;">Собственная игра ребёнка — финальный проект и демо-день.</p>
+            </div>
+        </div>
+        <div class="glass" style="margin-top: 26px; text-align:center;">
+            <p style="font-size:17px;">Всё, что делаем сегодня — <span class="accent">переиспользуется</span> в больших проектах. Движение, гравитация, анимация — это базовый словарь геймдева.</p>
+        </div>
+    </div>
+</section>
+
+<!-- 21: Summary -->
+<section class="slide">
+    <div class="content">
+        <div class="meta-row"><span class="pill">Итог</span></div>
+        <h2>За 60 минут</h2>
+        <div class="grid-3">
+            <div class="glass" style="text-align:center;">
+                <div class="stat-big">2</div>
+                <div class="stat-label">Режима ввода</div>
+                <p style="margin-top:14px; font-size:14px;">Событие и состояние — главная идея клавиатуры в играх.</p>
+            </div>
+            <div class="glass glass-violet" style="text-align:center;">
+                <div class="stat-big">3</div>
+                <div class="stat-label">Кадра анимации</div>
+                <p style="margin-top:14px; font-size:14px;">Минимум, чтобы бег выглядел живым. Флипбук запущен.</p>
+            </div>
+            <div class="glass glass-cyan" style="text-align:center;">
+                <div class="stat-big">+0.5</div>
+                <div class="stat-label">Гравитация</div>
+                <p style="margin-top:14px; font-size:14px;">Одна цифра превращает прыжок в реалистичную арку.</p>
+            </div>
+        </div>
+        <div class="glass" style="margin-top: 26px;">
+            <p style="text-align:center; font-size:18px; color:#F1F5F9;">От статичной корзинки <span class="arrow">→</span> к живому герою. <br>От мыши <span class="arrow">→</span> к клавиатуре. <br>От одной картинки <span class="arrow">→</span> к анимации.</p>
+        </div>
+    </div>
+</section>
+
+<!-- 22: Closing -->
+<section class="slide">
+    <div class="content title-slide">
+        <div class="kicker">Урок 42 завершён</div>
+        <h1 style="font-size: clamp(46px, 5vw, 80px);">Персонаж оживает</h1>
+        <p class="sub">Ребёнок впервые управляет собственным героем клавиатурой. Он не игрок — он <em>разработчик живого мира</em>. Это поворотный момент курса.</p>
+        <div class="title-chips">
+            <span class="pill">→ Урок 43: UX и кнопки</span>
+            <span class="pill pill-cyan">→ Урок 44: Платформер</span>
+        </div>
+        <p style="margin-top:40px; font-family:'JetBrains Mono',monospace; font-size:13px; color:#64748B;">
+            Жми <kbd style="padding:2px 7px;background:rgba(124,58,237,0.18);border:1px solid rgba(124,58,237,0.35);border-radius:5px;color:#C4B5FD;">N</kbd> чтобы открыть заметки преподавателя
+        </p>
+    </div>
+</section>
+
+<!-- Speaker notes -->
+<div class="notes-panel" id="notes">
+    <h4>Заметки преподавателя · слайд <span id="noteNum">1</span></h4>
+    <p id="noteBody"></p>
+    <p class="close-hint">Нажми N или Esc чтобы закрыть</p>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+    <button onclick="prev()">← Назад</button>
+    <button onclick="next()">Вперёд →</button>
+</div>
+<div class="nav-hint">
+    <kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> полный экран
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let cur = 0;
+
+const notes = [
+    "Открываем урок. Напоминаю: на прошлом уроке (41) мы добавили в игру звук. Сегодня принципиально другой ввод — клавиатура. И впервые — анимация. Говорю сразу: через 60 минут у вас в окне будет живой человечек. Ради этого и работаем.",
+    "Цель проговариваю в двух регистрах. Инженерный: подготовка к платформеру урока 44. Эмоциональный: «у тебя будет ЖИВОЙ персонаж». Для детей 8-14 второе важнее первого, но первое — якорь.",
+    "Две колонки «знает» и «умеет» — это разметка для защиты. На уроке 44 ребёнок будет рассказывать про свой проект и опираться на эти формулировки.",
+    "Про Kandinsky отдельно: промпт консистентности — это тот самый навык, который даст ребёнку преимущество на финальном проекте. Учим формулировать «тот же стиль, та же поза». Не бойтесь, что дети не сгенерируют идеальные кадры с первого раза — 5-6 попыток это норма.",
+    "Тайминг плотный. Если на 15-25 минуте ребёнок «застрял на движении» — жертвуем частью анимации. Движение + прыжок важнее идеальной анимации. Анимацию можно дорисовать в ДЗ.",
+    "ГЛАВНЫЙ слайд урока. Если ребёнок поймёт разницу между событием и состоянием — остальное приложится. Аналогия дверного звонка работает лучше всего. Проверка понимания: «А клавиша M для мьюта — это событие или состояние?» Ответ: событие.",
+    "Покажите клавиатуру вживую (свою или картинку). Стрелки и пробел — больше пока ничего не нужно. На уроке 44 добавим Esc для паузы.",
+    "Код пишем вместе. Не с нуля — открываем пустой game.py и дописываем. Важный момент: объяснить, почему ДВА if, а не if/elif. Если ребёнок зажмёт обе стрелки — герой стоит на месте. Это правильное поведение.",
+    "Гравитация — место, где 80% детей впервые понимают, что такое «скорость». vy (velocity y) — это НЕ координата, а «как быстро меняется y за кадр». Если трудно — рисуем на доске: стрелочка вниз, которая каждый кадр чуть длиннее.",
+    "Флипбук — показать ВЖИВУЮ. Достаньте любую детскую книжку-флипбук, или анимированную гифку, или Kandinsky-генерацию и быстро пролистайте на экране. Слово «флипбук» детям нравится.",
+    "При вводе кода анимации напоминаю про global tick — это первое серьёзное столкновение детей с глобальными переменными в игровом контексте. Объясняю: «без global Python думает, что tick — новая переменная внутри функции».",
+    "Формулу // 5 % 3 разобрать обязательно. Некоторые дети на этом моменте впервые по-настоящему понимают остаток от деления и целочисленное деление из уроков 4-5. Показываем таблицу значений — это «ага-момент».",
+    "Фразы выучены заранее. Особенно «два лица» и «никакой магии про гравитацию» — их потом ребёнок повторяет на защите. Если фраза застряла в памяти — это победа педагога.",
+    "Мини-проект «Человечек» — промежуточная заготовка. НЕ игра. У неё нет цели, нет врагов, нет счёта. Это нормально и детям надо это объяснить: «сегодня мы делаем движение, завтра добавим мир».",
+    "ДЗ три пункта. Разворот — навык flip, моргание — clock.schedule, видео — публичная отчётность. Напомнить: в чате курса коллеги тоже постят, сравнивай стили, не стесняйся писать под чужими «круто!».",
+    "Критерии успеха проговариваем В КОНЦЕ урока. Это чек-лист, по которому ребёнок сам себя проверяет. Если что-то не так — доделываем в ДЗ, не в стрессе на уроке.",
+    "Три типичных бага. Показываю их В КОДЕ заранее, как подводные камни. «Если у тебя такое поведение — значит, скорее всего, такая-то причина». Учим читать ошибки, а не бояться их.",
+    "Звёздная задача ТОЛЬКО для опережающих. 70% детей к ней не идут и это ок. Но для мотивированного ребёнка — маленькая гордость «я сделал двойной прыжок, как в Hollow Knight».",
+    "Про ИИ: упор на ОБЪЯСНЕНИЕ, не на код. Ключевой приём — ребёнок копирует свой код и свой вопрос: «почему у меня это не работает». НЕ «напиши мне код прыжка». Это этика работы с ИИ.",
+    "Слайд-карта будущего. Показываю, зачем это всё. Дети любят видеть контекст: «сегодняшняя маленькая штучка → через 2 урока большой проект». Это мотивация.",
+    "Итоговые цифры — 2, 3, +0.5 — хорошо запоминаются. На защите финального проекта можно спросить: «что такое 2 в клавиатуре?» — и если ребёнок вспомнит «два режима ввода», значит, урок осел.",
+    "Финал. Эмоциональная точка: «персонаж оживает». Для ребёнка это первый раз, когда ОН управляет в своём окне не абстрактной фигурой, а существом. Запомнит надолго. Можно сфотографировать момент и отправить родителям — очень эмоциональный кадр."
+];
+
+function show(i) {
+    slides[cur].classList.remove('active');
+    cur = (i + total) % total;
+    slides[cur].classList.add('active');
+    document.getElementById('cur').textContent = String(cur + 1).padStart(2, '0');
+    document.getElementById('progress').style.width = ((cur + 1) / total * 100) + '%';
+    document.getElementById('noteNum').textContent = cur + 1;
+    document.getElementById('noteBody').textContent = notes[cur] || '—';
+    if (window.Prism) Prism.highlightAll();
+}
+function next() { show(cur + 1); }
+function prev() { show(cur - 1); }
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'n' || e.key === 'N') { document.getElementById('notes').classList.toggle('open'); }
+    else if (e.key === 'Escape') { document.getElementById('notes').classList.remove('open'); }
+    else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+    }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(total - 1);
+});
+
+document.getElementById('total').textContent = String(total).padStart(2, '0');
+show(0);
+</script>
+</body>
+</html>

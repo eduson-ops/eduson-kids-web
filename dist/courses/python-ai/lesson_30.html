@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 30 — Инкапсуляция, наследование, полиморфизм</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* Slide counter */
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  /* Deck */
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 56px 72px 90px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Background glow orbs */
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* Shared elements */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .badge--purple { color: #C4B5FD; }
+  .badge--purple .dot { background: #A78BFA; box-shadow: 0 0 10px #A78BFA; }
+  .badge--pink { color: #F9A8D4; }
+  .badge--pink .dot { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .badge--yellow { color: #FDE68A; }
+  .badge--yellow .dot { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+  .badge--green { color: #86EFAC; }
+  .badge--green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+
+  h1 {
+    font-size: 60px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 14px 0;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 60%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  h2 .grad {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h3 {
+    font-size: 21px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  p, li { font-size: 18px; line-height: 1.55; color: #CBD1DE; }
+  .muted { color: var(--muted); }
+  .big { font-size: 22px; }
+
+  /* Title slide */
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide .meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px;
+  }
+  .title-slide .subtitle {
+    font-size: 21px;
+    color: var(--muted);
+    max-width: 780px;
+    margin-top: 8px;
+  }
+  .title-slide .foot {
+    display: flex; gap: 32px; margin-top: 36px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .title-slide .foot b { color: var(--text); }
+
+  /* Grid / cards */
+  .grid { display: grid; gap: 18px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.45); transform: translateY(-3px); }
+  .card .ico {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.25));
+    border: 1px solid var(--border);
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .card--purple { background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(124,58,237,0.03)); border-color: rgba(124,58,237,0.35); }
+  .card--cyan { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(6,182,212,0.03)); border-color: rgba(6,182,212,0.35); }
+  .card--pink { background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(236,72,153,0.03)); border-color: rgba(236,72,153,0.35); }
+  .card--yellow { background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.35); }
+  .card--green { background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.03)); border-color: rgba(16,185,129,0.35); }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 10px 0 10px 34px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .check-list li::before {
+    content: '✓';
+    position: absolute; left: 0; top: 10px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .num-list { list-style: none; padding: 0; counter-reset: step; }
+  .num-list li {
+    padding: 12px 0 12px 52px;
+    position: relative;
+    counter-increment: step;
+  }
+  .num-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: grid; place-items: center;
+  }
+
+  /* Code */
+  pre[class*="language-"] {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0A0E18 !important;
+    font-size: 14.5px;
+    padding: 16px 20px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+    font-family: 'JetBrains Mono', monospace !important;
+    line-height: 1.55;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #A5F3FC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88em;
+  }
+  .code-window {
+    background: #0A0E18;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .code-window__bar {
+    background: rgba(255,255,255,0.04);
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-window__bar .dots { display: flex; gap: 6px; margin-right: 10px; }
+  .code-window__bar .dots span {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #3b3f4a;
+  }
+  .code-window__bar .dots span:nth-child(1) { background: #ff5f56; }
+  .code-window__bar .dots span:nth-child(2) { background: #ffbd2e; }
+  .code-window__bar .dots span:nth-child(3) { background: #27c93f; }
+  .code-window pre[class*="language-"] {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(6,182,212,0.12);
+    color: #67E8F9;
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 2px;
+  }
+  .tag--purple { background: rgba(124,58,237,0.16); color: #C4B5FD; border-color: rgba(124,58,237,0.35); }
+  .tag--pink { background: rgba(236,72,153,0.16); color: #F9A8D4; border-color: rgba(236,72,153,0.35); }
+  .tag--yellow { background: rgba(245,197,24,0.16); color: #FDE68A; border-color: rgba(245,197,24,0.35); }
+  .tag--green { background: rgba(16,185,129,0.16); color: #86EFAC; border-color: rgba(16,185,129,0.35); }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-row:last-child { border-bottom: 0; }
+  .plan-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 15px;
+    padding-top: 2px;
+  }
+  .plan-row .tl { font-weight: 600; margin-bottom: 4px; font-size: 17px; }
+  .plan-row .dc { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .quote {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 18px 24px;
+    border-left: 3px solid var(--purple);
+    background: var(--glass);
+    border-radius: 0 16px 16px 0;
+    color: #E6E8EC;
+  }
+  .quote small {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .warn {
+    background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .warn .i { font-size: 22px; color: var(--yellow); }
+  .warn .t { color: #FDE68A; font-weight: 600; margin-bottom: 3px; }
+  .warn .d { color: #CBD1DE; font-size: 15px; }
+
+  /* Keyword highlight */
+  .kw { color: var(--cyan); font-weight: 600; }
+  .kw--purple { color: #C4B5FD; }
+  .kw--pink { color: #F9A8D4; }
+  .kw--yellow { color: var(--yellow); }
+  .kw--green { color: #86EFAC; }
+
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .flow .arr {
+    color: var(--cyan);
+    font-size: 22px;
+  }
+
+  .final-center { align-items: center; justify-content: center; text-align: center; }
+  .final-center h1 { font-size: 84px; }
+
+  /* Speaker notes */
+  .notes-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    padding: 18px 40px;
+    max-height: 40vh;
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform .4s ease;
+    z-index: 50;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #CBD1DE;
+  }
+  .notes-panel.open { transform: translateY(0); }
+  .notes-panel h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .title-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  .two-col--code { grid-template-columns: 1fr 1.1fr; }
+
+  .center { text-align: center; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+
+  /* 3 pillars block */
+  .pillar {
+    position: relative;
+    padding: 24px 22px;
+    border-radius: 18px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: transform .25s ease;
+  }
+  .pillar:hover { transform: translateY(-4px); }
+  .pillar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+  }
+  .pillar .big-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+  }
+  .pillar .ico-big {
+    font-size: 44px;
+    margin: 6px 0 10px;
+    display: block;
+  }
+  .pillar h3 { font-size: 23px; }
+  .pillar--purple::before { background: linear-gradient(90deg, #7C3AED, #A78BFA); }
+  .pillar--cyan::before { background: linear-gradient(90deg, #06B6D4, #67E8F9); }
+  .pillar--pink::before { background: linear-gradient(90deg, #EC4899, #F9A8D4); }
+
+  /* Family tree */
+  .tree {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .tree .node {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .tree .node--root {
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(124,58,237,0.05));
+    border-color: rgba(124,58,237,0.5);
+    color: #C4B5FD;
+  }
+  .tree .node--child {
+    background: linear-gradient(135deg, rgba(6,182,212,0.22), rgba(6,182,212,0.04));
+    border-color: rgba(6,182,212,0.5);
+    color: #A5F3FC;
+  }
+  .tree .branches {
+    display: flex; gap: 28px;
+  }
+  .tree .line {
+    width: 2px; height: 22px;
+    background: linear-gradient(180deg, rgba(124,58,237,0.6), rgba(6,182,212,0.6));
+  }
+  .tree .line--split {
+    position: relative;
+    height: 22px;
+    width: 260px;
+  }
+  .tree .line--split::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    width: 2px; height: 10px;
+    background: rgba(6,182,212,0.6);
+    transform: translateX(-50%);
+  }
+  .tree .line--split::after {
+    content: '';
+    position: absolute;
+    top: 10px; left: 10%; right: 10%;
+    height: 2px;
+    background: rgba(6,182,212,0.6);
+  }
+  .tree .branch-stems {
+    display: flex;
+    justify-content: space-between;
+    width: 260px;
+  }
+  .tree .branch-stems span {
+    width: 2px; height: 12px;
+    background: rgba(6,182,212,0.6);
+    display: block;
+  }
+
+  /* Privacy levels */
+  .privacy {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .privacy .lvl {
+    border-radius: 14px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+    text-align: center;
+  }
+  .privacy .lvl .lock { font-size: 32px; margin-bottom: 8px; }
+  .privacy .lvl code {
+    display: inline-block;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 4px 10px;
+    margin: 4px 0 10px;
+  }
+  .privacy .lvl.pub {
+    background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(16,185,129,0.02));
+    border-color: rgba(16,185,129,0.45);
+  }
+  .privacy .lvl.proto {
+    background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.02));
+    border-color: rgba(245,197,24,0.45);
+  }
+  .privacy .lvl.priv {
+    background: linear-gradient(135deg, rgba(236,72,153,0.18), rgba(236,72,153,0.02));
+    border-color: rgba(236,72,153,0.45);
+  }
+  .privacy .lvl.pub code { color: #86EFAC; }
+  .privacy .lvl.proto code { color: #FDE68A; }
+  .privacy .lvl.priv code { color: #F9A8D4; }
+  .privacy .lvl p { font-size: 14.5px; color: var(--muted); }
+
+  /* Polymorphism demo */
+  .poly-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .poly-table th, .poly-table td {
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-size: 17px;
+  }
+  .poly-table th {
+    background: rgba(124,58,237,0.1);
+    color: #C4B5FD;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .poly-table tr:last-child td { border-bottom: 0; }
+  .poly-table td code { color: #A5F3FC; }
+  .poly-table td .sound {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--yellow);
+  }
+
+  /* Terminal */
+  .term {
+    background: #07090F;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #CBD1DE;
+    white-space: pre-wrap;
+  }
+  .term .prompt { color: var(--green); font-weight: 700; }
+  .term .out-p { color: #C4B5FD; }
+  .term .out-c { color: #A5F3FC; }
+  .term .out-y { color: var(--yellow); }
+  .term .out-g { color: #86EFAC; }
+  .term .cmt { color: var(--muted); }
+
+  /* Vehicle hierarchy */
+  .hier-box {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .hier-box .veh {
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+  }
+  .hier-box .veh .h {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .hier-box .veh .ico { font-size: 36px; margin-bottom: 8px; }
+  .hier-box .veh ul {
+    list-style: none;
+    padding: 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .hier-box .veh ul li {
+    padding: 4px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .hier-box .veh ul li::before { content: '· '; color: var(--cyan); }
+
+  /* small screens */
+  @media (max-width: 1100px) {
+    .slide { padding: 40px 40px 90px; }
+    h1 { font-size: 48px; }
+    h2 { font-size: 32px; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .privacy { grid-template-columns: 1fr; }
+    .hier-box { grid-template-columns: 1fr; }
+  }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: Title -->
+  <section class="slide title-slide active" data-notes="Добро пожаловать на 30-й урок. Сегодня — три кита ООП: инкапсуляция, наследование, полиморфизм. Слова страшные, но смысл — детский. Наследование — как родственники. Полиморфизм — один язык, разное поведение. Инкапсуляция — личный дневник с замочком. К концу урока каждый ребёнок собирает иерархию классов и понимает, зачем это вообще нужно.">
+    <div class="title-num">УРОК 30 · МОДУЛЬ 7 · 60 МИНУТ</div>
+    <div class="meta">
+      <div class="badge badge--purple"><span class="dot"></span>Отдел: Классы</div>
+      <div class="badge badge--pink"><span class="dot"></span>8–14 лет</div>
+      <div class="badge badge--yellow"><span class="dot"></span>Неделя 8</div>
+    </div>
+    <h1>
+      Три кита <span class="grad">ООП</span><br/>
+      за 60 минут
+    </h1>
+    <p class="subtitle">Инкапсуляция, наследование, полиморфизм. Три страшных слова, три детских образа: дневник с замочком, семья, разговор на одном языке.</p>
+    <div class="foot">
+      <div><b>Python</b> 3.11+</div>
+      <div><b>GigaIDE</b> / Colab</div>
+      <div><b>YandexGPT</b> — мини-квиз</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Зачем этот урок -->
+  <section class="slide" data-notes="Зачем вообще такой урок? Три концепции — фундамент всех взрослых языков. Java, C++, C#, Swift, Kotlin — везде то же самое. Если ребёнок освоит их сегодня, то в 20 лет на собеседовании он узнает всё. Это самый долгоживущий урок курса. Эмоция: «ты учишь то, что взрослые программисты называют базой».">
+    <div class="badge badge--cyan"><span class="dot"></span>Зачем это нужно</div>
+    <h2>Что <span class="grad">ты узнаешь</span> за урок</h2>
+    <div class="grid grid-3 mt-20 gap-20">
+      <div class="card card--purple">
+        <div class="ico">🧬</div>
+        <h3>Наследование</h3>
+        <p class="muted">Ты унаследовал цвет глаз от родителей. Классы — тоже.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🎭</div>
+        <h3>Полиморфизм</h3>
+        <p class="muted">Одно слово <code>speak()</code>, десять разных голосов.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🔒</div>
+        <h3>Инкапсуляция</h3>
+        <p class="muted">Личный дневник с замочком — не все поля для чужих.</p>
+      </div>
+    </div>
+    <p class="big mt-30 muted">Эти три слова работают <b style="color: var(--text);">в любом языке программирования</b>. Выучишь сегодня — пригодится на всю жизнь.</p>
+  </section>
+
+  <!-- SLIDE 3: Поминутный план -->
+  <section class="slide" data-notes="60 минут. Повторение 5. Теория 10. Совместный кодинг 10. Самостоятельная задача 20. Разбор 10. Итог и ДЗ 5. Ядро — самостоятельная задача про транспорт. Теория короткая — каждое слово по минуте.">
+    <div class="badge badge--purple"><span class="dot"></span>Как пройдёт урок</div>
+    <h2>Поминутный план · <span class="grad">60 минут</span></h2>
+    <div class="mt-20" style="max-width:920px;">
+      <div class="plan-row"><div class="tm">0–5</div><div><div class="tl">Повторение</div><div class="dc">Класс, объект. Демо: <code>Cat</code> и <code>Dog</code> — общий предок <code>Animal</code>.</div></div></div>
+      <div class="plan-row"><div class="tm">5–15</div><div><div class="tl">Теория — три кита</div><div class="dc">Наследование = семья. Полиморфизм = один метод, разные голоса. Инкапсуляция = <code>_diary</code> и <code>__password</code>.</div></div></div>
+      <div class="plan-row"><div class="tm">15–25</div><div><div class="tl">Совместный кодинг</div><div class="dc">Пишем <code>Animal</code> → <code>Cat</code> → <code>Dog</code>. Запускаем цикл с полиморфизмом.</div></div></div>
+      <div class="plan-row"><div class="tm">25–45</div><div><div class="tl">Самостоятельно</div><div class="dc">Иерархия транспорта: <code>Vehicle</code> → <code>Car</code>, <code>Bike</code>. Приватный <code>_fuel</code>.</div></div></div>
+      <div class="plan-row"><div class="tm">45–55</div><div><div class="tl">Разбор</div><div class="dc">Цикл <code>for a in animals</code> — одинаково для всех. Это и есть полиморфизм.</div></div></div>
+      <div class="plan-row"><div class="tm">55–60</div><div><div class="tl">Итог + ДЗ</div><div class="dc">Три пункта: родственники · один метод, разное поведение · защита данных.</div></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: Повторение -->
+  <section class="slide" data-notes="Быстрое повторение. Класс — это чертёж. Объект — конкретная вещь по чертежу. Из одного класса Cat можно сделать 100 котов. У каждого свои атрибуты (имя, возраст) и общие методы (eat, sleep). Если это уже ясно — идём дальше. Если плавает — 2 минуты на повтор.">
+    <div class="badge"><span class="dot"></span>Повторим за 60 секунд</div>
+    <h2>Класс · <span class="grad">чертёж</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">Класс — это <b class="kw">чертёж</b>. Из чертежа строим <b class="kw--pink">объекты</b>.</p>
+        <p class="muted big mt-20">У класса <code>Cat</code> можно создать 100 котов. У каждого своё <b>имя</b>, но все умеют <b>мяукать</b>.</p>
+        <div class="flow mt-20">
+          <div class="step">📐 Класс</div>
+          <div class="arr">→</div>
+          <div class="step">🐱 Объект</div>
+          <div class="arr">→</div>
+          <div class="step">🐱🐱🐱 Много</div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>recap.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Cat:
+    def __init__(self, name):
+        self.name = name
+    def speak(self):
+        print(f"{self.name}: мяу")
+
+barsik = Cat("Барсик")
+murka  = Cat("Мурка")
+barsik.speak()  # Барсик: мяу
+murka.speak()   # Мурка: мяу</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: Три кита -->
+  <section class="slide" data-notes="Главный слайд урока. Три колонны. Каждую разбираем по минуте отдельно. Ни одну не объединяй с другой — каждая отдельная идея. Скажи детям: «Запомните три иконки — 🧬 🎭 🔒. Они всплывут на экзаменах, собеседованиях, в любом коде».">
+    <div class="badge badge--yellow"><span class="dot"></span>Большая тема</div>
+    <h2>Три кита, на которых <span class="grad">стоит ООП</span></h2>
+    <div class="grid grid-3 mt-20 gap-20">
+      <div class="pillar pillar--purple">
+        <div class="big-num">ПРИНЦИП 01</div>
+        <span class="ico-big">🧬</span>
+        <h3>Наследование</h3>
+        <p class="muted mt-16">Новый класс <b style="color:#C4B5FD;">получает всё</b> от родителя — и добавляет своё.</p>
+        <p class="mt-16"><code>class Cat(Animal):</code></p>
+      </div>
+      <div class="pillar pillar--cyan">
+        <div class="big-num">ПРИНЦИП 02</div>
+        <span class="ico-big">🎭</span>
+        <h3>Полиморфизм</h3>
+        <p class="muted mt-16">Один метод <b style="color:#A5F3FC;">разные формы</b> у разных классов.</p>
+        <p class="mt-16"><code>cat.speak()</code>, <code>dog.speak()</code></p>
+      </div>
+      <div class="pillar pillar--pink">
+        <div class="big-num">ПРИНЦИП 03</div>
+        <span class="ico-big">🔒</span>
+        <h3>Инкапсуляция</h3>
+        <p class="muted mt-16">Часть данных <b style="color:#F9A8D4;">спрятана</b> — своим можно, чужим нет.</p>
+        <p class="mt-16"><code>_diary</code> · <code>__password</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Наследование — образ -->
+  <section class="slide" data-notes="Образ: семья. Ты унаследовал цвет глаз от мамы, форму ушей от папы. Добавил своё — характер. В коде то же самое. Animal — родитель. Cat и Dog — дети. Они унаследовали eat() и name, но у каждого свой speak(). Скажи: «class Cat(Animal): — просто скобки с именем родителя».">
+    <div class="badge badge--purple"><span class="dot"></span>Принцип 1 · Наследование</div>
+    <h2>Класс — как <span class="grad">семья</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">Ты унаследовал <b class="kw--purple">цвет глаз</b> от родителей, а ещё добавил <b class="kw">своё</b> — характер.</p>
+        <p class="muted big mt-20">Класс работает <b>так же</b>. Пишем:</p>
+        <div class="code-window mt-20">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>inherit.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Cat(Animal):
+    ...</div><div class="compiler-output"></div></div>
+        </div>
+        <p class="muted big mt-20"><b style="color:var(--text);">Cat — это Animal,</b> плюс своё.</p>
+      </div>
+      <div>
+        <div class="tree">
+          <div class="node node--root">Animal · родитель</div>
+          <div class="line"></div>
+          <div class="line--split line">
+            <div class="branch-stems"><span></span><span></span></div>
+          </div>
+          <div class="branches">
+            <div class="node node--child">Cat · ребёнок</div>
+            <div class="node node--child">Dog · ребёнок</div>
+          </div>
+        </div>
+        <p class="muted mt-30 center">У обоих детей уже есть <code>eat()</code> и <code>name</code> — <b style="color:var(--text);">бесплатно</b>, из Animal.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Наследование код -->
+  <section class="slide" data-notes="Совместный кодинг часть 1. Пишем родителя Animal. __init__ с name. Метод eat() — общий для всех. speak() — пустышка, её дети переопределят. Главная магия — class Cat(Animal): в скобках имя родителя. Покажи: мы НЕ переписывали eat() в Cat, но он работает. Это и есть сила наследования.">
+    <div class="badge badge--purple"><span class="dot"></span>Наследование · код</div>
+    <h2>Пишем <span class="grad">родителя и детей</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>animals.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def eat(self):
+        print(f"{self.name} ест")
+
+    def speak(self):
+        print("...")
+
+class Cat(Animal):
+    pass  # пока ничего нового
+
+class Dog(Animal):
+    pass</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <h3 class="kw--purple">Что произошло?</h3>
+        <ul class="check-list mt-20">
+          <li><code>Cat</code> и <code>Dog</code> — <b>дети</b> <code>Animal</code></li>
+          <li>У обоих <b>уже есть</b> <code>eat()</code> и <code>name</code></li>
+          <li>Мы <b>не писали</b> их заново — получили даром</li>
+          <li><code>pass</code> = «пока без изменений»</li>
+        </ul>
+        <div class="warn mt-20">
+          <div class="i">💡</div>
+          <div>
+            <div class="t">Ключ к волшебству</div>
+            <div class="d">Скобки после имени класса: <code>class Cat(Animal):</code> — «Cat это Animal».</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: Полиморфизм — образ -->
+  <section class="slide" data-notes="Образ полиморфизма — «много форм». Одно действие speak(), но у кота — мяу, у пса — гав, у коровы — му. Представь школьный звонок: во всех классах он звенит, но каждый класс после него делает своё (одни идут на физ-ру, другие в столовую). Одно событие — разные реакции. Это полиморфизм.">
+    <div class="badge badge--cyan"><span class="dot"></span>Принцип 2 · Полиморфизм</div>
+    <h2>Одно слово — <span class="grad">разные голоса</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">«Поли» — <b class="kw">много</b>. «Морфа» — <b class="kw">форма</b>. <b>Много форм</b> одного действия.</p>
+        <p class="muted big mt-20">Школьный звонок звенит у всех — но один класс идёт в столовую, другой на физ-ру. Одно событие, разные реакции.</p>
+        <p class="mt-30"><span class="tag tag--purple">cat.speak()</span> <span class="tag tag--purple">dog.speak()</span> <span class="tag tag--purple">cow.speak()</span></p>
+      </div>
+      <div>
+        <table class="poly-table">
+          <thead>
+            <tr><th>Объект</th><th>Метод</th><th>Результат</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>🐱 <code>cat</code></td><td><code>.speak()</code></td><td><span class="sound">мяу</span></td></tr>
+            <tr><td>🐶 <code>dog</code></td><td><code>.speak()</code></td><td><span class="sound">гав</span></td></tr>
+            <tr><td>🐄 <code>cow</code></td><td><code>.speak()</code></td><td><span class="sound">му</span></td></tr>
+            <tr><td>🦆 <code>duck</code></td><td><code>.speak()</code></td><td><span class="sound">кря</span></td></tr>
+          </tbody>
+        </table>
+        <p class="muted center mt-20">Имя метода одно, поведение у каждого — <b style="color: var(--text);">своё</b>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: Полиморфизм — код -->
+  <section class="slide" data-notes="Совместный кодинг часть 2. Переопределяем speak() в Cat и Dog. Главное правило: имя метода ДОЛЖНО совпадать точь-в-точь со speak в родителе. Не say, не Speak, не speakk — именно speak. Это называется переопределение — override. Покажи в IDE: стираем pass, пишем def speak(self): ...">
+    <div class="badge badge--cyan"><span class="dot"></span>Полиморфизм · код</div>
+    <h2>Переопределяем <span class="grad">speak()</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">Пишем в <b>каждом</b> классе <code>def speak(self):</code> с тем же именем.</p>
+        <p class="muted big mt-20">Так мы <b class="kw">перекрываем</b> метод родителя своей версией.</p>
+        <div class="warn mt-20">
+          <div class="i">⚠️</div>
+          <div>
+            <div class="t">Имя — точь-в-точь</div>
+            <div class="d">Если написать <code>Speak</code> или <code>spek</code> — Python решит, что это новый метод, и <b>не переопределит</b> родительский.</div>
+          </div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>speak.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Cat(Animal):
+    def speak(self):
+        print(f"{self.name}: мяу")
+
+class Dog(Animal):
+    def speak(self):
+        print(f"{self.name}: гав")
+
+Cat("Барсик").speak()  # Барсик: мяу
+Dog("Рекс").speak()    # Рекс: гав</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: Цикл полиморфизма -->
+  <section class="slide" data-notes="Самый красивый момент урока. Создаём список разных объектов и пишем один цикл. Он вызывает .eat() и .speak() одинаково для всех. Коту — мяу, псу — гав. Цикл об этом НЕ ЗНАЕТ. Он просто говорит «.speak()», а Python сам выбирает нужную версию. Это и есть сила полиморфизма.">
+    <div class="badge badge--cyan"><span class="dot"></span>Магия цикла</div>
+    <h2>Один цикл — <span class="grad">все объекты</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>zoo.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">animals = [
+    Cat("Барсик"),
+    Dog("Рекс"),
+    Cat("Мурка"),
+    Dog("Шарик"),
+]
+
+for a in animals:
+    a.eat()
+    a.speak()</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <div class="term">
+<span class="cmt"># вывод в консоль</span>
+<span class="out-p">Барсик ест</span>
+<span class="out-y">Барсик: мяу</span>
+<span class="out-c">Рекс ест</span>
+<span class="out-y">Рекс: гав</span>
+<span class="out-p">Мурка ест</span>
+<span class="out-y">Мурка: мяу</span>
+<span class="out-c">Шарик ест</span>
+<span class="out-y">Шарик: гав</span>
+        </div>
+        <p class="big mt-20">Цикл <b>не знает</b>, кто кот, а кто пёс. Он просто говорит <code>.speak()</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 11: Инкапсуляция — образ -->
+  <section class="slide" data-notes="Третий кит — инкапсуляция. От слова «капсула» — запаянная оболочка. У тебя есть школьный дневник — туда лезут все. А есть личный дневник — лучше не трогайте. А пароль от вк — это вообще только твоё, никто не увидит. В Python три уровня: обычное имя, _имя, __имя. Чем больше подчёркиваний — тем больше защиты.">
+    <div class="badge badge--pink"><span class="dot"></span>Принцип 3 · Инкапсуляция</div>
+    <h2>Дневник с <span class="grad">замочком</span></h2>
+    <div class="privacy mt-20">
+      <div class="lvl pub">
+        <div class="lock">📖</div>
+        <div class="muted" style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase;">Открыто</div>
+        <code>name</code>
+        <p>Школьный дневник — смотрят все.</p>
+      </div>
+      <div class="lvl proto">
+        <div class="lock">🔐</div>
+        <div class="muted" style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase;">Личное</div>
+        <code>_diary</code>
+        <p>Личный дневник: «лучше не трогай».</p>
+      </div>
+      <div class="lvl priv">
+        <div class="lock">🛡️</div>
+        <div class="muted" style="font-size:12px; letter-spacing:0.1em; text-transform:uppercase;">Скрыто</div>
+        <code>__password</code>
+        <p>Пароль от ВК. Спрятано по-настоящему.</p>
+      </div>
+    </div>
+    <p class="big mt-30 muted center">Чем <b style="color:var(--text);">больше подчёркиваний</b> — тем <b style="color:var(--text);">сильнее замок</b>.</p>
+  </section>
+
+  <!-- SLIDE 12: Инкапсуляция — код -->
+  <section class="slide" data-notes="Практика инкапсуляции. Одно подчёркивание _diary — это договорённость «не трогай из вне». Python ничего не блокирует, но ты предупреждён. Двойное __password — называется name mangling: Python превращает __password в _Person__password, и простое person.__password ломается. Покажи в терминале — даст AttributeError.">
+    <div class="badge badge--pink"><span class="dot"></span>Инкапсуляция · код</div>
+    <h2>Три уровня <span class="grad">доступа</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>person.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Person:
+    def __init__(self, name):
+        self.name = name           # открытое
+        self._diary = "секретики"  # «не трогай»
+        self.__password = "1234"   # реально скрыто
+
+p = Person("Аня")
+print(p.name)       # Аня           ✅
+print(p._diary)     # секретики     ⚠️
+print(p.__password) # AttributeError ❌</div><div class="compiler-output"></div></div>
+      </div>
+      <div>
+        <h3 class="kw--pink">Что запомнить</h3>
+        <ul class="check-list mt-20">
+          <li><code>name</code> — <b>все видят</b></li>
+          <li><code>_diary</code> — <b>договорённость</b>, Python не блокирует</li>
+          <li><code>__password</code> — <b>name mangling</b>, доступ ломается</li>
+        </ul>
+        <div class="warn mt-20">
+          <div class="i">🧠</div>
+          <div>
+            <div class="t">Честно говоря</div>
+            <div class="d">Все три уровня можно «взломать». <b>Смысл</b> — чтобы код выглядел понятно и чужой не лез куда не надо.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 13: super().__init__ -->
+  <section class="slide" data-notes="Самое частое затруднение на следующих уроках. Если в дочернем классе ты пишешь свой __init__, то Python забывает про __init__ родителя. Чтобы атрибуты родителя не потерялись — вызывай super().__init__(name). Это значит «дорогой родитель, выполни свой __init__». Потом добавляй своё. На сегодняшнем уроке — необязательно, но покажи как бонус.">
+    <div class="badge badge--yellow"><span class="dot"></span>Бонус — важно на следующих уроках</div>
+    <h2>Как вызвать <span class="grad">родителя</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <p class="big">Если ты пишешь <b>свой</b> <code>__init__</code> в дочернем классе — атрибуты родителя <b class="kw--pink">теряются</b>.</p>
+        <p class="muted big mt-20">Чтобы этого не было — вызывай родителя через <code>super().__init__()</code>.</p>
+        <div class="warn mt-20">
+          <div class="i">🗝️</div>
+          <div>
+            <div class="t">Волшебное заклинание</div>
+            <div class="d"><code>super()</code> = «обратиться к родителю». Произнёс — и вся логика родителя исполнится.</div>
+          </div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>super_init.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Animal:
+    def __init__(self, name):
+        self.name = name
+
+class Cat(Animal):
+    def __init__(self, name, color):
+        super().__init__(name)   # зовём родителя
+        self.color = color       # своё добавили
+
+b = Cat("Барсик", "рыжий")
+print(b.name, b.color)  # Барсик рыжий</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 14: Самостоятельная задача -->
+  <section class="slide" data-notes="20 минут, ядро урока. Задача: транспорт. Vehicle — родитель с __init__(name) и move() = 'едет'. Car переопределяет move() = 'едет по дороге'. Bike — 'катится по тропинке'. Добавляем приватный _fuel. Метод refuel() увеличивает _fuel на 10. Цикл: for v in [Car('Тесла'), Bike('BMX')]: v.move().">
+    <div class="badge badge--green"><span class="dot"></span>Самостоятельная задача · 20 минут</div>
+    <h2>Иерархия <span class="grad">транспорта</span></h2>
+    <div class="hier-box mt-20">
+      <div class="veh" style="border-color: rgba(124,58,237,0.5); background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(124,58,237,0.02));">
+        <div class="ico">🧬</div>
+        <div class="h" style="color:#C4B5FD;">Vehicle · родитель</div>
+        <ul>
+          <li>name</li>
+          <li>_fuel</li>
+          <li>move()</li>
+          <li>refuel()</li>
+        </ul>
+      </div>
+      <div class="veh" style="border-color: rgba(6,182,212,0.5); background: linear-gradient(135deg, rgba(6,182,212,0.14), rgba(6,182,212,0.02));">
+        <div class="ico">🚗</div>
+        <div class="h" style="color:#A5F3FC;">Car(Vehicle)</div>
+        <ul>
+          <li>move() → «по дороге»</li>
+          <li>всё остальное от родителя</li>
+        </ul>
+      </div>
+      <div class="veh" style="border-color: rgba(236,72,153,0.5); background: linear-gradient(135deg, rgba(236,72,153,0.14), rgba(236,72,153,0.02));">
+        <div class="ico">🚲</div>
+        <div class="h" style="color:#F9A8D4;">Bike(Vehicle)</div>
+        <ul>
+          <li>move() → «по тропинке»</li>
+          <li>всё остальное от родителя</li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow mt-30">
+      <div class="step">1. Пишешь Vehicle</div>
+      <div class="arr">→</div>
+      <div class="step">2. class Car(Vehicle)</div>
+      <div class="arr">→</div>
+      <div class="step">3. class Bike(Vehicle)</div>
+      <div class="arr">→</div>
+      <div class="step">4. Цикл for v in ...</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: Шаблон задачи -->
+  <section class="slide" data-notes="Дай ученикам скелет. Они должны заполнить пропуски. Самое важное — правильно написать class Car(Vehicle): и def move(self): с тем же именем. _fuel — через одно подчёркивание. refuel добавляет топливо. Ошибки: забывают self, пишут class Car(): без родителя, пишут Move вместо move.">
+    <div class="badge badge--green"><span class="dot"></span>Шаблон кода</div>
+    <h2>С чего <span class="grad">начать</span></h2>
+    <div class="code-window mt-20">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>transport.py — заполни пропуски</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Vehicle:
+    def __init__(self, name):
+        self.name = name
+        self._fuel = 0         # приватное поле
+
+    def move(self):
+        print(f"{self.name} едет")
+
+    def refuel(self, litres):
+        self._fuel += litres
+        print(f"{self.name}: топливо = {self._fuel}")
+
+class Car(Vehicle):
+    def move(self):
+        print(f"{self.name} 🚗 летит по дороге")
+
+class Bike(Vehicle):
+    def move(self):
+        print(f"{self.name} 🚲 катится по тропинке")
+
+for v in [Car("Тесла"), Bike("BMX")]:
+    v.refuel(10)
+    v.move()</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: Разбор — магия полиморфизма -->
+  <section class="slide" data-notes="После самостоятельной части — разбор. Покажи, что цикл for v in [Car, Bike] работает одинаково. Машина и велосипед — разные вещи, но цикл их обрабатывает вместе. Это и есть свобода ООП: можно добавить Plane(Vehicle) или Boat(Vehicle) — цикл не нужно менять. Эмоция: «ваш код готов к расширению».">
+    <div class="badge"><span class="dot"></span>Разбор 45–55</div>
+    <h2>В чём <span class="grad">магия</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">Цикл <code>for v in vehicles</code> работает <b class="kw">одинаково</b> и для машины, и для велосипеда.</p>
+        <p class="muted big mt-20">Завтра добавишь <code>class Plane(Vehicle)</code> — <b>цикл менять не нужно</b>. Это и есть сила.</p>
+        <div class="quote mt-20">
+          Без ООП игра из 1000 строк превращается в кашу. С ООП — в аккуратный шкаф.
+          <small>— ключевая фраза урока</small>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>extended.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Plane(Vehicle):
+    def move(self):
+        print(f"{self.name} ✈️ летит в небе")
+
+class Boat(Vehicle):
+    def move(self):
+        print(f"{self.name} ⛵ плывёт по воде")
+
+# цикл НЕ меняется!
+for v in [Car("Тесла"), Bike("BMX"),
+          Plane("Боинг"), Boat("Ласточка")]:
+    v.move()</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Частые ошибки -->
+  <section class="slide" data-notes="Сложности дня. 1) Забыл super().__init__() — атрибуты родителя исчезли. 2) _name не запрещает доступ реально — это только соглашение. 3) Переопределил метод с другим именем — родительский вызывается. 4) Метод и атрибут путает — метод со скобками. 5) «Зачем три слова сразу?» — разбираем каждое отдельно по минуте.">
+    <div class="badge badge--yellow"><span class="dot"></span>Где спотыкаются</div>
+    <h2>Частые <span class="grad">ошибки</span></h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div class="card card--pink">
+        <h3>❌ Забыл super().__init__()</h3>
+        <p class="muted">Пишешь свой <code>__init__</code> — и <code>name</code> от родителя <b>пропал</b>. Лекарство: <code>super().__init__(...)</code> в начале.</p>
+      </div>
+      <div class="card card--yellow">
+        <h3>❌ Думаешь, что _ запрещает</h3>
+        <p class="muted"><code>_diary</code> — <b>только договорённость</b>. Python разрешит доступ. Это сигнал «не трогай», а не блокировка.</p>
+      </div>
+      <div class="card card--cyan">
+        <h3>❌ Имя метода не совпадает</h3>
+        <p class="muted">Написал <code>Speak</code> вместо <code>speak</code> — Python решил, что это новый метод. Родительский по-прежнему вызывается.</p>
+      </div>
+      <div class="card card--purple">
+        <h3>❌ Путаешь метод и атрибут</h3>
+        <p class="muted">Метод — со скобками: <code>cat.speak()</code>. Атрибут — без: <code>cat.name</code>. Разные вещи.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: Ключевые фразы -->
+  <section class="slide" data-notes="Если ребёнок запомнит только эти 5 фраз — урок окупился. Зачитай их вслух. Каждая фраза — якорь в памяти. Особенно первая: наследование = родственники. И пятая: без ООП код из 1000 строк — каша.">
+    <div class="badge badge--purple"><span class="dot"></span>Запомни вслух</div>
+    <h2>5 фраз, которые <span class="grad">решают всё</span></h2>
+    <ul class="num-list mt-20" style="max-width:880px;">
+      <li><b>Наследование</b> — как ты унаследовал цвет глаз от родителей.</li>
+      <li><b>Полиморфизм</b> — много форм. Одно действие, разные формы.</li>
+      <li><code>_name</code> — «пожалуйста, не трогай снаружи». <code>__name</code> — «реально скрыто».</li>
+      <li><code>class Cat(Animal):</code> — <b>Cat это Animal</b>, плюс своё.</li>
+      <li>Без ООП — каша из 1000 строк. С ООП — <b>аккуратный шкаф</b>.</li>
+    </ul>
+  </section>
+
+  <!-- SLIDE 19: Итог урока -->
+  <section class="slide" data-notes="Финальный чек-поинт по теории. Три пункта, по одной минуте на каждый. Проверка: спроси у детей 'кто что запомнил?' Если дети путают полиморфизм с наследованием — повтори на примере speak(). Если путают инкапсуляцию с наследованием — на примере _diary.">
+    <div class="badge badge--green"><span class="dot"></span>55–60 · Итог</div>
+    <h2>Три кита · <span class="grad">в одну строчку</span></h2>
+    <div class="grid grid-3 mt-20 gap-20">
+      <div class="card card--purple">
+        <div class="ico">🧬</div>
+        <h3>Наследование</h3>
+        <p>= <b style="color:#C4B5FD;">родственники</b>.</p>
+        <p class="muted mt-16"><code>class Cat(Animal):</code> — забираешь всё от родителя.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🎭</div>
+        <h3>Полиморфизм</h3>
+        <p>= <b style="color:#A5F3FC;">один метод, разное поведение</b>.</p>
+        <p class="muted mt-16">Переопределяешь <code>speak()</code> — каждый говорит по-своему.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🔒</div>
+        <h3>Инкапсуляция</h3>
+        <p>= <b style="color:#F9A8D4;">защита данных</b>.</p>
+        <p class="muted mt-16"><code>_x</code> — просьба. <code>__x</code> — реальное сокрытие.</p>
+      </div>
+    </div>
+    <p class="big mt-30 center muted">Выучил эти три слова — <b style="color: var(--text);">знаешь фундамент ООП</b> в любом языке мира.</p>
+  </section>
+
+  <!-- SLIDE 20: Бонус — 3 уровня -->
+  <section class="slide" data-notes="Бонус для быстрых. Наследование работает через несколько уровней. Animal → Mammal → Dog. Mammal наследует от Animal и добавляет warm_blood. Dog наследует от Mammal и добавляет bark(). В Dog доступны все методы из всех трёх уровней. Это называется цепочка наследования. Не перегружай — бонус.">
+    <div class="badge badge--yellow"><span class="dot"></span>Бонус — для продвинутых</div>
+    <h2>Три уровня <span class="grad">наследования</span></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <div class="tree">
+          <div class="node node--root">Animal</div>
+          <div class="line"></div>
+          <div class="node" style="background: linear-gradient(135deg, rgba(245,197,24,0.2), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.45); color:#FDE68A;">Mammal</div>
+          <div class="line"></div>
+          <div class="node node--child">Dog</div>
+        </div>
+        <p class="muted big mt-30">У <code>Dog</code> есть <b>всё</b>: методы <code>Animal</code>, методы <code>Mammal</code>, свои <code>bark()</code>.</p>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>chain.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Animal:
+    def eat(self):
+        print("ем")
+
+class Mammal(Animal):
+    def warm_blood(self):
+        print("теплокровное")
+
+class Dog(Mammal):
+    def bark(self):
+        print("гав!")
+
+d = Dog()
+d.eat()         # от Animal
+d.warm_blood()  # от Mammal
+d.bark()        # своё</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 21: ДЗ -->
+  <section class="slide" data-notes="Домашка на 20 минут. Не новая тема — закрепление. Vehicle, Car, Bike. Переопределить move(). Приватное _speed. Бонус — через YandexGPT придумать 3 необычных транспорта (например, ковёр-самолёт, телепорт, горка). Сделать для каждого класс. На следующий урок — большой проект РПГ, надо прийти с твёрдой базой.">
+    <div class="badge badge--pink"><span class="dot"></span>Домашнее задание</div>
+    <h2>ДЗ · <span class="grad">≤ 20 минут</span></h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div>
+        <ul class="num-list">
+          <li><b>Класс <code>Vehicle</code></b><br/><span class="muted">С методом <code>move()</code> и приватным <code>_speed</code>.</span></li>
+          <li><b>Два наследника</b><br/><span class="muted"><code>Car</code> и <code>Bike</code>. В каждом переопределить <code>move()</code>.</span></li>
+          <li><b>Проверка полиморфизма</b><br/><span class="muted">Цикл по списку из 2 объектов — вывести <code>move()</code> каждого.</span></li>
+          <li><b>Бонус 🌟</b><br/><span class="muted">Попроси YandexGPT придумать <b>3 необычных транспорта</b>. Сделай для них классы.</span></li>
+        </ul>
+      </div>
+      <div class="card card--pink">
+        <h3>💡 Подсказки</h3>
+        <ul class="check-list mt-20" style="font-size:15px;">
+          <li>Родителя пишем <b>первым</b></li>
+          <li><code>class Car(Vehicle):</code> — скобки с родителем</li>
+          <li><code>_speed</code> — одно подчёркивание</li>
+          <li>Метод <code>move</code> — <b>точно так же</b> в обоих</li>
+          <li>Проверь: работает ли цикл для обоих?</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 22: Что дальше -->
+  <section class="slide" data-notes="Переход к следующему уроку. Урок 31 — репетиция перед большим проектом. Соберём всё: конструктор с параметрами, методы с возвратом значений, наследование, цикл. Это будет мини-РПГ: герой и враг. У героя — attack(), возвращает урон. Это трамплин к тамагочи на уроке 32.">
+    <div class="badge badge--cyan"><span class="dot"></span>Что впереди</div>
+    <h2>Урок 31 · <span class="grad">репетиция ООП</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">Сегодня ты освоил три кита. В следующий раз — <b style="color: var(--cyan);">собираем всё вместе</b>.</p>
+        <p class="muted big mt-20">Мини-РПГ: <b>Hero</b> и <b>Enemy</b>. У героя — <code>attack(enemy)</code>, возвращает урон. Один объект <b>меняет</b> другой.</p>
+      </div>
+      <div class="card card--cyan">
+        <h3>🎯 Что увидим</h3>
+        <ul class="check-list mt-20" style="font-size:16px;">
+          <li>Методы с возвратом значения</li>
+          <li>Объект меняет объект</li>
+          <li>Наследование + полиморфизм в бою</li>
+          <li>Подготовка к проекту «Тамагочи»</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 23: Финал -->
+  <section class="slide final-center" data-notes="Финал урока. Три кита — отзвенело. Эмоция: ты сегодня выучил три слова, которые встретишь во всех языках программирования, во всех учебниках, на всех собеседованиях. Это база. Фото бейджа не ставим сегодня — бейдж придёт после модуля 7. Но каждый ребёнок уходит с ощущением «я понял главное».">
+    <div class="hero-eyebrow">УРОК 30 · ЗАВЕРШЁН</div>
+    <h1 class="grad" style="font-size: 82px;">Три кита<br/>в кармане</h1>
+    <p class="big muted" style="max-width: 720px;">🧬 Наследование · 🎭 Полиморфизм · 🔒 Инкапсуляция. Три слова, которые работают в Python, Java, C++, Swift — <b style="color:var(--text);">в любом языке мира</b>.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">🧬 class Cat(Animal):</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">🎭 speak() · много форм</div>
+      <div class="step">🔒 _diary · __password</div>
+    </div>
+    <p class="muted big mt-30">Впереди — <b style="color:var(--cyan);">мини-РПГ</b> и большой проект «Тамагочи».</p>
+  </section>
+
+</div>
+
+<div class="counter"><b id="currentSlide">1</b> / <span id="totalSlides">23</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+
+<div class="notes-panel" id="notesPanel">
+  <h4>Speaker notes · нажми <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 11px;">N</kbd> чтобы скрыть</h4>
+  <div id="notesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const currentEl = document.getElementById('currentSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progressEl = document.getElementById('progress');
+  const notesPanel = document.getElementById('notesPanel');
+  const notesContent = document.getElementById('notesContent');
+
+  totalEl.textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    currentEl.textContent = idx + 1;
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    const notes = slides[idx].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+    slides[idx].scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      e.preventDefault(); notesPanel.classList.toggle('open');
+    }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  let touchStartX = null;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { show(idx + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>
