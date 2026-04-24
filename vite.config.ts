@@ -1,10 +1,169 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type UserConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
-// GitHub Pages деплоит приложение на /<repo>/, поэтому в проде нужен base.
-// Локально (npm run dev) base = '/'.
-// https://vite.dev/config/
-export default defineConfig(({ command }) => ({
-  plugins: [react()],
-  base: command === 'build' ? '/eduson-kids-web/' : '/',
-}))
+// Три target-а одного vite-build:
+//   1) GitHub Pages SPA — base = '/eduson-kids-web/'
+//   2) Capacitor native shell — base = './' (assets относительны)
+//   3) dev — base = '/'
+// Переключение: VITE_TARGET=capacitor | pwa | ghpages (default: ghpages в проде).
+export default defineConfig(({ command, mode }): UserConfig => {
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  const target = env.VITE_TARGET || (command === 'build' ? 'ghpages' : 'dev')
+
+  const baseByTarget: Record<string, string> = {
+    dev: '/',
+    ghpages: '/eduson-kids-web/',
+    pwa: '/eduson-kids-web/',
+    capacitor: './',
+  }
+  const base = baseByTarget[target] ?? '/'
+
+  return {
+    base,
+    plugins: [
+      react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg', 'icons/*.png', 'icons/*.svg'],
+        manifest: {
+          name: 'Eduson Kids — 3D Coding',
+          short_name: 'Eduson Kids',
+          description: 'Строй 3D-миры, учись Python играя. Платформа 9-15 лет.',
+          lang: 'ru',
+          dir: 'ltr',
+          start_url: target === 'capacitor' ? './' : '/eduson-kids-web/',
+          scope: target === 'capacitor' ? './' : '/eduson-kids-web/',
+          display: 'standalone',
+          orientation: 'any',
+          background_color: '#0C0533',
+          theme_color: '#6B5CE7',
+          categories: ['education', 'games', 'kids'],
+          icons: [
+            { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+            { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+            { src: 'icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+          ],
+          screenshots: [],
+          shortcuts: [
+            { name: 'Уроки', short_name: 'Уроки', url: '/learn', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+            { name: 'Студия', short_name: 'Студия', url: '/studio', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+            { name: 'Играть', short_name: 'Играть', url: '/play', icons: [{ src: 'icons/icon-192.png', sizes: '192x192' }] },
+          ],
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,gif,webp,woff2,wasm}'],
+          globIgnores: ['**/ios/**', '**/android/**'],
+          maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
+          navigateFallback: target === 'capacitor' ? null : '/eduson-kids-web/index.html',
+          // Skip API routes from precache so live requests always hit the network.
+          // Offline writes are queued via BackgroundSyncPlugin (see runtimeCaching
+          // entries below for /api/v1/projects writes).
+          navigateFallbackDenylist: [/^\/api\//],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts',
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'pyodide-cdn',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              urlPattern: ({ request }) => request.destination === 'image',
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'images',
+                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            // Offline queue for project saves (PUT /api/v1/projects/:id)
+            // When the network is unavailable, the request body is stored in
+            // IndexedDB ('kubik-saves' queue) and replayed on reconnection.
+            {
+              urlPattern: ({ url, request }) => {
+                return request.method === 'PUT'
+                  && /\/api\/v1\/projects\/[a-f0-9-]+$/i.test(url.pathname)
+              },
+              handler: 'NetworkOnly',
+              options: {
+                backgroundSync: {
+                  name: 'kubik-saves',
+                  options: {
+                    maxRetentionTime: 7 * 24 * 60, // 7 days, in minutes
+                  },
+                },
+              },
+              method: 'PUT',
+            },
+            // Same pattern for AI-pipeline submissions — survive flaky uplinks
+            {
+              urlPattern: ({ url, request }) => {
+                return request.method === 'POST'
+                  && /\/api\/v1\/admin\/ai\/lessons\/generate$/i.test(url.pathname)
+              },
+              handler: 'NetworkOnly',
+              options: {
+                backgroundSync: {
+                  name: 'kubik-ai-jobs',
+                  options: { maxRetentionTime: 24 * 60 },
+                },
+              },
+              method: 'POST',
+            },
+            // Cache GET project reads stale-while-revalidate so opening Studio
+            // offline shows last known state.
+            {
+              urlPattern: /\/api\/v1\/projects(\/[a-f0-9-]+)?(\?.*)?$/i,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'projects-api',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+              method: 'GET',
+            },
+          ],
+        },
+        devOptions: {
+          enabled: false,
+        },
+      }),
+    ],
+    build: {
+      target: 'es2020',
+      sourcemap: false,
+      chunkSizeWarningLimit: 2500,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (!id.includes('node_modules')) return undefined
+            if (id.includes('/react-router-dom/') || id.includes('/react-router/') || /[/\\]node_modules[/\\]react[/\\]/.test(id) || /[/\\]node_modules[/\\]react-dom[/\\]/.test(id) || id.includes('scheduler')) return 'vendor-react'
+            if (id.includes('@react-three/rapier') || id.includes('@dimforge')) return 'vendor-physics'
+            if (id.includes('@react-three/postprocessing') || id.includes('/postprocessing/')) return 'vendor-postfx'
+            if (id.includes('@react-three/fiber') || id.includes('@react-three/drei') || /[/\\]node_modules[/\\]three[/\\]/.test(id)) return 'vendor-three'
+            if (id.includes('/blockly/')) return 'vendor-blockly'
+            if (id.includes('monaco-editor') || id.includes('@monaco-editor')) return 'vendor-monaco'
+            if (id.includes('/@codemirror/') || id.includes('/codemirror/')) return 'vendor-codemirror'
+            if (id.includes('@livekit') || id.includes('livekit-client')) return 'vendor-livekit'
+            if (id.includes('socket.io-client')) return 'vendor-socket'
+            if (id.includes('/howler/')) return 'vendor-audio'
+            if (id.includes('@capacitor/')) return 'vendor-capacitor'
+            return undefined
+          },
+        },
+      },
+    },
+  }
+})
