@@ -15,6 +15,20 @@ export class AddUserExternalIdsAndConsent1714000003000 implements MigrationInter
   name = 'AddUserExternalIdsAndConsent1714000003000';
 
   public async up(qr: QueryRunner): Promise<void> {
+    // Extend user_role_enum with the 5 admin/staff roles introduced in Phase 2+
+    // (methodist, curator, school_admin, regional_admin, platform_admin).
+    // Postgres requires each ALTER TYPE ... ADD VALUE to run on its own
+    // statement (they implicitly commit), so we issue them individually.
+    // NOTE: down() cannot cleanly drop these enum values — Postgres does not
+    // support DROP VALUE on an enum. Rolling back this migration leaves the
+    // extra values in place, which is harmless (unused values don't break
+    // anything) but worth knowing.
+    await qr.query(`ALTER TYPE user_role_enum ADD VALUE IF NOT EXISTS 'methodist';`);
+    await qr.query(`ALTER TYPE user_role_enum ADD VALUE IF NOT EXISTS 'curator';`);
+    await qr.query(`ALTER TYPE user_role_enum ADD VALUE IF NOT EXISTS 'school_admin';`);
+    await qr.query(`ALTER TYPE user_role_enum ADD VALUE IF NOT EXISTS 'regional_admin';`);
+    await qr.query(`ALTER TYPE user_role_enum ADD VALUE IF NOT EXISTS 'platform_admin';`);
+
     await qr.query(`
       ALTER TABLE "users"
         ADD COLUMN IF NOT EXISTS "external_ids" JSONB NOT NULL DEFAULT '{}',
