@@ -53,9 +53,11 @@ export default defineConfig(({ command, mode }): UserConfig => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,gif,webp,woff2,wasm}'],
+          // .zip/.json/.mjs нужны для self-hosted Pyodide (см. public/pyodide/).
+          globPatterns: ['**/*.{js,mjs,css,html,svg,png,jpg,jpeg,gif,webp,woff2,wasm,zip,json}'],
           globIgnores: ['**/ios/**', '**/android/**'],
-          maximumFileSizeToCacheInBytes: 12 * 1024 * 1024,
+          // pyodide.asm.wasm ~10 MB; lift cap so precache не выкидывает его.
+          maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
           navigateFallback: target === 'capacitor' ? null : '/eduson-kids-web/index.html',
           // Skip API routes from precache so live requests always hit the network.
           // Offline writes are queued via BackgroundSyncPlugin (see runtimeCaching
@@ -71,15 +73,9 @@ export default defineConfig(({ command, mode }): UserConfig => {
                 cacheableResponse: { statuses: [0, 200] },
               },
             },
-            {
-              urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/pyodide\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'pyodide-cdn',
-                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
-                cacheableResponse: { statuses: [0, 200] },
-              },
-            },
+            // Pyodide теперь self-hosted из /pyodide/ — precache (globPatterns)
+            // забирает .wasm/.zip/.mjs/.json. Runtime-cache для jsdelivr убран:
+            // если URL когда-то снова станет внешним, добавим обратно.
             {
               urlPattern: ({ request }) => request.destination === 'image',
               handler: 'StaleWhileRevalidate',

@@ -4,8 +4,24 @@
 
 import { PYTHON_WORLD_PRELUDE } from './python-world-runtime'
 
-const PYODIDE_VERSION = 'v0.26.2'
-const PYODIDE_CDN = `https://cdn.jsdelivr.net/pyodide/${PYODIDE_VERSION}/full/`
+// Self-hosted Pyodide bundle (см. public/pyodide/). Раньше тянули с jsdelivr CDN —
+// демо ломалось на конференц-Wi-Fi и при offline-режиме. Теперь WASM и stdlib
+// идут из той же origin, что и приложение.
+//
+// import.meta.env.BASE_URL даёт правильный префикс для всех таргетов:
+//   dev       -> '/'
+//   ghpages   -> '/eduson-kids-web/'
+//   pwa       -> '/eduson-kids-web/'
+//   capacitor -> './'
+//
+// Bundle version: v0.26.2 (sync via `node scripts/sync-pyodide.mjs`).
+const PYODIDE_BASE_URL: string = (() => {
+  const base = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/'
+  // Worker-контекст не имеет document.baseURI, но import.meta.env.BASE_URL
+  // подставляется Vite-ом на этапе сборки. Гарантируем trailing slash.
+  const normalized = base.endsWith('/') ? base : `${base}/`
+  return `${normalized}pyodide/`
+})()
 
 declare const self: DedicatedWorkerGlobalScope & {
   loadPyodide?: (opts: { indexURL: string }) => Promise<PyodideInstance>
@@ -28,8 +44,8 @@ async function getPyodide(): Promise<PyodideInstance> {
   loadPromise = (async () => {
     const mod: {
       loadPyodide: (opts: { indexURL: string }) => Promise<PyodideInstance>
-    } = await import(/* @vite-ignore */ `${PYODIDE_CDN}pyodide.mjs`)
-    const py = await mod.loadPyodide({ indexURL: PYODIDE_CDN })
+    } = await import(/* @vite-ignore */ `${PYODIDE_BASE_URL}pyodide.mjs`)
+    const py = await mod.loadPyodide({ indexURL: PYODIDE_BASE_URL })
     py.runPython(PYTHON_WORLD_PRELUDE)
     pyodide = py
     return py
