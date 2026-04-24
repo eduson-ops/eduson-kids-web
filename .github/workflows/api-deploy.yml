@@ -149,8 +149,8 @@ jobs:
             --environment DB_NAME=eduson_kids \
             --environment DB_SSL=true \
             --environment REDIS_HOST=${{ secrets.YC_REDIS_HOST }} \
-            --environment REDIS_PORT=6380 \
-            --environment REDIS_TLS=true \
+            --environment REDIS_PORT=6379 \
+            --environment REDIS_TLS=false \
             --environment "DB_PASSWORD=${{ secrets.APP_DB_PASSWORD }}" \
             --environment "REDIS_PASSWORD=${{ secrets.APP_DB_PASSWORD }}" \
             --environment "JWT_ACCESS_SECRET=${{ secrets.APP_JWT_ACCESS_SECRET }}" \
