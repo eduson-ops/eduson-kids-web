@@ -19,6 +19,8 @@ import { RoomsModule } from './modules/rooms/rooms.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { TenancyModule } from './common/tenancy/tenancy.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { LessonsModule } from './modules/lessons/lessons.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -119,6 +121,8 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     AuditModule,
     RoomsModule,
     ProjectsModule,
+    AdminModule,
+    LessonsModule,
   ],
   providers: [
     {
