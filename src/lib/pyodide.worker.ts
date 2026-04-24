@@ -42,12 +42,15 @@ async function getPyodide(): Promise<PyodideInstance> {
   if (pyodide) return pyodide
   if (loadPromise) return loadPromise
   loadPromise = (async () => {
+    self.postMessage({ id: 0, type: 'progress', step: 'fetching' } satisfies OutMsg)
     const mod: {
       loadPyodide: (opts: { indexURL: string }) => Promise<PyodideInstance>
     } = await import(/* @vite-ignore */ `${PYODIDE_BASE_URL}pyodide.mjs`)
+    self.postMessage({ id: 0, type: 'progress', step: 'instantiating' } satisfies OutMsg)
     const py = await mod.loadPyodide({ indexURL: PYODIDE_BASE_URL })
     py.runPython(PYTHON_WORLD_PRELUDE)
     pyodide = py
+    self.postMessage({ id: 0, type: 'progress', step: 'ready' } satisfies OutMsg)
     return py
   })()
   return loadPromise
@@ -58,10 +61,13 @@ type InMsg =
   | { id: number; type: 'reset' }
   | { id: number; type: 'ping' }
 
+type ProgressStep = 'fetching' | 'instantiating' | 'ready'
+
 type OutMsg =
   | { id: number; type: 'ready' }
   | { id: number; type: 'result'; commands: unknown[] }
   | { id: number; type: 'error'; message: string }
+  | { id: 0; type: 'progress'; step: ProgressStep }
 
 self.addEventListener('message', async (ev: MessageEvent<InMsg>) => {
   const msg = ev.data

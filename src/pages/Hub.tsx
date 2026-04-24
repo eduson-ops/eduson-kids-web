@@ -54,6 +54,7 @@ export default function Hub() {
   const mood = useMascotMood('hub')
   const isMobile = useIsMobile()
   const [scrolled, setScrolled] = useState(false)
+  const [pyWarmup, setPyWarmup] = useState<'idle' | 'visible' | 'fading'>('idle')
 
   useEffect(() => {
     setName(localStorage.getItem('ek_child_name'))
@@ -66,10 +67,32 @@ export default function Hub() {
   useEffect(() => {
     if (isMobile) return
     let cancelled = false
+    let revealTimer: number | null = null
+    let fadeTimer: number | null = null
+    let isReady = false
     const run = () => {
       if (cancelled) return
+      // Reveal indicator only if warmup takes >2s
+      revealTimer = window.setTimeout(() => {
+        if (!cancelled && !isReady) setPyWarmup('visible')
+      }, 2000)
       import('../lib/pyodide-executor')
-        .then((mod) => mod.warmPyodide())
+        .then((mod) =>
+          mod.warmPyodide((step) => {
+            if (cancelled) return
+            if (step === 'ready') {
+              isReady = true
+              if (revealTimer !== null) {
+                clearTimeout(revealTimer)
+                revealTimer = null
+              }
+              setPyWarmup((prev) => (prev === 'visible' ? 'fading' : 'idle'))
+              fadeTimer = window.setTimeout(() => {
+                if (!cancelled) setPyWarmup('idle')
+              }, 600)
+            }
+          }),
+        )
         .catch(() => { /* silent — best-effort warmup */ })
     }
     type IdleWindow = Window & {
@@ -90,6 +113,8 @@ export default function Hub() {
         w.cancelIdleCallback(idleHandle)
       }
       if (timeoutHandle !== null) clearTimeout(timeoutHandle)
+      if (revealTimer !== null) clearTimeout(revealTimer)
+      if (fadeTimer !== null) clearTimeout(fadeTimer)
     }
   }, [isMobile])
 
@@ -367,6 +392,31 @@ export default function Hub() {
           </div>
         </div>
       </section>
+
+      {pyWarmup !== 'idle' && (
+        <div
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            right: 16,
+            bottom: 16,
+            background: 'rgba(21,20,27,.88)',
+            color: '#FFFBEF',
+            fontSize: 12,
+            fontWeight: 600,
+            padding: '8px 12px',
+            borderRadius: 10,
+            fontFamily: 'var(--f-display)',
+            boxShadow: '0 4px 16px rgba(0,0,0,.18)',
+            opacity: pyWarmup === 'fading' ? 0 : 1,
+            transition: 'opacity 600ms ease',
+            pointerEvents: 'none',
+            zIndex: 50,
+          }}
+        >
+          ⏳ Готовим Python...
+        </div>
+      )}
     </PlatformShell>
   )
 }
