@@ -11,6 +11,7 @@ export type CharacterModel =
   | 'blueDemon'
   | 'bunny'
   | 'cactoro'
+  | 'penguin'
 
 export interface Avatar {
   name: string

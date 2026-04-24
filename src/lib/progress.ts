@@ -73,11 +73,13 @@ function loadStreak(): StreakState {
 function persistStreak() {
   try { localStorage.setItem(KEY_STREAK, JSON.stringify(streak)) } catch { /* quota */ }
 }
-function ymd(d: Date = new Date()): string {
-  return d.toISOString().slice(0, 10)
+export function localDayKey(d: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
+function ymd(d: Date = new Date()): string { return localDayKey(d) }
 function yearWeek(d: Date = new Date()): string {
-  // ISO-8601 week
+  // ISO-8601 week — use local date components to avoid UTC midnight shift
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
   const dayNum = (t.getUTCDay() + 6) % 7
   t.setUTCDate(t.getUTCDate() - dayNum + 3)

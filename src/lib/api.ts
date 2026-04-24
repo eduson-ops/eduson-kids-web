@@ -71,6 +71,24 @@ export async function apiLoginChildCode(
   return r
 }
 
+export async function apiChildLogin(login: string, pin: string): Promise<{ accessToken: string } | null> {
+  const r = await request<{ accessToken: string }>('/api/v1/auth/child/login', {
+    method: 'POST',
+    body: JSON.stringify({ login, pin }),
+  })
+  if (r?.accessToken) setToken(r.accessToken)
+  return r
+}
+
+export async function apiParentLogin(email: string, password: string): Promise<{ accessToken: string } | null> {
+  const r = await request<{ accessToken: string }>('/api/v1/auth/parent/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+  if (r?.accessToken) setToken(r.accessToken)
+  return r
+}
+
 export async function apiLoginGuest(): Promise<AuthResponse | null> {
   const r = await request<AuthResponse>('/api/v1/auth/guest', { method: 'POST' })
   if (r?.token) setToken(r.token)
@@ -109,3 +127,20 @@ export async function apiLeaderboard(gameId: string) {
 export function apiLogout() {
   clearToken()
 }
+
+export async function apiGetClassroom(id: string): Promise<{ id: string; name: string; teacherId: string; students: Array<{ firstName: string; lastName: string; login: string }> } | null> {
+  if (!getToken()) return null
+  return request(`/api/v1/classrooms/${encodeURIComponent(id)}`)
+}
+
+export async function apiCreateRoom(classroomId?: string): Promise<{ id: string; meetLink: string } | null> {
+  if (!getToken()) return null
+  return request('/api/v1/rooms', { method: 'POST', body: JSON.stringify({ classroomId }) })
+}
+
+export async function apiGetRoom(id: string): Promise<{ id: string; status: string; meetLink: string } | null> {
+  return request(`/api/v1/rooms/${encodeURIComponent(id)}`)
+}
+
+export const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true'
+export function getApiToken(): string | null { return getToken() }

@@ -7,6 +7,7 @@ import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
 import AvatarModel from './AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from './PlayerCharacter'
+import Penguin3D from '../design/mascot/Penguin3D'
 import { SFX } from '../lib/audio'
 
 type Controls = {
@@ -325,7 +326,9 @@ export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
     >
       <CapsuleCollider args={[CAP_HEIGHT, CAP_RADIUS]} friction={0.8} />
       <group ref={meshGroup} position={[0, -CAP_HEIGHT - CAP_RADIUS, 0]}>
-        {avatar.character && avatar.character !== 'custom' ? (
+        {(!avatar.character || avatar.character === 'penguin') ? (
+          <Penguin3D ref={visual} />
+        ) : avatar.character !== 'custom' ? (
           <PlayerCharacter ref={visual} which={avatar.character} />
         ) : (
           <AvatarModel ref={visual} avatar={avatar} />

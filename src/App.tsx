@@ -30,6 +30,13 @@ const AuthSSO = lazy(() => import('./pages/AuthSSO'))
 const Enterprise = lazy(() => import('./pages/Enterprise'))
 const Certificate = lazy(() => import('./pages/Certificate'))
 const AdaptiveQuiz = lazy(() => import('./pages/AdaptiveQuiz'))
+const TrainersHub = lazy(() => import('./pages/TrainersHub'))
+const Trainer = lazy(() => import('./pages/Trainer'))
+const PythonIDE = lazy(() => import('./pages/PythonIDE'))
+const TeacherClasses = lazy(() => import('./pages/TeacherClasses'))
+const Chat = lazy(() => import('./pages/Chat'))
+const Room = lazy(() => import('./pages/Room'))
+const AdminPanel = lazy(() => import('./pages/Admin'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -299,6 +306,14 @@ export default function App() {
             </Suspense>
           }
         />
+
+        <Route path="/teacher/classes" element={<Suspense fallback={<RouteLoader label="Открываю классы…" />}><TeacherClasses /></Suspense>} />
+        <Route path="/trainers" element={<Suspense fallback={<RouteLoader label="Открываю тренажёры…" />}><TrainersHub /></Suspense>} />
+        <Route path="/trainers/:trainerId/:puzzleN" element={<Suspense fallback={<RouteLoader label="Открываю задачу…" />}><Trainer /></Suspense>} />
+        <Route path="/python-ide" element={<Suspense fallback={<RouteLoader label="Открываю Python IDE…" />}><PythonIDE /></Suspense>} />
+        <Route path="/chat" element={<Suspense fallback={<RouteLoader label="Открываю чат…" />}><Chat /></Suspense>} />
+        <Route path="/room/:roomId" element={<Suspense fallback={<RouteLoader label="Подключаюсь к занятию…" />}><Room /></Suspense>} />
+        <Route path="/admin" element={<Suspense fallback={<RouteLoader label="Открываю администрирование…" />}><AdminPanel /></Suspense>} />
 
         {/* /character — исторический псевдоним. Настоящий 3D-редактор героя живёт в /profile. */}
         <Route path="/character" element={<Navigate to="/profile" replace />} />

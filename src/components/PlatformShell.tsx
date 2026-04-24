@@ -1,14 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState, type ReactNode } from 'react'
+import { loadSession, clearSession } from '../lib/auth'
 import { NikselMini } from '../design/mascot/Niksel'
 import NikselChat from './NikselChat'
 import StreakWidget from './StreakWidget'
 import MobileBottomTabs from './MobileBottomTabs'
 
 /**
- * Platform shell v2 — dark left sidenav (Designbook pattern).
- * Sticky 260px sidenav on left, main content shifted right.
- * Game/Studio pages (/play/:id, /studio, /profile) skip this shell.
+ * Platform shell v3 — role-based sidenav.
+ * Child / Parent / Teacher / Designbook nav group sets.
  */
 
 interface Props {
@@ -16,7 +16,26 @@ interface Props {
   activeKey?: NavKey
 }
 
-type NavKey = 'hub' | 'learn' | 'play' | 'build' | 'sites' | 'profile' | 'parent' | 'portfolio' | 'designbook' | 'billing' | 'settings' | 'teacher' | 'leagues'
+export type NavKey =
+  | 'hub'
+  | 'learn'
+  | 'play'
+  | 'build'
+  | 'sites'
+  | 'profile'
+  | 'parent'
+  | 'portfolio'
+  | 'designbook'
+  | 'billing'
+  | 'settings'
+  | 'teacher'
+  | 'teacher-classes'
+  | 'leagues'
+  | 'trainers'
+  | 'python-ide'
+  | 'chat'
+  | 'room'
+  | 'admin'
 
 interface NavItem {
   key: NavKey
@@ -30,34 +49,92 @@ interface NavGroup {
   items: NavItem[]
 }
 
-const GROUPS: NavGroup[] = [
+const GROUPS_CHILD: NavGroup[] = [
   {
     label: 'Обучение',
     items: [
-      { key: 'hub',       label: 'Главная',       to: '/',        emoji: '🏠' },
-      { key: 'learn',     label: 'Уроки',         to: '/learn',   emoji: '📚' },
-      { key: 'portfolio', label: 'Мой прогресс',  to: '/me',      emoji: '📊' },
-      { key: 'leagues',   label: 'Лиги',          to: '/leagues', emoji: '🏆' },
+      { key: 'hub',        label: 'Главная',       to: '/',           emoji: '🏠' },
+      { key: 'learn',      label: 'Уроки',         to: '/learn',      emoji: '📚' },
+      { key: 'trainers',   label: 'Тренажёры',     to: '/trainers',   emoji: '🏋️' },
+      { key: 'python-ide', label: 'Python IDE',    to: '/python-ide', emoji: '🐍' },
+      { key: 'portfolio',  label: 'Мой прогресс',  to: '/me',         emoji: '📊' },
+      { key: 'leagues',    label: 'Лиги',          to: '/leagues',    emoji: '🏆' },
     ],
   },
   {
     label: 'Творчество',
     items: [
-      { key: 'play',  label: 'Играть',  to: '/play',   emoji: '🎮' },
-      { key: 'build', label: 'Студия',  to: '/studio', emoji: '🧱' },
-      { key: 'sites', label: 'Сайты',   to: '/sites',  emoji: '🌐' },
+      { key: 'play',  label: 'Играть', to: '/play',   emoji: '🎮' },
+      { key: 'build', label: 'Студия', to: '/studio', emoji: '🧱' },
+      { key: 'sites', label: 'Сайты',  to: '/sites',  emoji: '🌐' },
     ],
   },
   {
     label: 'Аккаунт',
     items: [
-      { key: 'parent',   label: 'Родителям', to: '/parent',   emoji: '👨‍👩‍👦' },
-      { key: 'teacher',  label: 'Учителям',  to: '/teacher',  emoji: '🎓' },
       { key: 'billing',  label: 'Оплата',    to: '/billing',  emoji: '💳' },
       { key: 'settings', label: 'Настройки', to: '/settings', emoji: '⚙️' },
       { key: 'profile',  label: 'Аватар',    to: '/profile',  emoji: '🎭' },
     ],
   },
+  {
+    label: 'Чат',
+    items: [
+      { key: 'chat', label: 'Чат', to: '/chat', emoji: '💬' },
+    ],
+  },
+]
+
+const GROUPS_PARENT: NavGroup[] = [
+  {
+    label: 'Кабинет родителя',
+    items: [
+      { key: 'hub',      label: 'Главная',    to: '/',         emoji: '🏠' },
+      { key: 'parent',   label: 'Кабинет',    to: '/parent',   emoji: '👨‍👩‍👦' },
+      { key: 'billing',  label: 'Оплата',     to: '/billing',  emoji: '💳' },
+      { key: 'settings', label: 'Настройки',  to: '/settings', emoji: '⚙️' },
+    ],
+  },
+  {
+    label: 'Чат',
+    items: [
+      { key: 'chat', label: 'Чат', to: '/chat', emoji: '💬' },
+    ],
+  },
+]
+
+const GROUPS_TEACHER: NavGroup[] = [
+  {
+    label: 'Кабинет учителя',
+    items: [
+      { key: 'hub',             label: 'Главная',         to: '/',                emoji: '🏠' },
+      { key: 'teacher',         label: 'Консоль',         to: '/teacher',         emoji: '🎓' },
+      { key: 'teacher-classes', label: 'Классы',          to: '/teacher/classes', emoji: '📋' },
+      { key: 'admin',           label: 'Администрирование', to: '/admin',         emoji: '👑' },
+    ],
+  },
+  {
+    label: 'Учебные материалы',
+    items: [
+      { key: 'learn',    label: 'Уроки',     to: '/learn',    emoji: '📚' },
+      { key: 'trainers', label: 'Тренажёры', to: '/trainers', emoji: '🏋️' },
+    ],
+  },
+  {
+    label: 'Коммуникация',
+    items: [
+      { key: 'chat', label: 'Чат', to: '/chat', emoji: '💬' },
+    ],
+  },
+  {
+    label: 'Аккаунт',
+    items: [
+      { key: 'settings', label: 'Настройки', to: '/settings', emoji: '⚙️' },
+    ],
+  },
+]
+
+const GROUPS_DESIGNBOOK: NavGroup[] = [
   {
     label: 'Бренд',
     items: [
@@ -66,23 +143,38 @@ const GROUPS: NavGroup[] = [
   },
 ]
 
+function roleBadge(role: string): string {
+  if (role === 'child') return 'УЧЕНИК'
+  if (role === 'parent') return 'РОДИТЕЛЬ'
+  if (role === 'teacher') return 'УЧИТЕЛЬ'
+  return 'КУРАТОР'
+}
+
 export default function PlatformShell({ children, activeKey }: Props) {
   const loc = useLocation()
   const navigate = useNavigate()
   const active = activeKey ?? inferKey(loc.pathname)
-  const isAdmin = typeof window !== 'undefined' && (
-    localStorage.getItem('ek_admin') === '1' ||
-    new URLSearchParams(window.location.search).get('admin') === '1'
-  )
-  const visibleGroups = isAdmin ? GROUPS : GROUPS.filter((g) => g.label !== 'Бренд')
-  const [childName, setChildName] = useState<string | null>(null)
+
+  const isAdmin =
+    typeof window !== 'undefined' &&
+    (localStorage.getItem('ek_admin') === '1' ||
+      new URLSearchParams(window.location.search).get('admin') === '1')
+
+  const session = loadSession()
+  const role = session?.role ?? null
+
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
     return localStorage.getItem('ek_sidenav_collapsed') === '1'
   })
 
+  // Re-read session when route changes
+  const [sessionName, setSessionName] = useState<string | null>(null)
+  const [sessionRole, setSessionRole] = useState<string | null>(null)
   useEffect(() => {
-    setChildName(localStorage.getItem('ek_child_name'))
+    const s = loadSession()
+    setSessionName(s?.name ?? localStorage.getItem('ek_child_name'))
+    setSessionRole(s?.role ?? null)
   }, [loc.pathname])
 
   const toggleCollapsed = () => {
@@ -94,11 +186,25 @@ export default function PlatformShell({ children, activeKey }: Props) {
   }
 
   const signOut = () => {
+    clearSession()
     localStorage.removeItem('ek_child_name')
-    localStorage.removeItem('ek_child_code')
-    setChildName(null)
     navigate('/login')
   }
+
+  // Determine visible nav groups
+  let groups: NavGroup[]
+  if (isAdmin || role === 'teacher') {
+    groups = GROUPS_TEACHER
+  } else if (role === 'parent') {
+    groups = GROUPS_PARENT
+  } else if (loc.pathname.startsWith('/designbook')) {
+    groups = GROUPS_DESIGNBOOK
+  } else {
+    groups = GROUPS_CHILD
+  }
+
+  const displayName = sessionName ?? session?.name ?? null
+  const displayRole = sessionRole ?? role ?? null
 
   return (
     <div className={`brand-shell brand-shell--sidenav${collapsed ? ' brand-shell--collapsed' : ''}`}>
@@ -126,7 +232,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
         </button>
 
         <div className="kb-sidenav-groups">
-          {visibleGroups.map((g) => (
+          {groups.map((g) => (
             <div key={g.label} className="kb-sidenav-group">
               {!collapsed && <div className="kb-sidenav-label">{g.label}</div>}
               {g.items.map((item) => (
@@ -144,16 +250,18 @@ export default function PlatformShell({ children, activeKey }: Props) {
           ))}
         </div>
 
-        {childName ? (
+        {displayName ? (
           <div className="kb-sidenav-user">
             <span className="kb-sidenav-user-avatar" aria-hidden>
-              {childName.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </span>
             {!collapsed && (
               <>
                 <div className="kb-sidenav-user-body">
-                  <span className="kb-sidenav-user-name">{childName}</span>
-                  <span className="kb-sidenav-user-role">УЧЕНИК</span>
+                  <span className="kb-sidenav-user-name">{displayName}</span>
+                  <span className="kb-sidenav-user-role">
+                    {displayRole ? roleBadge(displayRole) : 'ГОСТЬ'}
+                  </span>
                 </div>
                 <button className="kb-sidenav-user-out" onClick={signOut} title="Выйти">
                   ↩
@@ -193,6 +301,9 @@ export default function PlatformShell({ children, activeKey }: Props) {
 
 function inferKey(path: string): NavKey | undefined {
   if (path === '/') return 'hub'
+  if (path.startsWith('/teacher/classes')) return 'teacher-classes'
+  if (path.startsWith('/teacher')) return 'teacher'
+  if (path.startsWith('/admin')) return 'admin'
   if (path.startsWith('/learn')) return 'learn'
   if (path.startsWith('/play')) return 'play'
   if (path.startsWith('/studio') || path.startsWith('/build')) return 'build'
@@ -203,7 +314,10 @@ function inferKey(path: string): NavKey | undefined {
   if (path.startsWith('/billing')) return 'billing'
   if (path.startsWith('/settings')) return 'settings'
   if (path.startsWith('/designbook')) return 'designbook'
-  if (path.startsWith('/teacher')) return 'teacher'
   if (path.startsWith('/leagues')) return 'leagues'
+  if (path.startsWith('/trainers')) return 'trainers'
+  if (path.startsWith('/python-ide')) return 'python-ide'
+  if (path.startsWith('/chat')) return 'chat'
+  if (path.startsWith('/room/')) return 'room'
   return undefined
 }
