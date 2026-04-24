@@ -11,10 +11,12 @@ export const REDIS_CLIENT = 'REDIS_CLIENT';
       provide: REDIS_CLIENT,
       inject: [ConfigService],
       useFactory: (config: ConfigService): Redis => {
+        const useTls = config.get<boolean>('redis.tls');
         const client = new Redis({
           host: config.get<string>('redis.host') ?? 'localhost',
           port: config.get<number>('redis.port') ?? 6379,
           password: config.get<string>('redis.password') || undefined,
+          tls: useTls ? { rejectUnauthorized: false } : undefined,
           lazyConnect: true,
           maxRetriesPerRequest: 3,
           enableReadyCheck: true,

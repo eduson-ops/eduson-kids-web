@@ -142,8 +142,19 @@ jobs:
             --memory 512m \
             --cores 1 \
             --execution-timeout 30s \
+            --network-id ${{ secrets.YC_NETWORK_ID }} \
             --environment NODE_ENV=production \
+            --environment PORT=3000 \
+            --environment DB_HOST=${{ secrets.YC_DB_HOST }} \
+            --environment DB_PORT=6432 \
+            --environment DB_USER=eduson \
+            --environment DB_NAME=eduson_kids \
+            --environment DB_SSL=true \
+            --environment REDIS_HOST=${{ secrets.YC_REDIS_HOST }} \
+            --environment REDIS_PORT=6380 \
+            --environment REDIS_TLS=true \
             --secret "environment-variable=DB_PASSWORD,id=${SECRET_ID},version-id=latest,key=DB_PASSWORD" \
+            --secret "environment-variable=REDIS_PASSWORD,id=${SECRET_ID},version-id=latest,key=DB_PASSWORD" \
             --secret "environment-variable=JWT_ACCESS_SECRET,id=${SECRET_ID},version-id=latest,key=JWT_ACCESS_SECRET" \
             --secret "environment-variable=JWT_REFRESH_SECRET,id=${SECRET_ID},version-id=latest,key=JWT_REFRESH_SECRET" \
             --secret "environment-variable=PII_KEY,id=${SECRET_ID},version-id=latest,key=PII_KEY"
