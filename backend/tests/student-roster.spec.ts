@@ -16,12 +16,12 @@ import { ConfigService } from '@nestjs/config';
 
 describe('StudentRosterService — login & PIN generation', () => {
   it('PIN should be 6 characters from confusion-free alphabet', () => {
-    // Re-implement generation for unit assertion (private method)
-    const ALPHABET = 'abcdefghkmnpqrstuvwxyz23456789';
+    // Same as private PIN_ALPHABET in student-roster.service
+    const ALPHABET = 'abcdefghkmnpqrtuvwxyz2346789';
     expect(ALPHABET).not.toMatch(/[0Oolj1Ii5S]/);
-    expect(ALPHABET.length).toBe(30);
-    // 30^6 ≈ 729M combinations
-    expect(Math.pow(ALPHABET.length, 6)).toBeGreaterThan(700_000_000);
+    expect(ALPHABET.length).toBe(28);
+    // 28^6 ≈ 481M combinations — still vastly enough entropy
+    expect(Math.pow(ALPHABET.length, 6)).toBeGreaterThan(400_000_000);
   });
 
   it('Login pattern: kub_{slug}_{seq4}', () => {

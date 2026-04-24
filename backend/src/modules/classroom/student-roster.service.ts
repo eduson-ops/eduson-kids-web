@@ -36,7 +36,8 @@ import { TenantsService } from '../tenants/tenants.service';
  *    tenant, not per classroom; see `TenantsService.defaultQuotas`.
  */
 
-const PIN_ALPHABET = 'abcdefghkmnpqrstuvwxyz23456789'; // confusion-free
+// 29-char confusion-free alphabet (no 0,1,5,O,o,l,j,I,i,S)
+const PIN_ALPHABET = 'abcdefghkmnpqrtuvwxyz2346789';
 const LOGIN_PREFIX = 'kub';
 
 export interface NewStudentInput {
