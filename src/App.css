@@ -6900,9 +6900,11 @@ body:has(.lobby-v2) {
   cursor: pointer;
   transition: border-color 0.15s, transform 0.1s;
   color: var(--text);
+  position: relative; /* contains .preset-tag */
 }
 .preset-card:hover { border-color: var(--accent); transform: translateY(-1px); }
 .preset-swatch {
+  position: relative;
   width: 52px;
   height: 52px;
   border-radius: 10px;
@@ -6925,8 +6927,8 @@ body:has(.lobby-v2) {
   color: #fff;
   border-radius: 6px;
   letter-spacing: 0.05em;
+  z-index: 1;
 }
-.preset-swatch { position: relative; }
 .help-small {
   font-size: 12px;
   color: var(--muted);
@@ -7352,41 +7354,9 @@ body:has(.lobby-v2) {
    Use inside <div className="brand-shell">
    ════════════════════════════════════════════════════ */
 
-.brand-shell .eyebrow {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--ink-soft);
-  opacity: .7;
-}
-.brand-shell .h1 {
-  font-family: var(--f-display);
-  font-weight: 900;
-  font-size: 56px;
-  line-height: 1.0;
-  letter-spacing: -0.035em;
-  margin: 0;
-  color: var(--ink);
-}
-.brand-shell .h2 {
-  font-family: var(--f-display);
-  font-weight: 800;
-  font-size: 28px;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  margin: 0;
-  color: var(--ink);
-}
-.brand-shell .h3 {
-  font-family: var(--f-display);
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: -0.015em;
-  margin: 0;
-  color: var(--ink);
-}
+/* Scoped overrides inside brand-shell ensure correct ink color in light theme */
+.brand-shell .eyebrow { color: var(--ink-soft); opacity: .7; }
+.brand-shell .h1, .brand-shell .h2, .brand-shell .h3 { color: var(--ink); }
 
 /* Chunky block-style buttons */
 .kb-btn {
@@ -7814,7 +7784,8 @@ body:has(.lobby-v2) {
 }
 /* When sidenav is used, shift main content right. */
 .brand-shell--sidenav { padding-left: 260px; transition: padding-left 0.2s ease; }
-.brand-shell--sidenav .kb-shell-main { padding: 48px 48px 80px; max-width: 1280px; margin: 0 auto 0 0; }
+/* Right padding 120px reserves space for StreakWidget chips (top-right, ~120px wide) */
+.brand-shell--sidenav .kb-shell-main { padding: 48px 120px 80px 48px; max-width: 1280px; margin: 0 auto 0 0; }
 
 /* Collapsed sidenav — rail mode (72px, emoji only) */
 .brand-shell--collapsed { padding-left: 72px; }
@@ -7857,22 +7828,33 @@ body:has(.lobby-v2) {
 
 @media (max-width: 900px) {
   .kb-sidenav-collapse-btn { display: none; }
-  .brand-shell--collapsed { padding-left: 0; padding-top: 60px; }
-}
-@media (max-width: 900px) {
-  .brand-shell--sidenav { padding-left: 0; padding-top: 60px; }
+  .brand-shell--collapsed { padding-left: 0; padding-top: 0; }
+  .brand-shell--sidenav { padding-left: 0; padding-top: 0; }
   .kb-sidenav {
-    position: static;
+    position: sticky;
+    top: 0;
     width: 100%;
     height: auto;
     flex-direction: row;
-    flex-wrap: wrap;
-    padding: 14px 18px;
-    gap: 10px;
+    flex-wrap: nowrap;
+    padding: 0 12px;
+    gap: 0;
+    z-index: 100;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  .kb-sidenav-groups { flex-direction: row; flex-wrap: wrap; flex: auto; }
+  .kb-sidenav::-webkit-scrollbar { display: none; }
+  .kb-sidenav-groups { flex-direction: row; flex-wrap: nowrap; flex: auto; gap: 0; }
+  .kb-sidenav-group { flex-direction: row; gap: 0; }
   .kb-sidenav-label { display: none; }
   .kb-sidenav-user, .kb-sidenav-login, .kb-sidenav-foot { display: none; }
+  .kb-sidenav .kb-shell-brand { border-bottom: none; padding: 0 16px 0 4px; font-size: 15px; white-space: nowrap; flex-shrink: 0; height: 52px; }
+  .kb-sidenav-link { padding: 6px 10px; font-size: 12px; gap: 5px; height: 52px; border-radius: 0; white-space: nowrap; }
+  .kb-sidenav-link-emoji { font-size: 13px; }
+  .kb-sidenav-link.active { background: var(--violet); }
+  .kb-shell-main { padding: 28px 20px 80px !important; max-width: 100% !important; }
 }
 
 /* ═══ Cover-style hero (Designbook 180px Nunito 900) ═══ */
@@ -8065,8 +8047,15 @@ body:has(.lobby-v2) {
   .kb-cover-mascot { display: none; }
 }
 @media (max-width: 720px) {
-  .kb-cover { padding: 36px 28px 28px; }
+  .kb-cover { padding: 36px 24px 28px; }
   .kb-cover-footer { grid-template-columns: 1fr 1fr; }
+  .kb-cover-title { font-size: clamp(52px, 14vw, 72px); }
+}
+@media (max-width: 480px) {
+  .kb-cover { padding: 28px 20px 24px; border-radius: 20px; }
+  .kb-cover-footer { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kb-cover-title { font-size: clamp(40px, 12vw, 56px); }
+  .kb-cover-sub { font-size: 15px; }
 }
 
 /* Hero (yellow gradient variant, legacy, still used on some pages) */
@@ -8138,9 +8127,18 @@ body:has(.lobby-v2) {
   max-width: 520px;
   margin: 6px 0 0;
 }
+/* Role picker: 3 equal cards in one row */
+.login-grid--roles {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 860px;
+  margin: 0 auto;
+}
+@media (max-width: 640px) {
+  .login-grid--roles { grid-template-columns: 1fr; }
+}
 .login-grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   align-items: stretch;
 }
@@ -8233,8 +8231,14 @@ body:has(.lobby-v2) {
 .login-foot small { font-family: var(--f-mono); letter-spacing: .05em; }
 
 @media (max-width: 980px) {
+  .login-grid { grid-template-columns: repeat(2, 1fr); }
+  .login-intro .h1 { font-size: 42px; }
+}
+@media (max-width: 640px) {
   .login-grid { grid-template-columns: 1fr; }
-  .login-intro .h1 { font-size: 38px; }
+  .login-intro .h1 { font-size: 32px; }
+  .login-main { padding: 32px 20px 32px; }
+  .login-head { padding: 16px 20px; }
 }
 
 /* Grid helpers */
@@ -8246,6 +8250,56 @@ body:has(.lobby-v2) {
   .kb-grid-2 { grid-template-columns: 1fr; }
   .kb-hero { grid-template-columns: 1fr; padding: 32px; }
 }
+@media (max-width: 560px) {
+  .kb-grid-3, .kb-grid-4, .kb-grid-2 { grid-template-columns: 1fr; }
+}
+
+/* ─── Standalone typography utilities (usable without .brand-shell) ─── */
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink-soft, #2B2A36);
+  opacity: .7;
+  display: block;
+}
+.h1 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 56px;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  margin: 0;
+  color: var(--ink, #15141B);
+}
+.h2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink, #15141B);
+}
+.h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--ink, #15141B);
+}
+.lead {
+  font-size: 18px;
+  color: var(--ink-soft, #2B2A36);
+  line-height: 1.55;
+  margin: 0;
+}
+/* brand-shell variants override color context */
+.brand-shell .eyebrow { color: var(--ink-soft); }
+.brand-shell .h1, .brand-shell .h2, .brand-shell .h3 { color: var(--ink); }
 
 /* ═══════════════════════════════════════════════════════════
    Кастомный скроллбар — убираем уродливый браузерный.
@@ -8395,10 +8449,11 @@ body:has(.lobby-v2) {
 }
 
 /* ── Achievement Unlock Toast ────────────────────────────────────────── */
+/* Positioned below StreakWidget (top: 16px, right: 16px) to avoid overlap */
 .achievement-toast {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  top: 68px;
+  right: 16px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -8458,11 +8513,14 @@ body:has(.lobby-v2) {
   vertical-align: middle;
 }
 @keyframes ach-in {
-  from { opacity: 0; transform: translateX(40px) scale(0.95); }
+  from { opacity: 0; transform: translateX(20px) scale(0.95); }
   to   { opacity: 1; transform: translateX(0) scale(1); }
 }
 @keyframes ach-out {
-  to { opacity: 0; transform: translateX(40px) scale(0.95); }
+  to { opacity: 0; transform: translateX(20px) scale(0.95); }
+}
+@media (max-width: 720px) {
+  .achievement-toast { top: auto; bottom: 84px; right: 12px; max-width: calc(100vw - 24px); }
 }
 
 /* ═══ StreakWidget — правый верх, Duolingo-style ═══ */
@@ -8571,12 +8629,16 @@ body:has(.lobby-v2) {
 }
 .kb-bottom-tab:active { background: rgba(255,251,243,.06); }
 
+@media (max-width: 900px) {
+  /* Streak widget overlaps with top sidenav bar — hide it on mobile */
+  .kb-streak-widget { display: none; }
+}
 @media (max-width: 768px) {
   .kb-bottom-tabs { display: flex; }
-  .brand-shell--sidenav { padding-bottom: 64px; }
-  /* На мобилке скрываем streak chips когда он поверх кнопок */
-  .nk-chat-fab { bottom: 76px; }
-  .nk-chat-panel { bottom: 148px; }
+  .brand-shell--sidenav { padding-bottom: 72px; }
+  /* FAB and chat panel float above bottom tabs */
+  .nk-chat-fab { bottom: 80px; right: 16px; width: 52px; height: 52px; }
+  .nk-chat-panel { bottom: 148px; right: 12px; width: calc(100vw - 24px); max-width: 420px; }
 }
 
 /* ═══ NikselChat — плавающий помощник на Kimi ═══ */
@@ -9098,8 +9160,10 @@ button:focus:not(:focus-visible) {
 .trainers-how-num { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--violet, #6B5CE7); color: #fff; font-family: var(--f-display, 'Nunito', sans-serif); font-size: 20px; font-weight: 900; margin-bottom: 12px; }
 
 /* ── Story slide overlay (detective trainer) ─────────────────────── */
+/* Must be above ALL fixed UI: bottom tabs (9300), streak (9400), FAB (9500), toast (9999) */
+body:has(.story-slide) { overflow: hidden; }
 .story-slide {
-  position: fixed; inset: 0; z-index: 1000;
+  position: fixed; inset: 0; z-index: 10000;
   display: flex; align-items: center; justify-content: center;
   background: rgba(15, 14, 28, .92);
   backdrop-filter: blur(8px);
@@ -9123,6 +9187,11 @@ button:focus:not(:focus-visible) {
 .story-slide-title { font-family: var(--f-display, 'Nunito', sans-serif); font-size: 26px; font-weight: 900; color: var(--ink); margin: 0; }
 .story-slide-text { font-size: 16px; color: var(--ink-soft); line-height: 1.6; margin: 0; }
 .story-slide-btn { margin-top: 8px; }
+@media (max-width: 600px) {
+  .story-slide-card { padding: 28px 24px; }
+  .story-slide-emoji { font-size: 52px; }
+  .story-slide-title { font-size: 22px; }
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    Python IDE page layout

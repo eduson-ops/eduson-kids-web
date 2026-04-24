@@ -40,7 +40,7 @@ export default function Login() {
 
         {/* Role picker */}
         {pickedRole === null && (
-          <div className="login-grid" style={{ maxWidth: 560, margin: '0 auto' }}>
+          <div className="login-grid login-grid--roles">
             <RoleButton
               emoji="🎒"
               label="Я ученик"
