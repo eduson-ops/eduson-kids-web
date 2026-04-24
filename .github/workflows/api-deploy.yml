@@ -121,11 +121,10 @@ jobs:
     steps:
       - name: Install YC CLI
         run: |
-          mkdir -p $HOME/yandex-cloud/bin
-          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/release/latest/linux/amd64/yc -o $HOME/yandex-cloud/bin/yc
-          chmod +x $HOME/yandex-cloud/bin/yc
-          echo "$HOME/yandex-cloud/bin" >> $GITHUB_PATH
-          $HOME/yandex-cloud/bin/yc --version
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh -o /tmp/yc-install.sh
+          bash /tmp/yc-install.sh -i $HOME -n
+          echo "$HOME/bin" >> $GITHUB_PATH
+          $HOME/bin/yc --version
 
       - name: Authenticate YC CLI
         run: |
@@ -135,7 +134,7 @@ jobs:
 
       - name: Deploy container revision
         run: |
-          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ github.sha }}' | cut -c1-7)"
           yc serverless container revision deploy \
             --container-name eduson-api \
             --image "$IMAGE" \
