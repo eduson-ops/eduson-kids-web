@@ -5,6 +5,8 @@ import ScriptTab from '../studio/ScriptTab'
 import TestTab from '../studio/TestTab'
 import StudioIntroOverlay from '../components/StudioIntroOverlay'
 import StudioTour, { replayTour } from '../components/StudioTour'
+import StudioMobileBar from '../components/StudioMobileBar'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { getState, resetScene, subscribe, selectPart, deletePart, undoEditor, type EditorState } from '../studio/editorState'
 import { runPython, warmPyodide } from '../lib/pyodide-executor'
 import { emitCommands } from '../lib/commandBus'
@@ -16,6 +18,7 @@ type Tab = 'build' | 'script' | 'test'
 
 export default function Studio() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [tab, setTab] = useState<Tab>('build')
   const [state, setState] = useState<EditorState>(getState())
   const [saved, setSaved] = useState<string>('сохранено')
@@ -172,19 +175,25 @@ export default function Studio() {
           </button>
           <button
             className={`publish${publishToast ? ' publish--toast' : ''}`}
-            title="Публикация появится в v1.1 — скоро!"
+            title="Публикация появится в v1.1"
+            aria-label="Опубликовать проект (v1.1)"
             onClick={() => { setPublishToast(true); setTimeout(() => setPublishToast(false), 3000) }}
           >
-            {publishToast ? '🚀 Скоро в v1.1!' : '📤 Опубликовать'}
+            {publishToast ? '🚀 Готовим публикацию · Q2 2026' : '📤 Опубликовать'}
           </button>
         </div>
       </header>
 
-      <main className="studio-main">
-        {tab === 'build' && <BuildTab />}
+      <main
+        className="studio-main"
+        style={isMobile ? { paddingBottom: 'calc(58px + env(safe-area-inset-bottom))' } : undefined}
+      >
+        {tab === 'build' && <BuildTab isMobile={isMobile} />}
         {tab === 'script' && <ScriptTab />}
         {tab === 'test' && <TestTab state={state} />}
       </main>
+
+      {isMobile && <StudioMobileBar tab={tab} onTabChange={setTab} />}
 
       <StudioIntroOverlay />
       <StudioTour />

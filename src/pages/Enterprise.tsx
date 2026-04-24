@@ -17,8 +17,8 @@ const TIERS = [
     seats: 'от 30',
     price: '299 ₽',
     unit: 'seat/мес',
-    colorFrom: '#6B5CE7',
-    colorTo: '#4A3DB5',
+    colorFrom: 'var(--violet)',
+    colorTo: 'var(--violet-deep)',
     features: [
       'Учительская консоль',
       'Heatmap + тревоги',
@@ -34,8 +34,8 @@ const TIERS = [
     seats: 'от 500',
     price: '199 ₽',
     unit: 'seat/мес',
-    colorFrom: '#2E8C5F',
-    colorTo: '#1E6D47',
+    colorFrom: 'var(--mint-deep)',
+    colorTo: 'var(--mint-ink)',
     highlight: 'Выгодно',
     features: [
       'Всё из School',
@@ -53,8 +53,8 @@ const TIERS = [
     seats: 'по запросу',
     price: 'от 1 млн ₽',
     unit: 'год',
-    colorFrom: '#FF9454',
-    colorTo: '#D96A24',
+    colorFrom: 'var(--orange)',
+    colorTo: 'var(--orange-deep)',
     features: [
       'Всё из District',
       'Реестр Минцифры',
@@ -124,7 +124,7 @@ export default function Enterprise() {
               className="kb-card"
               style={{
                 background: `linear-gradient(135deg, ${t.colorFrom}, ${t.colorTo})`,
-                color: '#fff',
+                color: 'var(--paper)',
                 padding: 24,
                 position: 'relative',
               }}
@@ -148,20 +148,20 @@ export default function Enterprise() {
                   {t.highlight}
                 </span>
               )}
-              <div style={{ fontSize: 11, fontWeight: 900, color: '#FFD43C', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: 'var(--yellow)', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 {t.name}
               </div>
               <div style={{ marginTop: 10 }}>
-                <div style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 32, lineHeight: 1, color: '#fff' }}>
+                <div style={{ fontFamily: 'var(--f-display)', fontWeight: 900, fontSize: 32, lineHeight: 1, color: 'var(--paper)' }}>
                   {t.price}
                 </div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,.85)', marginTop: 4 }}>{t.unit}</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,251,243,.85)', marginTop: 4 }}>{t.unit}</div>
               </div>
-              <div style={{ fontSize: 12, marginTop: 12, color: 'rgba(255,255,255,.85)' }}>
-                Объём: <strong style={{ color: '#fff' }}>{t.seats}</strong>
+              <div style={{ fontSize: 12, marginTop: 12, color: 'rgba(255,251,243,.85)' }}>
+                Объём: <strong style={{ color: 'var(--paper)' }}>{t.seats}</strong>
               </div>
-              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,.2)', margin: '18px 0' }} />
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: '#fff' }}>
+              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,251,243,.2)', margin: '18px 0' }} />
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: 'var(--paper)' }}>
                 {t.features.map((f) => (
                   <li key={f}>✓ {f}</li>
                 ))}
@@ -171,8 +171,8 @@ export default function Enterprise() {
                 className="kb-btn"
                 style={{
                   marginTop: 18,
-                  background: '#FFD43C',
-                  color: '#15141b',
+                  background: 'var(--yellow)',
+                  color: 'var(--ink)',
                   display: 'inline-flex',
                   fontWeight: 900,
                 }}

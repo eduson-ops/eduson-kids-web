@@ -504,7 +504,7 @@ function VkConnectBanner() {
           {err && <p className="err" style={{ marginTop: 10 }}>{err}</p>}
           {!appConfigured && (
             <p style={{ marginTop: 10, fontSize: 12, color: 'var(--ink-soft)' }}>
-              Интеграция временно недоступна. Скоро добавим Telegram и&nbsp;email для отчётов.
+              В&nbsp;разработке — Q2 2026. Добавим Telegram и&nbsp;email для отчётов о&nbsp;прогрессе.
             </p>
           )}
         </div>

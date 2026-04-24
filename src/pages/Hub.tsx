@@ -281,7 +281,7 @@ export default function Hub() {
           <div
             className="kb-card kb-card--feature"
             style={{
-              background: 'linear-gradient(135deg, #FF9454 0%, #6B5CE7 140%)',
+              background: 'linear-gradient(135deg, var(--orange) 0%, var(--violet) 140%)',
               color: 'var(--paper)',
               display: 'flex',
               alignItems: 'center',
@@ -309,7 +309,7 @@ export default function Hub() {
           <div
             className="kb-card kb-card--feature"
             style={{
-              background: 'linear-gradient(135deg, #6B5CE7, #4A3DB5)',
+              background: 'linear-gradient(135deg, var(--violet), var(--violet-deep))',
               color: 'var(--paper)',
               display: 'flex',
               flexDirection: 'column',
@@ -317,9 +317,9 @@ export default function Hub() {
             }}
           >
             <div>
-              <span className="eyebrow" style={{ color: '#FFD43C', fontWeight: 700 }}>ТРЕК 1 · ИГРЫ</span>
-              <h2 className="h2" style={{ color: '#fff', marginTop: 8 }}>Построй свой 3D-мир</h2>
-              <p style={{ color: '#fff', opacity: 0.92, fontSize: 15, marginTop: 10, maxWidth: 420 }}>
+              <span className="eyebrow" style={{ color: 'var(--yellow)', fontWeight: 700 }}>ТРЕК 1 · ИГРЫ</span>
+              <h2 className="h2" style={{ color: 'var(--paper)', marginTop: 8 }}>Построй свой 3D-мир</h2>
+              <p style={{ color: 'var(--paper)', opacity: 0.92, fontSize: 15, marginTop: 10, maxWidth: 420 }}>
                 Перетаскивай блоки, пиши Python, публикуй свои игры. 3 режима: блоки → блоки+Python → чистый Python.
               </p>
             </div>
@@ -343,7 +343,7 @@ export default function Hub() {
           <div
             className="kb-card kb-card--feature"
             style={{
-              background: 'linear-gradient(135deg, #2E8C5F, #1E6D47)',
+              background: 'linear-gradient(135deg, var(--mint-deep), var(--mint-ink))',
               color: 'var(--paper)',
               display: 'flex',
               flexDirection: 'column',
@@ -351,9 +351,9 @@ export default function Hub() {
             }}
           >
             <div>
-              <span className="eyebrow" style={{ color: '#FFD43C', fontWeight: 700 }}>ТРЕК 2 · САЙТЫ</span>
-              <h2 className="h2" style={{ color: '#fff', marginTop: 8 }}>Собери свой сайт</h2>
-              <p style={{ color: '#fff', opacity: 0.92, fontSize: 15, marginTop: 10, maxWidth: 420 }}>
+              <span className="eyebrow" style={{ color: 'var(--yellow)', fontWeight: 700 }}>ТРЕК 2 · САЙТЫ</span>
+              <h2 className="h2" style={{ color: 'var(--paper)', marginTop: 8 }}>Собери свой сайт</h2>
+              <p style={{ color: 'var(--paper)', opacity: 0.92, fontSize: 15, marginTop: 10, maxWidth: 420 }}>
                 Начни с шаблона и блок-секций, потом загляни под капот в HTML и CSS. Плавный путь от L1 к L2.
               </p>
             </div>

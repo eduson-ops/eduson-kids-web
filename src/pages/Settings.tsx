@@ -87,7 +87,11 @@ export default function Settings() {
   function handleQuality(q: string) {
     setQuality(q)
     applyQuality(q)
-    showToast(`✓ Качество: ${q === 'auto' ? 'авто' : q === 'med' ? 'среднее' : 'низкое'}`, 'success')
+    const label =
+      q === 'auto' ? 'авто' :
+      q === 'high' ? 'высокое' :
+      q === 'med' ? 'среднее' : 'низкое'
+    showToast(`✓ Качество: ${label}`, 'success')
   }
 
   function handleAvatarColor(c: string) {
@@ -97,6 +101,7 @@ export default function Settings() {
 
   const qualityOptions = [
     { key: 'auto', label: 'Авто', desc: 'Адаптируется под устройство' },
+    { key: 'high', label: 'Высокое', desc: 'Максимум деталей, для мощных ПК' },
     { key: 'med', label: 'Среднее', desc: 'Для слабых компьютеров' },
     { key: 'low', label: 'Низкое', desc: 'Максимальная скорость' },
   ]
@@ -313,7 +318,7 @@ export default function Settings() {
                 Архив с профилем, прогрессом, скриптами и проектами. Отправим на email за 24 часа.
               </p>
               <button className="kb-btn" disabled style={{ opacity: 0.5 }}>
-                Запросить архив (скоро)
+                Запросить архив · Q2 2026
               </button>
             </div>
 
@@ -396,7 +401,7 @@ export default function Settings() {
                 PIN-код на страницы оплаты и настроек. Ограничение времени в приложении.
               </p>
               <button className="kb-btn" disabled style={{ opacity: 0.5 }}>
-                Настроить (скоро)
+                Настроить · Q2 2026
               </button>
             </div>
           </div>
@@ -407,7 +412,7 @@ export default function Settings() {
 
         {/* Уведомления */}
         <div className="kb-card" style={{ opacity: 0.7 }}>
-          <h2 className="h2" style={{ marginBottom: 16 }}>Уведомления <span className="eyebrow" style={{ marginLeft: 8 }}>скоро</span></h2>
+          <h2 className="h2" style={{ marginBottom: 16 }}>Уведомления <span className="eyebrow" style={{ marginLeft: 8 }}>Q2 2026</span></h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {(['Email', 'Telegram', 'Push'] as const).map((ch) => (
               <label key={ch} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'not-allowed' }}>

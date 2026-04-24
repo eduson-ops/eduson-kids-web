@@ -273,7 +273,7 @@ function ClassesTab() {
                 </div>
               </div>
               <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="kb-btn kb-btn--sm kb-btn--secondary" disabled title="Детали класса — скоро">Открыть →</button>
+                <button className="kb-btn kb-btn--sm kb-btn--secondary" disabled title="Детали класса — Q2 2026">Открыть →</button>
                 <button className="kb-btn kb-btn--sm" onClick={() => {
                   navigator.clipboard?.writeText(c.inviteCode)
                   showToast(`✓ Код ${c.inviteCode} скопирован`, 'success')

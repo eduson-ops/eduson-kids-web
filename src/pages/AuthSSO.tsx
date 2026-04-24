@@ -33,22 +33,14 @@ interface Provider {
 
 const PROVIDERS: Provider[] = [
   {
-    id: 'google',
-    label: 'Google Workspace',
-    sub: 'OIDC · для международных школ',
-    region: 'international',
-    type: 'OIDC',
-    color: '#4285F4',
-    ready: false,
-  },
-  {
-    id: 'microsoft',
-    label: 'Microsoft 365 / Entra ID',
-    sub: 'SAML 2.0 · корпоративный SSO',
-    region: 'international',
-    type: 'SAML 2.0',
-    color: '#00A4EF',
-    ready: false,
+    id: 'vk',
+    label: 'VK ID',
+    sub: 'OAuth 2.0 · для B2C родителей/детей',
+    region: 'russia',
+    type: 'OAuth 2.0',
+    color: '#0077FF',
+    badge: 'B2C',
+    ready: true,
   },
   {
     id: 'yandex',
@@ -58,16 +50,6 @@ const PROVIDERS: Provider[] = [
     type: 'OAuth 2.0',
     color: '#FFCC00',
     ready: false,
-  },
-  {
-    id: 'vk',
-    label: 'VK ID',
-    sub: 'OAuth 2.0 · для B2C родителей/детей',
-    region: 'russia',
-    type: 'OAuth 2.0',
-    color: '#0077FF',
-    badge: 'B2C',
-    ready: true,
   },
   {
     id: 'gosuslugi',
@@ -87,6 +69,24 @@ const PROVIDERS: Provider[] = [
     type: 'OIDC',
     badge: 'B2G',
     color: '#FF5A00',
+    ready: false,
+  },
+  {
+    id: 'google',
+    label: 'Google Workspace',
+    sub: 'OIDC · для международных школ',
+    region: 'international',
+    type: 'OIDC',
+    color: '#4285F4',
+    ready: false,
+  },
+  {
+    id: 'microsoft',
+    label: 'Microsoft 365 / Entra ID',
+    sub: 'SAML 2.0 · корпоративный SSO',
+    region: 'international',
+    type: 'SAML 2.0',
+    color: '#00A4EF',
     ready: false,
   },
 ]
@@ -195,7 +195,7 @@ export default function AuthSSO() {
                       letterSpacing: '0.5px',
                       fontWeight: 700,
                     }}>
-                      скоро
+                      Q2 2026
                     </span>
                   )}
                 </div>

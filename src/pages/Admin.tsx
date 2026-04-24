@@ -10,6 +10,13 @@ import { getClassrooms, createClassroom, deleteClassroom } from '../lib/classRos
 import type { Classroom, Student } from '../lib/classRoster'
 import { useToast } from '../hooks/useToast'
 
+interface ConfirmState {
+  title: string
+  message: string
+  confirmLabel: string
+  onConfirm: () => void
+}
+
 export default function Admin() {
   const navigate = useNavigate()
   const { toast, show } = useToast()
@@ -28,15 +35,24 @@ export default function Admin() {
   const [assignClassId, setAssignClassId] = useState('')
   const [assignTeacherId, setAssignTeacherId] = useState('')
 
+  // Branded confirm dialog (replaces window.confirm)
+  const [confirmState, setConfirmState] = useState<ConfirmState | null>(null)
+
   const refresh = () => setClassrooms(getClassrooms())
 
   // ─── Handlers ────────────────────────────────────────────────────
 
   const handleDeleteClass = (id: string, name: string) => {
-    if (!window.confirm(`Удалить класс «${name}»? Это действие необратимо.`)) return
-    deleteClassroom(id)
-    refresh()
-    show(`Класс «${name}» удалён`, 'success')
+    setConfirmState({
+      title: 'Удалить класс?',
+      message: `Класс «${name}» будет удалён. Это действие необратимо — учеников придётся переводить вручную.`,
+      confirmLabel: 'Удалить',
+      onConfirm: () => {
+        deleteClassroom(id)
+        refresh()
+        show(`Класс «${name}» удалён`, 'success')
+      },
+    })
   }
 
   const handleCreateClass = () => {
@@ -110,6 +126,67 @@ export default function Admin() {
           }}
         >
           {toast.msg}
+        </div>
+      )}
+
+      {/* Branded Confirm dialog (replaces window.confirm) */}
+      {confirmState && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 10000,
+            background: 'rgba(21,20,27,.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+            animation: 'fadeIn .15s ease',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setConfirmState(null) }}
+        >
+          <div
+            className="kb-card"
+            style={{
+              maxWidth: 420,
+              width: '100%',
+              padding: 24,
+              background: 'var(--paper)',
+              boxShadow: '0 4px 0 0 rgba(21,20,27,.22), 0 20px 60px rgba(21,20,27,.25)',
+              border: '2px solid var(--ink)',
+              borderRadius: 18,
+            }}
+          >
+            <h2 id="confirm-title" style={{ margin: 0, fontSize: 20, fontWeight: 900, fontFamily: 'var(--f-display)', color: 'var(--ink)' }}>
+              {confirmState.title}
+            </h2>
+            <p style={{ marginTop: 12, fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
+              {confirmState.message}
+            </p>
+            <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button
+                className="kb-btn"
+                onClick={() => setConfirmState(null)}
+                autoFocus
+              >
+                Отмена
+              </button>
+              <button
+                className="kb-btn"
+                style={{ background: 'var(--pink-deep, #E8517B)', color: '#fff', borderColor: 'var(--pink-deep, #E8517B)', fontWeight: 900 }}
+                onClick={() => {
+                  const fn = confirmState.onConfirm
+                  setConfirmState(null)
+                  fn()
+                }}
+              >
+                {confirmState.confirmLabel}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
