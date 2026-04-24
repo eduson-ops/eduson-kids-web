@@ -134,6 +134,7 @@ jobs:
       - name: Deploy container revision
         run: |
           IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ github.sha }}' | cut -c1-7)"
+          SECRET_ID="${{ secrets.YC_LOCKBOX_SECRET_ID }}"
           yc serverless container revision deploy \
             --container-name eduson-api \
             --image "$IMAGE" \
@@ -142,7 +143,10 @@ jobs:
             --cores 1 \
             --execution-timeout 30s \
             --environment NODE_ENV=production \
-            --environment LOCKBOX_SECRET_ID=${{ secrets.YC_LOCKBOX_SECRET_ID }}
+            --secret "environment-variable=DB_PASSWORD,id=${SECRET_ID},version-id=latest,key=DB_PASSWORD" \
+            --secret "environment-variable=JWT_ACCESS_SECRET,id=${SECRET_ID},version-id=latest,key=JWT_ACCESS_SECRET" \
+            --secret "environment-variable=JWT_REFRESH_SECRET,id=${SECRET_ID},version-id=latest,key=JWT_REFRESH_SECRET" \
+            --secret "environment-variable=PII_KEY,id=${SECRET_ID},version-id=latest,key=PII_KEY"
 
       - name: Smoke test
         run: |
