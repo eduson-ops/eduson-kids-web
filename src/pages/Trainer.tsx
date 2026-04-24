@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import PuzzleEditor, { type PuzzleSolvedEvent } from '../components/PuzzleEditor'
@@ -7,6 +7,7 @@ import {
   getPuzzle,
   markSolved,
   getSolvedSet,
+  type StorySlide,
 } from '../lib/puzzles'
 import { recordActivity, touchStreak } from '../lib/progress'
 import { useToast } from '../hooks/useToast'
@@ -25,6 +26,28 @@ function bumpPuzzleStreak(): number {
   }
 }
 
+function StorySlideOverlay({ slide, onClose }: { slide: StorySlide; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  return (
+    <div className="story-slide" role="dialog" aria-modal="true" aria-label={slide.title} onClick={onClose}>
+      <div className="story-slide-card" onClick={(e) => e.stopPropagation()}>
+        <div className="story-slide-emoji" aria-hidden>{slide.emoji}</div>
+        <div className="story-slide-chapter">{slide.chapter}</div>
+        <h2 className="story-slide-title">{slide.title}</h2>
+        <p className="story-slide-text" style={{ whiteSpace: 'pre-line' }}>{slide.text}</p>
+        <button className="kb-btn story-slide-btn" type="button" onClick={onClose}>
+          Продолжить →
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function Trainer() {
   const { trainerId, puzzleN } = useParams<{ trainerId: string; puzzleN: string }>()
   const navigate = useNavigate()
@@ -34,10 +57,26 @@ export default function Trainer() {
   const trainer = trainerId ? getTrainer(trainerId) : undefined
   const task = trainerId ? getPuzzle(trainerId, n) : undefined
 
+  const [activeSlide, setActiveSlide] = useState<StorySlide | null>(null)
+  const [shownSlides, setShownSlides] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (task?.beforeSlide) {
+      const key = task.id
+      if (!shownSlides.has(key)) {
+        setActiveSlide(task.beforeSlide)
+        setShownSlides((prev) => new Set([...prev, key]))
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task?.id])
+
+  const closeSlide = useCallback(() => setActiveSlide(null), [])
+
   const solvedSet = useMemo(() => {
     if (!trainerId) return new Set<number>()
     return getSolvedSet(trainerId)
-  }, [trainerId, n]) // n-dep чтобы пересчитать после отметки
+  }, [trainerId, n])
 
   const goNext = useCallback(() => {
     if (!trainerId) return
@@ -81,7 +120,9 @@ export default function Trainer() {
   const stars = Math.max(0, Math.min(5, Math.round(solvedCount / 2)))
 
   return (
-    <PlatformShell activeKey="learn">
+    <PlatformShell activeKey="trainers">
+      {activeSlide && <StorySlideOverlay slide={activeSlide} onClose={closeSlide} />}
+
       <nav className="puzzle-breadcrumbs">
         <Link to="/">Главная</Link>
         <span> / </span>

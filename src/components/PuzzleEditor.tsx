@@ -1,5 +1,5 @@
 // Главный компонент решения пазла.
-// 2 колонки: редактор (Блоки или Python) + превью (top-down SVG или stdout).
+// 3 колонки: задача | редактор | превью — всё на 1 экране без прокрутки.
 
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PuzzleTask } from '../lib/puzzles'
@@ -7,7 +7,6 @@ import { checkSolution, simulatePlayer, type CheckResult, type RawCommand } from
 import { runPython, warmPyodide } from '../lib/pyodide-executor'
 import HintLadder from './HintLadder'
 import Niksel from '../design/mascot/Niksel'
-import { MascotMoodOverlay } from '../design/mascot/MascotMoodOverlay'
 import type { MascotMood } from '../hooks/useMascotMood'
 
 const PurePythonEditor = lazy(() => import('./PurePythonEditor'))
@@ -45,7 +44,6 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
   const [mood, setMood] = useState<MascotMood>('think')
   const reportedRef = useRef(false)
 
-  // Сбрасываем состояние когда меняется задача
   useEffect(() => {
     setBlocklyXml(
       task.starterBlocks ??
@@ -63,7 +61,6 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
     reportedRef.current = false
   }, [task, initialMode])
 
-  // Прогреваем Pyodide при монтировании
   useEffect(() => {
     warmPyodide().catch((e) => {
       console.warn('Pyodide warmup failed:', e)
@@ -116,7 +113,6 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
         }
       } else {
         setMood('confused')
-        // Автоматически открываем ещё одну подсказку при провале
         setRevealed((r) => Math.min(r + 1, task.hints.length))
         if (res.error) setRunError(res.error)
       }
@@ -133,15 +129,11 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
     (next: EditorMode) => {
       if (next === mode) return
       if (next === 'python') {
-        // Блоки → Python: переносим сгенерированный код
         if (blocklyPython && !pythonCode.trim()) {
           setPythonCode(blocklyPython)
-        } else if (blocklyPython && pythonCode !== blocklyPython) {
-          // Оставляем то что уже написал ребёнок; просто переключаем
         }
         setMode('python')
       } else {
-        // Python → Блоки: нельзя обратно конвертнуть, спрашиваем
         if (pythonCode.trim() && pythonCode !== blocklyPython) {
           const ok = window.confirm(
             'Переключение на блоки потеряет твой Python-код. Точно переключить?',
@@ -165,10 +157,18 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
 
   const passed = checkResult?.passed ?? false
 
+  // Mood badge shown beside penguin (not overlapping it)
+  const moodBadge =
+    mood === 'think' ? '?' :
+    mood === 'confused' ? '…' :
+    mood === 'celebrate' ? '★' :
+    mood === 'code' ? '⌨' :
+    null
+
   return (
     <div className="puzzle-layout">
-      {/* Левая колонка: задача + редактор */}
-      <aside className="puzzle-editor-panel">
+      {/* Left column: task info + hints */}
+      <aside className="puzzle-task-panel">
         <header className="puzzle-head">
           <div className="puzzle-head-badges">
             <span className="puzzle-badge">Задача {task.n}/10</span>
@@ -183,7 +183,10 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
         </header>
 
         <HintLadder hints={task.hints} revealed={revealed} onReveal={handleReveal} />
+      </aside>
 
+      {/* Center column: editor */}
+      <aside className="puzzle-editor-panel">
         <div className="trainer-tabs" role="tablist">
           <button
             role="tab"
@@ -247,14 +250,24 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
         </div>
       </aside>
 
-      {/* Правая колонка: превью */}
+      {/* Right column: preview */}
       <section className={`puzzle-preview-panel ${passed ? 'is-passed' : ''}`}>
+        {/* Penguin + mood badge side by side — badge BESIDE penguin, not on top */}
         <div className="puzzle-preview-head">
           <div className="puzzle-preview-mascot">
-            <div style={{ position: 'relative', width: 96, height: 112 }}>
-              <Niksel pose={mood === 'idle' ? 'idle' : mood === 'celebrate' ? 'celebrate' : mood === 'confused' ? 'confused' : mood === 'code' ? 'code' : 'think'} size={96} />
-              <MascotMoodOverlay mood={mood} />
-            </div>
+            <Niksel
+              pose={
+                mood === 'idle' ? 'idle' :
+                mood === 'celebrate' ? 'celebrate' :
+                mood === 'confused' ? 'confused' :
+                mood === 'code' ? 'code' :
+                'think'
+              }
+              size={80}
+            />
+            {moodBadge && (
+              <span className="puzzle-mood-badge" aria-hidden>{moodBadge}</span>
+            )}
           </div>
           <div className="puzzle-preview-status">
             {checkResult ? (
@@ -346,7 +359,6 @@ function PuzzleTopDownPreview({
   task: PuzzleTask
   commands: RawCommand[]
 }) {
-  // Определяем область просмотра
   const { minX, maxX, minZ, maxZ, cell, goal, blocks, playerFinal, playerStart } = useMemo(() => {
     const startX = 0
     const startZ = 0
@@ -367,22 +379,12 @@ function PuzzleTopDownPreview({
         ? { x: task.check.goalX, z: task.check.goalZ }
         : null
 
-    // Подсчёт границ
     const xs = [startX, sim.x]
     const zs = [startZ, sim.z]
-    if (goal) {
-      xs.push(goal.x)
-      zs.push(goal.z)
-    }
-    for (const b of blocks) {
-      xs.push(b.x)
-      zs.push(b.z)
-    }
+    if (goal) { xs.push(goal.x); zs.push(goal.z) }
+    for (const b of blocks) { xs.push(b.x); zs.push(b.z) }
     if (task.check.kind === 'build-pattern') {
-      for (const b of task.check.expectedBlocks) {
-        xs.push(b.x)
-        zs.push(b.z)
-      }
+      for (const b of task.check.expectedBlocks) { xs.push(b.x); zs.push(b.z) }
     }
 
     const minX = Math.min(...xs) - 2
@@ -391,13 +393,7 @@ function PuzzleTopDownPreview({
     const maxZ = Math.max(...zs) + 2
     const cell = Math.max(18, Math.min(36, Math.floor(280 / Math.max(maxX - minX, maxZ - minZ))))
     return {
-      minX,
-      maxX,
-      minZ,
-      maxZ,
-      cell,
-      goal,
-      blocks,
+      minX, maxX, minZ, maxZ, cell, goal, blocks,
       playerFinal: { x: sim.x, z: sim.z },
       playerStart: { x: startX, z: startZ },
     }
@@ -405,150 +401,56 @@ function PuzzleTopDownPreview({
 
   const w = (maxX - minX) * cell
   const h = (maxZ - minZ) * cell
-
   const gx = (x: number) => (x - minX) * cell
   const gz = (z: number) => (z - minZ) * cell
-
-  // Ожидаемые блоки в build-pattern рисуем пунктирными контурами
-  const expected =
-    task.check.kind === 'build-pattern' ? task.check.expectedBlocks : []
+  const expected = task.check.kind === 'build-pattern' ? task.check.expectedBlocks : []
 
   const colorMap: Record<string, string> = {
-    red: '#e15554',
-    blue: '#3e87e8',
-    green: '#52c987',
-    yellow: '#FFD43C',
-    purple: '#A06BE0',
-    orange: '#FF9454',
-    black: '#2a2a3a',
-    white: '#fdfdfd',
-    pink: '#FFB4C8',
-    cyan: '#7FD6E8',
+    red: '#e15554', blue: '#3e87e8', green: '#52c987', yellow: '#FFD43C',
+    purple: '#A06BE0', orange: '#FF9454', black: '#2a2a3a', white: '#fdfdfd',
+    pink: '#FFB4C8', cyan: '#7FD6E8',
   }
   const colorOf = (c: string) => colorMap[c] ?? '#888'
 
   return (
     <div className="puzzle-preview-grid">
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Превью задачи">
-        {/* Сетка */}
         {Array.from({ length: maxX - minX + 1 }, (_, i) => (
-          <line
-            key={`vx${i}`}
-            x1={i * cell}
-            y1={0}
-            x2={i * cell}
-            y2={h}
-            stroke="rgba(107, 92, 231, 0.12)"
-            strokeWidth={1}
-          />
+          <line key={`vx${i}`} x1={i * cell} y1={0} x2={i * cell} y2={h}
+            stroke="rgba(107, 92, 231, 0.12)" strokeWidth={1} />
         ))}
         {Array.from({ length: maxZ - minZ + 1 }, (_, i) => (
-          <line
-            key={`vz${i}`}
-            x1={0}
-            y1={i * cell}
-            x2={w}
-            y2={i * cell}
-            stroke="rgba(107, 92, 231, 0.12)"
-            strokeWidth={1}
-          />
+          <line key={`vz${i}`} x1={0} y1={i * cell} x2={w} y2={i * cell}
+            stroke="rgba(107, 92, 231, 0.12)" strokeWidth={1} />
         ))}
-
-        {/* Origin (0,0) метка */}
-        <rect
-          x={gx(0)}
-          y={gz(0)}
-          width={cell}
-          height={cell}
-          fill="rgba(255, 212, 60, 0.18)"
-        />
-
-        {/* Ожидаемые блоки (пунктир) */}
+        <rect x={gx(0)} y={gz(0)} width={cell} height={cell} fill="rgba(255, 212, 60, 0.18)" />
         {expected.map((b, i) => (
-          <rect
-            key={`exp${i}`}
-            x={gx(b.x)}
-            y={gz(b.z)}
-            width={cell}
-            height={cell}
-            fill="none"
-            stroke={colorOf(b.color ?? 'red')}
-            strokeDasharray="4 3"
-            strokeWidth={2}
-            opacity={0.7}
-          />
+          <rect key={`exp${i}`} x={gx(b.x)} y={gz(b.z)} width={cell} height={cell}
+            fill="none" stroke={colorOf(b.color ?? 'red')} strokeDasharray="4 3"
+            strokeWidth={2} opacity={0.7} />
         ))}
-
-        {/* Поставленные блоки */}
         {blocks.map((b, i) => (
-          <rect
-            key={`bk${i}`}
-            x={gx(b.x) + 2}
-            y={gz(b.z) + 2}
-            width={cell - 4}
-            height={cell - 4}
-            fill={colorOf(b.color)}
-            rx={4}
-            opacity={0.85}
-          />
+          <rect key={`bk${i}`} x={gx(b.x) + 2} y={gz(b.z) + 2}
+            width={cell - 4} height={cell - 4}
+            fill={colorOf(b.color)} rx={4} opacity={0.85} />
         ))}
-
-        {/* Цель (reach-goal) */}
         {goal && (
           <g>
-            <circle
-              cx={gx(goal.x) + cell / 2}
-              cy={gz(goal.z) + cell / 2}
-              r={cell * 0.35}
-              fill="#FFD43C"
-              opacity={0.85}
-              stroke="#15141B"
-              strokeWidth={2}
-            />
-            <text
-              x={gx(goal.x) + cell / 2}
-              y={gz(goal.z) + cell / 2 + 4}
-              textAnchor="middle"
-              fontSize={cell * 0.5}
-            >
-              🎯
-            </text>
+            <circle cx={gx(goal.x) + cell / 2} cy={gz(goal.z) + cell / 2}
+              r={cell * 0.35} fill="#FFD43C" opacity={0.85} stroke="#15141B" strokeWidth={2} />
+            <text x={gx(goal.x) + cell / 2} y={gz(goal.z) + cell / 2 + 4}
+              textAnchor="middle" fontSize={cell * 0.5}>🎯</text>
           </g>
         )}
-
-        {/* Старт */}
         <g>
-          <rect
-            x={gx(playerStart.x) + cell * 0.2}
-            y={gz(playerStart.z) + cell * 0.2}
-            width={cell * 0.6}
-            height={cell * 0.6}
-            rx={6}
-            fill="rgba(107, 92, 231, 0.2)"
-            stroke="#6B5CE7"
-            strokeWidth={2}
-          />
-          <text
-            x={gx(playerStart.x) + cell / 2}
-            y={gz(playerStart.z) + cell / 2 + cell * 0.12}
-            textAnchor="middle"
-            fontSize={cell * 0.35}
-            fill="#6B5CE7"
-            fontWeight={700}
-          >
-            S
-          </text>
+          <rect x={gx(playerStart.x) + cell * 0.2} y={gz(playerStart.z) + cell * 0.2}
+            width={cell * 0.6} height={cell * 0.6} rx={6}
+            fill="rgba(107, 92, 231, 0.2)" stroke="#6B5CE7" strokeWidth={2} />
+          <text x={gx(playerStart.x) + cell / 2} y={gz(playerStart.z) + cell / 2 + cell * 0.12}
+            textAnchor="middle" fontSize={cell * 0.35} fill="#6B5CE7" fontWeight={700}>S</text>
         </g>
-
-        {/* Пингвин — финальная позиция */}
-        <text
-          x={gx(playerFinal.x) + cell / 2}
-          y={gz(playerFinal.z) + cell / 2 + cell * 0.28}
-          textAnchor="middle"
-          fontSize={cell * 0.78}
-        >
-          🐧
-        </text>
+        <text x={gx(playerFinal.x) + cell / 2} y={gz(playerFinal.z) + cell / 2 + cell * 0.28}
+          textAnchor="middle" fontSize={cell * 0.78}>🐧</text>
       </svg>
     </div>
   )

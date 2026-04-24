@@ -15,6 +15,7 @@ import { ClassroomModule } from './modules/classroom/classroom.module';
 import { ProgressModule } from './modules/progress/progress.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -111,6 +112,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     ProgressModule,
     BillingModule,
     AuditModule,
+    RoomsModule,
   ],
   providers: [
     {

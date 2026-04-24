@@ -142,5 +142,40 @@ export async function apiGetRoom(id: string): Promise<{ id: string; status: stri
   return request(`/api/v1/rooms/${encodeURIComponent(id)}`)
 }
 
+export async function apiGetMe(): Promise<{ id: string; role: string; name: string; login?: string; email?: string } | null> {
+  if (!getToken()) return null
+  return request('/api/v1/auth/me')
+}
+
+export async function apiProgressEvent(
+  kind: 'lesson_solved' | 'puzzle_solved' | 'coins_earned' | 'streak_touched',
+  payload: Record<string, unknown>,
+): Promise<boolean> {
+  if (!getToken()) return false
+  const r = await request<{ id: string }>('/api/v1/progress/event', {
+    method: 'POST',
+    body: JSON.stringify({ kind, payload }),
+  })
+  return !!r
+}
+
+export async function apiRoomToken(
+  roomId: string,
+  displayName: string,
+): Promise<{ token: string; url: string } | null> {
+  // Authenticated users get token from backend (secret stays server-side)
+  if (getToken()) {
+    return request('/api/v1/rooms/token', {
+      method: 'POST',
+      body: JSON.stringify({ roomId, displayName }),
+    })
+  }
+  // Guest fallback: use public endpoint
+  return request('/api/v1/rooms/token/guest', {
+    method: 'POST',
+    body: JSON.stringify({ roomId, displayName }),
+  })
+}
+
 export const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true'
 export function getApiToken(): string | null { return getToken() }

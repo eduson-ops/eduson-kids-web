@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Niksel from '../design/mascot/Niksel'
-import { NikselMini } from '../design/mascot/Niksel'
+import { NikselMini, NikselMiniChat } from '../design/mascot/Niksel'
 import { askNiksel, type ChatMessage } from '../lib/nikselChat'
 
 /**
@@ -134,7 +134,7 @@ export default function NikselChat() {
         title={open ? 'Закрыть Никселя' : 'Спросить Никселя'}
         aria-label={open ? 'Закрыть чат с Никселем' : 'Открыть чат с Никселем'}
       >
-        {open ? '×' : <NikselMini size={42} />}
+        {open ? '×' : <NikselMiniChat size={42} />}
       </button>
 
       {open && (

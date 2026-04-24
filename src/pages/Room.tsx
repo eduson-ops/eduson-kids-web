@@ -1,396 +1,250 @@
 /**
- * Room — full-screen WebRTC video room.
- * Route: /room/:roomId
- * Does NOT use PlatformShell (full screen experience).
+ * Room — branded LiveKit video conference room.
+ * Route: /room/:roomId   Full-screen, no PlatformShell.
+ * Token is generated client-side for testing — move to backend for production.
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import '@livekit/components-styles'
+import { useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { apiGetRoom } from '../lib/api'
 import {
-  joinRtcRoom,
-  sendOffer,
-  sendAnswer,
-  sendIce,
-  onRtcOffer,
-  onRtcAnswer,
-  onRtcIce,
-  getChatSocket,
-} from '../lib/chatClient'
+  LiveKitRoom,
+  GridLayout,
+  ParticipantTile,
+  RoomAudioRenderer,
+  TrackToggle,
+  DisconnectButton,
+  Chat,
+  useParticipants,
+  useTracks,
+  useLocalParticipant,
+} from '@livekit/components-react'
+import { Track } from 'livekit-client'
+import { NikselMini } from '../design/mascot/Niksel'
+import { apiRoomToken } from '../lib/api'
 
-type RoomMode = 'waiting' | 'connected' | 'error'
+const LK_URL_FALLBACK = 'wss://edusonlms-apk4qgt4.livekit.cloud'
+const LK_KEY_FALLBACK = 'APIsABHfKrBN9xG'
+const LK_SECRET_FALLBACK = 'fTjEXOUcKkeeDuIUxyqfRKzQbdZFq4MXBjQbrSM66qLC'
 
-interface RoomInfo {
-  id: string
-  status: string
-  meetLink: string
+// ── Fallback: client-side JWT when backend is unavailable ─────────────────
+function b64url(input: ArrayBuffer | string): string {
+  const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : new Uint8Array(input)
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+}
+async function makeFallbackToken(roomName: string, identity: string): Promise<{ token: string; url: string }> {
+  const now = Math.floor(Date.now() / 1000)
+  const header = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+  const payload = b64url(JSON.stringify({
+    iss: LK_KEY_FALLBACK, sub: identity, iat: now, exp: now + 7200,
+    video: { room: roomName, roomJoin: true, canPublish: true, canSubscribe: true, canPublishData: true },
+  }))
+  const signingInput = `${header}.${payload}`
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(LK_SECRET_FALLBACK), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signingInput))
+  return { token: `${signingInput}.${b64url(sig)}`, url: LK_URL_FALLBACK }
+}
+// ─────────────────────────────────────────────────────────────────────────
+
+// ── Branded inner layout ──────────────────────────────────────────────────
+function EdusonConference({ roomId, onLeave }: { roomId: string; onLeave: () => void }) {
+  const [chatOpen, setChatOpen] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const participants = useParticipants()
+  const { localParticipant } = useLocalParticipant()
+
+  const tracks = useTracks(
+    [
+      { source: Track.Source.Camera, withPlaceholder: true },
+      { source: Track.Source.ScreenShare, withPlaceholder: false },
+    ],
+    { onlySubscribed: false },
+  )
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href).catch(() => {})
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2500)
+  }
+
+  const remoteCount = participants.filter((p) => p.identity !== localParticipant?.identity).length
+
+  return (
+    <div className="ek-room">
+      {/* ── Top bar ── */}
+      <header className="ek-room-header">
+        <div className="ek-room-header-brand">
+          <NikselMini size={28} />
+          <span className="ek-room-header-title">Эдюсон Kids</span>
+          <span className="ek-room-header-divider">·</span>
+          <span className="ek-room-header-room">{roomId}</span>
+        </div>
+        <div className="ek-room-header-right">
+          <span className="ek-room-participants">
+            👥 {participants.length} {participants.length === 1 ? 'участник' : 'участника'}
+          </span>
+          <button className="ek-room-copy-btn" onClick={copyLink}>
+            {linkCopied ? '✓ Скопировано' : '🔗 Ссылка'}
+          </button>
+        </div>
+      </header>
+
+      {/* ── Main area ── */}
+      <div className="ek-room-body">
+        {/* Video grid */}
+        <div className="ek-room-stage">
+          {remoteCount === 0 ? (
+            <div className="ek-room-waiting">
+              <div className="ek-room-waiting-icon">⏳</div>
+              <p className="ek-room-waiting-title">Ожидание участников…</p>
+              <p className="ek-room-waiting-sub">Поделись ссылкой, чтобы другие могли подключиться</p>
+              <button className="ek-room-waiting-copy" onClick={copyLink}>
+                {linkCopied ? '✓ Ссылка скопирована' : '🔗 Скопировать ссылку на урок'}
+              </button>
+            </div>
+          ) : (
+            <GridLayout tracks={tracks} className="ek-room-grid">
+              <ParticipantTile />
+            </GridLayout>
+          )}
+        </div>
+
+        {/* Chat panel */}
+        {chatOpen && (
+          <aside className="ek-room-chat-panel">
+            <div className="ek-room-chat-head">
+              <span>💬 Чат</span>
+              <button className="ek-room-chat-close" onClick={() => setChatOpen(false)}>✕</button>
+            </div>
+            <Chat className="ek-room-chat" messageFormatter={(msg) => msg} />
+          </aside>
+        )}
+      </div>
+
+      {/* ── Bottom controls ── */}
+      <footer className="ek-room-controls">
+        <div className="ek-room-controls-group">
+          <TrackToggle source={Track.Source.Microphone} className="ek-ctrl-btn" showIcon>
+            <span className="ek-ctrl-label">Микрофон</span>
+          </TrackToggle>
+          <TrackToggle source={Track.Source.Camera} className="ek-ctrl-btn" showIcon>
+            <span className="ek-ctrl-label">Камера</span>
+          </TrackToggle>
+          <TrackToggle source={Track.Source.ScreenShare} className="ek-ctrl-btn" showIcon>
+            <span className="ek-ctrl-label">Экран</span>
+          </TrackToggle>
+        </div>
+
+        <div className="ek-room-controls-center">
+          <DisconnectButton className="ek-ctrl-leave" onClick={onLeave}>
+            ✕ Завершить
+          </DisconnectButton>
+        </div>
+
+        <div className="ek-room-controls-group">
+          <button
+            className={`ek-ctrl-btn ek-ctrl-btn--icon ${chatOpen ? 'ek-ctrl-btn--active' : ''}`}
+            onClick={() => setChatOpen((v) => !v)}
+            title="Открыть чат"
+          >
+            💬 <span className="ek-ctrl-label">Чат</span>
+          </button>
+        </div>
+      </footer>
+
+      <RoomAudioRenderer />
+    </div>
+  )
 }
 
-const ICE_SERVERS: RTCIceServer[] = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-]
-
+// ── Join screen ───────────────────────────────────────────────────────────
 export default function Room() {
   const { roomId } = useParams<{ roomId: string }>()
   const navigate = useNavigate()
+  const safeRoom = roomId ?? 'урок'
 
-  const localVideoRef = useRef<HTMLVideoElement>(null)
-  const remoteVideoRef = useRef<HTMLVideoElement>(null)
-  const pcRef = useRef<RTCPeerConnection | null>(null)
-  const localStreamRef = useRef<MediaStream | null>(null)
-
-  const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null)
-  const [connected, setConnected] = useState(false)
-  const [mode, setMode] = useState<RoomMode>('waiting')
-  const [muted, setMuted] = useState(false)
-  const [videoOff, setVideoOff] = useState(false)
-  const [screenSharing, setScreenSharing] = useState(false)
+  const [token, setToken] = useState<string | null>(null)
+  const [serverUrl, setServerUrl] = useState<string>(LK_URL_FALLBACK)
+  const [name, setName] = useState('')
+  const [joining, setJoining] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
 
-  const safeRoomId = roomId ?? ''
-
-  const createPeerConnection = useCallback(() => {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS })
-
-    pc.ontrack = (evt) => {
-      if (remoteVideoRef.current && evt.streams[0]) {
-        remoteVideoRef.current.srcObject = evt.streams[0]
-        setMode('connected')
+  const join = useCallback(async () => {
+    const n = name.trim()
+    if (!n) { setErr('Введи своё имя'); return }
+    setJoining(true); setErr(null)
+    try {
+      const backendResult = await apiRoomToken(safeRoom, n)
+      if (backendResult) {
+        setToken(backendResult.token)
+        setServerUrl(backendResult.url)
+      } else {
+        const fallback = await makeFallbackToken(safeRoom, n)
+        setToken(fallback.token)
+        setServerUrl(fallback.url)
       }
+    } catch (e) {
+      setErr('Ошибка подключения: ' + String(e))
+    } finally {
+      setJoining(false)
     }
-
-    pc.onicecandidate = (evt) => {
-      if (evt.candidate) {
-        sendIce(safeRoomId, evt.candidate)
-      }
-    }
-
-    pc.onnegotiationneeded = async () => {
-      try {
-        const offer = await pc.createOffer()
-        await pc.setLocalDescription(offer)
-        if (pc.localDescription) {
-          sendOffer(safeRoomId, pc.localDescription)
-        }
-      } catch (err) {
-        console.warn('Negotiation error', err)
-      }
-    }
-
-    return pc
-  }, [safeRoomId])
-
-  useEffect(() => {
-    if (!safeRoomId) {
-      setMode('error')
-      setErrorMsg('Неверный ID комнаты')
-      return
-    }
-
-    let cancelled = false
-
-    const setup = async () => {
-      // 1. Fetch room info
-      const info = await apiGetRoom(safeRoomId)
-      if (!cancelled) setRoomInfo(info ? { id: info.id, status: info.status, meetLink: info.meetLink } : null)
-
-      // 2. Get local media
-      let stream: MediaStream
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      } catch (err) {
-        if (!cancelled) {
-          setMode('error')
-          setErrorMsg('Нет доступа к камере или микрофону. Разреши доступ в браузере.')
-        }
-        return
-      }
-      if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return }
-
-      localStreamRef.current = stream
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream
-      }
-
-      // 3. Create peer connection
-      const pc = createPeerConnection()
-      pcRef.current = pc
-
-      // 4. Add local tracks
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream))
-
-      // 5. Join signaling room
-      const socket = getChatSocket()
-      socket.on('connect', () => setConnected(true))
-      socket.on('disconnect', () => setConnected(false))
-      if (socket.connected) setConnected(true)
-
-      joinRtcRoom(safeRoomId)
-
-      // 6. Handle signaling events
-      const cleanOffer = onRtcOffer(async ({ sdp }) => {
-        if (!pcRef.current) return
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp))
-        const answer = await pcRef.current.createAnswer()
-        await pcRef.current.setLocalDescription(answer)
-        if (pcRef.current.localDescription) {
-          sendAnswer(safeRoomId, pcRef.current.localDescription)
-        }
-      })
-
-      const cleanAnswer = onRtcAnswer(async ({ sdp }) => {
-        if (!pcRef.current) return
-        await pcRef.current.setRemoteDescription(new RTCSessionDescription(sdp))
-      })
-
-      const cleanIce = onRtcIce(async ({ candidate }) => {
-        if (!pcRef.current) return
-        try {
-          await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate))
-        } catch {
-          /* ignore stale candidates */
-        }
-      })
-
-      return () => {
-        cleanOffer()
-        cleanAnswer()
-        cleanIce()
-      }
-    }
-
-    const cleanupPromise = setup()
-
-    return () => {
-      cancelled = true
-      cleanupPromise.then((cleanup) => cleanup?.())
-      // Stop all tracks
-      localStreamRef.current?.getTracks().forEach((t) => t.stop())
-      localStreamRef.current = null
-      // Close peer connection
-      pcRef.current?.close()
-      pcRef.current = null
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [safeRoomId])
-
-  const toggleMute = () => {
-    const stream = localStreamRef.current
-    if (!stream) return
-    stream.getAudioTracks().forEach((t) => { t.enabled = muted })
-    setMuted((v) => !v)
-  }
-
-  const toggleVideo = () => {
-    const stream = localStreamRef.current
-    if (!stream) return
-    stream.getVideoTracks().forEach((t) => { t.enabled = videoOff })
-    setVideoOff((v) => !v)
-  }
-
-  const toggleScreenShare = async () => {
-    if (screenSharing) {
-      // Revert to camera
-      const stream = localStreamRef.current
-      if (stream && pcRef.current) {
-        const videoTrack = stream.getVideoTracks()[0]
-        if (videoTrack) {
-          const sender = pcRef.current.getSenders().find((s) => s.track?.kind === 'video')
-          if (sender) await sender.replaceTrack(videoTrack)
-        }
-      }
-      setScreenSharing(false)
-    } else {
-      try {
-        const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true })
-        const screenTrack = displayStream.getVideoTracks()[0]
-        if (screenTrack && pcRef.current) {
-          const sender = pcRef.current.getSenders().find((s) => s.track?.kind === 'video')
-          if (sender) await sender.replaceTrack(screenTrack)
-          // Also update local preview
-          if (localVideoRef.current) {
-            const stream = new MediaStream([screenTrack])
-            localVideoRef.current.srcObject = stream
-          }
-          screenTrack.onended = () => {
-            setScreenSharing(false)
-            // Revert to camera track
-            const camTrack = localStreamRef.current?.getVideoTracks()[0]
-            if (camTrack && pcRef.current) {
-              const s = pcRef.current.getSenders().find((ss) => ss.track?.kind === 'video')
-              if (s) s.replaceTrack(camTrack)
-            }
-          }
-        }
-        setScreenSharing(true)
-      } catch {
-        /* User cancelled or permission denied */
-      }
-    }
-  }
+  }, [name, safeRoom])
 
   const copyLink = () => {
-    const link = roomInfo?.meetLink ?? window.location.href
-    navigator.clipboard.writeText(link).catch(() => { /* ignore */ })
+    navigator.clipboard.writeText(window.location.href).catch(() => {})
     setLinkCopied(true)
-    setTimeout(() => setLinkCopied(false), 2000)
+    setTimeout(() => setLinkCopied(false), 2500)
   }
 
-  const leave = () => {
-    localStreamRef.current?.getTracks().forEach((t) => t.stop())
-    pcRef.current?.close()
-    navigate('/')
-  }
-
-  if (mode === 'error') {
+  if (!token) {
     return (
-      <div style={{ background: '#0f0f0f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexDirection: 'column', gap: 16 }}>
-        <span style={{ fontSize: 48 }}>⚠️</span>
-        <h2 style={{ margin: 0 }}>Ошибка комнаты</h2>
-        <p style={{ color: '#9ca3af', textAlign: 'center', maxWidth: 360 }}>{errorMsg || 'Не удалось подключиться к комнате'}</p>
-        <button
-          onClick={() => navigate('/')}
-          style={{ background: '#7c3aed', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 24px', cursor: 'pointer', fontSize: 15, fontWeight: 600 }}
-        >
-          Вернуться на главную
-        </button>
+      <div className="lk-room-join">
+        <div className="lk-room-join-card">
+          <div className="lk-room-join-brand">
+            <NikselMini size={40} />
+            <span className="lk-room-join-brand-name">Эдюсон Kids</span>
+          </div>
+          <h1 className="lk-room-join-title">Войти в урок</h1>
+          <p className="lk-room-join-room">Комната: <strong>{safeRoom}</strong></p>
+
+          {err && <div className="lk-room-join-err">{err}</div>}
+
+          <input
+            className="lk-room-join-input"
+            type="text"
+            placeholder="Твоё имя (например: Саша)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') void join() }}
+            autoFocus
+          />
+
+          <button className="lk-room-join-btn" onClick={() => void join()} disabled={joining}>
+            {joining ? '⏳ Подключаюсь…' : '→ Войти в комнату'}
+          </button>
+
+          <div className="lk-room-join-actions">
+            <button className="lk-room-join-link-btn" onClick={copyLink}>
+              {linkCopied ? '✓ Ссылка скопирована' : '🔗 Скопировать ссылку'}
+            </button>
+            <button className="lk-room-join-back" onClick={() => navigate('/')}>
+              ← Главная
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ background: '#0f0f0f', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-      {/* Top bar */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-        padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 12,
-      }}>
-        <span style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>
-          Комната: {safeRoomId}
-        </span>
-        {roomInfo && (
-          <span style={{
-            background: roomInfo.status === 'active' ? '#065f46' : '#374151',
-            color: '#fff', fontSize: 11, fontWeight: 700, borderRadius: 6, padding: '2px 8px',
-            textTransform: 'uppercase',
-          }}>
-            {roomInfo.status}
-          </span>
-        )}
-        <div style={{ flex: 1 }} />
-        <button
-          onClick={copyLink}
-          style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 13 }}
-        >
-          {linkCopied ? '✓ Скопировано' : '🔗 Скопировать ссылку'}
-        </button>
-        <span style={{
-          display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
-          color: connected ? '#34d399' : '#f87171',
-        }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: connected ? '#10b981' : '#ef4444', display: 'inline-block' }} />
-          {connected ? 'Сигнал' : 'Нет сигнала'}
-        </span>
-      </div>
-
-      {/* Remote video */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 56, paddingBottom: 80 }}>
-        {mode === 'waiting' ? (
-          <div style={{ textAlign: 'center', color: '#9ca3af' }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>⏳</div>
-            <p style={{ fontSize: 18, fontWeight: 600, color: '#e5e7eb' }}>Ожидание участников…</p>
-            <p style={{ fontSize: 14 }}>Поделись ссылкой чтобы другие могли присоединиться</p>
-          </div>
-        ) : (
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            style={{ width: '100%', maxWidth: 900, height: 'auto', borderRadius: 12, background: '#1f1f1f' }}
-            aria-label="Видео собеседника"
-          />
-        )}
-      </div>
-
-      {/* Local video (picture-in-picture) */}
-      <div style={{
-        position: 'absolute', bottom: 90, right: 20, zIndex: 20,
-        width: 200, borderRadius: 10, overflow: 'hidden',
-        border: '2px solid rgba(255,255,255,0.2)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-        background: '#1f1f1f',
-      }}>
-        <video
-          ref={localVideoRef}
-          autoPlay
-          playsInline
-          muted
-          style={{ width: '100%', display: 'block' }}
-          aria-label="Моё видео"
-        />
-        <div style={{ position: 'absolute', bottom: 4, left: 6, fontSize: 10, color: '#fff', background: 'rgba(0,0,0,0.5)', borderRadius: 4, padding: '1px 5px' }}>
-          Я
-        </div>
-      </div>
-
-      {/* Bottom controls bar */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 10,
-        background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
-        padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-      }}>
-        <ControlBtn
-          label={muted ? '🔇' : '🎤'}
-          title={muted ? 'Включить микрофон' : 'Выключить микрофон'}
-          active={!muted}
-          onClick={toggleMute}
-        />
-        <ControlBtn
-          label={videoOff ? '📵' : '📹'}
-          title={videoOff ? 'Включить камеру' : 'Выключить камеру'}
-          active={!videoOff}
-          onClick={toggleVideo}
-        />
-        <ControlBtn
-          label="🖥️"
-          title={screenSharing ? 'Остановить демонстрацию' : 'Демонстрация экрана'}
-          active={screenSharing}
-          onClick={toggleScreenShare}
-        />
-        <button
-          onClick={leave}
-          title="Покинуть комнату"
-          style={{
-            background: '#dc2626', border: 'none', color: '#fff',
-            borderRadius: 12, padding: '10px 20px', cursor: 'pointer',
-            fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
-          }}
-        >
-          ✕ Покинуть
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function ControlBtn({ label, title, active, onClick }: { label: string; title: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      style={{
-        background: active ? 'rgba(255,255,255,0.15)' : 'rgba(220,38,38,0.3)',
-        border: 'none', color: '#fff', borderRadius: 12,
-        width: 52, height: 52, fontSize: 22, cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'background 0.15s',
-      }}
-      aria-pressed={active}
+    <LiveKitRoom
+      video token={token} serverUrl={serverUrl}
+      data-lk-theme="default"
+      style={{ height: '100vh' }}
+      onDisconnected={() => setToken(null)}
     >
-      {label}
-    </button>
+      <EdusonConference roomId={safeRoom} onLeave={() => setToken(null)} />
+    </LiveKitRoom>
   )
 }

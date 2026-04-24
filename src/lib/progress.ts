@@ -3,6 +3,8 @@
  * Следит за: пройденными уроками, результатами квизов, стриком, разблокированными ачивками.
  */
 
+import { apiProgressEvent } from './api'
+
 const KEY_COMPLETED = 'ek_lesson_progress_v1'
 const KEY_QUIZ = 'ek_quiz_results_v1'
 const KEY_STREAK = 'ek_streak_v1'
@@ -132,6 +134,7 @@ export function markLessonDone(n: number) {
   persistCompleted()
   touchStreak()
   recordActivity({ lessons: 1, minutes: 12, coins: 15 })
+  void apiProgressEvent('lesson_solved', { lessonN: n, coins: 15 })
   emit()
 }
 export function unmarkLesson(n: number) {
@@ -171,6 +174,7 @@ export function recordQuizResult(lessonN: number, correct: number, total: number
   persistQuiz()
   touchStreak()
   recordActivity({ minutes: 3, coins: correct * 2 })
+  void apiProgressEvent('puzzle_solved', { lessonN, correct, total, score })
   emit()
 }
 export function countPerfectQuizzes(): number {
@@ -214,6 +218,7 @@ export function touchStreak() {
   }
   if (streak.current > streak.longest) streak = { ...streak, longest: streak.current }
   persistStreak()
+  void apiProgressEvent('streak_touched', { current: streak.current, longest: streak.longest })
   emit()
 }
 

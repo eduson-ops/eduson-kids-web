@@ -29,7 +29,16 @@ export default () => ({
   piiKey: process.env['PII_KEY'] ?? '',
 
   cors: {
-    whitelist: (process.env['CORS_WHITELIST'] ?? 'http://localhost:5173').split(','),
+    whitelist: (
+      process.env['CORS_WHITELIST'] ??
+      'http://localhost:5173,http://localhost:4173,https://eduson-ops.github.io'
+    ).split(','),
+  },
+
+  livekit: {
+    url: process.env['LIVEKIT_URL'] ?? 'wss://edusonlms-apk4qgt4.livekit.cloud',
+    apiKey: process.env['LIVEKIT_API_KEY'] ?? 'APIsABHfKrBN9xG',
+    apiSecret: process.env['LIVEKIT_API_SECRET'] ?? 'fTjEXOUcKkeeDuIUxyqfRKzQbdZFq4MXBjQbrSM66qLC',
   },
 
   yukassa: {

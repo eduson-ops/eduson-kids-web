@@ -145,3 +145,28 @@ export function NikselMini({ size = 32, className }: { size?: number; className?
     </svg>
   )
 }
+
+/** Chat FAB version — penguin head with headphones */
+export function NikselMiniChat({ size = 42, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" className={className} aria-hidden="true">
+      {/* Head */}
+      <circle cx="24" cy="26" r="18" fill={INK} />
+      <ellipse cx="24" cy="30" rx="12" ry="10" fill={PAPER} />
+      <path d="M21 25 L 27 25 L 25.5 30 L 22.5 30 Z" fill={BEAK} />
+      <circle cx="19" cy="23" r="2.5" fill={INK} />
+      <circle cx="29" cy="23" r="2.5" fill={INK} />
+      <circle cx="19.5" cy="22.5" r="0.9" fill={PAPER} />
+      <circle cx="29.5" cy="22.5" r="0.9" fill={PAPER} />
+      {/* Headphone band */}
+      <path d="M 8 24 Q 8 6 24 6 Q 40 6 40 24" fill="none" stroke={VIOLET} strokeWidth="3.5" strokeLinecap="round"/>
+      {/* Left ear cup */}
+      <rect x="5" y="21" width="7" height="11" rx="3.5" fill={VIOLET} />
+      {/* Right ear cup */}
+      <rect x="36" y="21" width="7" height="11" rx="3.5" fill={VIOLET} />
+      {/* Cushions */}
+      <rect x="7" y="23" width="3" height="7" rx="1.5" fill="#9F8AF5" />
+      <rect x="38" y="23" width="3" height="7" rx="1.5" fill="#9F8AF5" />
+    </svg>
+  )
+}

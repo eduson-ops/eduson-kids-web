@@ -5,6 +5,8 @@ import Login from './pages/Login'
 import AchievementToast from './components/AchievementToast'
 import { ensureAchievementsWatcher } from './lib/achievements'
 import { startStreakReminderWatcher } from './lib/streakReminder'
+import { apiGetMe } from './lib/api'
+import { saveSession, loadSession } from './lib/auth'
 import './App.css'
 
 // Lazy-load heavy routes so the hub doesn't pull Three.js / Blockly on first paint.
@@ -53,6 +55,19 @@ const ROUTER_BASENAME = import.meta.env.BASE_URL.replace(/\/$/, '')
 export default function App() {
   useEffect(() => {
     ensureAchievementsWatcher()
+    // Hydrate session from backend if we have a token but no session
+    apiGetMe().then((me) => {
+      if (!me) return
+      const existing = loadSession()
+      if (!existing || existing.name !== me.name) {
+        saveSession({
+          role: me.role as 'child' | 'parent' | 'teacher',
+          name: me.name,
+          login: me.login,
+          email: me.email,
+        })
+      }
+    }).catch(() => { /* backend offline — stay local */ })
     return startStreakReminderWatcher()
   }, [])
   return (

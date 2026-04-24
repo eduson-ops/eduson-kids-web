@@ -1,6 +1,14 @@
 // Tренажёры-пазлы в стиле chess.com puzzles.
 // 5 тем по 10 задач. Каждая задача решается в Блоках (Blockly) или Python.
 
+// Story slide shown as a full-screen overlay before a puzzle
+export interface StorySlide {
+  chapter: string   // e.g. "Глава 1"
+  emoji: string
+  title: string
+  text: string
+}
+
 export type CheckKind =
   | { kind: 'reach-goal'; goalX: number; goalZ: number; startX?: number; startZ?: number }
   | {
@@ -32,9 +40,10 @@ export interface PuzzleTask {
   check: CheckKind
   maxBlocks?: number
   reward: { coins: number; xp: number }
+  beforeSlide?: StorySlide
 }
 
-export type TrainerId = 'path' | 'tower' | 'loop' | 'if' | 'function'
+export type TrainerId = 'path' | 'tower' | 'loop' | 'if' | 'function' | 'detective'
 
 export interface Trainer {
   id: TrainerId
@@ -1083,6 +1092,256 @@ const functionPuzzles: PuzzleTask[] = [
   },
 ]
 
+// ─── Детектив — сторителл с сюжетными слайдами ────────────────────
+// История: пингвин-детектив Никс расследует кражу рыбы с острова.
+const detectivePuzzles: PuzzleTask[] = [
+  {
+    id: 'detective-1',
+    trainerId: 'detective',
+    n: 1,
+    title: 'Выход на место преступления',
+    prompt: 'Никс получил дело: исчезла вся рыба с острова! Надо добраться до места преступления — 3 шага вперёд.',
+    hints: [
+      'Используй move_forward(3) — три шага по −Z.',
+      'Цель стоит ровно на 3 клетки от старта.',
+      'move_forward(3)',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython: 'move_forward(3)\n',
+    check: { kind: 'reach-goal', goalX: 0, goalZ: -3 },
+    maxBlocks: 2,
+    reward: { coins: 8, xp: 12 },
+    beforeSlide: {
+      chapter: 'Пролог',
+      emoji: '🐧🔍',
+      title: 'Дело о пропавшей рыбе',
+      text: 'Пингвин-детектив Никс получает записку:\n«Вся рыба на острове исчезла за одну ночь!»\nНикс берёт лупу и отправляется расследовать.',
+    },
+  },
+  {
+    id: 'detective-2',
+    trainerId: 'detective',
+    n: 2,
+    title: 'Считаем улики',
+    prompt: 'На месте преступления Никс нашёл следы. Напечатай числа от 1 до 4 — по одному на строку. Это порядковые номера улик.',
+    hints: [
+      'Используй for i in range(1, 5).',
+      'print(i) внутри цикла.',
+      'Ожидается: 1, 2, 3, 4 — по одной строке.',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython: 'for i in range(1, 5):\n    print(i)\n',
+    check: { kind: 'output-match', expected: ['1', '2', '3', '4'] },
+    reward: { coins: 8, xp: 12 },
+    beforeSlide: {
+      chapter: 'Глава 1',
+      emoji: '👣',
+      title: 'Следы на снегу',
+      text: 'Никс видит следы на снегу — четыре разных размера.\n«Четыре подозреваемых!» — думает он.\nНужно пронумеровать каждую улику.',
+    },
+  },
+  {
+    id: 'detective-3',
+    trainerId: 'detective',
+    n: 3,
+    title: 'Переход через реку',
+    prompt: 'Подозреваемый убежал за реку! Положи камни-ступеньки на позиции (0,0,0), (0,0,-1), (0,0,-2) — синего цвета — чтобы перейти.',
+    hints: [
+      'Три place_block по оси Z: z=0, z=-1, z=-2.',
+      'Цвет "blue", x=0, y=0.',
+      'for i in range(3): place_block(0, 0, -i, "blue")',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython: 'for i in range(3):\n    place_block(0, 0, -i, "blue")\n',
+    check: {
+      kind: 'build-pattern',
+      strictColor: true,
+      expectedBlocks: [
+        { x: 0, y: 0, z: 0, color: 'blue' },
+        { x: 0, y: 0, z: -1, color: 'blue' },
+        { x: 0, y: 0, z: -2, color: 'blue' },
+      ],
+    },
+    maxBlocks: 5,
+    reward: { coins: 10, xp: 15 },
+    beforeSlide: {
+      chapter: 'Глава 2',
+      emoji: '🌊',
+      title: 'Подозреваемый у реки',
+      text: 'Следы ведут к реке — широкой и ледяной.\n«Он перешёл вброд!» — понимает Никс.\nПложи камни-ступеньки, чтобы пройти по воде.',
+    },
+  },
+  {
+    id: 'detective-4',
+    trainerId: 'detective',
+    n: 4,
+    title: 'Лесной лабиринт',
+    prompt: 'За рекой — густой лес. Пройди к пещере: 2 шага вперёд, повернись направо, ещё 3 шага вперёд.',
+    hints: [
+      'move_forward(2), затем turn_right().',
+      'После поворота ещё move_forward(3).',
+      'Цель: (3, −2).',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython: 'move_forward(2)\nturn_right()\nmove_forward(3)\n',
+    check: { kind: 'reach-goal', goalX: 3, goalZ: -2 },
+    maxBlocks: 5,
+    reward: { coins: 10, xp: 15 },
+    beforeSlide: {
+      chapter: 'Глава 3',
+      emoji: '🌲',
+      title: 'Тёмный лес',
+      text: 'За рекой начинается тёмный лес.\nНикс видит впереди вход в пещеру.\n«Туда!» — он идёт по извилистой тропинке.',
+    },
+  },
+  {
+    id: 'detective-5',
+    trainerId: 'detective',
+    n: 5,
+    title: 'Тайный шифр',
+    prompt: 'В пещере Никс нашёл закодированную записку. Расшифруй: напечатай каждое третье число от 3 до 15 (3, 6, 9, 12, 15).',
+    hints: [
+      'range(3, 16, 3) идёт с шагом 3.',
+      'for n in range(3, 16, 3): print(n).',
+      'Должно быть 5 чисел: 3, 6, 9, 12, 15.',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython: 'for n in range(3, 16, 3):\n    print(n)\n',
+    check: { kind: 'output-match', expected: ['3', '6', '9', '12', '15'] },
+    reward: { coins: 12, xp: 18 },
+    beforeSlide: {
+      chapter: 'Глава 4',
+      emoji: '📜',
+      title: 'Записка с шифром',
+      text: 'В глубине пещеры — старая записка.\nНа ней цифры: каждая третья от 1 до 15.\n«Это координаты склада!» — догадывается Никс.',
+    },
+  },
+  {
+    id: 'detective-6',
+    trainerId: 'detective',
+    n: 6,
+    title: 'Путь к складу',
+    prompt: 'Шифр указывает на склад: 2 шага вперёд, налево, 3 шага вперёд, налево, 1 шаг. Доберись до цели (−3, −3).',
+    hints: [
+      'move_forward(2), turn_left(), move_forward(3), turn_left(), move_forward(1).',
+      'После двух поворотов налево ты смотришь по +Z.',
+      'Итоговая позиция: (−3, −3).',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython:
+      'move_forward(2)\nturn_left()\nmove_forward(3)\nturn_left()\nmove_forward(1)\n',
+    check: { kind: 'reach-goal', goalX: -3, goalZ: -3 },
+    maxBlocks: 7,
+    reward: { coins: 12, xp: 18 },
+    beforeSlide: {
+      chapter: 'Глава 5',
+      emoji: '🏚️',
+      title: 'Заброшенный склад',
+      text: 'Шифр расшифрован! Он указывает на\nзаброшенный склад в другом конце острова.\nНикс прокладывает маршрут по карте.',
+    },
+  },
+  {
+    id: 'detective-7',
+    trainerId: 'detective',
+    n: 7,
+    title: 'Кодовый замок',
+    prompt: 'Дверь заперта! Замок открывается если ввести код. Напечатай «открыто» если x=42 равно 42, иначе «заперто».',
+    hints: [
+      'x = 42',
+      'if x == 42: print("открыто")',
+      'Иначе — print("заперто"). Ожидается «открыто».',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython:
+      'x = 42\nif x == 42:\n    print("открыто")\nelse:\n    print("заперто")\n',
+    check: { kind: 'output-match', expected: ['открыто'] },
+    reward: { coins: 14, xp: 20 },
+    beforeSlide: {
+      chapter: 'Глава 6',
+      emoji: '🔒',
+      title: 'Взлом замка',
+      text: 'Дверь склада заперта на кодовый замок.\nНикс находит подсказку: «Код — это 42».\n«Если число верное — дверь откроется!»',
+    },
+  },
+  {
+    id: 'detective-8',
+    trainerId: 'detective',
+    n: 8,
+    title: 'Рыба найдена!',
+    prompt: 'Рыба нашлась! Отметь место находки блоками: поставь 3 красных блока в ряд по X: (0,0,0), (1,0,0), (2,0,0).',
+    hints: [
+      'Три place_block с x=0, 1, 2; y=0, z=0.',
+      'Цвет "red".',
+      'for i in range(3): place_block(i, 0, 0, "red")',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython: 'for i in range(3):\n    place_block(i, 0, 0, "red")\n',
+    check: {
+      kind: 'build-pattern',
+      strictColor: true,
+      expectedBlocks: [
+        { x: 0, y: 0, z: 0, color: 'red' },
+        { x: 1, y: 0, z: 0, color: 'red' },
+        { x: 2, y: 0, z: 0, color: 'red' },
+      ],
+    },
+    maxBlocks: 4,
+    reward: { coins: 14, xp: 20 },
+    beforeSlide: {
+      chapter: 'Глава 7',
+      emoji: '🐟',
+      title: 'Рыба найдена!',
+      text: 'Внутри склада — горы рыбы!\n«Всё здесь!» — радуется Никс.\nОн отмечает место красными маркерами для полиции.',
+    },
+  },
+  {
+    id: 'detective-9',
+    trainerId: 'detective',
+    n: 9,
+    title: 'Имя преступника',
+    prompt: 'Никс вычислил преступника! Функция suspect(n) возвращает "Морж" если n==1, иначе "Тюлень". Напечатай suspect(1) и suspect(2).',
+    hints: [
+      'def suspect(n): if n == 1: return "Морж"; else: return "Тюлень"',
+      'print(suspect(1)) — напечатает «Морж».',
+      'print(suspect(2)) — напечатает «Тюлень».',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython:
+      'def suspect(n):\n    if n == 1:\n        return "Морж"\n    else:\n        return "Тюлень"\n\nprint(suspect(1))\nprint(suspect(2))\n',
+    check: { kind: 'output-match', expected: ['Морж', 'Тюлень'] },
+    reward: { coins: 18, xp: 24 },
+    beforeSlide: {
+      chapter: 'Глава 8',
+      emoji: '🔎',
+      title: 'Кто украл рыбу?',
+      text: 'Никс изучает улики и понимает:\nпреступник — либо Морж, либо Тюлень.\nПроверь улику №1 и улику №2 — кто из них виновен?',
+    },
+  },
+  {
+    id: 'detective-10',
+    trainerId: 'detective',
+    n: 10,
+    title: 'Возвращение домой',
+    prompt: 'Дело закрыто! Никс возвращается домой: 4 шага вперёд, направо, 4 шага. Цель — (4, −4).',
+    hints: [
+      'move_forward(4), turn_right(), move_forward(4).',
+      'После поворота направо «вперёд» идёт по +X.',
+      'Итоговая позиция: (4, −4).',
+    ],
+    starterBlocks: ON_START_EMPTY,
+    starterPython: 'move_forward(4)\nturn_right()\nmove_forward(4)\n',
+    check: { kind: 'reach-goal', goalX: 4, goalZ: -4 },
+    maxBlocks: 4,
+    reward: { coins: 20, xp: 30 },
+    beforeSlide: {
+      chapter: 'Финал',
+      emoji: '🏆',
+      title: 'Дело закрыто!',
+      text: 'Морж пойман! Рыба возвращена жителям острова.\nВсе благодарят детектива Никса.\nТеперь пора вернуться домой и отдохнуть!',
+    },
+  },
+]
+
 // ─── Тренажёры ────────────────────────────────────────────────────
 export const TRAINERS: Trainer[] = [
   {
@@ -1134,6 +1393,16 @@ export const TRAINERS: Trainer[] = [
       'Функции дают имена действиям. Напишем square(x), add(a,b) и даже рекурсивный countdown.',
     color: '#FFB4C8',
     puzzles: functionPuzzles,
+  },
+  {
+    id: 'detective',
+    emoji: '🔍',
+    title: 'Детектив',
+    tagline: 'Помоги Никсу раскрыть дело',
+    description:
+      'Сторителл-тренажёр: пингвин-детектив Никс расследует кражу рыбы. 10 задач, сюжетные повороты, движение и логика.',
+    color: '#A06BE0',
+    puzzles: detectivePuzzles,
   },
 ]
 
