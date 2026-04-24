@@ -159,8 +159,8 @@ jobs:
 
       - name: Smoke test
         run: |
-          sleep 15
-          CONTAINER_URL=$(yc serverless container get eduson-api --format json | jq -r '.url')
+          sleep 20
+          CONTAINER_URL=$(yc serverless container get eduson-api --format json | jq -r '.url' | sed 's|/*$||')
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CONTAINER_URL}/health")
           if [ "$HTTP_STATUS" != "200" ]; then
             echo "Health check failed with status: $HTTP_STATUS"
