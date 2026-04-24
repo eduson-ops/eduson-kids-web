@@ -14,11 +14,15 @@ export enum ProgressEventKind {
 }
 
 @Entity('progress_events')
-@Index(['userId', 'createdAt'])
-@Index(['userId', 'kind'])
+@Index(['tenantId', 'userId', 'createdAt'])
+@Index(['tenantId', 'userId', 'kind'])
 export class ProgressEvent {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ type: 'uuid', name: 'tenant_id' })
+  @Index()
+  tenantId!: string;
 
   @Column({ type: 'uuid', name: 'user_id' })
   @Index()

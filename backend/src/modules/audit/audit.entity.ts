@@ -7,11 +7,15 @@ import {
 } from 'typeorm';
 
 @Entity('audit_logs')
-@Index(['userId', 'createdAt'])
-@Index(['action', 'createdAt'])
+@Index(['tenantId', 'userId', 'createdAt'])
+@Index(['tenantId', 'action', 'createdAt'])
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
+
+  @Column({ type: 'uuid', name: 'tenant_id' })
+  @Index()
+  tenantId!: string;
 
   @Column({ type: 'uuid', name: 'user_id', nullable: true })
   userId!: string | null;

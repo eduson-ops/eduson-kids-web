@@ -66,7 +66,11 @@ export class AuthService {
 
   async loginGuest(): Promise<{ accessToken: string }> {
     const guestId = require('crypto').randomBytes(8).toString('hex') as string;
-    const payload: JwtPayload = { sub: `guest-${guestId}`, role: 'guest' as UserRole };
+    const payload: JwtPayload = {
+      sub: `guest-${guestId}`,
+      role: 'guest' as UserRole,
+      tnt: '00000000-0000-0000-0000-000000000001',
+    };
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get<string>('jwt.accessSecret'),
       expiresIn: 3600, // 1 hour
@@ -224,8 +228,17 @@ export class AuthService {
   private issueTokens(user: User): { accessToken: string; refreshToken: string } {
     const jti = require('crypto').randomBytes(16).toString('hex') as string;
 
-    const accessPayload: JwtPayload = { sub: user.id, role: user.role };
-    const refreshPayload = { sub: user.id, role: user.role, jti };
+    const accessPayload: JwtPayload = {
+      sub: user.id,
+      role: user.role,
+      tnt: user.tenantId,
+    };
+    const refreshPayload = {
+      sub: user.id,
+      role: user.role,
+      tnt: user.tenantId,
+      jti,
+    };
 
     const accessToken = this.jwtService.sign(accessPayload, {
       secret: this.config.get<string>('jwt.accessSecret'),
