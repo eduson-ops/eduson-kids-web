@@ -14,6 +14,18 @@ export default () => ({
     password: process.env['DB_PASSWORD'] ?? '',
     name: process.env['DB_NAME'] ?? 'eduson_kids',
     ssl: process.env['DB_SSL'] === 'true',
+    // D2-07: PG pool tuning, configurable per environment.
+    // Defaults raised vs. earlier 20/30000/2000:
+    //  - max=50: pilot school can do 200 simultaneous students × few queries
+    //    each without saturating; previous max=20 hit ceiling fast
+    //  - connectionTimeoutMs=5000: argon2-heavy bulk-create (D-03 cycle)
+    //    can starve the pool briefly under cold start; 2s was too tight
+    poolMax: parseInt(process.env['PG_POOL_MAX'] ?? '50', 10),
+    poolIdleTimeoutMs: parseInt(process.env['PG_IDLE_TIMEOUT_MS'] ?? '30000', 10),
+    poolConnectionTimeoutMs: parseInt(
+      process.env['PG_CONNECTION_TIMEOUT_MS'] ?? '5000',
+      10,
+    ),
   },
 
   redis: {

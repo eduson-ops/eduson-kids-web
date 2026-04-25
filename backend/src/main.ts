@@ -5,6 +5,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { randomBytes } from 'crypto';
 import * as cookieParser from 'cookie-parser';
 import compression from 'compression';
+import express from 'express';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import 'reflect-metadata';
@@ -38,6 +39,19 @@ async function bootstrap() {
   // Gzip compression for JSON / static responses (AI lesson payloads can be large).
   // threshold=1024 skips small responses where compression overhead > savings.
   app.use(compression({ threshold: 1024 }));
+
+  // D2-17: explicit body-parser limits.
+  // NestJS default is 100 KB which silently 413's on:
+  //   - LiveKit recording-event webhooks with metadata (>100 KB)
+  //   - Studio project save with large contentJson scenes
+  // Webhooks get a tighter 64 KB cap because they should be small signed events;
+  // anything bigger is suspicious and burns HMAC CPU. The current YuKassa controller
+  // uses `JSON.stringify(body)` (parsed JSON), so we keep webhooks on json-parser
+  // with a smaller limit rather than switching to express.raw — switching would
+  // require also rewriting the HMAC path to use @RawBody() and is out of scope.
+  app.use('/api/v1/billing/webhook', express.json({ limit: '64kb' }));
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   // Cookie parsing (needed for httpOnly refresh token)
   app.use(cookieParser());

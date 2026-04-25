@@ -110,10 +110,12 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         migrationsRun: true,
         synchronize: false,
         logging: !config.get<boolean>('isProduction'),
+        // D2-07: configurable PG pool. Defaults: 50 / 30s idle / 5s connect.
         extra: {
-          max: 20,
-          idleTimeoutMillis: 30000,
-          connectionTimeoutMillis: 2000,
+          max: config.get<number>('db.poolMax') ?? 50,
+          idleTimeoutMillis: config.get<number>('db.poolIdleTimeoutMs') ?? 30000,
+          connectionTimeoutMillis:
+            config.get<number>('db.poolConnectionTimeoutMs') ?? 5000,
         },
       }),
     }),

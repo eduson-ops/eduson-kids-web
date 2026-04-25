@@ -11,6 +11,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
@@ -42,6 +43,11 @@ export class BillingController {
   }
 
   @Public()
+  // D2-12: throttle webhook to 30 req/min/IP. The endpoint is @Public + does
+  // HMAC verify on every call (createHmac on stringified body) — without throttle
+  // an attacker can burn CPU even though all requests fail with 401. 30/min/IP
+  // is well above legitimate YuKassa retry cadence (~1/sec back-off).
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Post('webhook/yukassa')
   @HttpCode(HttpStatus.OK)
   async yukassaWebhook(@Body() body: unknown, @Req() req: Request) {

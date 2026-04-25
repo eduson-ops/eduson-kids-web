@@ -35,6 +35,19 @@ class EnvironmentVariables {
   @IsOptional()
   DB_SSL: string = 'false';
 
+  // D2-07: PG pool tuning (configurable). Defaults match configuration.ts.
+  @IsInt()
+  @IsOptional()
+  PG_POOL_MAX: number = 50;
+
+  @IsInt()
+  @IsOptional()
+  PG_IDLE_TIMEOUT_MS: number = 30000;
+
+  @IsInt()
+  @IsOptional()
+  PG_CONNECTION_TIMEOUT_MS: number = 5000;
+
   @IsString()
   REDIS_HOST: string = 'localhost';
 
