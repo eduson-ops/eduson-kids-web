@@ -53,10 +53,49 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     const body: ErrorResponseBody = isProduction
-      ? { error: 'INTERNAL_ERROR', code: status, requestId }
+      ? this.buildProdResponse(exception, status, requestId)
       : this.buildDevResponse(exception, status, requestId);
 
     response.status(status).json(body);
+  }
+
+  /**
+   * Production response builder.
+   *
+   * 4xx — intentional user-facing errors (UnauthorizedException, BadRequestException,
+   *   class-validator messages, etc). Keep the original message/details so the
+   *   frontend can render «Неверный пин» / «Email занят» / etc instead of a
+   *   generic «Internal error».
+   * 5xx — actual server faults. Mask the message and stack to avoid leaking
+   *   internals; correlate via requestId in logs.
+   */
+  private buildProdResponse(exception: unknown, status: number, requestId: string): ErrorResponseBody {
+    const isClientError = status >= 400 && status < 500;
+
+    if (isClientError && exception instanceof HttpException) {
+      const res = exception.getResponse();
+      const code = exception.constructor.name.replace('Exception', '').toLowerCase() || 'client_error';
+
+      if (typeof res === 'object' && res !== null) {
+        // class-validator / nest default shape: { statusCode, message, error }
+        const obj = res as Record<string, unknown>;
+        return {
+          error: code,
+          code: status,
+          requestId,
+          message: (obj.message as string | string[]) ?? exception.message,
+        };
+      }
+      return {
+        error: code,
+        code: status,
+        requestId,
+        message: typeof res === 'string' ? res : exception.message,
+      };
+    }
+
+    // 5xx — mask everything except the correlation id.
+    return { error: 'INTERNAL_ERROR', code: status, requestId };
   }
 
   private buildDevResponse(exception: unknown, status: number, requestId: string): ErrorResponseBody {

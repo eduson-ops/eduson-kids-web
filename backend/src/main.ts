@@ -93,6 +93,15 @@ async function bootstrap() {
     next();
   });
 
+  // D2-02: Graceful shutdown.
+  // Включает Nest lifecycle хуки `OnModuleDestroy` / `OnApplicationShutdown`
+  // на SIGTERM/SIGINT — критично для:
+  //   - k8s rolling deploys (pod получает SIGTERM, должен закрыть BullMQ-воркеры,
+  //     завершить активные TypeORM-транзакции, отписаться от Redis pub/sub);
+  //   - `docker stop` / Cloud Run cold-stop;
+  //   - локальный Ctrl+C без потери jobs из ai-lessons очереди.
+  app.enableShutdownHooks();
+
   await app.listen(port);
 }
 

@@ -9,6 +9,8 @@
  * Used by useCloudSave hook + ProjectList page.
  */
 
+import { getAccessToken } from './authStorage'
+
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || '/api/v1'
 
 export type ProjectType = 'game' | 'site' | 'python' | 'capstone' | 'ege'
@@ -47,7 +49,11 @@ export interface ProjectVersion {
 }
 
 function authHeader(): Record<string, string> {
-  const token = localStorage.getItem('access_token')
+  // D2-03: было `localStorage.getItem('access_token')` — но `lib/api.ts`
+  // писал в `ek_api_token`. После child-code логина Studio cloud-save шёл
+  // без Authorization → 401 → useCloudSave висел в `error`. Унифицировано
+  // через authStorage с миграцией legacy ключей.
+  const token = getAccessToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 

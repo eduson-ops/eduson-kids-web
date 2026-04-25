@@ -1,6 +1,7 @@
-import { Module, Logger, OnModuleInit } from '@nestjs/common';
+import { Module, Logger, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BullModule } from '@nestjs/bullmq';
+import { BullModule, getQueueToken } from '@nestjs/bullmq';
+import type { Queue } from 'bullmq';
 import { LESSON_QUEUE_NAME } from './lesson-queue.constants';
 
 /**
@@ -47,12 +48,36 @@ import { LESSON_QUEUE_NAME } from './lesson-queue.constants';
   ],
   exports: [BullModule],
 })
-export class LessonQueueModule implements OnModuleInit {
+export class LessonQueueModule implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(LessonQueueModule.name);
+
+  constructor(
+    @Inject(getQueueToken(LESSON_QUEUE_NAME))
+    private readonly queue: Queue,
+  ) {}
 
   onModuleInit(): void {
     this.logger.log(
       `BullMQ queue '${LESSON_QUEUE_NAME}' registered (3 retries, exponential backoff)`,
     );
+  }
+
+  /**
+   * D2-02: Graceful shutdown hook.
+   *
+   * Закрывает BullMQ-очередь на SIGTERM/SIGINT — релевантно для k8s rolling
+   * deploys и контейнерного shutdown: без явного `queue.close()` Redis-соединение
+   * висит в TIME_WAIT, активные jobs не возвращаются в очередь "ready".
+   * NestJS вызовет этот хук автоматически после `app.enableShutdownHooks()` в main.ts.
+   */
+  async onModuleDestroy(): Promise<void> {
+    try {
+      await this.queue.close();
+      this.logger.log(`BullMQ queue '${LESSON_QUEUE_NAME}' closed gracefully`);
+    } catch (err) {
+      this.logger.error(
+        `Failed to close BullMQ queue '${LESSON_QUEUE_NAME}': ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
   }
 }

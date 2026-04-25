@@ -4,21 +4,38 @@
 // даже если бэк ещё не запущен.
 
 import type { Avatar } from './avatars'
+import { getAccessToken, setAccessToken, clearAccessToken } from './authStorage'
+
+// Detect Capacitor shell без статического импорта `@capacitor/core`,
+// чтобы web-бандл не тянул нативные shim'ы.
+function isCapacitorNative(): boolean {
+  if (typeof window === 'undefined') return false
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+  return !!cap?.isNativePlatform?.()
+}
+
+// TODO: заменить на реальный prod-URL бэкенда когда он появится.
+const NATIVE_API_FALLBACK = 'https://api.edusonkids.com'
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : '')
+  (isCapacitorNative()
+    ? NATIVE_API_FALLBACK
+    : typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.hostname}:3001`
+      : '')
 
-const TOKEN_KEY = 'ek_api_token'
-
+// D2-03: единый ключ хранения JWT — `authStorage.ts`.
+// Историческая фрагментация (`ek_api_token` здесь vs `access_token` в
+// `projectsApi.ts`) ломала Studio cloud-save после child-code логина.
 function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
+  return getAccessToken()
 }
 function setToken(t: string) {
-  localStorage.setItem(TOKEN_KEY, t)
+  setAccessToken(t)
 }
 function clearToken() {
-  localStorage.removeItem(TOKEN_KEY)
+  clearAccessToken()
 }
 
 async function request<T>(
