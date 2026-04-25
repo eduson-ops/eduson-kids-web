@@ -113,6 +113,31 @@ class EnvironmentVariables {
   @IsOptional()
   SCHOOL_CODES: string = '';
 
+  // D2-16: YC Object Storage for audit archival (optional in dev/test).
+  @IsString()
+  @IsOptional()
+  AUDIT_ARCHIVE_BUCKET: string = '';
+
+  @IsString()
+  @IsOptional()
+  AUDIT_ARCHIVE_ENDPOINT: string = 'https://storage.yandexcloud.net';
+
+  @IsString()
+  @IsOptional()
+  AUDIT_ARCHIVE_REGION: string = 'ru-central1';
+
+  @IsString()
+  @IsOptional()
+  AUDIT_ARCHIVE_ACCESS_KEY_ID: string = '';
+
+  @IsString()
+  @IsOptional()
+  AUDIT_ARCHIVE_SECRET_ACCESS_KEY: string = '';
+
+  @IsInt()
+  @IsOptional()
+  AUDIT_ARCHIVE_RETAIN_DAYS: number = 90;
+
   @IsInt()
   THROTTLE_LOGIN_LIMIT: number = 5;
 

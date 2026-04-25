@@ -81,6 +81,17 @@ export default () => ({
 
   ANTHROPIC_API_KEY: process.env['ANTHROPIC_API_KEY'] ?? '',
 
+  // D2-16: YC Object Storage archival for audit logs (152-ФЗ retention).
+  // Leave bucket/credentials unset in dev — service falls back to DB-only mode.
+  auditArchive: {
+    bucket: process.env['AUDIT_ARCHIVE_BUCKET'] ?? '',
+    endpoint: process.env['AUDIT_ARCHIVE_ENDPOINT'] ?? 'https://storage.yandexcloud.net',
+    region: process.env['AUDIT_ARCHIVE_REGION'] ?? 'ru-central1',
+    accessKeyId: process.env['AUDIT_ARCHIVE_ACCESS_KEY_ID'] ?? '',
+    secretAccessKey: process.env['AUDIT_ARCHIVE_SECRET_ACCESS_KEY'] ?? '',
+    retainDays: parseInt(process.env['AUDIT_ARCHIVE_RETAIN_DAYS'] ?? '90', 10),
+  },
+
   throttle: {
     loginLimit: parseInt(process.env['THROTTLE_LOGIN_LIMIT'] ?? '5', 10),
     loginTtl: parseInt(process.env['THROTTLE_LOGIN_TTL'] ?? '900000', 10),

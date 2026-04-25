@@ -4,6 +4,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuditLog } from './audit.entity';
 import { AuditController } from './audit.controller';
 import { AuditService } from './audit.service';
+import { AuditArchivalService } from './audit-archival.service';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -13,7 +14,7 @@ import { AuthModule } from '../auth/auth.module';
     AuthModule,
   ],
   controllers: [AuditController],
-  providers: [AuditService],
-  exports: [AuditService],
+  providers: [AuditService, AuditArchivalService],
+  exports: [AuditService, AuditArchivalService],
 })
 export class AuditModule {}

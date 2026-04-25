@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { AuditLog } from './audit.entity';
-import { Cron, CronExpression } from '@nestjs/schedule';
+
+/**
+ * Audit log writer + reader.
+ *
+ * D2-16: Cleanup/archival of old logs is now owned by `AuditArchivalService`
+ * (separate cron, S3 archive before delete) for 152-ФЗ compliance.
+ */
 
 interface AuditLogEntry {
   userId: string | null;
@@ -49,15 +55,5 @@ export class AuditService {
       .skip(filter.offset ?? 0)
       .take(Math.min(filter.limit ?? 50, 200))
       .getManyAndCount();
-  }
-
-  // Archive logs older than 730 days (FZ-152 retention)
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
-  async archiveOldLogs(): Promise<void> {
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 730);
-
-    // TODO: In prod - copy to YC Object Storage before deleting
-    await this.auditRepo.delete({ createdAt: LessThan(cutoff) });
   }
 }
