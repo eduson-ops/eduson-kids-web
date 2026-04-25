@@ -137,8 +137,22 @@ export default defineConfig(({ command, mode }): UserConfig => {
         },
       }),
     ],
+    // D2-15: на проде убираем console.log/warn/info/debug, но СОХРАНЯЕМ console.error
+    // — он остаётся для legitimate error reporting (Sentry, ErrorBoundary, Pyodide
+    // crash logs). `pure` помечает вызовы как чистые → tree-shaker дропает их,
+    // если результат не используется (а у console.* он почти никогда не нужен).
+    // `drop: ['debugger']` снимает оставшиеся `debugger` statements.
+    // Cast: vite ESBuildOptions не экспортит drop/pure в типах (esbuild помечен
+    // // @ts-ignore в vite/types), но они валидны в runtime esbuild API.
+    esbuild: ({
+      drop: command === 'build' ? ['debugger'] : [],
+      pure: command === 'build'
+        ? ['console.log', 'console.warn', 'console.info', 'console.debug', 'console.trace']
+        : [],
+    } as unknown) as UserConfig['esbuild'],
     build: {
       target: 'es2020',
+      minify: 'esbuild',
       // D-16: 'hidden' — карты ГЕНЕРЯТСЯ при build (доступны локально для post-mortem
       // если что-то упадёт на демо), но без `//# sourceMappingURL=…` комментария
       // в .js-бандлах — публично они не утекают (Capacitor/iOS бандлы тоже чисты).
