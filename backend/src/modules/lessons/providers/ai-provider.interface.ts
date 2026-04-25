@@ -34,6 +34,12 @@ export interface LessonGenerationOutput {
   };
   costKopecks: number;
   generationSeconds: number;
+  /**
+   * Raw provider response (full JSON body) for audit + debug. Persisted on
+   * `lesson_versions.provider_response_raw`. May be truncated to 64KB to
+   * limit storage cost / PII leak surface — see AnthropicProvider.
+   */
+  rawResponse?: Record<string, unknown>;
 }
 
 export interface AiProvider {

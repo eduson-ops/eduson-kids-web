@@ -59,6 +59,14 @@ export class LessonVersion {
   @Column({ type: 'text', name: 'note', nullable: true })
   note!: string | null;
 
+  /**
+   * Raw provider response (Anthropic /v1/messages JSON body) — captured for
+   * audit + reproducibility. NULL for non-AI sources (methodist edits,
+   * rollbacks). Truncated to ~64KB by the provider before persistence.
+   */
+  @Column({ type: 'jsonb', name: 'provider_response_raw', nullable: true })
+  providerResponseRaw!: Record<string, unknown> | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 }

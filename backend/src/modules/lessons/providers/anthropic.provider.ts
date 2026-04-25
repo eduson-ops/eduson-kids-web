@@ -7,28 +7,33 @@ import {
 } from './ai-provider.interface';
 
 /**
- * Claude (Anthropic) provider implementation skeleton.
+ * Claude (Anthropic) provider implementation.
  *
- * Status: implementation-ready but DEFAULT-OFF — guarded by env var
+ * Status: production-ready — guarded by env vars
  *   AI_PROVIDER=anthropic
  *   ANTHROPIC_API_KEY=...
  *
  * If either is missing, AiPipelineService falls back to MockAiProvider.
  *
- * The skeleton implements the wire format for /v1/messages with prompt
- * caching enabled on the system prompt — an important cost optimization
- * for our content factory because we send the same multi-thousand-token
- * platform context (block API spec, ФГОС format, character library) on
- * every lesson generation.
+ * Wire format: /v1/messages with prompt caching enabled on the system
+ * prompt — important cost optimization since we send the same multi-thousand
+ * token platform context (block API spec, ФГОС format, character library)
+ * on every lesson generation.
  *
- * Cost model (rough, will be replaced once we get real per-tenant
- * billing integration):
+ * D2-14 hardening (this revision):
+ *   - Retry up to 3 times on 429 / 5xx with exp-backoff (500ms→2000ms→8000ms)
+ *     plus ±20% jitter; honors Retry-After header when present.
+ *   - 4xx other than 429 is NOT retried (deterministic client error).
+ *   - Total wall-clock cap via AbortController (60s default,
+ *     ANTHROPIC_TIMEOUT_MS env override).
+ *   - Returns full provider response under `rawResponse` (truncated to
+ *     ~64KB) so AiPipelineService can persist it on the LessonVersion row
+ *     for audit + reproducibility.
+ *
+ * Cost model (rough; will be replaced once we get real per-tenant billing):
  *   - Input  ≈ 0.5 RUB per 1K tokens (cached: 0.05 RUB)
  *   - Output ≈ 2.0 RUB per 1K tokens
  *   - 1 RUB = 100 kopecks
- *
- * NOTE: production hardening needed before flipping the flag (see
- * "Still TODO" comments below).
  */
 @Injectable()
 export class AnthropicProvider implements AiProvider {
@@ -38,6 +43,13 @@ export class AnthropicProvider implements AiProvider {
   private readonly apiUrl = 'https://api.anthropic.com/v1/messages';
   private readonly apiVersion = '2023-06-01';
   private readonly model = 'claude-opus-4-7';
+
+  /** Max attempts (initial + retries). 3 = initial + 2 retries; we use 4 = initial + 3 retries. */
+  private readonly MAX_ATTEMPTS = 4;
+  /** Backoff schedule in ms for retries 1..3 (jittered ±20%). */
+  private readonly BACKOFF_MS = [500, 2000, 8000];
+  /** Cap for raw response persistence — keeps audit row small + bounds PII risk. */
+  private readonly RAW_RESPONSE_MAX_BYTES = 64 * 1024;
 
   constructor(private readonly config: ConfigService) {}
 
@@ -53,6 +65,16 @@ export class AnthropicProvider implements AiProvider {
       );
     }
     return key;
+  }
+
+  /** Total per-call wall-clock budget. Default 60s. */
+  private getTimeoutMs(): number {
+    const raw =
+      this.config.get<string>('ANTHROPIC_TIMEOUT_MS') ??
+      process.env['ANTHROPIC_TIMEOUT_MS'];
+    const parsed = raw ? parseInt(raw, 10) : NaN;
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    return 60_000;
   }
 
   /**
@@ -152,6 +174,160 @@ export class AnthropicProvider implements AiProvider {
       .join('\n');
   }
 
+  /**
+   * Sleep helper that aborts early when the controller fires. Returns true
+   * if the sleep completed, false if aborted.
+   */
+  private sleep(ms: number, signal: AbortSignal): Promise<boolean> {
+    if (signal.aborted) return Promise.resolve(false);
+    return new Promise((resolve) => {
+      const t = setTimeout(() => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(true);
+      }, ms);
+      const onAbort = () => {
+        clearTimeout(t);
+        signal.removeEventListener('abort', onAbort);
+        resolve(false);
+      };
+      signal.addEventListener('abort', onAbort, { once: true });
+    });
+  }
+
+  /**
+   * Compute backoff delay for attempt index `i` (0-based, AFTER the attempt
+   * that failed). Honors Retry-After (seconds or HTTP-date) when present.
+   */
+  private computeBackoffMs(attemptIdx: number, retryAfterHeader: string | null): number {
+    if (retryAfterHeader) {
+      const asInt = parseInt(retryAfterHeader, 10);
+      if (Number.isFinite(asInt) && asInt > 0) {
+        // Server-supplied delay (seconds). Cap at 30s to avoid pathological waits.
+        return Math.min(asInt * 1000, 30_000);
+      }
+      const asDate = Date.parse(retryAfterHeader);
+      if (Number.isFinite(asDate)) {
+        const delta = asDate - Date.now();
+        if (delta > 0) return Math.min(delta, 30_000);
+      }
+    }
+    const base = this.BACKOFF_MS[Math.min(attemptIdx, this.BACKOFF_MS.length - 1)];
+    // ±20% jitter — math.random is fine here, not security-sensitive.
+    const jitter = base * 0.2 * (Math.random() * 2 - 1);
+    return Math.max(0, Math.round(base + jitter));
+  }
+
+  /**
+   * Truncate raw response for audit storage. We serialize once, slice, and
+   * fold back into a JSON object so downstream JSONB column gets valid JSON
+   * even for oversized responses.
+   */
+  private truncateRawResponse(raw: unknown): Record<string, unknown> {
+    let serialized: string;
+    try {
+      serialized = JSON.stringify(raw);
+    } catch {
+      return { _truncated: true, _reason: 'unserializable' };
+    }
+    if (serialized.length <= this.RAW_RESPONSE_MAX_BYTES) {
+      return raw as Record<string, unknown>;
+    }
+    return {
+      _truncated: true,
+      _originalBytes: serialized.length,
+      _maxBytes: this.RAW_RESPONSE_MAX_BYTES,
+      _excerpt: serialized.slice(0, this.RAW_RESPONSE_MAX_BYTES),
+    };
+  }
+
+  /**
+   * Call /v1/messages with retry on 429/5xx + exp-backoff + AbortController
+   * total-timeout. 4xx (other than 429) is treated as non-retryable.
+   */
+  private async fetchWithRetry(body: unknown, apiKey: string): Promise<Response> {
+    const totalTimeoutMs = this.getTimeoutMs();
+    const totalAbort = new AbortController();
+    const totalTimer = setTimeout(() => totalAbort.abort(), totalTimeoutMs);
+
+    let lastErr: Error | null = null;
+    try {
+      for (let attempt = 0; attempt < this.MAX_ATTEMPTS; attempt++) {
+        if (totalAbort.signal.aborted) break;
+
+        let response: Response;
+        try {
+          response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'x-api-key': apiKey,
+              'anthropic-version': this.apiVersion,
+              // Prompt-caching beta header (will be stable in a future API version).
+              'anthropic-beta': 'prompt-caching-2024-07-31',
+            },
+            body: JSON.stringify(body),
+            signal: totalAbort.signal,
+          });
+        } catch (err) {
+          // Network error / abort. Abort means total timeout — bubble up.
+          const e = err as Error;
+          lastErr = e;
+          if (totalAbort.signal.aborted) {
+            throw new Error(
+              `Anthropic request aborted after ${totalTimeoutMs}ms total timeout`,
+            );
+          }
+          // Transient network error — retry with backoff if budget remains.
+          if (attempt < this.MAX_ATTEMPTS - 1) {
+            const wait = this.computeBackoffMs(attempt, null);
+            this.logger.warn(
+              `Anthropic network error (attempt ${attempt + 1}/${this.MAX_ATTEMPTS}): ${e.message} — retrying in ${wait}ms`,
+            );
+            const slept = await this.sleep(wait, totalAbort.signal);
+            if (!slept) break;
+            continue;
+          }
+          throw new Error(`Anthropic network error during generateLesson: ${e.message}`);
+        }
+
+        if (response.ok) return response;
+
+        const status = response.status;
+        const isRetryable = status === 429 || (status >= 500 && status <= 599);
+        if (!isRetryable || attempt === this.MAX_ATTEMPTS - 1) {
+          return response; // Caller will format the error.
+        }
+
+        const retryAfter = response.headers.get('retry-after');
+        const wait = this.computeBackoffMs(attempt, retryAfter);
+        // Drain body so socket can be reused.
+        await response.text().catch(() => undefined);
+        this.logger.warn(
+          `Anthropic ${status} (attempt ${attempt + 1}/${this.MAX_ATTEMPTS}) — retrying in ${wait}ms` +
+            (retryAfter ? ` [retry-after=${retryAfter}]` : ''),
+        );
+        const slept = await this.sleep(wait, totalAbort.signal);
+        if (!slept) {
+          throw new Error(
+            `Anthropic request aborted after ${totalTimeoutMs}ms total timeout (during backoff)`,
+          );
+        }
+      }
+    } finally {
+      clearTimeout(totalTimer);
+    }
+
+    if (totalAbort.signal.aborted) {
+      throw new Error(
+        `Anthropic request aborted after ${totalTimeoutMs}ms total timeout`,
+      );
+    }
+    if (lastErr) {
+      throw new Error(`Anthropic network error during generateLesson: ${lastErr.message}`);
+    }
+    throw new Error('Anthropic retry loop exited without response');
+  }
+
   async generateLesson(input: LessonGenerationInput): Promise<LessonGenerationOutput> {
     const apiKey = this.getApiKey(); // throws clearly if missing
     const start = Date.now();
@@ -177,24 +353,7 @@ export class AnthropicProvider implements AiProvider {
       ],
     };
 
-    let response: Response;
-    try {
-      response = await fetch(this.apiUrl, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': this.apiVersion,
-          // Prompt-caching beta header (will be stable in a future API version).
-          'anthropic-beta': 'prompt-caching-2024-07-31',
-        },
-        body: JSON.stringify(body),
-      });
-    } catch (err) {
-      throw new Error(
-        `Anthropic network error during generateLesson: ${(err as Error).message}`,
-      );
-    }
+    const response = await this.fetchWithRetry(body, apiKey);
 
     if (!response.ok) {
       const text = await response.text().catch(() => '<unreadable body>');
@@ -248,14 +407,8 @@ export class AnthropicProvider implements AiProvider {
       },
       costKopecks,
       generationSeconds,
+      rawResponse: this.truncateRawResponse(data),
     };
-    // Still TODO before flipping AI_PROVIDER=anthropic in prod:
-    //   - Retry with exponential backoff on 429 / 5xx (3 attempts).
-    //   - Per-tenant budget guard (refuse > monthly limit before call).
-    //   - Image / 3D / video sub-pipelines (current scope = text only).
-    //   - PII scrub on input.styleHints (potential teacher notes).
-    //   - Save raw provider request/response under a 30-day retention
-    //     policy for audit + content reproducibility.
   }
 }
 

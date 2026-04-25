@@ -116,10 +116,11 @@ export class AiPipelineService implements OnModuleInit {
     // Quota check — count lessons created in current calendar month
     const tenant = await this.tenantsService.findById(ctx.tenantId);
     const monthlyQuota = tenant.quotas?.maxAiLessonsPerMonth ?? 0;
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
     if (monthlyQuota > 0) {
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
       const used = await this.lessons
         .createQueryBuilder('l')
         .where('l.tenant_id = :tid', { tid: ctx.tenantId })
@@ -128,6 +129,38 @@ export class AiPipelineService implements OnModuleInit {
       if (used >= monthlyQuota) {
         throw new BadRequestException(
           `Tenant AI quota exceeded: ${used}/${monthlyQuota} lessons this month`,
+        );
+      }
+    }
+
+    // D2-14: per-tenant AI cost guard (kopecks). Tenant-specific override
+    // wins over the env-level cap. Either may be null/0 = uncapped.
+    const tenantCostCap =
+      typeof tenant.quotas?.maxAiCostKopecks === 'number'
+        ? tenant.quotas.maxAiCostKopecks
+        : null;
+    const envCostCapRaw =
+      this.config.get<string>('ANTHROPIC_MONTHLY_COST_KOPECKS_CAP') ??
+      process.env['ANTHROPIC_MONTHLY_COST_KOPECKS_CAP'];
+    const envCostCap = envCostCapRaw ? parseInt(envCostCapRaw, 10) : NaN;
+    const effectiveCostCap =
+      tenantCostCap && tenantCostCap > 0
+        ? tenantCostCap
+        : Number.isFinite(envCostCap) && envCostCap > 0
+          ? envCostCap
+          : null;
+
+    if (effectiveCostCap !== null) {
+      const sumRow = await this.lessons
+        .createQueryBuilder('l')
+        .select('COALESCE(SUM(l.ai_cost_kopecks), 0)', 'total')
+        .where('l.tenant_id = :tid', { tid: ctx.tenantId })
+        .andWhere('l.created_at >= :since', { since: monthStart })
+        .getRawOne<{ total: string | number | null }>();
+      const spent = Number(sumRow?.total ?? 0);
+      if (spent >= effectiveCostCap) {
+        throw new BadRequestException(
+          `Tenant AI budget exceeded for this month (${spent}/${effectiveCostCap} kopecks)`,
         );
       }
     }
@@ -212,6 +245,7 @@ export class AiPipelineService implements OnModuleInit {
           source: LessonVersionSource.AI_INITIAL,
           createdBy: requesterId,
           note: null,
+          providerResponseRaw: out.rawResponse ?? null,
         });
         const savedVersion = await manager.save(LessonVersion, version);
 

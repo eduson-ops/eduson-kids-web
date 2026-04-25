@@ -33,6 +33,9 @@ function makeHarness(opts: {
   hasAnthropicKey?: boolean;
   monthlyQuota?: number;
   monthlyUsed?: number;
+  monthlyCostKopecksUsed?: number;
+  envCostCapKopecks?: number;
+  tenantCostCapKopecks?: number;
 } = {}): Harness {
   const lessonsStore = new Map<string, any>();
   const versionsStore = new Map<string, any>();
@@ -59,7 +62,9 @@ function makeHarness(opts: {
     createQueryBuilder: jest.fn(() => ({
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
       getCount: jest.fn(async () => opts.monthlyUsed ?? 0),
+      getRawOne: jest.fn(async () => ({ total: opts.monthlyCostKopecksUsed ?? 0 })),
     })),
     _store: lessonsStore,
   };
@@ -93,13 +98,20 @@ function makeHarness(opts: {
   const tenantsService = {
     findById: jest.fn(async () => ({
       id: TENANT_ID,
-      quotas: { maxAiLessonsPerMonth: opts.monthlyQuota ?? 0 },
+      quotas: {
+        maxAiLessonsPerMonth: opts.monthlyQuota ?? 0,
+        ...(opts.tenantCostCapKopecks !== undefined
+          ? { maxAiCostKopecks: opts.tenantCostCapKopecks }
+          : {}),
+      },
     })),
   };
 
   const configMap: Record<string, string | undefined> = {
     'ai.provider': opts.envProvider,
     ANTHROPIC_API_KEY: opts.hasAnthropicKey ? 'sk-test-key' : undefined,
+    ANTHROPIC_MONTHLY_COST_KOPECKS_CAP:
+      opts.envCostCapKopecks !== undefined ? String(opts.envCostCapKopecks) : undefined,
   };
   const config: any = {
     get: jest.fn((k: string) => configMap[k]),
@@ -213,5 +225,50 @@ describe('AiPipelineService — status transitions', () => {
     expect(LessonStatus.QUEUED).toBe('queued');
     expect(LessonStatus.GENERATING).toBe('generating');
     expect(LessonStatus.PENDING_REVIEW).toBe('pending_review');
+  });
+});
+
+describe('AiPipelineService — D2-14 per-tenant cost guard', () => {
+  const baseInput: LessonGenerationInput = {
+    topicCode: '1.2.3',
+    grade: 5,
+    umk: 'bosova',
+    focus: 'blocks',
+  };
+
+  it('Rejects when monthly AI spend already exceeds env cap', async () => {
+    const h = makeHarness({
+      envCostCapKopecks: 10_000,
+      monthlyCostKopecksUsed: 10_000,
+    });
+    await expect(h.service.submit(REQUESTER_ID, baseInput)).rejects.toThrow(
+      /AI budget exceeded/i,
+    );
+  });
+
+  it('Permits when spend below env cap', async () => {
+    const h = makeHarness({
+      envCostCapKopecks: 10_000,
+      monthlyCostKopecksUsed: 5_000,
+    });
+    const lesson = await h.service.submit(REQUESTER_ID, baseInput);
+    expect(lesson).toBeDefined();
+  });
+
+  it('Tenant cost cap overrides env cap (lower tenant cap rejects when env would allow)', async () => {
+    const h = makeHarness({
+      envCostCapKopecks: 100_000, // Generous env
+      tenantCostCapKopecks: 1_000, // Tight tenant
+      monthlyCostKopecksUsed: 1_000,
+    });
+    await expect(h.service.submit(REQUESTER_ID, baseInput)).rejects.toThrow(
+      /AI budget exceeded.*1000\/1000/i,
+    );
+  });
+
+  it('No cap configured → allows submit even with high spend', async () => {
+    const h = makeHarness({ monthlyCostKopecksUsed: 1_000_000 });
+    const lesson = await h.service.submit(REQUESTER_ID, baseInput);
+    expect(lesson).toBeDefined();
   });
 });

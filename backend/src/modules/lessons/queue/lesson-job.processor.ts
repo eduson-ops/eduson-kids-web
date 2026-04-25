@@ -91,6 +91,7 @@ export class LessonJobProcessor extends WorkerHost {
             source: LessonVersionSource.AI_INITIAL,
             createdBy: requesterId,
             note: null,
+            providerResponseRaw: out.rawResponse ?? null,
           });
           const savedVersion = await manager.save(LessonVersion, version);
 
