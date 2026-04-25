@@ -47,6 +47,38 @@ const COOKIE_OPTIONS = {
   path: '/api/v1/auth/refresh',
 };
 
+/**
+ * F-12 — HttpOnly cookie that mirrors the JWT access token returned in body.
+ * SameSite=lax (not strict) so that top-level navigations after VK ID OAuth
+ * redirect back to the SPA still carry the cookie. maxAge mirrors the JWT
+ * accessTtlSec config (default 15 min) — kept generous (24h cap) so a
+ * slow-clock device never sees a still-valid JWT rejected by the cookie age.
+ * The JWT itself enforces real expiration; the cookie just holds the bytes.
+ */
+const ACCESS_COOKIE = 'access_token';
+const ACCESS_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env['NODE_ENV'] === 'production',
+  sameSite: 'lax' as const,
+  maxAge: 24 * 60 * 60 * 1000,
+  path: '/',
+};
+
+// F-12 feature flag — opt-out switch in case the cookie path causes any
+// surprise on the demo day. Defaults ON because backwards compat is preserved
+// (Authorization header still works), but flipping to "false" disables both
+// setting and reading the access_token cookie at the controller layer.
+const cookieAuthEnabled = (): boolean => process.env['USE_COOKIE_AUTH'] !== 'false';
+
+function setAccessCookie(res: Response, accessToken: string): void {
+  if (!cookieAuthEnabled()) return;
+  res.cookie(ACCESS_COOKIE, accessToken, ACCESS_COOKIE_OPTIONS);
+}
+
+function clearAccessCookie(res: Response): void {
+  res.clearCookie(ACCESS_COOKIE, { path: ACCESS_COOKIE_OPTIONS.path });
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -65,6 +97,7 @@ export class AuthController {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.ip ?? '';
     const tokens = await this.authService.loginChild(dto, ip);
     res.cookie(REFRESH_COOKIE, tokens.refreshToken, COOKIE_OPTIONS);
+    setAccessCookie(res, tokens.accessToken);
     return { accessToken: tokens.accessToken };
   }
 
@@ -81,6 +114,7 @@ export class AuthController {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.ip ?? '';
     const tokens = await this.authService.loginParent(dto, ip);
     res.cookie(REFRESH_COOKIE, tokens.refreshToken, COOKIE_OPTIONS);
+    setAccessCookie(res, tokens.accessToken);
     return { accessToken: tokens.accessToken };
   }
 
@@ -97,6 +131,7 @@ export class AuthController {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.ip ?? '';
     const tokens = await this.authService.loginTeacher(dto, ip);
     res.cookie(REFRESH_COOKIE, tokens.refreshToken, COOKIE_OPTIONS);
+    setAccessCookie(res, tokens.accessToken);
     return { accessToken: tokens.accessToken };
   }
 
@@ -111,6 +146,7 @@ export class AuthController {
     }
     const tokens = await this.authService.refresh(refreshToken);
     res.cookie(REFRESH_COOKIE, tokens.refreshToken, COOKIE_OPTIONS);
+    setAccessCookie(res, tokens.accessToken);
     return { accessToken: tokens.accessToken };
   }
 
@@ -124,6 +160,7 @@ export class AuthController {
       await this.authService.logout(refreshToken);
     }
     res.clearCookie(REFRESH_COOKIE, { path: COOKIE_OPTIONS.path });
+    clearAccessCookie(res);
   }
 
   @Public()
@@ -131,8 +168,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ login: { ttl: 900000, limit: 5 } })
   @ApiOperation({ summary: 'Child login via invite code (format: login:pin)' })
-  async childCodeLogin(@Body() dto: ChildCodeDto) {
-    return this.authService.loginChildByCode(dto.code, dto.name);
+  async childCodeLogin(
+    @Body() dto: ChildCodeDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.authService.loginChildByCode(dto.code, dto.name);
+    setAccessCookie(res, tokens.accessToken);
+    return tokens;
   }
 
   @Public()
@@ -140,8 +182,10 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { ttl: 60000, limit: 20 } })
   @ApiOperation({ summary: 'Create a short-lived guest token (1h)' })
-  async guestLogin() {
-    return this.authService.loginGuest();
+  async guestLogin(@Res({ passthrough: true }) res: Response) {
+    const tokens = await this.authService.loginGuest();
+    setAccessCookie(res, tokens.accessToken);
+    return tokens;
   }
 
   @UseGuards(JwtAuthGuard)

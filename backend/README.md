@@ -49,11 +49,13 @@ src/
 
 ### Auth flow
 
-1. **Child PIN / Parent password / Teacher password** → `POST /api/v1/auth/login/{child|parent|teacher}` → returns `accessToken` (JWT, 15 min) + sets `refresh_token` httpOnly cookie (30 d, `SameSite=Strict`, `Secure` in prod).
+1. **Child PIN / Parent password / Teacher password** → `POST /api/v1/auth/login/{child|parent|teacher}` → returns `accessToken` (JWT, 15 min) in body **and** sets it in the `access_token` httpOnly cookie (24 h cap, `SameSite=Lax`, `Secure` in prod, `Path=/`). Also sets `refresh_token` httpOnly cookie (30 d, `SameSite=Strict`, `Secure` in prod).
 2. **VK ID OAuth (PKCE)** → `GET /api/v1/auth/vk/start` → `/api/v1/auth/vk/callback` (state + verifier validated from cookie). Server exchanges code for VK profile, links or creates a user.
 3. **Сферум deep-link** → `POST /api/v1/auth/sferum/link` (signed, short-lived). Sets the same JWT pair.
-4. **Refresh** → `POST /api/v1/auth/refresh` (reads cookie) → rotates refresh + new access. Old refresh blacklisted in Redis.
+4. **Refresh** → `POST /api/v1/auth/refresh` (reads cookie) → rotates refresh + new access (and re-sets the `access_token` cookie). Old refresh blacklisted in Redis.
 5. JWT payload: `{ sub, role, tnt (tenantId), tier, ptnt (parentTenantId), sys }`. The `sys` claim flips tenant bypass for super-admin tooling.
+
+**F-12 — JWT delivery (XSS hardening, 2026-04-24):** the `JwtStrategy` reads the access token from either the `access_token` cookie *or* the legacy `Authorization: Bearer <jwt>` header (cookie checked first). The cookie is HttpOnly, so injected JS cannot exfiltrate it. The Bearer header path is kept for native clients (Capacitor) and any in-flight browser sessions that still hold a localStorage token. Frontend fetch wrappers must send `credentials: 'include'` so the cookie travels — this requires same-origin, or a CORS allowlist with `Access-Control-Allow-Credentials: true` (already configured for the SPA origin in `main.ts`). Set `USE_COOKIE_AUTH=false` to disable cookie issuance at the controller layer if a regression appears (header path keeps working).
 
 ### Multitenancy
 

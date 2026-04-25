@@ -83,5 +83,57 @@ describe('E2E: /api/v1/auth', () => {
         login: expect.any(String),
       });
     });
+
+    // F-12: HttpOnly cookie auth path. Server should accept the JWT when it
+    // arrives in the `access_token` cookie, with no Authorization header.
+    it('returns 200 with valid token in access_token cookie (no Authorization header)', async () => {
+      const token = ctx.signToken();
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/auth/me')
+        .set('Cookie', `access_token=${token}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({
+        id: expect.any(String),
+        role: expect.any(String),
+      });
+    });
+
+    it('rejects bogus token in access_token cookie', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/v1/auth/me')
+        .set('Cookie', 'access_token=not-a-jwt');
+      expect(res.status).toBe(401);
+    });
+  });
+
+  // F-12: login flows must set the HttpOnly access_token cookie alongside
+  // the response body. We verify with /auth/guest because it has no DB
+  // dependency in the mocked test setup.
+  describe('access_token cookie wiring (F-12)', () => {
+    it('POST /auth/guest sets HttpOnly access_token cookie', async () => {
+      const res = await request(app.getHttpServer()).post('/api/v1/auth/guest');
+      expect(res.status).toBe(200);
+      const setCookie = res.headers['set-cookie'] as unknown as string[] | undefined;
+      expect(setCookie).toBeDefined();
+      const accessCookie = (setCookie ?? []).find((c) => c.startsWith('access_token='));
+      expect(accessCookie).toBeDefined();
+      expect(accessCookie).toMatch(/HttpOnly/i);
+      expect(accessCookie).toMatch(/SameSite=Lax/i);
+      expect(accessCookie).toMatch(/Path=\//);
+    });
+
+    // End-to-end round-trip (login → /auth/me with no Authorization, cookie
+     // only). We mint a real JWT via ctx.signToken() and exercise the full
+     // cookie path through the JwtStrategy cookieExtractor. This is the same
+     // contract a real browser sees: backend issues access_token cookie,
+     // browser auto-attaches it on the next request, server reads + validates.
+    it('access_token cookie alone authenticates /auth/me (no Authorization header)', async () => {
+      const token = ctx.signToken();
+      const me = await request(app.getHttpServer())
+        .get('/api/v1/auth/me')
+        .set('Cookie', `access_token=${token}`);
+      expect(me.status).toBe(200);
+      expect(me.body.id).toBeDefined();
+    });
   });
 });

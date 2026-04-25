@@ -53,6 +53,10 @@ function authHeader(): Record<string, string> {
   // писал в `ek_api_token`. После child-code логина Studio cloud-save шёл
   // без Authorization → 401 → useCloudSave висел в `error`. Унифицировано
   // через authStorage с миграцией legacy ключей.
+  //
+  // F-12: после миграции на HttpOnly cookie `getAccessToken()` может вернуть
+  // null — это норма. Запрос пойдёт с `credentials: 'include'` и cookie
+  // (access_token) подхватит JwtStrategy на бэке через cookieExtractor.
   const token = getAccessToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
 }

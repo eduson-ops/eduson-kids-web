@@ -29,6 +29,23 @@ const COOKIE_OPTIONS = {
   path: '/api/v1/auth/refresh',
 };
 
+// F-12 — HttpOnly cookie alongside the JWT in body. See AuthController for
+// rationale. SameSite=lax + path=/ is required so the cookie travels on every
+// API request, not just /auth/refresh.
+const ACCESS_COOKIE = 'access_token';
+const ACCESS_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env['NODE_ENV'] === 'production',
+  sameSite: 'lax' as const,
+  maxAge: 24 * 60 * 60 * 1000,
+  path: '/',
+};
+const cookieAuthEnabled = (): boolean => process.env['USE_COOKIE_AUTH'] !== 'false';
+function setAccessCookie(res: Response, accessToken: string): void {
+  if (!cookieAuthEnabled()) return;
+  res.cookie(ACCESS_COOKIE, accessToken, ACCESS_COOKIE_OPTIONS);
+}
+
 const PKCE_VERIFIER_COOKIE = 'vk_pkce';
 const PKCE_STATE_COOKIE = 'vk_state';
 
@@ -135,6 +152,7 @@ export class ExternalAuthController {
     const result = await this.vk.handleCallback(code, state, expectedState, codeVerifier);
 
     res.cookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
+    setAccessCookie(res, result.accessToken);
     res.clearCookie(PKCE_STATE_COOKIE, { path: '/api/v1/auth/vk' });
     res.clearCookie(PKCE_VERIFIER_COOKIE, { path: '/api/v1/auth/vk' });
 
@@ -181,6 +199,7 @@ export class ExternalAuthController {
   async sferumJoin(@Body() dto: JoinClassDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.sferum.quickJoinAsChild(dto.classCode, dto.displayName);
     res.cookie(REFRESH_COOKIE, result.refreshToken, COOKIE_OPTIONS);
+    setAccessCookie(res, result.accessToken);
     return {
       accessToken: result.accessToken,
       classroomId: result.classroomId,

@@ -38,6 +38,40 @@ function clearToken() {
   clearAccessToken()
 }
 
+/**
+ * F-12: probe `/auth/me` with cookie credentials but NO Authorization header.
+ * If it returns 200 → the HttpOnly `access_token` cookie was accepted by the
+ * backend and we can drop the localStorage token (it was just a fallback for
+ * the migration window). If it 401's, we keep the localStorage token.
+ *
+ * Runs out-of-band 100ms after login so the Set-Cookie response had time to
+ * commit. Failures are silent — we never want migration to break login UX.
+ */
+async function probeCookieAuthAndMaybeClearLocal(): Promise<void> {
+  if (!API_URL) return
+  if (!getToken()) return // nothing to migrate
+  try {
+    const res = await fetch(API_URL + '/api/v1/auth/me', {
+      credentials: 'include',
+      // intentionally no Authorization header — we're testing cookie-only path
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (res.ok) {
+      // cookie auth confirmed → safe to drop localStorage token.
+      clearToken()
+    }
+  } catch {
+    // network failure → leave localStorage in place, harmless
+  }
+}
+
+function scheduleCookieMigration(): void {
+  if (typeof window === 'undefined') return
+  setTimeout(() => {
+    void probeCookieAuthAndMaybeClearLocal()
+  }, 100)
+}
+
 async function request<T>(
   path: string,
   init: RequestInit & { timeout?: number } = {}
@@ -46,9 +80,14 @@ async function request<T>(
   try {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), init.timeout ?? 2500)
+    // F-12: send cookies on every request so the HttpOnly access_token cookie
+    // (set by backend on login) is used by the JWT strategy. We still send the
+    // Authorization header when localStorage holds a legacy token, so any
+    // session that pre-dates the migration keeps working.
     const res = await fetch(API_URL + path, {
       ...init,
       signal: controller.signal,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
@@ -84,7 +123,10 @@ export async function apiLoginChildCode(
     method: 'POST',
     body: JSON.stringify({ code, name }),
   })
-  if (r?.token) setToken(r.token)
+  if (r?.token) {
+    setToken(r.token)
+    scheduleCookieMigration()
+  }
   return r
 }
 
@@ -93,7 +135,10 @@ export async function apiChildLogin(login: string, pin: string): Promise<{ acces
     method: 'POST',
     body: JSON.stringify({ login, pin }),
   })
-  if (r?.accessToken) setToken(r.accessToken)
+  if (r?.accessToken) {
+    setToken(r.accessToken)
+    scheduleCookieMigration()
+  }
   return r
 }
 
@@ -102,13 +147,19 @@ export async function apiParentLogin(email: string, password: string): Promise<{
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
-  if (r?.accessToken) setToken(r.accessToken)
+  if (r?.accessToken) {
+    setToken(r.accessToken)
+    scheduleCookieMigration()
+  }
   return r
 }
 
 export async function apiLoginGuest(): Promise<AuthResponse | null> {
   const r = await request<AuthResponse>('/api/v1/auth/guest', { method: 'POST' })
-  if (r?.token) setToken(r.token)
+  if (r?.token) {
+    setToken(r.token)
+    scheduleCookieMigration()
+  }
   return r
 }
 
@@ -143,6 +194,15 @@ export async function apiLeaderboard(gameId: string) {
 
 export function apiLogout() {
   clearToken()
+  // F-12: also ask backend to clear the HttpOnly access_token + refresh_token
+  // cookies. Best-effort — if it fails, the local state is already wiped and
+  // the JWT will expire on the server side anyway.
+  if (API_URL) {
+    void fetch(API_URL + '/api/v1/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {})
+  }
 }
 
 export async function apiGetClassroom(id: string): Promise<{ id: string; name: string; teacherId: string; students: Array<{ firstName: string; lastName: string; login: string }> } | null> {

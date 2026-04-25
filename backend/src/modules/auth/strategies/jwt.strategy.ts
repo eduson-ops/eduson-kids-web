@@ -2,6 +2,21 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import type { Request } from 'express';
+
+/**
+ * F-12: read access token from `access_token` HttpOnly cookie when present,
+ * otherwise fall back to the legacy `Authorization: Bearer <jwt>` header.
+ *
+ * Cookie auth is preferred because HttpOnly cookies are immune to XSS token
+ * theft (no JS access). The Bearer header path stays for backwards compat
+ * with native clients (Capacitor) and any browser sessions that still hold a
+ * localStorage token from before the migration.
+ */
+const cookieExtractor = (req: Request | undefined): string | null => {
+  const cookies = (req as { cookies?: Record<string, string> } | undefined)?.cookies;
+  return cookies?.['access_token'] ?? null;
+};
 
 /**
  * Multi-tenant JWT payload.
@@ -31,7 +46,10 @@ export interface JwtPayload {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private config: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        cookieExtractor,
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ]),
       ignoreExpiration: false,
       secretOrKey: config.get<string>('jwt.accessSecret') ?? '',
     });
