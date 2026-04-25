@@ -1,3 +1,71 @@
+/* ──────────────────────────────────────────────────────────────
+   Brand fonts — self-hosted via @fontsource (D2-04).
+   Bypasses Google Fonts CDN (filtered by Roskomnadzor / corp proxies
+   on conference & school WiFi). Vite inlines the @font-face files into
+   dist/assets/, so first paint no longer waits on fonts.googleapis.com.
+   Each weight-CSS bundles ALL subsets (latin, latin-ext, cyrillic,
+   cyrillic-ext, vietnamese), so Russian + English render identically.
+   ────────────────────────────────────────────────────────────── */
+@import '@fontsource/nunito/400.css';
+@import '@fontsource/nunito/600.css';
+@import '@fontsource/nunito/700.css';
+@import '@fontsource/nunito/800.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/700.css';
+
+/* ──────────────────────────────────────────────────────────────
+   Mobile / safe-area baseline
+   Capacitor port (iOS/Android). Runs before App.css.
+   ────────────────────────────────────────────────────────────── */
+:root {
+  /* Safe-area insets exposed as CSS variables so any component can use them. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  /* --vh is a JS-updated 1% of viewport height (fixes iOS Safari 100vh jitter).
+     Falls back to 1vh when no JS runs. */
+  --vh: 1vh;
+}
+
+/* iOS Safari 100vh-fix: allow 100% heights to resolve properly. */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  /* Prevent rubber-band overscroll pulling the whole page on iOS / Android. */
+  overscroll-behavior: none;
+  /* Kill the blue tap-highlight square on touch. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Any button / link tapped on touch: disable 300ms delay + double-tap zoom. */
+button,
+[role="button"],
+a {
+  touch-action: manipulation;
+}
+
+/* Safe-area utility classes — apply as needed on fixed bars / sheets. */
+.safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.safe-left   { padding-left:   env(safe-area-inset-left, 0px); }
+.safe-right  { padding-right:  env(safe-area-inset-right, 0px); }
+.safe-all {
+  padding-top:    env(safe-area-inset-top, 0px);
+  padding-right:  env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left:   env(safe-area-inset-left, 0px);
+}
+
 /* Resets + global baseline. App-specific styles live in App.css. */
 html,
 body {

@@ -97,6 +97,12 @@ npm run optimize:images   # walks public/, generates side-by-side .webp for ever
 
 Originals are kept (some loaders / textures still resolve `.png` directly), so the script is safe to re-run — it skips up-to-date `.webp` siblings. Use it before a release build to shrink medieval-village & stylized-nature texture packs (~60–70% savings on diffuse/normal maps).
 
+### Self-hosted fonts (no CDN — D2-04)
+
+Brand fonts (Nunito 400/600/700/800, JetBrains Mono 400/700) ship from `node_modules/@fontsource/*` and are inlined by Vite into `dist/assets/` at build time. The previous `<link href="https://fonts.googleapis.com/...">` was removed from `index.html` because Roskomnadzor filters & corp-WiFi proxies (school / hotel / conference) sometimes block Google Fonts → fallback to `system-ui` looks like default newspaper, not KubiK. Self-hosting also kills the ~100–300 ms blocking request on slow networks. Subsets bundled per weight: latin, latin-ext, cyrillic, cyrillic-ext, vietnamese.
+
+To add another weight: `npm i @fontsource/nunito --legacy-peer-deps` (already installed) and add `@import '@fontsource/nunito/500.css';` to `src/index.css`.
+
 ---
 
 ## Deployment

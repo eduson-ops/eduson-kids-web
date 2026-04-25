@@ -3,21 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0"
+    />
     <meta name="theme-color" content="#6B5CE7" />
     <meta name="description" content="Eduson Kids — строй 3D-миры, учись Python играя. Образовательная платформа 9-15 лет." />
     <title>Eduson Kids — Эдюсон Kids · 3D Coding Platform</title>
 
-    <!-- Brand fonts (per Designbook v1.0) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- PWA / iOS home-screen -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Eduson Kids" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- Preload главного модуля — убирает 50-150ms до старта React -->
-    <link rel="modulepreload" href="/src/main.tsx" />
+    <!-- Brand fonts (per Designbook v1.0) — self-hosted via @fontsource (D2-04).
+         Earlier we loaded Google Fonts CDN, но на школьном WiFi с фильтрацией
+         Roskomnadzor / корп.прокси шрифт мог не подгрузиться → fallback на
+         system-ui (выглядит как ТАСС, не KubiK). Фактические @import-ы лежат
+         в src/index.css; Vite копирует .woff2 в dist/assets/. -->
+
+    <!-- modulepreload убран: он был валидным только в dev, в бандле Vite сам добавляет preload-хинты
+         для реальных чанков. Ручной href="/src/main.tsx" ломался в Capacitor (MIME octet-stream). -->
+
 
     <!-- WebGL2 проверка до загрузки React. При отсутствии — показывается fallback вместо пустого экрана. -->
     <script type="text/javascript">
