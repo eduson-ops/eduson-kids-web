@@ -240,14 +240,17 @@ export class AuthService {
       jti,
     };
 
+    const accessTtl = this.config.get<number>('jwt.accessTtlSec') ?? 900;
+    const refreshTtl = this.config.get<number>('jwt.refreshTtlSec') ?? 2592000;
+
     const accessToken = this.jwtService.sign(accessPayload, {
       secret: this.config.get<string>('jwt.accessSecret'),
-      expiresIn: 900, // 15 minutes
+      expiresIn: accessTtl,
     });
 
     const refreshToken = this.jwtService.sign(refreshPayload, {
       secret: this.config.get<string>('jwt.refreshSecret'),
-      expiresIn: 2592000, // 30 days
+      expiresIn: refreshTtl,
     });
 
     return { accessToken, refreshToken };

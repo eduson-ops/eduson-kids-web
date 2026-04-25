@@ -28,6 +28,11 @@ export default () => ({
     refreshSecret: process.env['JWT_REFRESH_SECRET'] ?? '',
     accessExpires: process.env['JWT_ACCESS_EXPIRES'] ?? '15m',
     refreshExpires: process.env['JWT_REFRESH_EXPIRES'] ?? '30d',
+    // Numeric TTL in seconds, used by JwtModule.signOptions.expiresIn and AuthService.issueTokens.
+    // Tune via JWT_ACCESS_TTL / JWT_REFRESH_TTL env. For demo recommend JWT_ACCESS_TTL=3600 (1h)
+    // so a live pitch session does not get logged out mid-demo by token expiry.
+    accessTtlSec: parseInt(process.env['JWT_ACCESS_TTL'] ?? '900', 10),
+    refreshTtlSec: parseInt(process.env['JWT_REFRESH_TTL'] ?? '2592000', 10),
   },
 
   piiKey: process.env['PII_KEY'] ?? '',

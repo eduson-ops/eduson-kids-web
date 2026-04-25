@@ -63,6 +63,23 @@ import { ThrottlerGuard } from '@nestjs/throttler';
               '*.secret',
               '*.piiKey',
               '*.encryptedProfile',
+              // PII fields (152-ФЗ): redact at any nesting depth.
+              '*.email',
+              '*.firstName',
+              '*.lastName',
+              '*.login',
+              '*.phone',
+              '*.birthYear',
+              '*.linkedChildIds',
+              '*.parentalConsentBy',
+              // Explicit request-body paths for auth endpoints.
+              'req.body.email',
+              'req.body.password',
+              'req.body.pin',
+              'req.body.firstName',
+              'req.body.lastName',
+              'req.body.login',
+              'req.body.phone',
             ],
             censor: '[REDACTED]',
           },
@@ -121,6 +138,13 @@ import { ThrottlerGuard } from '@nestjs/throttler';
             name: 'guest',
             ttl: 60_000,
             limit: 5,
+          },
+          {
+            // AI generation endpoint — protects Anthropic credits + caps mid-demo runaway loops.
+            // Routes opt in via @Throttle({ aiGenerate: { ttl: 60_000, limit: 3 } }).
+            name: 'aiGenerate',
+            ttl: 60_000,
+            limit: 3,
           },
         ],
         storage: new ThrottlerStorageRedisService({

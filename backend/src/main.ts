@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import compression from 'compression';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import 'reflect-metadata';
@@ -28,6 +29,10 @@ async function bootstrap() {
       contentSecurityPolicy: isProduction,
     }),
   );
+
+  // Gzip compression for JSON / static responses (AI lesson payloads can be large).
+  // threshold=1024 skips small responses where compression overhead > savings.
+  app.use(compression({ threshold: 1024 }));
 
   // Cookie parsing (needed for httpOnly refresh token)
   app.use(cookieParser());

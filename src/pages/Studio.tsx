@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import BuildTab from '../studio/BuildTab'
 import ScriptTab from '../studio/ScriptTab'
@@ -14,6 +14,7 @@ import { emitCommands } from '../lib/commandBus'
 import type { WorldCommand } from '../lib/python-world-runtime'
 import { SFX } from '../lib/audio'
 import { NikselMini } from '../design/mascot/Niksel'
+import { useCloudSave } from '../hooks/useCloudSave'
 
 type Tab = 'build' | 'script' | 'test'
 
@@ -22,8 +23,42 @@ export default function Studio() {
   const isMobile = useIsMobile()
   const [tab, setTab] = useState<Tab>('build')
   const [state, setState] = useState<EditorState>(getState())
-  const [saved, setSaved] = useState<string>('сохранено')
   const [scriptError, setScriptError] = useState<string | null>(null)
+
+  // ─── Cloud save wiring (D-10) ──────────────────────────────
+  // projectId derived from current Studio session. Null = demo / no backend
+  // → fallback to localStorage-only save indicator (already done by editorState.persist).
+  // We read it once from URL/localStorage to keep the demo branch deterministic.
+  const projectId = useMemo<string | null>(() => {
+    try {
+      const url = new URL(window.location.href)
+      const fromUrl = url.searchParams.get('projectId')
+      if (fromUrl) return fromUrl
+      return localStorage.getItem('ek_studio_active_project_id')
+    } catch {
+      return null
+    }
+  }, [])
+
+  const stateRef = useRef<EditorState>(state)
+  stateRef.current = state
+  const getContent = useCallback(() => stateRef.current as unknown as Record<string, unknown>, [])
+  const cloudSave = useCloudSave(projectId, getContent)
+  const { status: cloudStatus, lastSavedAt, lastError: cloudError, manualSave, scheduleAutosave } = cloudSave
+
+  // Local fallback timestamp — when no projectId we still want a "saved locally" hint
+  // tied to actual editorState mutations (which `persist()` writes synchronously
+  // via debounced timer in editorState.ts).
+  const [localSavedAt, setLocalSavedAt] = useState<number | null>(null)
+
+  // Tick "X сек назад" relative timestamps every 5s without re-rendering on
+  // every editor change.
+  const [now, setNow] = useState<number>(() => Date.now())
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 5_000)
+    return () => clearInterval(id)
+  }, [])
+
   const [publishToast, setPublishToast] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
 
@@ -139,12 +174,45 @@ export default function Studio() {
     })()
   }, [tab, state.autoRun, state.pythonCode, state.blocklyPython, state.scriptMode])
 
+  // Реальное автосохранение: каждое значимое изменение editorState запускает
+  // debounced cloud-save (если projectId есть) ИЛИ обновляет local-saved timestamp
+  // (если projectId == null — demo / без бэкенда; editorState.persist() уже пишет в localStorage).
   useEffect(() => {
-    // Индикатор автосохранения: "..." → "сохранено"
-    setSaved('сохраняем…')
-    const t = setTimeout(() => setSaved('сохранено ✓'), 400)
-    return () => clearTimeout(t)
-  }, [state])
+    if (projectId) {
+      scheduleAutosave()
+    } else {
+      // Local fallback — показываем "сохранено локально" с реальной меткой времени.
+      // editorState.persist() само дебаунсит запись, мы просто фиксируем факт.
+      setLocalSavedAt(Date.now())
+    }
+  }, [state, projectId, scheduleAutosave])
+
+  function formatRelative(ts: number | null, currentMs: number): string {
+    if (!ts) return ''
+    const sec = Math.max(0, Math.round((currentMs - ts) / 1000))
+    if (sec < 5) return 'только что'
+    if (sec < 60) return `${sec} сек назад`
+    const min = Math.round(sec / 60)
+    if (min < 60) return `${min} мин назад`
+    const hr = Math.round(min / 60)
+    return `${hr} ч назад`
+  }
+
+  // Compute indicator text + class based on real status
+  type SaveBadge = { text: string; cls: 'ok' | 'saving' | 'queued' | 'error' | 'idle' | '' }
+  const saveBadge: SaveBadge = (() => {
+    if (!projectId) {
+      // demo / no backend — local-only
+      if (localSavedAt) return { text: `💾 сохранено локально · ${formatRelative(localSavedAt, now)}`, cls: 'ok' }
+      return { text: 'локальный режим', cls: '' }
+    }
+    if (cloudStatus === 'saving') return { text: 'Сохраняем…', cls: 'saving' }
+    if (cloudStatus === 'queued') return { text: '⏳ Сохраним когда появится сеть', cls: 'queued' }
+    if (cloudStatus === 'error') return { text: '⚠️ Ошибка сохранения', cls: 'error' }
+    if (cloudStatus === 'saved') return { text: `✓ Сохранено · ${formatRelative(lastSavedAt, now)}`, cls: 'ok' }
+    return { text: '', cls: 'idle' }
+  })()
+
 
   const onHome = () => {
     SFX.click()
@@ -192,7 +260,32 @@ export default function Studio() {
         </nav>
         <div className="studio-stats">
           <span title="Объектов в сцене">📦 {count}</span>
-          <span className={`save-indicator ${saved.includes('✓') ? 'ok' : ''}`}>{saved}</span>
+          {saveBadge.text && (
+            <span
+              className={`save-indicator ${saveBadge.cls}`}
+              title={cloudError ?? undefined}
+            >
+              {saveBadge.text}
+              {saveBadge.cls === 'error' && (
+                <button
+                  onClick={() => void manualSave()}
+                  style={{
+                    marginLeft: 6,
+                    background: 'none',
+                    border: '1px solid currentColor',
+                    borderRadius: 4,
+                    padding: '0 6px',
+                    fontSize: 11,
+                    cursor: 'pointer',
+                    color: 'inherit',
+                  }}
+                  title="Повторить сохранение"
+                >
+                  ↻
+                </button>
+              )}
+            </span>
+          )}
         </div>
         <div className="studio-actions">
           {scriptError && (

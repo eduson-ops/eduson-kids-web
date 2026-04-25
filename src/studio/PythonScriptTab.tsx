@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { runPython, warmPyodide } from '../lib/pyodide-executor'
 import {
   PYTHON_API_REFERENCE,
@@ -11,6 +11,7 @@ import {
   type EditorState,
 } from './editorState'
 import { SFX } from '../lib/audio'
+import CodeMirrorPythonEditor from '../components/CodeMirrorPythonEditor'
 
 /**
  * Python редактор — альтернатива Blockly в Studio ScriptTab.
@@ -22,7 +23,6 @@ export default function PythonScriptTab() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'running' | 'done' | 'error'>('idle')
   const [lastError, setLastError] = useState<string | null>(null)
   const [commands, setCommands] = useState<unknown[]>([])
-  const taRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => subscribe(setState), [])
 
@@ -136,14 +136,15 @@ export default function PythonScriptTab() {
             </button>
           </div>
         </header>
-        <textarea
-          ref={taRef}
-          className="py-code"
-          spellCheck={false}
-          value={state.pythonCode || PYTHON_STARTER_CODE}
-          onChange={(e) => setPythonCode(e.target.value)}
-          placeholder="# пиши Python код..."
-        />
+        <div className="py-code-cm">
+          <CodeMirrorPythonEditor
+            code={state.pythonCode || PYTHON_STARTER_CODE}
+            onChange={(value) => setPythonCode(value)}
+            onRun={run}
+            isRunning={status === 'running' || status === 'loading'}
+            error={lastError}
+          />
+        </div>
       </section>
 
       <aside className="python-output">

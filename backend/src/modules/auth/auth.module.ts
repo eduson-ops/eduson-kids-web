@@ -23,7 +23,9 @@ import { RedisModule } from '../../common/redis/redis.module';
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('jwt.accessSecret'),
         signOptions: {
-          expiresIn: 900, // 15 minutes in seconds
+          // Default TTL for JwtModule.sign(); AuthService.issueTokens overrides per token type.
+          // Configurable via JWT_ACCESS_TTL env (default 900 = 15 min). For demo use 3600 (1h).
+          expiresIn: config.get<number>('jwt.accessTtlSec') ?? 900,
         },
       }),
     }),

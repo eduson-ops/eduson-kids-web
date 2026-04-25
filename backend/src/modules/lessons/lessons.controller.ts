@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import {
   IsString,
   IsInt,
@@ -90,6 +91,7 @@ export class LessonsController {
 
   @Post('generate')
   @Roles('methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin')
+  @Throttle({ aiGenerate: { ttl: 60_000, limit: 3 } })
   @ApiOperation({ summary: 'Submit a topic to the AI pipeline' })
   generate(@Body() dto: GenerateLessonDto, @CurrentUser() user: JwtPayload) {
     return this.pipeline.submit(user.sub, dto);
