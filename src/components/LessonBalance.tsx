@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { BillingState } from '../lib/billing'
+import { useToast } from '../hooks/useToast'
 
 interface Props {
   billing: BillingState
@@ -17,6 +18,7 @@ export default function LessonBalance({ billing, compact = false }: Props) {
   const plan = billing.subscription.plan
   const hasUnlimited = plan === 'monthly' || plan === 'annual' || plan === 'family-2' || plan === 'family-3'
   const pct = total > 0 ? Math.min(1, used / total) : 0
+  const { toast, show: showToast } = useToast()
 
   const r = compact ? 34 : 52
   const size = compact ? 88 : 136
@@ -30,6 +32,11 @@ export default function LessonBalance({ billing, compact = false }: Props) {
       role="region"
       aria-label="Баланс уроков"
     >
+      {toast && (
+        <div key={toast.key} className={`kb-ui-toast kb-ui-toast--${toast.kind}`}>
+          {toast.msg}
+        </div>
+      )}
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
         <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(107,92,231,.12)" strokeWidth={compact ? 8 : 12} />
         <circle
@@ -69,7 +76,7 @@ export default function LessonBalance({ billing, compact = false }: Props) {
           <div className="lesson-balance-actions">
             <button
               className="lesson-balance-btn lesson-balance-btn--buy"
-              onClick={() => alert('Для покупки перейди в раздел Оплата')}
+              onClick={() => showToast('💳 Для покупки уроков перейди в раздел «Оплата»')}
               type="button"
             >
               + Докупить урок — 699 ₽

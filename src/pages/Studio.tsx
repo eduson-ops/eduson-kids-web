@@ -15,6 +15,8 @@ import type { WorldCommand } from '../lib/python-world-runtime'
 import { SFX } from '../lib/audio'
 import { NikselMini } from '../design/mascot/Niksel'
 import { useCloudSave } from '../hooks/useCloudSave'
+import { useToast } from '../hooks/useToast'
+import { projectsApi } from '../lib/projectsApi'
 
 type Tab = 'build' | 'script' | 'test'
 
@@ -61,6 +63,42 @@ export default function Studio() {
 
   const [publishToast, setPublishToast] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
+  const { toast: shareToast, show: showShareToast } = useToast()
+  const [publishing, setPublishing] = useState(false)
+
+  /**
+   * D2-13: Real publish flow.
+   *  1. If we have a backend projectId → POST /projects/:id/share-token, copy URL.
+   *  2. No projectId → fallback share-link encoder (/share#s=<base64> snapshot of editorState),
+   *     consistent with SiteEditor.tsx.
+   *  3. On any error → keep the legacy "Q2 2026" toast as ultimate fallback.
+   */
+  const handlePublish = useCallback(async () => {
+    if (publishing) return
+    setPublishing(true)
+    try {
+      if (projectId) {
+        const { token, url } = await projectsApi.shareToken(projectId)
+        try { await navigator.clipboard.writeText(url) } catch { /* clipboard blocked */ }
+        showShareToast(`🔗 Ссылка скопирована: kubik.school/share/${token}`, 'success')
+        return
+      }
+      // Local fallback — same encoder as SiteEditor
+      const snap = stateRef.current
+      const json = JSON.stringify(snap)
+      const enc = btoa(unescape(encodeURIComponent(json)))
+      const basePath = import.meta.env.BASE_URL.replace(/\/$/, '')
+      const url = `${window.location.origin}${basePath}/share#s=${enc}`
+      try { await navigator.clipboard.writeText(url) } catch { /* clipboard blocked */ }
+      showShareToast('🔗 Ссылка скопирована — скинь другу!', 'success')
+    } catch {
+      // Ultimate fallback
+      setPublishToast(true)
+      setTimeout(() => setPublishToast(false), 3000)
+    } finally {
+      setPublishing(false)
+    }
+  }, [projectId, publishing, showShareToast])
 
   // ─── Loading overlay state (Pyodide + Blockly + Monaco) ───
   // step: 0=initial, 1=pyodide ready, 2=blockly ready, 3=editor ready, 4=hidden
@@ -313,11 +351,16 @@ export default function Studio() {
           </button>
           <button
             className={`publish${publishToast ? ' publish--toast' : ''}`}
-            title="Публикация появится в v1.1"
-            aria-label="Опубликовать проект (v1.1)"
-            onClick={() => { setPublishToast(true); setTimeout(() => setPublishToast(false), 3000) }}
+            title={projectId ? 'Скопировать share-ссылку на проект' : 'Локальная ссылка (без бэкенда)'}
+            aria-label="Опубликовать проект — получить share-ссылку"
+            onClick={handlePublish}
+            disabled={publishing}
           >
-            {publishToast ? '🚀 Готовим публикацию · Q2 2026' : '📤 Опубликовать'}
+            {publishing
+              ? '⏳ Публикуем…'
+              : publishToast
+                ? '🚀 Готовим публикацию · Q2 2026'
+                : '📤 Опубликовать'}
           </button>
         </div>
       </header>
@@ -336,6 +379,11 @@ export default function Studio() {
       <StudioLoadingOverlay step={loadingStep} />
       <StudioIntroOverlay />
       <StudioTour />
+      {shareToast && (
+        <div key={shareToast.key} className={`kb-ui-toast kb-ui-toast--${shareToast.kind}`}>
+          {shareToast.msg}
+        </div>
+      )}
     </div>
   )
 }

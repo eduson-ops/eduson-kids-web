@@ -10,6 +10,7 @@ import { startStreakReminderWatcher } from './lib/streakReminder'
 import { seedDemoStateIfEmpty } from './lib/demoSeed'
 import { apiGetMe } from './lib/api'
 import { saveSession, loadSession } from './lib/auth'
+import { getAccessToken } from './lib/authStorage'
 import { useTenantBranding } from './hooks/useTenantBranding'
 import './App.css'
 import './styles/mobile.css'
@@ -45,6 +46,7 @@ const TeacherClasses = lazy(() => import('./pages/TeacherClasses'))
 const Chat = lazy(() => import('./pages/Chat'))
 const Room = lazy(() => import('./pages/Room'))
 const AdminPanel = lazy(() => import('./pages/Admin'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
@@ -80,19 +82,23 @@ export default function App() {
       seedDemoStateIfEmpty()
     }
     ensureAchievementsWatcher()
-    // Hydrate session from backend if we have a token but no session
-    apiGetMe().then((me) => {
-      if (!me) return
-      const existing = loadSession()
-      if (!existing || existing.name !== me.name) {
-        saveSession({
-          role: me.role as 'child' | 'parent' | 'teacher',
-          name: me.name,
-          login: me.login,
-          email: me.email,
-        })
-      }
-    }).catch(() => { /* backend offline — stay local */ })
+    // Hydrate session from backend ONLY if we already have a token.
+    // D2-08: previously this fired on every mount unconditionally — without a token
+    // it produces a 401 in DevTools on every reload. Skip when no token present.
+    if (getAccessToken()) {
+      apiGetMe().then((me) => {
+        if (!me) return
+        const existing = loadSession()
+        if (!existing || existing.name !== me.name) {
+          saveSession({
+            role: me.role as 'child' | 'parent' | 'teacher',
+            name: me.name,
+            login: me.login,
+            email: me.email,
+          })
+        }
+      }).catch(() => { /* backend offline — stay local */ })
+    }
     return startStreakReminderWatcher()
   }, [])
   return (
@@ -369,7 +375,14 @@ export default function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<RouteLoader label="Ищу страницу…" />}>
+              <NotFound />
+            </Suspense>
+          }
+        />
       </Routes>
       </ErrorBoundary>
       </MobileAppShell>

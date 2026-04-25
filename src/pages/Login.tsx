@@ -106,6 +106,7 @@ function RoleButton({
     <button
       className="kb-card"
       onClick={onClick}
+      aria-label={label}
       style={{
         width: '100%',
         textAlign: 'left',
@@ -119,7 +120,7 @@ function RoleButton({
         gap: 16,
         fontSize: 18,
         fontWeight: 600,
-        transition: 'border-color 0.15s',
+        transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
       }}
     >
       <span style={{ fontSize: 36 }}>{emoji}</span>
@@ -199,9 +200,10 @@ function ChildPinSection({ navigate }: { navigate: ReturnType<typeof useNavigate
           aria-label="Логин ученика"
         />
         <input
-          type="text"
+          type="password"
           inputMode="numeric"
-          pattern="\d{6}"
+          pattern="[0-9]*"
+          autoComplete="one-time-code"
           maxLength={6}
           placeholder="Пин (6 цифр)"
           value={pin}

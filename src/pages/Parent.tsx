@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
+import { useToast } from '../hooks/useToast'
 import Niksel from '../design/mascot/Niksel'
 import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
 import { pluralize } from '../lib/plural'
@@ -251,6 +252,7 @@ function KpiCard({ value, label, iconKind, accent }: { value: string; label: str
  * PDF пока через window.print() стиля — lightweight, без зависимостей.
  */
 function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName: string }) {
+  const { toast, show: showToast } = useToast()
   // Последние 7 дней — это последние 7 элементов массива (day 21..27)
   const last7 = activity.slice(-7)
   const totalMin = last7.reduce((s, a) => s + a.minutes, 0)
@@ -291,7 +293,7 @@ function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName
     </body></html>`
     const w = window.open('', '_blank', 'width=720,height=900')
     if (!w) {
-      alert('Разреши всплывающие окна для этого сайта, чтобы скачать отчёт.')
+      showToast('🚫 Разреши всплывающие окна, чтобы скачать отчёт', 'error')
       return
     }
     w.document.write(html)
@@ -300,6 +302,11 @@ function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName
 
   return (
     <section style={{ marginBottom: 40 }}>
+      {toast && (
+        <div key={toast.key} className={`kb-ui-toast kb-ui-toast--${toast.kind}`}>
+          {toast.msg}
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
         <h2 className="h2">Отчёт за неделю</h2>
         <button className="kb-btn kb-btn--sm kb-btn--secondary" onClick={downloadReport}>
