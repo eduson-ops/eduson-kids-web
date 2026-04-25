@@ -2,12 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { randomBytes } from 'crypto';
 import * as cookieParser from 'cookie-parser';
 import compression from 'compression';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
+
+// D-07: одноразовый build-id, генерится один раз при старте процесса.
+// Раньше middleware дёргал Math.random() на каждый запрос — пустая трата CPU.
+const apiBuildId = randomBytes(8).toString('hex');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -81,9 +86,10 @@ async function bootstrap() {
     });
   }
 
-  // Random X-API-Version to obscure fingerprint
+  // X-API-Version: build-id один раз на boot (D-07).
+  // Раньше: Math.random() на каждый запрос — pure waste.
   app.use((_req: unknown, res: { setHeader: (k: string, v: string) => void }, next: () => void) => {
-    res.setHeader('X-API-Version', Math.random().toString(36).slice(2, 10));
+    res.setHeader('X-API-Version', `1.0+${apiBuildId}`);
     next();
   });
 

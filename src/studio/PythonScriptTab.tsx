@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { runPython, warmPyodide } from '../lib/pyodide-executor'
 import {
   PYTHON_API_REFERENCE,
@@ -7,6 +7,7 @@ import {
 import {
   getState,
   setPythonCode,
+  setScriptMode,
   subscribe,
   type EditorState,
 } from './editorState'
@@ -55,6 +56,28 @@ export default function PythonScriptTab() {
     setCommands([])
     setLastError(null)
     setStatus('idle')
+  }
+
+  // D-14: визуальный сигнал что код можно сгенерировать из блоков
+  const blocksHavePython = useMemo(() => {
+    const lines = (state.blocklyPython || '')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#'))
+    return lines.length > 0
+  }, [state.blocklyPython])
+
+  const isPythonModified = useMemo(() => {
+    const py = state.pythonCode || ''
+    const gen = state.blocklyPython || ''
+    if (!py.trim()) return false
+    return py !== gen
+  }, [state.pythonCode, state.blocklyPython])
+
+  const restoreFromBlocks = () => {
+    if (!state.blocklyPython) return
+    setPythonCode(state.blocklyPython)
+    SFX.click()
   }
 
   const statusLabel =
@@ -125,6 +148,30 @@ export default function PythonScriptTab() {
       </aside>
 
       <section className="python-editor">
+        {blocksHavePython && isPythonModified && (
+          <div className="python-syncbar">
+            <span className="python-syncbar-icon">🧱</span>
+            <span className="python-syncbar-text">
+              Этот код можно сгенерировать из блоков
+            </span>
+            <button
+              className="python-syncbar-btn"
+              onClick={restoreFromBlocks}
+              type="button"
+              title="Заменить текущий Python тем, что собрано из блоков"
+            >
+              ↺ Восстановить из блоков
+            </button>
+            <button
+              className="python-syncbar-back"
+              onClick={() => { SFX.click(); setScriptMode('blocks') }}
+              type="button"
+              title="Вернуться к блокам"
+            >
+              ← К блокам
+            </button>
+          </div>
+        )}
         <header className="py-editor-header">
           <span className={`py-status ${status}`}>{statusLabel}</span>
           <div className="py-actions">

@@ -1,9 +1,10 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BlocklyWorkspace from '../components/BlocklyWorkspace'
 import PythonPanel from '../components/PythonPanel'
+import CodeMirrorPythonEditor from '../components/CodeMirrorPythonEditor'
 
-// Monaco весит ~1MB — лениво грузим только для L3 Python режима
-const PurePythonEditor = lazy(() => import('../components/PurePythonEditor'))
+// Monaco (desktop, ~1MB) или CodeMirror (mobile, ~150KB) — SmartPythonEditor сам решает.
+const SmartPythonEditor = lazy(() => import('../components/SmartPythonEditor'))
 import {
   getState,
   setAutoRun,
@@ -37,6 +38,12 @@ export default function ScriptTab() {
   const [runError, setRunError] = useState<string | null>(null)
   const [runResult, setRunResult] = useState<string | null>(null)
   const resultTimer = useRef<number | undefined>(undefined)
+  // D-14: Blockly→Python live preview & sync
+  const [pyPreviewOpen, setPyPreviewOpen] = useState(false)
+  const [debouncedBlocklyPython, setDebouncedBlocklyPython] = useState(state.blocklyPython)
+  const [copyToast, setCopyToast] = useState<string | null>(null)
+  // Snapshot of pythonCode at the moment user took it from blocks → used to detect manual edits.
+  const lastSyncedFromBlocksRef = useRef<string | null>(null)
 
   useEffect(() => subscribe(setState), [])
 
@@ -47,6 +54,54 @@ export default function ScriptTab() {
   useEffect(() => {
     return () => { if (resultTimer.current) window.clearTimeout(resultTimer.current) }
   }, [])
+
+  // D-14: debounce 300ms — обновляем preview Python из блоков без шквала ререндеров
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedBlocklyPython(state.blocklyPython), 300)
+    return () => window.clearTimeout(id)
+  }, [state.blocklyPython])
+
+  // Считаем что Python "вручную изменён" если он отличается и от стартера, и от того,
+  // что в последний раз скопировали из блоков, и от текущего сгенерированного.
+  const isPythonModified = useMemo(() => {
+    const py = state.pythonCode || ''
+    const gen = state.blocklyPython || ''
+    if (!py.trim()) return false
+    if (py === gen) return false
+    if (lastSyncedFromBlocksRef.current && py === lastSyncedFromBlocksRef.current) return false
+    return true
+  }, [state.pythonCode, state.blocklyPython])
+
+  const blocksHavePython = useMemo(() => {
+    const lines = (state.blocklyPython || '')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l && !l.startsWith('#'))
+    return lines.length > 0
+  }, [state.blocklyPython])
+
+  const showCopyToast = (msg: string) => {
+    setCopyToast(msg)
+    window.setTimeout(() => setCopyToast(null), 2200)
+  }
+
+  const copyGeneratedToPythonTab = useCallback(() => {
+    const code = state.blocklyPython || ''
+    setPythonCode(code)
+    lastSyncedFromBlocksRef.current = code
+    setScriptMode('python')
+    SFX.coin()
+    showCopyToast('✓ Python скопирован — теперь редактируй вручную')
+  }, [state.blocklyPython])
+
+  const restorePythonFromBlocks = useCallback(() => {
+    const code = state.blocklyPython || ''
+    if (!code) return
+    setPythonCode(code)
+    lastSyncedFromBlocksRef.current = code
+    SFX.click()
+    showCopyToast('↺ Python восстановлен из блоков')
+  }, [state.blocklyPython])
 
   const handleSwitch = (mode: ScriptMode) => {
     SFX.click()
@@ -100,19 +155,70 @@ export default function ScriptTab() {
       </div>
 
       <div className={`script-body script-body--${mode}`}>
-        {/* Blocks mode — Blockly full-screen */}
+        {/* Blocks mode — Blockly full-screen + collapsible Python preview (D-14) */}
         {mode === 'blocks' && (
-          <section className="script-blocks-hero">
-            <BlocklyWorkspace
-              initialXml={state.blocklyXml}
-              onChange={(python, xml) => {
-                setBlocklyXml(xml)
-                setBlocklyPython(python)
-              }}
-            />
-            <FloatingHint>
-              Собирай свою программу из цветных блоков. Когда готово — нажми <strong>«▶ Тест»</strong>.
-            </FloatingHint>
+          <section className={`script-blocks-hero ${pyPreviewOpen ? 'with-preview' : ''}`}>
+            <div className="script-blocks-canvas">
+              <BlocklyWorkspace
+                initialXml={state.blocklyXml}
+                onChange={(python, xml) => {
+                  setBlocklyXml(xml)
+                  setBlocklyPython(python)
+                }}
+              />
+              {!pyPreviewOpen && (
+                <FloatingHint>
+                  Собирай свою программу из цветных блоков. Когда готово — нажми <strong>«▶ Тест»</strong>.
+                </FloatingHint>
+              )}
+            </div>
+
+            <div className={`blocks-codepreview ${pyPreviewOpen ? 'open' : 'closed'}`}>
+              <button
+                className="blocks-codepreview-toggle"
+                onClick={() => { SFX.click(); setPyPreviewOpen((v) => !v) }}
+                type="button"
+                aria-expanded={pyPreviewOpen}
+                title={pyPreviewOpen ? 'Свернуть код' : 'Показать сгенерированный Python'}
+              >
+                <span className="codepreview-icon">{pyPreviewOpen ? '▾' : '▸'}</span>
+                <span className="codepreview-label">
+                  {pyPreviewOpen
+                    ? 'Сгенерированный Python код'
+                    : '🐍 Показать код — увидеть свои блоки как Python'}
+                </span>
+                {!pyPreviewOpen && blocksHavePython && (
+                  <span className="codepreview-badge">live</span>
+                )}
+              </button>
+
+              {pyPreviewOpen && (
+                <div className="blocks-codepreview-body">
+                  <div className="blocks-codepreview-toolbar">
+                    <span className="codepreview-hint">
+                      🔁 обновляется автоматически при каждом изменении блоков
+                    </span>
+                    <button
+                      className="codepreview-copybtn"
+                      onClick={copyGeneratedToPythonTab}
+                      disabled={!blocksHavePython}
+                      type="button"
+                      title="Скопировать в Python-режим и переключиться туда"
+                    >
+                      → Скопировать в Python-таб
+                    </button>
+                  </div>
+                  <div className="blocks-codepreview-editor">
+                    <CodeMirrorPythonEditor
+                      code={debouncedBlocklyPython || '# собери блоки чтобы увидеть Python\n'}
+                      onChange={() => { /* read-only */ }}
+                      readOnly
+                    />
+                  </div>
+                  {copyToast && <div className="codepreview-toast">{copyToast}</div>}
+                </div>
+              )}
+            </div>
           </section>
         )}
 
@@ -144,11 +250,36 @@ export default function ScriptTab() {
           </section>
         )}
 
-        {/* Python mode — full editor (Monaco, lazy-loaded) */}
+        {/* Python mode — full editor (Monaco desktop / CodeMirror mobile, lazy) */}
         {mode === 'python' && (
           <section className="script-python-full">
+            {/* D-14: subtle hint that code can be (re)generated from blocks */}
+            {blocksHavePython && isPythonModified && (
+              <div className="python-syncbar">
+                <span className="python-syncbar-icon">🧱</span>
+                <span className="python-syncbar-text">
+                  Этот код можно сгенерировать из блоков
+                </span>
+                <button
+                  className="python-syncbar-btn"
+                  onClick={restorePythonFromBlocks}
+                  type="button"
+                  title="Заменить текущий Python тем, что собрано из блоков"
+                >
+                  ↺ Восстановить из блоков
+                </button>
+                <button
+                  className="python-syncbar-back"
+                  onClick={() => { SFX.click(); setScriptMode('blocks') }}
+                  type="button"
+                  title="Вернуться к блокам"
+                >
+                  ← К блокам
+                </button>
+              </div>
+            )}
             <Suspense fallback={<div className="py-editor-loading">Загружаем редактор…</div>}>
-              <PurePythonEditor
+              <SmartPythonEditor
                 code={state.pythonCode}
                 onChange={setPythonCode}
                 onRun={() => handleRun(state.pythonCode)}
@@ -157,6 +288,7 @@ export default function ScriptTab() {
               />
             </Suspense>
             {runResult && <div className="script-run-ok script-run-ok--floating">✓ {runResult}</div>}
+            {copyToast && <div className="codepreview-toast codepreview-toast--floating">{copyToast}</div>}
           </section>
         )}
       </div>

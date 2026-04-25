@@ -89,6 +89,16 @@ See **[MOBILE_BUILD.md](./MOBILE_BUILD.md)** for the full Capacitor 8 + PWA pipe
 
 ---
 
+## Asset optimization
+
+```bash
+npm run optimize:images   # walks public/, generates side-by-side .webp for every .png > 100 KB (quality 80)
+```
+
+Originals are kept (some loaders / textures still resolve `.png` directly), so the script is safe to re-run — it skips up-to-date `.webp` siblings. Use it before a release build to shrink medieval-village & stylized-nature texture packs (~60–70% savings on diffuse/normal maps).
+
+---
+
 ## Deployment
 
 | Target | Pipeline | URL |
