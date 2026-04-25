@@ -4,10 +4,14 @@ import {
   ForbiddenException,
   BadRequestException,
   Logger,
+  Optional,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { Lesson, LessonStatus, LessonUmk, LessonFocus } from './lesson.entity';
 import { LessonVersion, LessonVersionSource } from './lesson-version.entity';
 import { TenantContext } from '../../common/tenancy/tenant.context';
@@ -18,6 +22,11 @@ import {
   AiProvider,
   LessonGenerationInput,
 } from './providers/ai-provider.interface';
+import {
+  LESSON_QUEUE_NAME,
+  LESSON_GENERATE_JOB,
+  LessonJobData,
+} from './queue/lesson-queue.constants';
 
 /**
  * AI Pipeline orchestrator.
@@ -38,8 +47,14 @@ import {
  */
 
 @Injectable()
-export class AiPipelineService {
+export class AiPipelineService implements OnModuleInit {
   private readonly logger = new Logger(AiPipelineService.name);
+  /**
+   * When true, submit() bypasses the BullMQ queue and runs generation
+   * fire-and-forget in-process. Set automatically when Redis is unreachable
+   * at boot, or forced via USE_INPROCESS_AI=true (demo backup mode).
+   */
+  private useInProcessFallback = false;
 
   constructor(
     @InjectRepository(Lesson) private readonly lessons: Repository<Lesson>,
@@ -50,7 +65,43 @@ export class AiPipelineService {
     private readonly config: ConfigService,
     private readonly mockProvider: MockAiProvider,
     private readonly anthropicProvider: AnthropicProvider,
+    @Optional()
+    @InjectQueue(LESSON_QUEUE_NAME)
+    private readonly lessonQueue: Queue<LessonJobData> | null = null,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    const forceInProcess =
+      (process.env['USE_INPROCESS_AI'] ?? '').toLowerCase() === 'true';
+    if (forceInProcess) {
+      this.useInProcessFallback = true;
+      this.logger.warn(
+        'USE_INPROCESS_AI=true — bypassing BullMQ queue (demo backup mode)',
+      );
+      return;
+    }
+    if (!this.lessonQueue) {
+      this.useInProcessFallback = true;
+      this.logger.warn(
+        'BullMQ queue not wired (provider missing) — using in-process flow',
+      );
+      return;
+    }
+    // Ping Redis via the queue's underlying client. If it errors we degrade
+    // to the in-process flow rather than dropping requests on the floor.
+    try {
+      const client = await this.lessonQueue.client;
+      await client.ping();
+      this.logger.log(
+        `BullMQ queue '${LESSON_QUEUE_NAME}' connected — async generation enabled`,
+      );
+    } catch (err) {
+      this.useInProcessFallback = true;
+      this.logger.warn(
+        `Redis ping failed (${(err as Error).message}) — falling back to in-process AI flow`,
+      );
+    }
+  }
 
   /**
    * Submit a new lesson for AI generation. Returns the created Lesson row
@@ -93,7 +144,37 @@ export class AiPipelineService {
     });
     const saved = await this.lessons.save(lesson);
 
-    // Run synchronously for MVP — fire-and-forget, status updates via DB
+    if (!this.useInProcessFallback && this.lessonQueue) {
+      try {
+        await this.lessonQueue.add(
+          LESSON_GENERATE_JOB,
+          {
+            lessonId: saved.id,
+            requesterId,
+            tenantId: ctx.tenantId,
+            input: {
+              topicCode: input.topicCode,
+              grade: input.grade,
+              umk: input.umk,
+              focus: input.focus,
+              lessonMinutes: input.lessonMinutes,
+              bloomLevel: input.bloomLevel,
+              styleHints: input.styleHints,
+            },
+          },
+          { jobId: saved.id },
+        );
+        return saved;
+      } catch (err) {
+        // Queue rejected the job — Redis went away after boot. Don't strand
+        // the lesson row; fall through to in-process generation.
+        this.logger.error(
+          `Failed to enqueue lesson ${saved.id}: ${(err as Error).message} — falling back to in-process`,
+        );
+      }
+    }
+
+    // In-process fallback: fire-and-forget, status updates via DB.
     void this.runGeneration(saved.id, requesterId, input).catch((err) => {
       this.logger.error(`Generation failed for lesson ${saved.id}: ${err}`);
     });
