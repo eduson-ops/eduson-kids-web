@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'node:crypto';
 import { Classroom } from './classroom.entity';
@@ -96,27 +96,50 @@ export class StudentRosterService {
     }
 
     const tenantSlug = (tenant.slug ?? 'kid').replace(/[^a-z0-9]/gi, '').slice(0, 12);
+
+    // D-03: Pre-compute pins + Argon2id hashes in parallel BEFORE the
+    // transaction. Argon2id is intentionally CPU-heavy (~50-100ms each); it
+    // runs on the libuv worker pool (4 workers by default), so Promise.all
+    // overlaps work across cores while leaving the event loop free for other
+    // requests. For 50 students this drops ~2.5s sequential to ~600-800ms.
+    const pins = students.map(() => this.generatePin());
+    const passwordHashes = await Promise.all(
+      pins.map((pin) => argon2.hash(pin, { type: argon2.argon2id })),
+    );
+    const profiles = students.map((s) =>
+      this.piiCrypto.encryptObject({
+        firstName: s.firstName,
+        lastName: s.lastName ?? null,
+        birthYear: s.birthYear ?? null,
+      }),
+    );
+
     const created: CreatedStudent[] = [];
 
+    // D-04: Wrap in a transaction holding a tenant-keyed PostgreSQL advisory
+    // lock. The previous count(*) → seq+1 design had a race: two concurrent
+    // bulk-creates in the same tenant could both read N and both try to
+    // insert kub_<slug>_(N+1), failing the tenant_login UNIQUE index.
+    //
+    // pg_advisory_xact_lock(key) serializes only callers that pass the same
+    // key (per-tenant lock — different tenants stay parallel) and auto-releases
+    // at COMMIT/ROLLBACK. Chosen over SERIALIZABLE because the latter would
+    // serialize unrelated writes too.
     await this.dataSource.transaction(async (manager) => {
+      const lockKey = this.tenantLockKey(ctx.tenantId);
+      await manager.query('SELECT pg_advisory_xact_lock($1)', [lockKey]);
+
       const seqStart = await this.getNextSeq(manager, ctx.tenantId);
       for (let i = 0; i < students.length; i++) {
         const seq = (seqStart + i).toString().padStart(4, '0');
         const login = `${LOGIN_PREFIX}_${tenantSlug}_${seq}`;
-        const pin = this.generatePin();
-        const passwordHash = await argon2.hash(pin, { type: argon2.argon2id });
-
-        const profile = this.piiCrypto.encryptObject({
-          firstName: students[i].firstName,
-          lastName: students[i].lastName ?? null,
-          birthYear: students[i].birthYear ?? null,
-        });
+        const profile = profiles[i];
 
         const user = manager.create(User, {
           tenantId: ctx.tenantId,
           login,
           role: UserRole.CHILD,
-          passwordHash,
+          passwordHash: passwordHashes[i],
           classroomId,
           encryptedProfile: profile.ciphertext,
           profileIv: profile.iv,
@@ -131,7 +154,7 @@ export class StudentRosterService {
         created.push({
           id: saved.id,
           login,
-          pin,
+          pin: pins[i],
           firstName: students[i].firstName,
           lastName: students[i].lastName ?? null,
         });
@@ -144,15 +167,32 @@ export class StudentRosterService {
   }
 
   /**
-   * Find the next sequence number for the tenant. Counts existing CHILD users
-   * — race condition possible under concurrent bulk-creates within same tenant
-   * (rare in practice — a single teacher creates a class). Mitigated by
-   * transaction + repeating numbers fall back to retry on UNIQUE collision.
+   * Hash a tenant UUID into a 64-bit integer for `pg_advisory_xact_lock`.
+   * Uses the first 16 hex chars of the UUID (after stripping dashes), then
+   * shifts into the signed BIGINT range Postgres expects. Collisions are
+   * possible but harmless — at worst two unrelated tenants share a lock and
+   * one waits ~50ms.
    */
-  private async getNextSeq(manager: { count: Function }, tenantId: string): Promise<number> {
-    const count = (await (manager.count as any)(User, {
+  private tenantLockKey(tenantId: string): string {
+    const hex = tenantId.replace(/-/g, '').slice(0, 16);
+    let n = BigInt('0x' + hex);
+    // Coerce into signed 64-bit range expected by Postgres bigint arg.
+    const MAX = BigInt('0x7fffffffffffffff');
+    const SIGN = BigInt('0x8000000000000000');
+    if (n > MAX) n = n - SIGN;
+    return n.toString();
+  }
+
+  /**
+   * Find the next sequence number for the tenant. Race-safe inside the
+   * advisory-locked transaction in `bulkCreateStudents` (callers from
+   * different tenants run in parallel; same-tenant callers serialize on the
+   * tenant-keyed `pg_advisory_xact_lock`).
+   */
+  private async getNextSeq(manager: EntityManager, tenantId: string): Promise<number> {
+    const count = await manager.count(User, {
       where: { tenantId, role: UserRole.CHILD },
-    })) as number;
+    });
     return count + 1;
   }
 
@@ -178,13 +218,21 @@ export class StudentRosterService {
       order: { login: 'ASC' },
     });
 
+    // D-03: Pre-compute fresh PINs + Argon2id hashes in parallel before the
+    // transaction so the libuv worker pool overlaps the CPU-heavy hashing
+    // (~50-100ms each) across cores. 30 students drop from ~2s sequential to
+    // ~500ms on a 4-core box.
+    const newPins = students.map(() => this.generatePin());
+    const newHashes = await Promise.all(
+      newPins.map((pin) => argon2.hash(pin, { type: argon2.argon2id })),
+    );
+
     const result: CreatedStudent[] = [];
 
     await this.dataSource.transaction(async (manager) => {
-      for (const student of students) {
-        const newPin = this.generatePin();
-        const passwordHash = await argon2.hash(newPin, { type: argon2.argon2id });
-        await manager.update(User, { id: student.id }, { passwordHash });
+      for (let i = 0; i < students.length; i++) {
+        const student = students[i];
+        await manager.update(User, { id: student.id }, { passwordHash: newHashes[i] });
 
         let firstName = '';
         let lastName: string | null = null;
@@ -208,7 +256,7 @@ export class StudentRosterService {
         result.push({
           id: student.id,
           login: student.login,
-          pin: newPin,
+          pin: newPins[i],
           firstName,
           lastName,
         });
