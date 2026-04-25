@@ -2,7 +2,7 @@ import { useKeyboardControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CapsuleCollider, RigidBody, useRapier } from '@react-three/rapier'
 import type { RapierRigidBody } from '@react-three/rapier'
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
 import AvatarModel from './AvatarModel'
@@ -44,7 +44,7 @@ const GROUND_ACCEL = 15          // быстрота набора целевой
 const CAM_STIFFNESS = 120        // пружина камеры (k)
 const CAM_DAMPING = 14           // демпфер камеры (c)  — слегка underdamped для живости
 
-export default function Player({ avatar, startPos = [0, 3, 6] }: Props) {
+function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
   const body = useRef<RapierRigidBody>(null!)
   const visual = useRef<PlayerVisualHandle>(null!)
   const meshGroup = useRef<THREE.Group>(null!)
@@ -361,3 +361,11 @@ function lerpAngle(a: number, b: number, t: number) {
   const diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI
   return a + diff * t
 }
+
+// D-11: Player — главный hot-component, вызывается из GameScene с
+// stable `avatar` (от выше) и `spawn` (const-ref из pickWorld()).
+// useFrame внутри не вызывает re-render, но если родитель ре-рендерится
+// (например, из-за тика gameState), memo предотвратит лишний reconcile.
+// avatar — объект, в идеале родитель его мемоит; в худшем случае memo
+// просто бессилен (no-op), что безопасно.
+export default memo(PlayerImpl)

@@ -1,6 +1,6 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { Group } from 'three'
 import { useFrame } from '@react-three/fiber'
 
@@ -18,7 +18,7 @@ interface Props {
  * /public/models/npc-vendor.glb — сюда передаётся `modelUrl="/models/npc-vendor.glb"`
  * и рендерится она.
  */
-export default function NPC({ pos, modelUrl, label, bodyColor = '#ffd1e8' }: Props) {
+function NPCImpl({ pos, modelUrl, label, bodyColor = '#ffd1e8' }: Props) {
   const bob = useRef<Group>(null!)
 
   useFrame(() => {
@@ -43,6 +43,18 @@ export default function NPC({ pos, modelUrl, label, bodyColor = '#ffd1e8' }: Pro
     </group>
   )
 }
+
+// D-11: NPC из World*-компонентов с inline `pos={[...]}`/строковыми label/bodyColor.
+// Custom comparator: tuple-equality + primitive equality.
+const NPC = memo(NPCImpl, (prev, next) => (
+  prev.pos[0] === next.pos[0] &&
+  prev.pos[1] === next.pos[1] &&
+  prev.pos[2] === next.pos[2] &&
+  prev.modelUrl === next.modelUrl &&
+  prev.label === next.label &&
+  prev.bodyColor === next.bodyColor
+))
+export default NPC
 
 function GLBModel({ url }: { url: string }) {
   const gltf = useGLTF(url)

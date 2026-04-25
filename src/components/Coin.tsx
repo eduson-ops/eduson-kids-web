@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
-import { useRef, useState } from 'react'
+import { memo, useRef, useState } from 'react'
 import { Group } from 'three'
 import { addCoin } from '../lib/gameState'
 import { SFX } from '../lib/audio'
@@ -14,7 +14,7 @@ interface Props {
 // Pickup animation: -1 = idle, 0..COLLECT_DURATION = collapsing to sparkle
 const COLLECT_DURATION = 0.35
 
-export default function Coin({ pos, value = 1 }: Props) {
+function CoinImpl({ pos, value = 1 }: Props) {
   const rb = useRef<RapierRigidBody>(null!)
   const visual = useRef<Group>(null!)
   const collectT = useRef(-1)
@@ -82,3 +82,13 @@ export default function Coin({ pos, value = 1 }: Props) {
     </>
   )
 }
+
+// D-11: Coin'ов на сцене десятки (по trail трассы), inline `pos={[...]}` —
+// каждый ре-рендер мира создавал новый array-ref. Custom comparator
+// делает поэлементное сравнение tuple + value primitive.
+export default memo(CoinImpl, (prev, next) => (
+  prev.pos[0] === next.pos[0] &&
+  prev.pos[1] === next.pos[1] &&
+  prev.pos[2] === next.pos[2] &&
+  prev.value === next.value
+))

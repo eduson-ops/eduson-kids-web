@@ -139,7 +139,10 @@ export default defineConfig(({ command, mode }): UserConfig => {
     ],
     build: {
       target: 'es2020',
-      sourcemap: false,
+      // D-16: 'hidden' — карты ГЕНЕРЯТСЯ при build (доступны локально для post-mortem
+      // если что-то упадёт на демо), но без `//# sourceMappingURL=…` комментария
+      // в .js-бандлах — публично они не утекают (Capacitor/iOS бандлы тоже чисты).
+      sourcemap: 'hidden',
       chunkSizeWarningLimit: 2500,
       rollupOptions: {
         output: {

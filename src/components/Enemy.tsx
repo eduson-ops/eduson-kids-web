@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { enemyHit, shakeCamera } from '../lib/gameState'
 import { SFX } from '../lib/audio'
 
@@ -15,7 +15,7 @@ interface Props {
  * Летающий враг-капля. Патрулирует слева-направо, крутится.
  * Коллизия — сенсор, персонажа не сбивает в MVP (но можно добавить урон/респаун).
  */
-export default function Enemy({ pos, patrolX = 3, color = '#ff5464' }: Props) {
+function EnemyImpl({ pos, patrolX = 3, color = '#ff5464' }: Props) {
   const rb = useRef<RapierRigidBody>(null!)
   const t0 = useRef(Math.random() * 10)
 
@@ -87,3 +87,14 @@ export default function Enemy({ pos, patrolX = 3, color = '#ff5464' }: Props) {
     </RigidBody>
   )
 }
+
+// D-11: Enemy вызывается из World*-компонентов с inline `pos={[...]}` —
+// дефолтная shallow-compare видела бы новый массив каждый ре-рендер.
+// Comparator делает поэлементное сравнение tuple + остальные primitives.
+export default memo(EnemyImpl, (prev, next) => (
+  prev.pos[0] === next.pos[0] &&
+  prev.pos[1] === next.pos[1] &&
+  prev.pos[2] === next.pos[2] &&
+  prev.patrolX === next.patrolX &&
+  prev.color === next.color
+))
