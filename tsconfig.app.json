@@ -18,8 +18,8 @@
     /* Strict type checking — gradual enablement */
     "strict": true,
     "noImplicitOverride": true,
-    /* "noUncheckedIndexedAccess": true, */
-    /* "exactOptionalPropertyTypes": true, */
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
 
     /* Linting */
     "noUnusedLocals": true,
