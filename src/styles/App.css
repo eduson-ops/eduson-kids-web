@@ -390,8 +390,6 @@ body:has(.lobby-v2) {
   color: var(--muted);
   background: radial-gradient(circle at center, #1f2740 0%, #0b0f18 70%);
 }
-@keyframes spin { to { transform: rotate(360deg); } }
-
 .play-missing {
   min-height: 100vh;
   display: flex;
@@ -6599,8 +6597,6 @@ body:has(.lobby-v2) {
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
-
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ════════════════════════════════════════════════════
    EDUSON KIDS BRAND COMPONENTS v2.0
