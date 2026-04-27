@@ -9000,39 +9000,8 @@ body:has(.story-slide) { overflow: hidden; }
 
 /* ── iPhone SE / small Android (≤480px) ──────────────────────── */
 @media (max-width: 480px) {
-  /* Login card container: stop clamping to 480px — let it breathe. */
-  .app {
-    max-width: 100%;
-    padding: calc(env(safe-area-inset-top, 0px) + 24px)
-             max(16px, env(safe-area-inset-right, 0px))
-             max(20px, env(safe-area-inset-bottom, 0px))
-             max(16px, env(safe-area-inset-left, 0px));
-    gap: 16px;
-  }
-  .brand h1 { font-size: 26px; }
-  .logo { font-size: 44px; }
-  .tagline { font-size: 14px; }
   .card { padding: 18px; border-radius: 12px; }
   .code-input { font-size: 18px; padding: 12px; }
-
-  /* Lobby v2: remove 40px horizontal padding, respect safe-area. */
-  .lobby-v2 {
-    padding: calc(env(safe-area-inset-top, 0px) + 12px)
-             max(14px, env(safe-area-inset-right, 0px))
-             calc(env(safe-area-inset-bottom, 0px) + 90px)
-             max(14px, env(safe-area-inset-left, 0px));
-    max-width: 100%;
-  }
-  .lobby-topbar { gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-  .search-pill { padding: 10px 14px; }
-  .search-input { font-size: 16px; /* prevent iOS zoom */ }
-  .tab-chip { font-size: 20px; }
-  .tab-chips { gap: 14px; margin-bottom: 14px; }
-  .lobby-section-v2 { margin-bottom: 28px; }
-  .game-grid-v2 {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-  }
 
   /* HUD top bar: clear the notch, shrink horizontal padding. */
   .hud-top {
@@ -9112,12 +9081,6 @@ body:has(.story-slide) { overflow: hidden; }
   .goal-actions { flex-direction: column; }
   .goal-actions button { width: 100%; min-width: 0; }
 
-  /* Play FAB — keep clear of safe area. */
-  .play-fab {
-    bottom: max(16px, env(safe-area-inset-bottom, 0px));
-    right: max(16px, env(safe-area-inset-right, 0px));
-  }
-
   /* Any tooltip / tour popover — clamp to viewport. */
   .tour-tip {
     max-width: calc(100vw - 24px);
@@ -9128,23 +9091,7 @@ body:has(.story-slide) { overflow: hidden; }
 
 /* ── Worst-case 375px and below (iPhone SE 1st gen, tiny Androids) ── */
 @media (max-width: 375px) {
-  .app { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); gap: 12px; }
-  .brand h1 { font-size: 22px; }
-  .logo { font-size: 36px; }
   .card { padding: 14px; }
-
-  .lobby-v2 {
-    padding: calc(env(safe-area-inset-top, 0px) + 8px)
-             max(10px, env(safe-area-inset-right, 0px))
-             calc(env(safe-area-inset-bottom, 0px) + 80px)
-             max(10px, env(safe-area-inset-left, 0px));
-  }
-  .tab-chip { font-size: 18px; }
-  .tab-chips { gap: 10px; }
-  .game-grid-v2 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
   .hud-title { font-size: 12px; padding: 6px 10px; }
   .hud-pill { font-size: 12px; padding: 5px 8px; }
   .hud-btn { width: 44px; height: 44px; /* keep HIG target */ }
