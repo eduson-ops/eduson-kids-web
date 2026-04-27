@@ -10,6 +10,7 @@ import {
 } from './editorState'
 import ObjectScriptEditor from '../components/ObjectScriptEditor'
 import { pluralize } from '../lib/plural'
+import { DEG_TO_RAD } from '../lib/constants'
 
 interface Props {
   state: EditorState
@@ -146,10 +147,10 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                   <span>{axis.toUpperCase()}</span>
                   <NumberField
                     step={15}
-                    value={Math.round((selected.rotation[i] * 180) / Math.PI)}
+                    value={Math.round(selected.rotation[i] / DEG_TO_RAD)}
                     onCommit={(deg) => {
                       const rot = [...selected.rotation] as [number, number, number]
-                      rot[i] = (deg * Math.PI) / 180
+                      rot[i] = deg * DEG_TO_RAD
                       updatePart(selected.id, { rotation: rot })
                     }}
                   />
