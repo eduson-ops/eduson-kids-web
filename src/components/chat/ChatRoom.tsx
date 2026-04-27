@@ -354,6 +354,7 @@ export default function ChatRoom({ room, senderLogin, height = 480 }: Props) {
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={connected ? 'Написать сообщение… (Enter — отправить)' : 'Нет соединения…'}
+          aria-label="Сообщение в чат"
           disabled={!connected}
           rows={1}
           style={{

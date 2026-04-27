@@ -232,6 +232,7 @@ export default function NikselChat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={onKey}
               placeholder="Спроси что хочешь…"
+              aria-label="Сообщение Никселю"
               rows={1}
               disabled={sending}
             />

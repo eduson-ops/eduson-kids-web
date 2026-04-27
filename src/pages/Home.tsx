@@ -68,6 +68,7 @@ export default function Home() {
           <span aria-hidden>🔎</span>
           <input
             placeholder="Найти мир…"
+            aria-label="Поиск миров"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             style={{
