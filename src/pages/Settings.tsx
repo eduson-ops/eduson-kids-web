@@ -10,6 +10,7 @@ import {
   requestNotificationPermission,
 } from '../lib/streakReminder'
 import { CHILD_NAME_KEY } from '../lib/auth'
+import { QUALITY_KEY } from '../lib/deviceTier'
 
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
@@ -21,10 +22,10 @@ function setAvatarColor(c: string) {
 }
 
 function getQuality(): string {
-  return localStorage.getItem('ek_quality') ?? 'auto'
+  return localStorage.getItem(QUALITY_KEY) ?? 'auto'
 }
 function applyQuality(q: string) {
-  localStorage.setItem('ek_quality', q)
+  localStorage.setItem(QUALITY_KEY, q)
   window.dispatchEvent(new CustomEvent('ek:quality-change', { detail: { quality: q } }))
 }
 
