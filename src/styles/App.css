@@ -7915,7 +7915,6 @@ button:focus:not(:focus-visible) {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .path-node-pulse,
   .kb-streak-ring circle,
   .mascot-spark,
   .mascot-bubble,
