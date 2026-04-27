@@ -9,17 +9,18 @@ import {
   setStreakReminderEnabled,
   requestNotificationPermission,
 } from '../lib/streakReminder'
-import { CHILD_NAME_KEY } from '../lib/auth'
+import { CHILD_NAME_KEY, PARENT_NAME_KEY } from '../lib/auth'
 import { QUALITY_KEY } from '../lib/deviceTier'
 import { DAILY_GOAL_KEY } from '../lib/progress'
 
+const AVATAR_COLOR_KEY = 'ek_avatar_color'
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
 function getAvatarColor(): string {
-  return localStorage.getItem('ek_avatar_color') ?? AVATAR_COLORS[0]
+  return localStorage.getItem(AVATAR_COLOR_KEY) ?? AVATAR_COLORS[0]
 }
 function setAvatarColor(c: string) {
-  localStorage.setItem('ek_avatar_color', c)
+  localStorage.setItem(AVATAR_COLOR_KEY, c)
 }
 
 function getQuality(): string {
@@ -61,7 +62,7 @@ export default function Settings() {
 
   function handleSignOut() {
     localStorage.removeItem(CHILD_NAME_KEY)
-    localStorage.removeItem('ek_parent_name')
+    localStorage.removeItem(PARENT_NAME_KEY)
     navigate('/')
   }
 

@@ -22,14 +22,16 @@ import { useToast } from '../hooks/useToast'
  * В production: backend-роль, заявка на верификацию школы, SSO через Сферум.
  */
 
+const ROLE_KEY = 'ek_role'
+
 function isTeacherRole(): boolean {
   if (typeof window === 'undefined') return false
   const urlRole = new URLSearchParams(window.location.search).get('role')
   if (urlRole === 'teacher') {
-    localStorage.setItem('ek_role', 'teacher')
+    localStorage.setItem(ROLE_KEY, 'teacher')
     return true
   }
-  return localStorage.getItem('ek_role') === 'teacher'
+  return localStorage.getItem(ROLE_KEY) === 'teacher'
 }
 
 type Tab = 'classes' | 'progress' | 'assignments'

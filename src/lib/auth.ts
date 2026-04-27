@@ -12,6 +12,7 @@ export interface Session {
 
 const SESSION_KEY = 'ek_session'
 export const CHILD_NAME_KEY = 'ek_child_name'
+export const PARENT_NAME_KEY = 'ek_parent_name'
 export const ADMIN_KEY = 'ek_admin'
 
 export function loadSession(): Session | null {

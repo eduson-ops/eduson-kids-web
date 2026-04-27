@@ -9,7 +9,7 @@ import { useProgress } from '../hooks/useProgress'
 import { useMascotMood } from '../hooks/useMascotMood'
 import { ACHIEVEMENTS as ACH_DEFS } from '../lib/achievements'
 import { hasAchievement } from '../lib/progress'
-import { CHILD_NAME_KEY } from '../lib/auth'
+import { CHILD_NAME_KEY, PARENT_NAME_KEY } from '../lib/auth'
 import {
   getVkUser,
   getParentLink,
@@ -68,7 +68,7 @@ export default function Parent() {
 
   useEffect(() => {
     setChildName(localStorage.getItem(CHILD_NAME_KEY) ?? 'твой ребёнок')
-    setParentName(localStorage.getItem('ek_parent_name') ?? 'родитель')
+    setParentName(localStorage.getItem(PARENT_NAME_KEY) ?? 'родитель')
   }, [])
 
   // KPI агрегаты

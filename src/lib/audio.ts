@@ -2,6 +2,9 @@
 // Звуки генерируются on-the-fly через oscillator + envelope.
 // Для ambient music и сложных звуков потом подключим Howler.js + ассеты.
 
+const MUTED_KEY = MUTED_KEY
+const SFX_VOL_KEY = SFX_VOL_KEY
+
 let ctx: AudioContext | null = null
 let masterGain: GainNode | null = null
 let muted = false
@@ -105,7 +108,7 @@ export const SFX = {
 export function setMuted(m: boolean) {
   muted = m
   if (masterGain) masterGain.gain.value = m ? 0 : volume
-  localStorage.setItem('ek_muted', m ? '1' : '0')
+  localStorage.setItem(MUTED_KEY, m ? '1' : '0')
 }
 
 export function getMuted() {
@@ -115,7 +118,7 @@ export function getMuted() {
 export function setVolume(vol: number) {
   volume = Math.max(0, Math.min(1, vol))
   if (masterGain && !muted) masterGain.gain.value = volume
-  localStorage.setItem('ek_sfx_vol', String(Math.round(volume * 100)))
+  localStorage.setItem(SFX_VOL_KEY, String(Math.round(volume * 100)))
 }
 
 export function getVolume(): number {
@@ -124,8 +127,8 @@ export function getVolume(): number {
 
 // load persisted preference
 if (typeof window !== 'undefined') {
-  const savedMuted = localStorage.getItem('ek_muted')
+  const savedMuted = localStorage.getItem(MUTED_KEY)
   if (savedMuted === '1') muted = true
-  const savedVol = localStorage.getItem('ek_sfx_vol')
+  const savedVol = localStorage.getItem(SFX_VOL_KEY)
   if (savedVol !== null) volume = Math.max(0, Math.min(1, parseInt(savedVol, 10) / 100))
 }

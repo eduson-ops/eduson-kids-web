@@ -12,6 +12,8 @@ import StreakWidget from './StreakWidget'
  * Child / Parent / Teacher / Designbook nav group sets.
  */
 
+const SIDENAV_KEY = SIDENAV_KEY
+
 interface Props {
   children: ReactNode
   activeKey?: NavKey
@@ -166,7 +168,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
-    return localStorage.getItem('ek_sidenav_collapsed') === '1'
+    return localStorage.getItem(SIDENAV_KEY) === '1'
   })
 
   // Re-read session when route changes
@@ -181,7 +183,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
   const toggleCollapsed = () => {
     setCollapsed((v) => {
       const next = !v
-      try { localStorage.setItem('ek_sidenav_collapsed', next ? '1' : '0') } catch { /* quota */ }
+      try { localStorage.setItem(SIDENAV_KEY, next ? '1' : '0') } catch { /* quota */ }
       return next
     })
   }
