@@ -51,7 +51,7 @@ export default function StudioMobileBar({ tab, onTabChange }: Props) {
   return (
     <>
       {/* Затемнение-подложка для bottom sheet */}
-      {sheet && <div className="studio-sheet-backdrop" onClick={closeSheet} />}
+      {sheet && <div className="studio-sheet-backdrop" onClick={closeSheet} role="presentation" />}
 
       {/* Bottom sheets */}
       {sheet === 'palette' && (

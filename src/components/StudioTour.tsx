@@ -132,7 +132,7 @@ export default function StudioTour() {
   return (
     <>
       {/* Dark overlay с вырезом на таргете */}
-      <div className="tour-overlay" onClick={finish}>
+      <div className="tour-overlay" onClick={finish} role="presentation">
         {box && (
           <div
             className="tour-spotlight"

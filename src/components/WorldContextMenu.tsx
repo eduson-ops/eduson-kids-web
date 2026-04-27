@@ -129,7 +129,7 @@ export default function WorldContextMenu({ worldId }: Props) {
 
   return (
     <>
-      <div className="wctx-backdrop" onClick={close} />
+      <div className="wctx-backdrop" onClick={close} role="presentation" />
       <div className="wctx-menu" role="menu" aria-label="Контекстное меню объекта" style={style}>
         <header className="wctx-header">
           <span>Объект в ({ctx.pos[0].toFixed(1)}, {ctx.pos[1].toFixed(1)}, {ctx.pos[2].toFixed(1)})</span>

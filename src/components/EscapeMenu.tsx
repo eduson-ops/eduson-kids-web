@@ -35,7 +35,7 @@ export default function EscapeMenu({ gameTitle }: Props) {
   if (!open) return null
 
   return (
-    <div className="escape-overlay" onClick={() => setOpen(false)}>
+    <div className="escape-overlay" onClick={() => setOpen(false)} role="presentation">
       <div className="escape-menu" role="dialog" aria-modal="true" aria-label="Меню паузы" onClick={(e) => e.stopPropagation()}>
         <header className="escape-header">
           <h2>Пауза</h2>

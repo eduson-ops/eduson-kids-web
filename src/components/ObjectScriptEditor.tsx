@@ -121,7 +121,7 @@ export default function ObjectScriptEditor({ target, onClose }: Props) {
   }
 
   return (
-    <div className="obj-script-backdrop" onClick={onClose}>
+    <div className="obj-script-backdrop" onClick={onClose} role="presentation">
       <div className="obj-script-modal" role="dialog" aria-modal="true" aria-label="Скрипт объекта" onClick={(e) => e.stopPropagation()}>
         <header className="obj-script-header">
           <div>

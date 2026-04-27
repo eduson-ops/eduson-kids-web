@@ -212,8 +212,8 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
 
       {open && (
         <>
-          <div className="spawn-menu-backdrop" onClick={() => setOpen(false)} />
-          <div className="spawn-menu" onClick={(e) => e.stopPropagation()}>
+          <div className="spawn-menu-backdrop" onClick={() => setOpen(false)} role="presentation" />
+          <div className="spawn-menu" role="dialog" aria-modal="true" aria-label="Добавить объект в сцену" onClick={(e) => e.stopPropagation()}>
             <header className="spawn-menu-head">
               <nav className="spawn-menu-tabs">
                 <button
