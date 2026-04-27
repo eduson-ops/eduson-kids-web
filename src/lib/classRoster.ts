@@ -40,7 +40,7 @@ const CYR_MAP: Record<string, string> = {
   к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',
   х:'kh',ц:'ts',ч:'ch',ш:'sh',щ:'shch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya',
 }
-export function transliterate(str: string): string {
+function transliterate(str: string): string {
   return str
     .toLowerCase()
     .split('')
@@ -58,7 +58,7 @@ export function generateLogin(firstName: string, lastName: string, classSuffix: 
 }
 
 /** Генерация 6-значного PIN */
-export function generatePin(): string {
+function generatePin(): string {
   return String(Math.floor(100000 + Math.random() * 900000))
 }
 

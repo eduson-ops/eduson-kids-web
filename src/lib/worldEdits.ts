@@ -415,12 +415,6 @@ export function addSpawnedPart(p: Omit<SpawnedPart, 'id'>): string {
   emit()
   return id
 }
-export function removeSpawnedPart(id: string) {
-  state = { ...state, additions: state.additions.filter((s) => s.id !== id) }
-  persist()
-  emit()
-}
-
 // ─── Removed ──────────────────────────────────────────────
 export function getRemovedForWorld(worldId: string): Set<string> {
   return new Set(state.removed[worldId] ?? [])
@@ -432,7 +426,7 @@ export function addRemoved(worldId: string, posHash: string) {
   persist()
   emit()
 }
-export function clearRemovedForWorld(worldId: string) {
+function clearRemovedForWorld(worldId: string) {
   const next = { ...state.removed }
   delete next[worldId]
   state = { ...state, removed: next }
@@ -453,7 +447,7 @@ export function setRecolor(worldId: string, posHash: string, hex: string) {
   persist()
   emit()
 }
-export function clearRecolorsForWorld(worldId: string) {
+function clearRecolorsForWorld(worldId: string) {
   const next = { ...state.recolored }
   delete next[worldId]
   state = { ...state, recolored: next }

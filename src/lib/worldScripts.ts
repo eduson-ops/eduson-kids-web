@@ -65,14 +65,3 @@ export function getAllScriptsForWorld(worldId: string): Array<{ objectId: string
     .filter(([k]) => k.startsWith(prefix))
     .map(([k, script]) => ({ objectId: k.slice(prefix.length), script }))
 }
-
-export function clearWorld(worldId: string) {
-  const prefix = worldId + ':'
-  const next: ScriptsMap = {}
-  for (const [k, v] of Object.entries(state)) {
-    if (!k.startsWith(prefix)) next[k] = v
-  }
-  state = next
-  persist()
-  emit()
-}

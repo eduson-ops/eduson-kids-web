@@ -60,9 +60,6 @@ const ON_START_EMPTY = `<xml xmlns="https://developers.google.com/blockly/xml">
   <block type="ek_on_start" deletable="false" x="40" y="40"></block>
 </xml>`
 
-export const fwdXml = (steps: number) =>
-  `<block type="ek_move_forward"><field name="STEPS">${steps}</field></block>`
-
 // ─── Содержимое задач ──────────────────────────────────────────────
 // Маршрут — двигай пингвина из старта (0,0) в цель. Одна клетка = 1 шаг.
 // move_forward двигает по -Z, turn_left/turn_right поворачивают.
