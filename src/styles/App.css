@@ -2541,68 +2541,6 @@
   position: relative;
 }
 
-.py-editor-linenos {
-  flex-shrink: 0;
-  width: 48px;
-  padding: 12px 0;
-  background: #080c14;
-  color: #3d4760;
-  font-family: ui-monospace, Consolas, 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.55;
-  text-align: right;
-  overflow: hidden;
-  user-select: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.04);
-}
-.py-lineno { padding: 0 10px 0 0; }
-
-.py-editor-area {
-  flex: 1;
-  position: relative;
-  min-width: 0;
-  overflow: hidden;
-}
-.py-editor-highlight,
-.py-editor-textarea {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  padding: 12px 16px;
-  font-family: ui-monospace, Consolas, 'Courier New', monospace;
-  font-size: 13px;
-  line-height: 1.55;
-  white-space: pre;
-  word-wrap: normal;
-  overflow: auto;
-  tab-size: 4;
-  -moz-tab-size: 4;
-}
-.py-editor-highlight {
-  color: #dce0f1;
-  background: transparent;
-  pointer-events: none;
-  z-index: 1;
-}
-.py-editor-textarea {
-  background: transparent;
-  color: transparent;
-  caret-color: var(--yellow);
-  border: none;
-  outline: none;
-  resize: none;
-  z-index: 2;
-  -webkit-text-fill-color: transparent;
-}
-.py-editor-textarea::selection {
-  background: rgba(107, 92, 231, 0.35);
-  -webkit-text-fill-color: transparent;
-}
-.py-editor-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.2);
-  -webkit-text-fill-color: rgba(255, 255, 255, 0.2);
-}
-.py-editor-textarea:focus { outline: none; }
 
 /* Python syntax colors (для старого кастомного PythonPanel/моста) */
 .py-kw  { color: #ff79c6; font-weight: 700; }
