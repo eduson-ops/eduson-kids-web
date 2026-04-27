@@ -244,7 +244,7 @@ function ChildVkSection({ navigate }: { navigate: ReturnType<typeof useNavigate>
 
   const demoVk = () => {
     saveSession({ role: 'child', name: 'Никита (VK-демо)', login: 'demo-vk' })
-    localStorage.setItem('ek_child_name', 'Никита (VK-демо)')
+    localStorage.setItem(CHILD_NAME_KEY, 'Никита (VK-демо)')
     navigate('/')
   }
 
@@ -292,7 +292,7 @@ function ChildCodeSection({ navigate }: { navigate: ReturnType<typeof useNavigat
     const r = await apiLoginChildCode(childCode)
     const name = r?.user?.name ?? `Игрок-${childCode.slice(-3)}`
     saveSession({ role: 'child', name, login: childCode })
-    localStorage.setItem('ek_child_name', name)
+    localStorage.setItem(CHILD_NAME_KEY, name)
     navigate('/')
   }
 
@@ -337,7 +337,7 @@ function ChildGuestSection({ navigate }: { navigate: ReturnType<typeof useNaviga
     const r = await apiLoginGuest()
     const name = r?.user?.name ?? 'Гость'
     saveSession({ role: 'child', name, login: 'guest' })
-    localStorage.setItem('ek_child_name', name)
+    localStorage.setItem(CHILD_NAME_KEY, name)
     navigate('/')
   }
 

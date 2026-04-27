@@ -9,6 +9,7 @@ import {
   setStreakReminderEnabled,
   requestNotificationPermission,
 } from '../lib/streakReminder'
+import { CHILD_NAME_KEY } from '../lib/auth'
 
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
@@ -51,13 +52,13 @@ export default function Settings() {
   const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const n = localStorage.getItem('ek_child_name') ?? ''
+    const n = localStorage.getItem(CHILD_NAME_KEY) ?? ''
     setName(n)
     setNameInput(n)
   }, [])
 
   function handleSignOut() {
-    localStorage.removeItem('ek_child_name')
+    localStorage.removeItem(CHILD_NAME_KEY)
     localStorage.removeItem('ek_parent_name')
     navigate('/')
   }
@@ -65,7 +66,7 @@ export default function Settings() {
   function handleSaveName() {
     const trimmed = nameInput.trim()
     if (!trimmed) return
-    localStorage.setItem('ek_child_name', trimmed)
+    localStorage.setItem(CHILD_NAME_KEY, trimmed)
     setName(trimmed)
     setEditingName(false)
     showToast('✓ Имя сохранено', 'success')
