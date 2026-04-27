@@ -8,31 +8,47 @@ import {
   getState,
   setTool,
   subscribe,
+  undoEditor,
   type EditorState,
 } from './editorState'
 
-export default function BuildTab() {
+interface BuildTabProps {
+  isMobile?: boolean
+}
+
+export default function BuildTab({ isMobile = false }: BuildTabProps = {}) {
   const [state, setState] = useState<EditorState>(getState())
 
   useEffect(() => subscribe(setState), [])
 
-  // Hotkeys
+  // Hotkeys — match on KeyboardEvent.code (locale-safe, works on Russian layout).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // Пропускаем когда фокус в inputs
-      const target = e.target as HTMLElement
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return
+      // Пропускаем когда фокус в inputs / редакторах
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
 
-      if (e.key === 'v' || e.key === 'V') setTool('select')
-      else if (e.key === 'b' || e.key === 'B') setTool('place')
-      else if (e.key === 'Delete' || e.key === 'Backspace') {
-        const id = getState().selectedId
-        if (id) deletePart(id)
-      } else if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
+      const mod = e.ctrlKey || e.metaKey
+
+      // Ctrl/Cmd+Z → undo (last add/delete). First, catch the modifier shortcuts.
+      if (mod && e.code === 'KeyZ' && !e.shiftKey) {
+        e.preventDefault()
+        undoEditor()
+        return
+      }
+      if (mod && e.code === 'KeyD') {
         e.preventDefault()
         const id = getState().selectedId
         if (id) duplicatePart(id)
-      } else if (e.key === 'Escape') {
+        return
+      }
+
+      if (e.code === 'KeyV') setTool('select')
+      else if (e.code === 'KeyB') setTool('place')
+      else if (e.code === 'Delete' || e.code === 'Backspace') {
+        const id = getState().selectedId
+        if (id) deletePart(id)
+      } else if (e.code === 'Escape') {
         setTool('select')
       }
     }
@@ -42,16 +58,20 @@ export default function BuildTab() {
 
   return (
     <div className="studio-build">
-      <Palette state={state} />
+      {!isMobile && <Palette state={state} />}
       <div className="studio-viewport">
         <BuildScene state={state} />
         <div className="viewport-hint">
           {state.tool === 'place'
-            ? `Кликай по земле чтобы поставить ${placeLabel(state.placingType)}. ESC — отмена.`
-            : 'Клик на объект — выбрать. ПКМ + тащи — крути камеру.'}
+            ? isMobile
+              ? `Тапни по земле чтобы поставить ${placeLabel(state.placingType)}.`
+              : `Кликай по земле чтобы поставить ${placeLabel(state.placingType)}. ESC — отмена.`
+            : isMobile
+              ? 'Тап — выбрать. Один палец — крутить, два — зум/панорама.'
+              : 'Клик на объект — выбрать. ПКМ + тащи — крути камеру.'}
         </div>
       </div>
-      <PropertiesPanel state={state} />
+      {!isMobile && <PropertiesPanel state={state} />}
     </div>
   )
 }

@@ -4,14 +4,29 @@ import { useEffect, useRef, useState } from 'react'
  * Touch D-pad + jump button for mobile Play mode.
  * Dispatches keyboard events so the existing CharacterController reacts.
  * Only shown on touch devices.
+ *
+ * IMPORTANT: `@react-three/drei` <KeyboardControls> matches on KeyboardEvent.code
+ * (e.g. "KeyW"), not on `.key` — `.key` is locale-sensitive, so on a Russian-layout
+ * phone pressing the same physical key yields `key: "ц"` instead of `"w"` and the
+ * controller silently dies. Dispatch BOTH `code` and `key` to be bullet-proof.
  */
 
+// KeyboardEvent.code values — match what GameScene KEYS map expects.
+const CODES: Record<string, string> = {
+  up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', jump: 'Space',
+}
+// Fallback .key for any legacy listeners that still read `.key`.
 const KEYS: Record<string, string> = {
   up: 'w', down: 's', left: 'a', right: 'd', jump: ' ',
 }
 
-function fakeKey(key: string, type: 'keydown' | 'keyup') {
-  const e = new KeyboardEvent(type, { key, bubbles: true, cancelable: true })
+function fakeKey(btn: string, type: 'keydown' | 'keyup') {
+  const e = new KeyboardEvent(type, {
+    code: CODES[btn],
+    key: KEYS[btn],
+    bubbles: true,
+    cancelable: true,
+  })
   window.dispatchEvent(e)
 }
 
@@ -34,13 +49,13 @@ export default function MobileControls() {
   function press(btn: keyof BtnState) {
     if (pressed.current[btn]) return
     pressed.current[btn] = true
-    fakeKey(KEYS[btn], 'keydown')
+    fakeKey(btn, 'keydown')
   }
 
   function release(btn: keyof BtnState) {
     if (!pressed.current[btn]) return
     pressed.current[btn] = false
-    fakeKey(KEYS[btn], 'keyup')
+    fakeKey(btn, 'keyup')
   }
 
   function btnProps(btn: keyof BtnState) {

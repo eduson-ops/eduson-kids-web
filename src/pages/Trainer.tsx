@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import PuzzleEditor, { type PuzzleSolvedEvent } from '../components/PuzzleEditor'
+import DetectiveBoard from '../components/DetectiveBoard'
 import {
   getTrainer,
   getPuzzle,
@@ -168,7 +169,16 @@ export default function Trainer() {
         </div>
       </header>
 
-      <PuzzleEditor task={task} onSolved={handleSolved} onNext={goNext} />
+      {trainerId === 'detective' && (
+        <DetectiveBoard n={n} solvedCount={solvedCount} />
+      )}
+
+      <PuzzleEditor
+        task={task}
+        onSolved={handleSolved}
+        onNext={goNext}
+        initialMode={trainerId === 'detective' ? 'python' : 'blocks'}
+      />
 
       {toast && (
         <div className={`kb-toast kb-toast--${toast.kind}`} key={toast.key}>

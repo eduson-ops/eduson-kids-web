@@ -23,6 +23,7 @@
  *   - star    (⭐) — звезда
  */
 
+import { memo } from 'react'
 import type { CSSProperties } from 'react'
 
 export type NikselIconKind =
@@ -75,7 +76,7 @@ const SKY = '#5AA9FF'
  * Базовое тело пингвина + накладываемый «аксессуар» под kind.
  * Размер = 1:1, свёрнуто в 100×120 viewBox.
  */
-export default function NikselIcon({ kind, size = 64, bg, className, style, title }: Props) {
+function NikselIconInner({ kind, size = 64, bg, className, style, title }: Props) {
   const w = size
   const h = Math.round((size * 120) / 100)
 
@@ -114,6 +115,10 @@ export default function NikselIcon({ kind, size = 64, bg, className, style, titl
     </svg>
   )
 }
+
+export const NikselIcon = memo(NikselIconInner)
+NikselIcon.displayName = 'NikselIcon'
+export default NikselIcon
 
 function renderAccessory(kind: NikselIconKind) {
   switch (kind) {

@@ -167,7 +167,7 @@ export default function Studio() {
       window.clearTimeout(t1)
       window.clearTimeout(t2)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // ─── Глобальный Live-watcher (персистит между вкладками) ───

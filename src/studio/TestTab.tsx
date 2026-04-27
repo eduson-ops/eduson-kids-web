@@ -272,13 +272,13 @@ export default function TestTab({ state }: { state: EditorState }) {
   // useCallback — чтобы memo-сравнение в DynamicPart считало проп стабильным.
   const onPartTouched = useCallback((partId: string) => {
     void runObjectHandler(partId, 'on_touch')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Click события на объекты — ловим mesh.onClick в DynamicPart
   const onPartClicked = useCallback((partId: string) => {
     void runObjectHandler(partId, 'on_click')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // Key events — глобальный keydown раздаёт on_key_<Code> всем объектам,
@@ -294,7 +294,7 @@ export default function TestTab({ state }: { state: EditorState }) {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [])
 
   // stop_all — обрубаем tick-интервалы и команды, которые ещё в очереди

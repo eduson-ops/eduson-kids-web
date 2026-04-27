@@ -3,7 +3,7 @@
  * Wrapped in PlatformShell with activeKey="chat".
  */
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PlatformShell from '../components/PlatformShell'
 import ChatRoom from '../components/chat/ChatRoom'
 import { loadSession } from '../lib/auth'
@@ -52,9 +52,71 @@ export default function Chat() {
     activeTab === 'dm-teacher' ? roomDmTeacher :
     roomParentTeacher
 
-  // Check if socket is connected for the warning banner
+  // Check if socket is connected for the warning banner.
+  // Re-read on app:background / app:foreground / visibilitychange so the banner
+  // stays in sync when the OS disconnects us on lock-screen / app switch.
+  const [socketTick, setSocketTick] = useState(0)
+  useEffect(() => {
+    let socket: ReturnType<typeof getChatSocket> | null = null
+    try {
+      socket = getChatSocket()
+    } catch {
+      socket = null
+    }
+
+    const bump = () => setSocketTick((n) => n + 1)
+    socket?.on('connect', bump)
+    socket?.on('disconnect', bump)
+
+    // Mobile lifecycle: react to background/foreground.
+    // Actual disconnect/reconnect happens in ChatRoom.tsx — here we only
+    // refresh the banner. Listeners must be removed on unmount.
+    let hiddenAt = 0
+    const HIDDEN_GRACE_MS = 5000
+    let graceTimer: ReturnType<typeof setTimeout> | null = null
+
+    const onBg = () => {
+      // Socket disconnect is handled inside ChatRoom; just re-render the banner.
+      bump()
+    }
+    const onFg = () => {
+      bump()
+    }
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now()
+        if (graceTimer) clearTimeout(graceTimer)
+        graceTimer = setTimeout(() => {
+          if (document.visibilityState === 'hidden') bump()
+        }, HIDDEN_GRACE_MS)
+      } else {
+        if (graceTimer) {
+          clearTimeout(graceTimer)
+          graceTimer = null
+        }
+        if (hiddenAt && Date.now() - hiddenAt >= HIDDEN_GRACE_MS) bump()
+        hiddenAt = 0
+      }
+    }
+
+    window.addEventListener('app:background', onBg)
+    window.addEventListener('app:foreground', onFg)
+    document.addEventListener('visibilitychange', onVis)
+
+    return () => {
+      socket?.off('connect', bump)
+      socket?.off('disconnect', bump)
+      window.removeEventListener('app:background', onBg)
+      window.removeEventListener('app:foreground', onFg)
+      document.removeEventListener('visibilitychange', onVis)
+      if (graceTimer) clearTimeout(graceTimer)
+    }
+  }, [])
+
   let socketConnected = false
   try {
+    // Reference socketTick so React re-reads on tick changes.
+    void socketTick
     socketConnected = getChatSocket().connected
   } catch {
     socketConnected = false

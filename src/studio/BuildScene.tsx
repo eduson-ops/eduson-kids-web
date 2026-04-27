@@ -2,10 +2,16 @@ import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { MOUSE, TOUCH } from 'three'
 import GradientSky from '../components/GradientSky'
 import Sun from '../components/Sun'
 import { PieceGeometry } from '../components/BuildModeController'
 import { pieceSize, type BuildPieceKind } from '../lib/buildModeState'
+import { getShadowMapSize } from '../lib/deviceTier'
+
+// Размер теневой карты: 512 на low / 1024 medium / 2048 high.
+const SHADOW_MAP_SIZE = getShadowMapSize()
+// Когда появится postprocessing — оборачивать в `canPostfx()` условный рендер.
 import {
   addPart,
   getState,
@@ -204,8 +210,8 @@ export default function BuildScene({ state }: Props) {
         intensity={1.3}
         color="#fff3d8"
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={SHADOW_MAP_SIZE}
+        shadow-mapSize-height={SHADOW_MAP_SIZE}
         shadow-camera-near={0.5}
         shadow-camera-far={150}
         shadow-camera-left={-40}
@@ -233,9 +239,12 @@ export default function BuildScene({ state }: Props) {
         ref={controls}
         enableDamping
         dampingFactor={0.15}
+        makeDefault
+        touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
+        mouseButtons={{ LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN }}
         maxPolarAngle={Math.PI / 2 - 0.05}
         minDistance={3}
-        maxDistance={60}
+        maxDistance={80}
         target={[0, 1, 0]}
       />
     </Canvas>

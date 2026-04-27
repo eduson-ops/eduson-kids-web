@@ -5,7 +5,7 @@
  */
 
 import '@livekit/components-styles'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   LiveKitRoom,
@@ -169,6 +169,61 @@ export default function Room() {
   const [joining, setJoining] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [lkConnect, setLkConnect] = useState(true)
+  const needsReconnectRef = useRef(false)
+
+  // ── Mobile lifecycle: background → disconnect LiveKit, foreground → reconnect.
+  // Prevents reconnect storms + WebRTC state rot when the user locks the phone
+  // or switches apps. LiveKitRoom reacts to the `connect` prop.
+  useEffect(() => {
+    if (!token) return
+
+    let hiddenAt = 0
+    const HIDDEN_GRACE_MS = 5000
+    let graceTimer: ReturnType<typeof setTimeout> | null = null
+
+    const handleBackground = () => {
+      if (lkConnect) {
+        needsReconnectRef.current = true
+        setLkConnect(false)
+      }
+    }
+    const handleForeground = () => {
+      if (needsReconnectRef.current) {
+        needsReconnectRef.current = false
+        setLkConnect(true)
+      }
+    }
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now()
+        if (graceTimer) clearTimeout(graceTimer)
+        graceTimer = setTimeout(() => {
+          if (document.visibilityState === 'hidden') handleBackground()
+        }, HIDDEN_GRACE_MS)
+      } else {
+        if (graceTimer) {
+          clearTimeout(graceTimer)
+          graceTimer = null
+        }
+        if (hiddenAt && Date.now() - hiddenAt >= HIDDEN_GRACE_MS) {
+          handleForeground()
+        }
+        hiddenAt = 0
+      }
+    }
+
+    window.addEventListener('app:background', handleBackground)
+    window.addEventListener('app:foreground', handleForeground)
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      window.removeEventListener('app:background', handleBackground)
+      window.removeEventListener('app:foreground', handleForeground)
+      document.removeEventListener('visibilitychange', handleVisibility)
+      if (graceTimer) clearTimeout(graceTimer)
+    }
+  }, [token, lkConnect])
 
   const join = useCallback(async () => {
     const n = name.trim()
@@ -240,9 +295,13 @@ export default function Room() {
   return (
     <LiveKitRoom
       video token={token} serverUrl={serverUrl}
+      connect={lkConnect}
       data-lk-theme="default"
       style={{ height: '100vh' }}
-      onDisconnected={() => setToken(null)}
+      onDisconnected={() => {
+        // Only fully exit if this wasn't a mobile-lifecycle-triggered disconnect.
+        if (!needsReconnectRef.current) setToken(null)
+      }}
     >
       <EdusonConference roomId={safeRoom} onLeave={() => setToken(null)} />
     </LiveKitRoom>

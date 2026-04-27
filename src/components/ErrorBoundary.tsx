@@ -31,7 +31,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     // TODO: ship to backend telemetry endpoint when available.
-    // eslint-disable-next-line no-console
+     
     console.error('[ErrorBoundary] caught', error, info.componentStack)
   }
 
@@ -41,7 +41,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
 
   private handleReport = (): void => {
     const { error } = this.state
-    // eslint-disable-next-line no-console
+     
     console.warn('[ErrorBoundary] user-reported error', {
       message: error?.message,
       stack: error?.stack,

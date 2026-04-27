@@ -1,7 +1,7 @@
 // Role-based session model.
 // MVP: localStorage — in prod, hydrated from apiGetMe() on startup.
 
-export type Role = 'child' | 'parent' | 'teacher'
+export type Role = 'child' | 'parent' | 'teacher' | 'admin'
 
 export interface Session {
   role: Role

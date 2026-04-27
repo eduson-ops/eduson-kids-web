@@ -90,7 +90,6 @@ function QrPlaceholder({ url, size = 140 }: { url: string; size?: number }) {
     return cells
   }, [url])
 
-  const cell = size / 21
   return (
     <svg width={size} height={size} viewBox={`0 0 21 21`} aria-label="QR для верификации">
       <rect width="21" height="21" fill="#fff" />

@@ -47,7 +47,7 @@ export default function VkCallback() {
         sessionStorage.removeItem('ek_vk_next')
         // Показ 600мс «Готово» чтобы ребёнок успел увидеть что вход прошёл
         setTimeout(() => navigate(next, { replace: true }), 600)
-        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+         
         void user
       })
       .catch((e: Error) => {

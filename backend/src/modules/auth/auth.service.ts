@@ -225,7 +225,7 @@ export class AuthService {
     await this.userRepo.update(userId, { lastLoginAt: new Date() });
   }
 
-  private issueTokens(user: User): { accessToken: string; refreshToken: string } {
+  issueTokens(user: User): { accessToken: string; refreshToken: string } {
     const jti = require('crypto').randomBytes(16).toString('hex') as string;
 
     const accessPayload: JwtPayload = {

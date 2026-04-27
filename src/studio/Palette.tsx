@@ -9,6 +9,8 @@ import {
 
 interface Props {
   state: EditorState
+  variant?: 'desktop' | 'bottom-sheet'
+  onClose?: () => void
 }
 
 const PART_TYPES: Array<{
@@ -26,9 +28,17 @@ const PART_TYPES: Array<{
   { type: 'spawn',  label: 'Спавн',   emoji: '📍' },
 ]
 
-export default function Palette({ state }: Props) {
+export default function Palette({ state, variant = 'desktop', onClose }: Props) {
+  const isSheet = variant === 'bottom-sheet'
   return (
-    <aside className="studio-palette">
+    <aside className={isSheet ? 'studio-palette studio-palette--sheet' : 'studio-palette'}>
+      {isSheet && (
+        <div className="studio-sheet-header">
+          <div className="studio-sheet-grab" aria-hidden />
+          <h3 className="studio-sheet-title">Палитра</h3>
+          <button className="studio-sheet-close" onClick={onClose} aria-label="Закрыть">✕</button>
+        </div>
+      )}
       <section>
         <h4>Инструменты</h4>
         <div className="tool-row">

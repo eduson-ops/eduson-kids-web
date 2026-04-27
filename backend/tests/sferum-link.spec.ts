@@ -1,3 +1,4 @@
+import * as argon2 from 'argon2';
 import { SferumLinkService } from '../src/modules/auth/strategies/sferum-link.service';
 import { UserRole } from '../src/modules/auth/entities/user.entity';
 
@@ -148,5 +149,24 @@ describe('SferumLinkService.quickJoinAsChild', () => {
     expect(saved.role).toBe(UserRole.CHILD);
     expect(saved.tenantId).toBe(TENANT_ID);
     expect(saved.externalIds).toEqual({ sferum: 'cls12345:Petya' });
+  });
+
+  // Security: R14 — password must be a real argon2id hash, never the old
+  // plaintext-equivalent sentinel `__sferum_passthrough_<pin>__`.
+  it('stores a proper argon2id hash, not the plaintext sentinel (R14)', async () => {
+    const { service, usersRepo } = makeService({
+      classCode: 'cls12345',
+      archived: false,
+    });
+    await service.quickJoinAsChild('cls12345', 'Ivan');
+    const saved = (usersRepo.save as jest.Mock).mock.calls[0][0];
+    // argon2id encoded hashes always start with "$argon2id$"
+    expect(saved.passwordHash).toMatch(/^\$argon2id\$/);
+    // Must NOT contain the legacy sentinel
+    expect(saved.passwordHash).not.toContain('__sferum_passthrough_');
+    // Must be verifiable via argon2.verify (full round-trip check)
+    // The pin used internally is `sferum:<8 hex chars>`; we cannot recover it,
+    // so we only verify the hash format is structurally valid argon2.
+    await expect(argon2.verify(saved.passwordHash, 'wrong-pin')).resolves.toBe(false);
   });
 });

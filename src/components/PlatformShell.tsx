@@ -4,7 +4,8 @@ import { loadSession, clearSession } from '../lib/auth'
 import { NikselMini } from '../design/mascot/Niksel'
 import NikselChat from './NikselChat'
 import StreakWidget from './StreakWidget'
-import MobileBottomTabs from './MobileBottomTabs'
+// MobileBottomTabs заменён на MobileTabBar, монтируемый из MobileAppShell на уровне Routes.
+// Оставляем sidebar только для десктопа.
 
 /**
  * Platform shell v3 — role-based sidenav.
@@ -294,7 +295,6 @@ export default function PlatformShell({ children, activeKey }: Props) {
       <main className="kb-shell-main" id="kb-main-content" tabIndex={-1}>{children}</main>
       <StreakWidget />
       <NikselChat />
-      <MobileBottomTabs />
     </div>
   )
 }

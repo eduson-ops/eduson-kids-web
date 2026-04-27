@@ -120,6 +120,15 @@ def square(size=3, x=0, z=0, color="green"):
 def _reset():
     _commands.clear()
 
+# Override built-in print so output flows through _commands and can be checked.
+# Without this, print() writes to Pyodide stdout which we never read.
+def print(*args, sep=' ', end='\n', file=None, flush=False):
+    text = sep.join(str(a) for a in args)
+    if file is not None:
+        _emit("stderr", text=text)
+    else:
+        _emit("print", text=text)
+
 # ─── Tower of Code API (M4 капстон) ─────────────────────────
 _tower_sections = []
 

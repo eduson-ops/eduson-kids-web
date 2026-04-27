@@ -10,7 +10,7 @@ import { Request } from 'express';
 import { AuditService } from '../../modules/audit/audit.service';
 
 interface AuthenticatedRequest extends Request {
-  user?: { id: string; role: string };
+  user?: { sub: string; role: string };
 }
 
 @Injectable()
@@ -26,7 +26,7 @@ export class AuditInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap(() => {
-        const userId = req.user?.id;
+        const userId = req.user?.sub;
         const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.ip ?? '';
         const userAgent = req.headers['user-agent'] ?? '';
         const [, , resourceType, resourceId] = req.path.split('/').filter(Boolean);

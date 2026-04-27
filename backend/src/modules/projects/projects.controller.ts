@@ -12,6 +12,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import {
@@ -128,7 +129,7 @@ export class ProjectsController {
     // Note: rename/visibility patch implemented via direct repo call;
     // full impl inline to keep controller self-contained.
     // (See ProjectsService for thoroughfare; this is a delegation point.)
-    throw new Error('PATCH /projects/:id — to be implemented in next sprint');
+    throw new NotImplementedException('PATCH /projects/:id is not yet implemented');
   }
 
   @Delete(':id')

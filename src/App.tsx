@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import AchievementToast from './components/AchievementToast'
 import MobileAppShell from './components/MobileAppShell'
 import ErrorBoundary from './components/ErrorBoundary'
+import RequireRole from './lib/roleGuard'
 import { ensureAchievementsWatcher } from './lib/achievements'
 import { startStreakReminderWatcher } from './lib/streakReminder'
 import { seedDemoStateIfEmpty } from './lib/demoSeed'
@@ -253,9 +254,11 @@ export default function App() {
         <Route
           path="/parent"
           element={
-            <Suspense fallback={<RouteLoader label="Открываю кабинет родителя…" />}>
-              <Parent />
-            </Suspense>
+            <RequireRole role="parent">
+              <Suspense fallback={<RouteLoader label="Открываю кабинет родителя…" />}>
+                <Parent />
+              </Suspense>
+            </RequireRole>
           }
         />
         <Route
@@ -309,9 +312,11 @@ export default function App() {
         <Route
           path="/teacher"
           element={
-            <Suspense fallback={<RouteLoader label="Открываю кабинет учителя…" />}>
-              <Teacher />
-            </Suspense>
+            <RequireRole role={['teacher', 'admin']}>
+              <Suspense fallback={<RouteLoader label="Открываю кабинет учителя…" />}>
+                <Teacher />
+              </Suspense>
+            </RequireRole>
           }
         />
         <Route
@@ -355,13 +360,13 @@ export default function App() {
           }
         />
 
-        <Route path="/teacher/classes" element={<Suspense fallback={<RouteLoader label="Открываю классы…" />}><TeacherClasses /></Suspense>} />
-        <Route path="/trainers" element={<Suspense fallback={<RouteLoader label="Открываю тренажёры…" />}><TrainersHub /></Suspense>} />
-        <Route path="/trainers/:trainerId/:puzzleN" element={<Suspense fallback={<RouteLoader label="Открываю задачу…" />}><Trainer /></Suspense>} />
+        <Route path="/teacher/classes" element={<RequireRole role={['teacher', 'admin']}><Suspense fallback={<RouteLoader label="Открываю классы…" />}><TeacherClasses /></Suspense></RequireRole>} />
+        <Route path="/trainers" element={<RequireRole role={['teacher', 'admin']}><Suspense fallback={<RouteLoader label="Открываю тренажёры…" />}><TrainersHub /></Suspense></RequireRole>} />
+        <Route path="/trainers/:trainerId/:puzzleN" element={<RequireRole role={['teacher', 'admin']}><Suspense fallback={<RouteLoader label="Открываю задачу…" />}><Trainer /></Suspense></RequireRole>} />
         <Route path="/python-ide" element={<Suspense fallback={<RouteLoader label="Открываю Python IDE…" />}><PythonIDE /></Suspense>} />
         <Route path="/chat" element={<Suspense fallback={<RouteLoader label="Открываю чат…" />}><Chat /></Suspense>} />
         <Route path="/room/:roomId" element={<Suspense fallback={<RouteLoader label="Подключаюсь к занятию…" />}><Room /></Suspense>} />
-        <Route path="/admin" element={<Suspense fallback={<RouteLoader label="Открываю администрирование…" />}><AdminPanel /></Suspense>} />
+        <Route path="/admin" element={<RequireRole role="admin"><Suspense fallback={<RouteLoader label="Открываю администрирование…" />}><AdminPanel /></Suspense></RequireRole>} />
 
         {/* /character — исторический псевдоним. Настоящий 3D-редактор героя живёт в /profile. */}
         <Route path="/character" element={<Navigate to="/profile" replace />} />

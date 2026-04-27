@@ -76,11 +76,74 @@ export default function ChatRoom({ room, senderLogin, height = 480 }: Props) {
       })
     })
 
+    // ── Mobile lifecycle: disconnect on background, reconnect on foreground ──
+    // Prevents reconnect-storms + duplicate messages when the user locks phone
+    // or switches apps. Relies on `app:background` / `app:foreground` events
+    // dispatched by MobileAppShell via Capacitor + visibilitychange.
+    let needsReconnect = false
+    let hiddenAt = 0
+    const HIDDEN_GRACE_MS = 5000
+
+    const handleBackground = () => {
+      if (socket.connected) {
+        needsReconnect = true
+        try {
+          socket.disconnect()
+        } catch {
+          // ignore
+        }
+      }
+    }
+    const handleForeground = () => {
+      if (!needsReconnect) return
+      needsReconnect = false
+      try {
+        socket.connect()
+        // Re-emit join so the server re-subscribes us to the room + resends history.
+        // `onHistory` listener above replaces messages, so duplicates are avoided.
+        // TODO: if no `history` event comes back after reconnect, fall back to REST fetch.
+        joinRoom(room)
+      } catch {
+        // ignore
+      }
+    }
+
+    // Web fallback: visibilitychange. Only fires the disconnect path after a
+    // grace period so brief tab-switches don't thrash the connection.
+    let graceTimer: ReturnType<typeof setTimeout> | null = null
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now()
+        if (graceTimer) clearTimeout(graceTimer)
+        graceTimer = setTimeout(() => {
+          if (document.visibilityState === 'hidden') handleBackground()
+        }, HIDDEN_GRACE_MS)
+      } else {
+        if (graceTimer) {
+          clearTimeout(graceTimer)
+          graceTimer = null
+        }
+        // Only reconnect if we actually disconnected (i.e. was hidden > grace).
+        if (hiddenAt && Date.now() - hiddenAt >= HIDDEN_GRACE_MS) {
+          handleForeground()
+        }
+        hiddenAt = 0
+      }
+    }
+
+    window.addEventListener('app:background', handleBackground)
+    window.addEventListener('app:foreground', handleForeground)
+    document.addEventListener('visibilitychange', handleVisibility)
+
     return () => {
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
       cleanHistory()
       cleanMessage()
+      window.removeEventListener('app:background', handleBackground)
+      window.removeEventListener('app:foreground', handleForeground)
+      document.removeEventListener('visibilitychange', handleVisibility)
+      if (graceTimer) clearTimeout(graceTimer)
     }
   }, [room])
 
@@ -106,6 +169,7 @@ export default function ChatRoom({ room, senderLogin, height = 480 }: Props) {
 
   return (
     <div
+      className="ek-chat-room"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -258,13 +322,16 @@ export default function ChatRoom({ room, senderLogin, height = 480 }: Props) {
 
       {/* Input row */}
       <div
+        className="chat-composer"
         style={{
           display: 'flex',
           gap: 8,
           padding: '10px 12px',
+          paddingBottom: 'calc(10px + var(--kb-height, 0px))',
           borderTop: '1px solid var(--border, #e5e2f0)',
           background: 'var(--paper, #fffbf3)',
           alignItems: 'flex-end',
+          transition: 'padding-bottom 180ms ease',
         }}
       >
         <textarea
@@ -281,12 +348,12 @@ export default function ChatRoom({ room, senderLogin, height = 480 }: Props) {
             borderRadius: 10,
             border: '1px solid var(--border, #e5e2f0)',
             padding: '8px 12px',
-            fontSize: 14,
+            fontSize: 16, /* ≥16 prevents iOS input zoom */
             fontFamily: 'inherit',
             background: 'var(--bg, #fff)',
             color: '#15141b',
             outline: 'none',
-            minHeight: 38,
+            minHeight: 44,
             maxHeight: 100,
             overflow: 'auto',
           }}

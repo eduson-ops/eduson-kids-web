@@ -4,6 +4,13 @@
 
 import type { PuzzleTask, CheckKind } from './puzzles'
 import { runPython } from './pyodide-executor'
+import {
+  ANGLE_RANGE,
+  OUTPUT_PREVIEW_LIMIT,
+  SIM_BOUNDS,
+  SIM_DEFAULT_ANGLE,
+  USES_FEATURE_MIN_CALLS,
+} from './constants'
 
 export interface CheckResult {
   passed: boolean
@@ -38,11 +45,11 @@ function newSim(startX = 0, startZ = 0): SimState {
   return {
     x: startX,
     z: startZ,
-    angleDeg: 0,
-    minX: -20,
-    maxX: 20,
-    minZ: -20,
-    maxZ: 20,
+    angleDeg: SIM_DEFAULT_ANGLE,
+    minX: SIM_BOUNDS.MIN_X,
+    maxX: SIM_BOUNDS.MAX_X,
+    minZ: SIM_BOUNDS.MIN_Z,
+    maxZ: SIM_BOUNDS.MAX_Z,
     outOfBounds: false,
   }
 }
@@ -59,16 +66,16 @@ export function simulatePlayer(cmds: RawCommand[], startX = 0, startZ = 0): SimS
   for (const c of cmds) {
     if (c.op === 'player_turn') {
       const deg = typeof c.degrees === 'number' ? c.degrees : 0
-      sim.angleDeg = (sim.angleDeg + deg) % 360
+      sim.angleDeg = (sim.angleDeg + deg) % ANGLE_RANGE.FULL_CIRCLE
       // нормализуем в [−180, 180]
-      if (sim.angleDeg > 180) sim.angleDeg -= 360
-      if (sim.angleDeg < -180) sim.angleDeg += 360
+      if (sim.angleDeg > ANGLE_RANGE.MAX) sim.angleDeg -= ANGLE_RANGE.FULL_CIRCLE
+      if (sim.angleDeg < ANGLE_RANGE.MIN) sim.angleDeg += ANGLE_RANGE.FULL_CIRCLE
     } else if (c.op === 'player_move') {
       const dx = typeof c.dx === 'number' ? c.dx : 0
       const dz = typeof c.dz === 'number' ? c.dz : 0
       // Применяем поворот к (dx, dz). angleDeg кратен 90°.
       // При angle=0 (смотрит по −Z), вперёд = dz<0. Это и есть базовое направление.
-      const a = ((sim.angleDeg % 360) + 360) % 360
+      const a = ((sim.angleDeg % ANGLE_RANGE.FULL_CIRCLE) + ANGLE_RANGE.FULL_CIRCLE) % ANGLE_RANGE.FULL_CIRCLE
       let fx = 0
       let fz = 0
       if (a === 0) {
@@ -250,7 +257,7 @@ function checkOutputMatch(
       return {
         passed: false,
         message: 'Количество строк не совпадает.',
-        details: `Ожидается ${expected.length}, получено ${lines.length}. Получено: [${lines.slice(0, 6).join(', ')}${lines.length > 6 ? '…' : ''}]`,
+        details: `Ожидается ${expected.length}, получено ${lines.length}. Получено: [${lines.slice(0, OUTPUT_PREVIEW_LIMIT).join(', ')}${lines.length > OUTPUT_PREVIEW_LIMIT ? '…' : ''}]`,
       }
     }
     for (let i = 0; i < expected.length; i++) {
@@ -271,7 +278,7 @@ function checkOutputMatch(
       return {
         passed: false,
         message: 'В выводе не хватает ожидаемой строки.',
-        details: `Не найдена строка «${e}». Напечатано: [${lines.slice(0, 6).join(', ')}${lines.length > 6 ? '…' : ''}]`,
+        details: `Не найдена строка «${e}». Напечатано: [${lines.slice(0, OUTPUT_PREVIEW_LIMIT).join(', ')}${lines.length > OUTPUT_PREVIEW_LIMIT ? '…' : ''}]`,
       }
     }
   }
@@ -299,7 +306,7 @@ function checkUsesFeature(
       // минимум 3 вызова функций (не считая встроенные для проверки).
       // Считаем число вызовов идентификатор(... — любых.
       const matches = clean.match(/\b[A-Za-z_а-яА-Я][A-Za-z_0-9а-яА-Я]*\s*\(/g) ?? []
-      if (matches.length < 3) missing.push('≥3 вызовов функций')
+      if (matches.length < USES_FEATURE_MIN_CALLS) missing.push(`≥${USES_FEATURE_MIN_CALLS} вызовов функций`)
       continue
     }
     const rx = checks[req]

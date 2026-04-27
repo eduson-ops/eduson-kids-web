@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Niksel from '../design/mascot/Niksel'
-import { NikselMini, NikselMiniChat } from '../design/mascot/Niksel'
+import { NikselMiniChat } from '../design/mascot/Niksel'
 import { askNiksel, type ChatMessage } from '../lib/nikselChat'
 
 /**

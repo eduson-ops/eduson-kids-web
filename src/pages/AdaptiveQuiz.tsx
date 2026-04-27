@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
 import { pluralize } from '../lib/plural'
+import { QUIZ_CONFIG, QUIZ_LEVELS, type QuizLevel } from '../lib/constants'
 
 /**
  * /quiz/adaptive — адаптивный квиз (prompt 2.2 из аудита).
@@ -18,7 +19,7 @@ import { pluralize } from '../lib/plural'
 
 interface Question {
   id: string
-  level: 1 | 2 | 3 | 4 | 5
+  level: QuizLevel
   text: string
   options: string[]
   correct: number
@@ -203,7 +204,7 @@ function TopicPicker({ onPick }: { onPick: (id: TopicId) => void }) {
 type Phase = 'question' | 'feedback' | 'win' | 'lose'
 
 function QuizRunner({ topic, onExit }: { topic: Topic; onExit: () => void }) {
-  const [level, setLevel] = useState<1 | 2 | 3 | 4 | 5>(3)
+  const [level, setLevel] = useState<QuizLevel>(QUIZ_CONFIG.START_LEVEL)
   const [streak, setStreak] = useState(0)
   const [asked, setAsked] = useState(0)
   const [currentQ, setCurrentQ] = useState<Question | null>(null)
@@ -215,7 +216,7 @@ function QuizRunner({ topic, onExit }: { topic: Topic; onExit: () => void }) {
 
   // Выбрать новый вопрос на текущем уровне (не повторяя)
   const pickQuestion = useMemo(() => {
-    return (currentLevel: 1 | 2 | 3 | 4 | 5): Question | null => {
+    return (currentLevel: QuizLevel): Question | null => {
       const asked = new Set(history.map((h, i) => `${h.levelAt}-${i}`))
       const pool = topic.bank.filter((q) => q.level === currentLevel && !asked.has(q.id))
       if (pool.length === 0) {
@@ -242,22 +243,22 @@ function QuizRunner({ topic, onExit }: { topic: Topic; onExit: () => void }) {
     if (correct) {
       const newStreak = streak + 1
       setStreak(newStreak)
-      // Победа: 5 правильных подряд на L≥3
-      if (newStreak >= 5 && level >= 3) {
+      // Победа: WIN_STREAK правильных подряд на L≥WIN_LEVEL
+      if (newStreak >= QUIZ_CONFIG.WIN_STREAK && level >= QUIZ_CONFIG.WIN_LEVEL) {
         setPhase('win')
         return
       }
-      // Повысить уровень (но не выше 5)
-      if (level < 5) setLevel((level + 1) as 1 | 2 | 3 | 4 | 5)
+      // Повысить уровень (но не выше QUIZ_LEVELS.MAX)
+      if (level < QUIZ_LEVELS.MAX) setLevel((level + 1) as QuizLevel)
     } else {
       setStreak(0)
-      // Понизить уровень (но не ниже 1)
-      if (level > 1) setLevel((level - 1) as 1 | 2 | 3 | 4 | 5)
+      // Понизить уровень (но не ниже QUIZ_LEVELS.MIN)
+      if (level > QUIZ_LEVELS.MIN) setLevel((level - 1) as QuizLevel)
     }
     setPhase('feedback')
-    // Поражение: 8 вопросов и стрик < 5
-    if (asked + 1 >= 8 && (streak + (correct ? 1 : 0)) < 5) {
-      setTimeout(() => setPhase('lose'), 1500)
+    // Поражение: MAX_QUESTIONS вопросов и стрик < WIN_STREAK
+    if (asked + 1 >= QUIZ_CONFIG.MAX_QUESTIONS && (streak + (correct ? 1 : 0)) < QUIZ_CONFIG.WIN_STREAK) {
+      setTimeout(() => setPhase('lose'), QUIZ_CONFIG.LOSE_DELAY_MS)
     }
   }
 
@@ -268,7 +269,7 @@ function QuizRunner({ topic, onExit }: { topic: Topic; onExit: () => void }) {
   }
 
   const onRestart = () => {
-    setLevel(3)
+    setLevel(QUIZ_CONFIG.START_LEVEL)
     setStreak(0)
     setAsked(0)
     setCurrentQ(null)
@@ -297,8 +298,8 @@ function QuizRunner({ topic, onExit }: { topic: Topic; onExit: () => void }) {
           <span className="kb-card" style={{ padding: '6px 12px', margin: 0 }}>
             Уровень <strong style={{ color: 'var(--violet)' }}>L{level}</strong>
           </span>
-          <span className="kb-card" style={{ padding: '6px 12px', margin: 0, background: streak >= 3 ? 'var(--yellow-soft)' : undefined }}>
-            🔥 Стрик <strong>{streak}</strong>/5
+          <span className="kb-card" style={{ padding: '6px 12px', margin: 0, background: streak >= QUIZ_CONFIG.HOT_STREAK ? 'var(--yellow-soft)' : undefined }}>
+            🔥 Стрик <strong>{streak}</strong>/{QUIZ_CONFIG.WIN_STREAK}
           </span>
           <span className="kb-card" style={{ padding: '6px 12px', margin: 0 }}>
             Вопрос <strong>{asked + (phase === 'question' ? 1 : 0)}</strong>

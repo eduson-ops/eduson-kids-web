@@ -7,38 +7,26 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  UnauthorizedException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
-import * as crypto from 'crypto';
-import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Subscription, SubscriptionStatus } from './subscription.entity';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/strategies/jwt.strategy';
+import { BillingService } from './billing.service';
 
 @ApiTags('billing')
 @Controller('billing')
 export class BillingController {
-  constructor(
-    @InjectRepository(Subscription) private subRepo: Repository<Subscription>,
-    private config: ConfigService,
-  ) {}
+  constructor(private readonly billingService: BillingService) {}
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('subscription')
   async getSubscription(@CurrentUser() user: JwtPayload) {
-    const sub = await this.subRepo.findOne({
-      where: { userId: user.sub, status: SubscriptionStatus.ACTIVE },
-      order: { createdAt: 'DESC' },
-    });
+    const sub = await this.billingService.getActiveSubscription(user.sub);
     return sub ?? { status: 'none' };
   }
 
@@ -51,31 +39,9 @@ export class BillingController {
   @Post('webhook/yukassa')
   @HttpCode(HttpStatus.OK)
   async yukassaWebhook(@Body() body: unknown, @Req() req: Request) {
-    const hmacSecret = this.config.get<string>('yukassa.webhookHmacSecret') ?? '';
-    // Fail closed: without a configured secret, we CANNOT verify — refuse to process.
-    // This prevents an attacker from forging payment events in environments where the
-    // secret was accidentally unset.
-    if (!hmacSecret) {
-      throw new ServiceUnavailableException(
-        'YuKassa webhook HMAC secret is not configured on this server',
-      );
-    }
-
     const signature = (req.headers['x-yukassa-signature'] as string | undefined) ?? '';
-    const expected = crypto
-      .createHmac('sha256', hmacSecret)
-      .update(JSON.stringify(body))
-      .digest('hex');
-
-    const sigBuf = Buffer.from(signature, 'hex');
-    const expBuf = Buffer.from(expected, 'hex');
-    const valid =
-      sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf);
-    if (!valid) {
-      throw new UnauthorizedException('Invalid webhook signature');
-    }
-
-    // TODO: process YuKassa payment event
+    this.billingService.verifyYukassaHmac(body, signature);
+    await this.billingService.processYukassaEvent(body);
     return { received: true };
   }
 
@@ -84,10 +50,7 @@ export class BillingController {
   @Post('cancel-auto-renew')
   @HttpCode(HttpStatus.OK)
   async cancelAutoRenew(@CurrentUser() user: JwtPayload) {
-    await this.subRepo.update(
-      { userId: user.sub, status: SubscriptionStatus.ACTIVE },
-      { autoRenew: false },
-    );
+    await this.billingService.cancelAutoRenew(user.sub);
     return { autoRenew: false };
   }
 }

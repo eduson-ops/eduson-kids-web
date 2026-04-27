@@ -1,169 +1,49 @@
 // Главный компонент решения пазла.
 // 3 колонки: задача | редактор | превью — всё на 1 экране без прокрутки.
 
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import type { PuzzleTask } from '../lib/puzzles'
-import { checkSolution, simulatePlayer, type CheckResult, type RawCommand } from '../lib/checkSolution'
-import { runPython, warmPyodide } from '../lib/pyodide-executor'
+import { simulatePlayer } from '../lib/checkSolution'
+import type { RawCommand } from '../lib/types'
 import HintLadder from './HintLadder'
 import Niksel from '../design/mascot/Niksel'
-import type { MascotMood } from '../hooks/useMascotMood'
+import { usePuzzleEditor } from '../hooks/usePuzzleEditor'
+import type { PuzzleSolvedEvent } from '../hooks/usePuzzleEditor'
 
-const PurePythonEditor = lazy(() => import('./PurePythonEditor'))
+const SmartPythonEditor = lazy(() => import('./SmartPythonEditor'))
 const BlocklyWorkspace = lazy(() => import('./BlocklyWorkspace'))
 
-type EditorMode = 'blocks' | 'python'
-
-export interface PuzzleSolvedEvent {
-  task: PuzzleTask
-  result: CheckResult
-  hintsUsed: number
-}
+export type { PuzzleSolvedEvent }
 
 interface Props {
   task: PuzzleTask
   onSolved?: (ev: PuzzleSolvedEvent) => void
   onNext?: () => void
-  initialMode?: EditorMode
+  initialMode?: 'blocks' | 'python'
 }
 
 export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'blocks' }: Props) {
-  const [mode, setMode] = useState<EditorMode>(initialMode)
-  const [blocklyXml, setBlocklyXml] = useState<string>(
-    task.starterBlocks ??
-      '<xml xmlns="https://developers.google.com/blockly/xml"><block type="ek_on_start" deletable="false" x="40" y="40"></block></xml>',
-  )
-  const [blocklyPython, setBlocklyPython] = useState<string>('')
-  const [pythonCode, setPythonCode] = useState<string>(task.starterPython ?? '')
-  const [isRunning, setIsRunning] = useState(false)
-  const [runError, setRunError] = useState<string | null>(null)
-  const [checkResult, setCheckResult] = useState<CheckResult | null>(null)
-  const [lastCommands, setLastCommands] = useState<RawCommand[]>([])
-  const [lastStdout, setLastStdout] = useState<string[]>([])
-  const [revealed, setRevealed] = useState(0)
-  const [mood, setMood] = useState<MascotMood>('think')
-  const reportedRef = useRef(false)
-
-  useEffect(() => {
-    setBlocklyXml(
-      task.starterBlocks ??
-        '<xml xmlns="https://developers.google.com/blockly/xml"><block type="ek_on_start" deletable="false" x="40" y="40"></block></xml>',
-    )
-    setBlocklyPython('')
-    setPythonCode(task.starterPython ?? '')
-    setRunError(null)
-    setCheckResult(null)
-    setLastCommands([])
-    setLastStdout([])
-    setRevealed(0)
-    setMood('think')
-    setMode(initialMode)
-    reportedRef.current = false
-  }, [task, initialMode])
-
-  useEffect(() => {
-    warmPyodide().catch((e) => {
-      console.warn('Pyodide warmup failed:', e)
-    })
-  }, [])
-
-  const currentCode = mode === 'blocks' ? blocklyPython : pythonCode
-
-  const isPreviewStdout =
-    task.check.kind === 'output-match' || task.check.kind === 'uses-feature'
-
-  const handleRun = useCallback(async () => {
-    if (isRunning) return
-    setIsRunning(true)
-    setRunError(null)
-    setCheckResult(null)
-    setMood('code')
-    try {
-      const cmds = (await runPython(currentCode)) as RawCommand[]
-      setLastCommands(cmds)
-      const stdout = cmds
-        .filter((c) => c.op === 'print')
-        .map((c) => (typeof c.text === 'string' ? c.text : ''))
-      setLastStdout(stdout)
-      setMood('idle')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      setRunError(message)
-      setMood('confused')
-    } finally {
-      setIsRunning(false)
-    }
-  }, [currentCode, isRunning])
-
-  const handleCheck = useCallback(async () => {
-    if (isRunning) return
-    setIsRunning(true)
-    setRunError(null)
-    setMood('code')
-    try {
-      const res = await checkSolution(currentCode, task)
-      setCheckResult(res)
-      if (res.commands) setLastCommands(res.commands)
-      if (res.stdout) setLastStdout(res.stdout)
-      if (res.passed) {
-        setMood('celebrate')
-        if (!reportedRef.current) {
-          reportedRef.current = true
-          onSolved?.({ task, result: res, hintsUsed: revealed })
-        }
-      } else {
-        setMood('confused')
-        setRevealed((r) => Math.min(r + 1, task.hints.length))
-        if (res.error) setRunError(res.error)
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err)
-      setRunError(message)
-      setMood('confused')
-    } finally {
-      setIsRunning(false)
-    }
-  }, [currentCode, isRunning, task, onSolved, revealed])
-
-  const switchMode = useCallback(
-    (next: EditorMode) => {
-      if (next === mode) return
-      if (next === 'python') {
-        if (blocklyPython && !pythonCode.trim()) {
-          setPythonCode(blocklyPython)
-        }
-        setMode('python')
-      } else {
-        if (pythonCode.trim() && pythonCode !== blocklyPython) {
-          const ok = window.confirm(
-            'Переключение на блоки потеряет твой Python-код. Точно переключить?',
-          )
-          if (!ok) return
-        }
-        setMode('blocks')
-      }
-    },
-    [mode, blocklyPython, pythonCode],
-  )
-
-  const handleReveal = useCallback(() => {
-    setRevealed((r) => Math.min(r + 1, task.hints.length))
-  }, [task.hints.length])
-
-  const handleBlockChange = useCallback((python: string, xml: string) => {
-    setBlocklyXml(xml)
-    setBlocklyPython(python)
-  }, [])
-
-  const passed = checkResult?.passed ?? false
-
-  // Mood badge shown beside penguin (not overlapping it)
-  const moodBadge =
-    mood === 'think' ? '?' :
-    mood === 'confused' ? '…' :
-    mood === 'celebrate' ? '★' :
-    mood === 'code' ? '⌨' :
-    null
+  const {
+    mode,
+    switchMode,
+    blocklyXml,
+    handleBlockChange,
+    pythonCode,
+    setPythonCode,
+    isRunning,
+    runError,
+    checkResult,
+    passed,
+    lastCommands,
+    lastStdout,
+    isPreviewStdout,
+    revealed,
+    handleReveal,
+    mood,
+    moodBadge,
+    handleRun,
+    handleCheck,
+  } = usePuzzleEditor(task, onSolved, initialMode)
 
   return (
     <div className="puzzle-layout">
@@ -219,7 +99,7 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
             </Suspense>
           ) : (
             <Suspense fallback={<div className="puzzle-editor-loading">Загружаем Python…</div>}>
-              <PurePythonEditor
+              <SmartPythonEditor
                 code={pythonCode}
                 onChange={setPythonCode}
                 onRun={handleRun}

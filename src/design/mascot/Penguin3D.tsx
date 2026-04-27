@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react'
+import { forwardRef, memo, useImperativeHandle, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Sphere, Cylinder, Cone } from '@react-three/drei'
 import * as THREE from 'three'
@@ -27,7 +27,7 @@ interface Props {
  *   jump  — тело запрокинуто назад, ноги вытянуты
  *   cheer — взмах крыльями + наклон головы
  */
-const Penguin3D = forwardRef<PlayerVisualHandle, Props>(function Penguin3D(
+const Penguin3DInner = forwardRef<PlayerVisualHandle, Props>(function Penguin3D(
   { animation: animProp },
   ref
 ) {
@@ -159,4 +159,6 @@ const Penguin3D = forwardRef<PlayerVisualHandle, Props>(function Penguin3D(
   )
 })
 
+const Penguin3D = memo(Penguin3DInner)
+Penguin3D.displayName = 'Penguin3D'
 export default Penguin3D

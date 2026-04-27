@@ -22,7 +22,13 @@ export interface VkUser {
   firstName: string
   lastName: string
   avatarUrl: string | null
-  accessToken: string
+  /**
+   * VK access token — живёт ТОЛЬКО в памяти (возвращается из exchangeVkCode).
+   * НЕ персистируется в localStorage (см. saveVkUser).
+   * Если нужен после перезагрузки страницы — необходим повторный логин или
+   * backend-сессия (httpOnly cookie).
+   */
+  accessToken?: string
   expiresAt: number           // ms timestamp
   /** Срез роли: child или parent. Parent-связь к ребёнку — в ek_parent_link_v1 */
   role: UserRole
@@ -175,6 +181,13 @@ export async function exchangeVkCode(code: string, deviceId?: string): Promise<V
 
 // ═════ State ══════════════════════════════════════════════════════
 
+/**
+ * Читает профиль пользователя из localStorage.
+ * accessToken в возвращённом объекте будет undefined — он не персистируется.
+ * Используй этот метод только для чтения профиля (id, name, avatar, role).
+ * Для VK API-вызовов accessToken доступен только в памяти сразу после
+ * exchangeVkCode() — не из этой функции.
+ */
 export function getVkUser(): VkUser | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -192,7 +205,10 @@ export function getVkUser(): VkUser | null {
 }
 
 export function saveVkUser(u: VkUser): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(u))
+  // Security: strip accessToken before persisting — VK tokens must never land
+  // in localStorage where XSS can steal them. accessToken is in-memory only.
+  const { accessToken: _stripped, ...safeUser } = u
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(safeUser))
 }
 
 export function signOutVk(): void {

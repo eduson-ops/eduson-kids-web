@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomBytes } from 'node:crypto';
+import * as argon2 from 'argon2';
 import { Classroom } from '../../classroom/classroom.entity';
 import { User, UserRole } from '../entities/user.entity';
 import { JwtPayload } from './jwt.strategy';
@@ -113,9 +114,11 @@ export class SferumLinkService {
     });
     const login = `sf_${classroom.inviteCode}_${(seq + 1).toString().padStart(4, '0')}`;
     const pin = randomBytes(4).toString('hex'); // throwaway; never shown
-    // Use bcrypt-compatible empty hash placeholder — argon2 import would
-    // add latency; for OAuth-style auto-creation we can defer hash for first login.
-    const passwordHash = `__sferum_passthrough_${pin}__`;
+    // Hash immediately with argon2id — same algorithm used everywhere else in
+    // the auth stack. The pin is a random 8-hex-char value that is never
+    // surfaced to the user; the account is accessed exclusively via JWT issued
+    // below, not via password login.
+    const passwordHash = await argon2.hash(`sferum:${pin}`, { type: argon2.argon2id });
 
     const user = this.users.create({
       tenantId: classroom.tenantId,

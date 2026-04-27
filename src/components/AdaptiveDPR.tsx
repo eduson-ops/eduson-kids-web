@@ -1,5 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
+import { detectDeviceTier, seedDefaultQualityFromTier } from '../lib/deviceTier'
 
 /**
  * Определяет iPad (включая новые, которые маскируются под MacIntel).
@@ -42,19 +43,28 @@ export default function AdaptiveDPR() {
 
   // Инициализация стартового DPR — ОДИН раз при монтаже
   useEffect(() => {
+    // Для low-end без пользовательского выбора — ставим ek_quality='low'
+    // ДО чтения saved ниже, чтобы UI-дропдаун и логика совпадали.
+    seedDefaultQualityFromTier()
+
     const raw = typeof window !== 'undefined' ? window.devicePixelRatio : 1
+    const tier = detectDeviceTier()
     let initial: number
     if (isIPad()) {
+      initial = 1
+    } else if (tier === 'low') {
+      // Low-tier: жёсткий cap 1.0 даже при высоком FPS
       initial = 1
     } else if (isMobile()) {
       initial = Math.min(raw, 1.5)
     } else {
       initial = Math.min(raw, 2)
     }
-    // Apply saved quality preference
+    // Apply saved quality preference (всегда побеждает авто-детект)
     const saved = localStorage.getItem('ek_quality')
     if (saved === 'low') { initial = 1; overrideDpr.current = 1 }
     else if (saved === 'med') { initial = Math.min(raw, 1.5); overrideDpr.current = Math.min(raw, 1.5) }
+    else if (saved === 'high') { initial = Math.min(raw, 2); overrideDpr.current = Math.min(raw, 2) }
     else { overrideDpr.current = null }
     curDpr.current = initial
     gl.setPixelRatio(initial)
@@ -64,6 +74,7 @@ export default function AdaptiveDPR() {
       const deviceRaw = window.devicePixelRatio
       if (quality === 'low') { overrideDpr.current = 1; gl.setPixelRatio(1); curDpr.current = 1 }
       else if (quality === 'med') { const v = Math.min(deviceRaw, 1.5); overrideDpr.current = v; gl.setPixelRatio(v); curDpr.current = v }
+      else if (quality === 'high') { const v = Math.min(deviceRaw, 2); overrideDpr.current = v; gl.setPixelRatio(v); curDpr.current = v }
       else { overrideDpr.current = null }
     }
     window.addEventListener('ek:quality-change', onQuality)
@@ -95,8 +106,8 @@ export default function AdaptiveDPR() {
     } else if (avg > 58) {
       lowSince.current = null
       if (!highSince.current) highSince.current = now
-      // iPad — никогда не поднимаем выше 1, даже при высоком FPS
-      const cap = isIPad() ? 1.0 : 1.5
+      // iPad и low-tier — никогда не поднимаем выше 1, даже при высоком FPS
+      const cap = isIPad() || detectDeviceTier() === 'low' ? 1.0 : 1.5
       if (now - highSince.current > 3000 && curDpr.current < cap) {
         curDpr.current = cap
         gl.setPixelRatio(cap)

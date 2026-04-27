@@ -52,7 +52,7 @@ export function subscribeFocus(l: (id: string | null) => void): () => void {
  * для плавающего меню, прямой ссылка на кликнутый THREE.Object3D.
  * Читает Play.tsx чтобы нарисовать <WorldContextMenu>.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export interface ClickContext {
   pos: [number, number, number]
   screen: [number, number]

@@ -2,11 +2,12 @@ import { defineConfig, loadEnv, type UserConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Три target-а одного vite-build:
+// Четыре target-а одного vite-build:
 //   1) GitHub Pages SPA — base = '/eduson-kids-web/'
 //   2) Capacitor native shell — base = './' (assets относительны)
-//   3) dev — base = '/'
-// Переключение: VITE_TARGET=capacitor | pwa | ghpages (default: ghpages в проде).
+//   3) axsa — custom domain axsa.tech, base = '/'
+//   4) dev — base = '/'
+// Переключение: VITE_TARGET=capacitor | pwa | ghpages | axsa (default: ghpages в проде).
 export default defineConfig(({ command, mode }): UserConfig => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   const target = env.VITE_TARGET || (command === 'build' ? 'ghpages' : 'dev')
@@ -16,6 +17,7 @@ export default defineConfig(({ command, mode }): UserConfig => {
     ghpages: '/eduson-kids-web/',
     pwa: '/eduson-kids-web/',
     capacitor: './',
+    axsa: '/',
   }
   const base = baseByTarget[target] ?? '/'
 
@@ -32,8 +34,8 @@ export default defineConfig(({ command, mode }): UserConfig => {
           description: 'Строй 3D-миры, учись Python играя. Платформа 9-15 лет.',
           lang: 'ru',
           dir: 'ltr',
-          start_url: target === 'capacitor' ? './' : '/eduson-kids-web/',
-          scope: target === 'capacitor' ? './' : '/eduson-kids-web/',
+          start_url: target === 'capacitor' ? './' : (target === 'axsa' ? '/' : '/eduson-kids-web/'),
+          scope: target === 'capacitor' ? './' : (target === 'axsa' ? '/' : '/eduson-kids-web/'),
           display: 'standalone',
           orientation: 'any',
           background_color: '#0C0533',
@@ -58,7 +60,7 @@ export default defineConfig(({ command, mode }): UserConfig => {
           globIgnores: ['**/ios/**', '**/android/**'],
           // pyodide.asm.wasm ~10 MB; lift cap so precache не выкидывает его.
           maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
-          navigateFallback: target === 'capacitor' ? null : '/eduson-kids-web/index.html',
+          navigateFallback: target === 'capacitor' ? null : (target === 'axsa' ? '/index.html' : '/eduson-kids-web/index.html'),
           // Skip API routes from precache so live requests always hit the network.
           // Offline writes are queued via BackgroundSyncPlugin (see runtimeCaching
           // entries below for /api/v1/projects writes).

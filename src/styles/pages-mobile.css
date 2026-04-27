@@ -1,0 +1,497 @@
+/* ──────────────────────────────────────────────────────────────
+   pages-mobile.css — page-specific mobile polish (375×667 / 360×640).
+   Imported AFTER mobile.css so these rules win. Desktop unchanged.
+   All fixes target phone breakpoints only.
+   ────────────────────────────────────────────────────────────── */
+
+/* ===== Shared: prevent horizontal scroll and reserve room for
+   bottom mobile tab bar (72px + safe-inset-bottom). ===== */
+@media (max-width: 640px) {
+  html, body { overflow-x: hidden; }
+  .kb-shell-main,
+  .kb-shell__main,
+  main.kb-shell-main {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ================================================================
+   1. Hub.tsx
+   Issues: kb-cover-deco chips collide with title on 375px, CTA link
+   row overflows, 4-col module grid is too cramped, two-tracks CTA
+   grid min 380px forces horizontal scroll below 400px.
+   ================================================================ */
+@media (max-width: 560px) {
+  /* The rotated decorative chips above the title collide with Niksel */
+  .kb-cover-deco--top-row { display: none !important; }
+
+  /* Keep Niksel mascot hidden on tiny phones (already hidden <900) */
+  .kb-cover-mascot { display: none !important; }
+
+  /* CTA row should stack vertically and fill width */
+  .kb-cover-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .kb-cover-actions .kb-btn {
+    width: 100%;
+    text-align: center;
+    white-space: normal;
+    min-height: 48px;
+  }
+
+  /* Progress-strip: break from auto/1fr/auto to stacked rows */
+  .kb-card[style*="grid-template-columns: auto 1fr auto"] {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Two-tracks feature cards: allow single-column on phones */
+  section > div[style*="minmax(380px"] {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  /* Buttons inside feature tracks should not force whitespace-nowrap off-screen */
+  .kb-card--feature .kb-btn {
+    white-space: normal !important;
+    width: 100%;
+    text-align: center;
+  }
+  .kb-card--feature {
+    padding: 20px !important;
+    gap: 14px !important;
+  }
+  .kb-card--feature > div[style*="fontSize: 72"],
+  .kb-card--feature > div[style*="fontSize: 56"] {
+    font-size: 48px !important;
+  }
+}
+
+/* ================================================================
+   2. Learn.tsx
+   Issues: curric-lesson-grid is 2-col (sidebar+main), curric-module-hero
+   uses fixed flex, chip rows overflow, lesson-hook text too long.
+   ================================================================ */
+@media (max-width: 720px) {
+  .curric-lesson-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px;
+  }
+  .curric-side {
+    position: static !important;
+    max-width: none !important;
+  }
+  .curric-module-hero {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 20px !important;
+  }
+  .curric-module-hero-progress {
+    align-self: flex-end;
+  }
+}
+@media (max-width: 480px) {
+  .curric-modules {
+    grid-template-columns: 1fr !important;
+  }
+  .curric-lesson-card {
+    grid-template-columns: 44px 1fr !important;
+  }
+  .curric-lesson-cta {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    text-align: center;
+    padding-top: 8px;
+  }
+  .curric-chips { gap: 6px; }
+  .curric-chip { font-size: 12px; padding: 4px 10px; }
+  .curric-lesson-hook-big { font-size: 15px; }
+}
+
+/* ================================================================
+   3. Profile.tsx
+   Issues: profile-root is likely side-by-side (aside + 3D canvas).
+   Stack vertically, shrink 3D scene to 40vh on phones, ensure
+   sidebar scrolls independently; make pill-group wrap.
+   ================================================================ */
+@media (max-width: 720px) {
+  .profile-root {
+    grid-template-columns: 1fr !important;
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+  .profile-side {
+    max-height: none !important;
+    order: 2;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .profile-preview {
+    order: 1;
+    height: 44vh !important;
+    min-height: 280px;
+    width: 100% !important;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .profile-preview canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .pill-group {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pill-group .pill {
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .color-grid { gap: 10px; }
+  .color-dot { width: 36px; height: 36px; }
+  .preset-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px;
+  }
+  .profile-actions {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 0;
+    background: var(--paper, #fff);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.06);
+  }
+  .profile-actions button { min-height: 48px; flex: 1; }
+}
+
+/* ================================================================
+   4. Chat.tsx
+   Issues: tab switcher labels truncate on 360px; ChatRoom height=500
+   is tall, inner input bar needs to lift with keyboard.
+   ================================================================ */
+@media (max-width: 640px) {
+  /* Tab-switcher buttons cramp — shrink padding, allow emoji-only */
+  [role="tablist"] button {
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+    min-height: 44px;
+  }
+  /* Hide the "Родитель → Учитель" long label, keep emoji + short */
+  [role="tablist"] button > span:last-child {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* ChatRoom container: lift above tab bar + keyboard */
+  .ek-chat-room,
+  [class*="chat-room"] {
+    max-height: calc(var(--vh, 1vh) * 100 - 220px - var(--kb-height, 0px)) !important;
+  }
+  /* Input area (if ChatRoom exposes these classes) lifts on keyboard */
+  .ek-chat-input,
+  .chat-composer,
+  form.chat-form {
+    padding-bottom: calc(8px + var(--kb-height, 0px)) !important;
+    transition: padding-bottom 180ms ease;
+  }
+}
+
+/* ================================================================
+   5. Room.tsx (LiveKit)
+   Issues: ek-room-header wraps badly on 360, ek-room-controls has
+   absolute-positioned center button that overlaps left group on
+   narrow screens, participant tiles should stack, chat panel full
+   width, join card input must be 16px font to avoid iOS zoom.
+   ================================================================ */
+@media (max-width: 640px) {
+  .ek-room {
+    height: calc(var(--vh, 1vh) * 100) !important;
+  }
+  .ek-room-header {
+    padding: 8px 12px !important;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+  }
+  .ek-room-header-title { font-size: 13px; }
+  .ek-room-header-room { font-size: 11px; padding: 2px 6px; }
+  .ek-room-participants { font-size: 11px; }
+  .ek-room-copy-btn { font-size: 12px; padding: 6px 10px; min-height: 36px; }
+
+  /* Body flex → stack so chat panel takes full width */
+  .ek-room-body {
+    flex-direction: column !important;
+  }
+  .ek-room-chat-panel {
+    width: 100% !important;
+    height: 40vh !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+  }
+
+  /* Controls: release absolute-center, let flex wrap */
+  .ek-room-controls {
+    flex-wrap: wrap;
+    gap: 8px !important;
+    justify-content: center !important;
+    padding: 10px !important;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .ek-room-controls-center {
+    position: static !important;
+    transform: none !important;
+    order: 3;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .ek-room-controls-group { flex: 1; justify-content: center; flex-wrap: wrap; }
+  .ek-ctrl-btn {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 8px 12px !important;
+    font-size: 13px;
+  }
+  .ek-ctrl-label { display: none; }
+  .ek-ctrl-btn--icon .ek-ctrl-label { display: none; }
+
+  /* Video tiles stack */
+  .ek-room-stage [class*="lk-grid-layout"],
+  .ek-room-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Join screen card — fit phone, kill iOS input zoom */
+  .lk-room-join-card {
+    width: calc(100% - 24px) !important;
+    max-width: none !important;
+    padding: 24px 20px !important;
+  }
+  .lk-room-join-input {
+    font-size: 16px !important;
+    min-height: 48px;
+  }
+  .lk-room-join-btn { min-height: 52px; font-size: 16px; }
+  .lk-room-join-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  .lk-room-join-actions button { width: 100%; min-height: 44px; }
+}
+
+/* ================================================================
+   6. SiteEditor.tsx
+   Issues: site-editor-header has 4 groups side-by-side (back, brand,
+   mode-switch, actions) — wraps ugly. Body is 2-col split (editor +
+   preview); on mobile must stack. Blockly + iframe and textarea +
+   iframe also must stack.
+   ================================================================ */
+@media (max-width: 900px) {
+  .site-editor-header {
+    flex-wrap: wrap;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+  }
+  .site-editor-brand { flex: 1 1 auto; min-width: 0; }
+  .site-editor-brand strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50vw; }
+  .site-editor-brand small { display: none; }
+  .site-mode-switch {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: space-between;
+    overflow-x: auto;
+    gap: 4px !important;
+  }
+  .mode-pill {
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+  .mode-pill small { display: none; }
+  .mode-arrow-mini { display: none; }
+  .site-editor-actions {
+    flex: 1 1 auto;
+    gap: 6px !important;
+  }
+  .site-name-input { max-width: 40vw; font-size: 13px; }
+}
+@media (max-width: 720px) {
+  /* L1 Template mode: split → stack */
+  .tpl-mode--split {
+    grid-template-columns: 1fr !important;
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  .tpl-editor-pane,
+  .tpl-preview--half {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  .tpl-preview--half {
+    height: 60vh !important;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--paper, #fff);
+  }
+  .tpl-preview-frame iframe { width: 100%; height: 100%; }
+
+  /* L2 Blocks mode: Blockly over preview */
+  .blocks-mode {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr 40vh !important;
+    flex-direction: column !important;
+  }
+  .blocks-mode-canvas,
+  .blocks-mode-preview {
+    width: 100% !important;
+    height: auto !important;
+  }
+  /* L3 Code mode */
+  .code-mode {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr 40vh !important;
+    flex-direction: column !important;
+  }
+  .code-mode-editor,
+  .code-mode-preview {
+    width: 100% !important;
+    height: auto !important;
+  }
+  .code-mode-textarea {
+    font-size: 14px !important;  /* keeps readability without iOS zoom when ≥16; CM on mobile handles real editing */
+    min-height: 50vh;
+  }
+
+  /* Section card rows in L1 — the inline action buttons are too tiny */
+  .tpl-section-header {
+    flex-wrap: wrap;
+    gap: 6px !important;
+    padding: 10px !important;
+  }
+  .tpl-section-actions button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .tpl-section-preview-hint {
+    flex-basis: 100%;
+    order: 10;
+    font-size: 12px;
+  }
+
+  /* Add-block modal: fit narrow phone */
+  .add-block-modal {
+    width: calc(100% - 16px) !important;
+    max-width: none !important;
+    max-height: 85vh !important;
+  }
+  .add-block-body {
+    grid-template-columns: 1fr !important;
+    flex-direction: column !important;
+  }
+  .add-block-cats {
+    flex-direction: row !important;
+    overflow-x: auto;
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 8px !important;
+    gap: 6px;
+  }
+  .add-block-cat { white-space: nowrap; min-height: 44px; }
+  .add-block-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Share modal */
+  .share-modal {
+    width: calc(100% - 24px) !important;
+    max-width: none !important;
+  }
+  .share-url-row { flex-direction: column !important; gap: 8px !important; }
+  .share-url-row input { font-size: 16px; min-height: 44px; width: 100%; }
+
+  /* Form inputs — avoid iOS zoom */
+  .tpl-field input[type="text"],
+  .tpl-field textarea,
+  .rep-input {
+    font-size: 16px !important;
+  }
+}
+
+/* ================================================================
+   7. SitesHub.tsx
+   Issues: kb-hero is flex-row with 180px Niksel sidekick — crowds
+   title on phone.
+   ================================================================ */
+@media (max-width: 640px) {
+  .kb-hero {
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 24px 20px !important;
+    text-align: left;
+  }
+  .kb-hero > div:last-child {
+    width: 120px !important;
+    align-self: center;
+  }
+  .kb-hero-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .kb-hero-actions .kb-btn {
+    width: 100%;
+    text-align: center;
+    min-height: 48px;
+  }
+  .sites-pipeline {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .pipeline-arrow { transform: rotate(90deg); align-self: center; }
+}
+
+/* ================================================================
+   8. Legal / Billing / Settings — forms + long text
+   ================================================================ */
+@media (max-width: 640px) {
+  /* Legal <pre> needs smaller font so long URLs/words don't push layout */
+  .kb-card pre {
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+  }
+
+  /* Billing plan grid in a single column is fine via kb-grid-4 rule;
+     but the large 56px KPI numbers shrink to avoid overflow */
+  .kb-card--feature > div[style*="fontSize: 56"] {
+    font-size: 42px !important;
+  }
+  /* Subscription banner flex wraps */
+  .kb-card--feature[style*="flexWrap: wrap"] {
+    padding: 18px !important;
+  }
+  /* Referral link code block stays wrappable */
+  code[style*="userSelect: all"] {
+    font-size: 11px !important;
+  }
+
+  /* Settings: inputs/buttons benefit from full width */
+  .kb-card input[type="text"],
+  .kb-card input.text-input {
+    font-size: 16px !important;
+  }
+  /* Keyboard-shortcuts grid has "auto 1fr" — ok, but kbd needs tap space */
+  .kb-card kbd { min-height: 28px; font-size: 12px; }
+
+  /* Legal link list items: full-width tap rows */
+  .kb-card ul li a { min-height: 48px; display: flex !important; align-items: center; }
+}

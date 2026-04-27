@@ -45,7 +45,7 @@ export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
   @Get()
-  @Roles('teacher')
+  @Roles('school_admin', 'admin')
   async findAll(@Query() query: AuditQueryDto) {
     const [items, total] = await this.auditService.findAll({
       userId: query.userId,

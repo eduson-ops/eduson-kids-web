@@ -5,14 +5,13 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomBytes, createHash } from 'node:crypto';
 import { User, UserRole } from '../entities/user.entity';
-import { JwtPayload } from './jwt.strategy';
 import { TenantContext } from '../../../common/tenancy/tenant.context';
 import { PiiCryptoService } from '../../../common/crypto/pii-crypto.service';
+import { AuthService } from '../auth.service';
 
 /**
  * VK ID (id.vk.com) OAuth 2.0 / OIDC integration.
@@ -77,7 +76,7 @@ export class VkIdService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly config: ConfigService,
-    private readonly jwt: JwtService,
+    private readonly authService: AuthService,
     private readonly tenantContext: TenantContext,
     private readonly pii: PiiCryptoService,
   ) {}
@@ -175,8 +174,9 @@ export class VkIdService {
       ? await this.createUserFromVk(vkId, userInfo, ctx.tenantId)
       : (await this.findByVkId(vkId, ctx.tenantId))!;
 
-    // 4. Issue tokens
-    return { ...this.issueTokens(user), isNewUser };
+    // 4. Issue tokens — delegate to AuthService so JTI is registered in the
+    //    canonical path (blacklist-based revocation via Redis on logout/refresh).
+    return { ...this.authService.issueTokens(user), isNewUser };
   }
 
   private async findByVkId(vkId: string, tenantId: string): Promise<User | null> {
@@ -213,27 +213,6 @@ export class VkIdService {
       isActive: true,
     });
     return this.userRepo.save(user);
-  }
-
-  private issueTokens(user: User): { accessToken: string; refreshToken: string } {
-    const jti = randomBytes(16).toString('hex');
-    const accessPayload: JwtPayload = {
-      sub: user.id,
-      role: user.role,
-      tnt: user.tenantId,
-    };
-    const accessToken = this.jwt.sign(accessPayload, {
-      secret: this.config.get<string>('jwt.accessSecret'),
-      expiresIn: 900,
-    });
-    const refreshToken = this.jwt.sign(
-      { ...accessPayload, jti },
-      {
-        secret: this.config.get<string>('jwt.refreshSecret'),
-        expiresIn: 2592000,
-      },
-    );
-    return { accessToken, refreshToken };
   }
 
   private getConfig(): VkConfig | null {

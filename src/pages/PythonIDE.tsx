@@ -1,13 +1,13 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import PlatformShell from '../components/PlatformShell'
 import { runPython, warmPyodide } from '../lib/pyodide-executor'
-import type { RawCommand } from '../lib/checkSolution'
+import type { RawCommand } from '../lib/types'
+import { HISTORY_LIMIT } from '../lib/constants'
 
-const PurePythonEditor = lazy(() => import('../components/PurePythonEditor'))
+const SmartPythonEditor = lazy(() => import('../components/SmartPythonEditor'))
 
 const CODE_KEY = 'ek_python_ide_code'
 const HISTORY_KEY = 'ek_python_ide_history'
-const HISTORY_LIMIT = 5
 
 interface Snippet {
   name: string
@@ -237,7 +237,7 @@ export default function PythonIDE() {
         <div className="python-ide-split">
           <div className="python-ide-editor">
             <Suspense fallback={<div className="py-editor-loading">Загружаем редактор…</div>}>
-              <PurePythonEditor
+              <SmartPythonEditor
                 code={code}
                 onChange={setCode}
                 onRun={handleRun}

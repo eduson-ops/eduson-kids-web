@@ -3,8 +3,6 @@ import { Link, useParams } from 'react-router-dom'
 import { plural, pluralize } from '../lib/plural'
 import PlatformShell from '../components/PlatformShell'
 import {
-  MODULES,
-  ALL_LESSONS,
   getLesson,
   getModuleByLesson,
   getModule,
@@ -23,7 +21,6 @@ import {
   unmarkLesson,
   countDone,
   countDoneInModule,
-  getCurrentLesson,
   subscribeProgress,
 } from '../lib/progress'
 import { renderMd } from '../lib/md'

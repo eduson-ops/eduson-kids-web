@@ -15,6 +15,7 @@
  *   - role="img" + описательный aria-label (полное предложение)
  *   - respects prefers-reduced-motion (через CSS в App.css)
  */
+import { memo } from 'react'
 import type { CSSProperties } from 'react'
 
 type Pose = 'idle' | 'wave' | 'think' | 'celebrate' | 'code' | 'confused'
@@ -76,7 +77,7 @@ const POSE_LABELS: Record<Pose, string> = {
   confused: 'растерялся',
 }
 
-export default function Niksel({
+function NikselInner({
   pose = 'idle',
   size = 240,
   className,
@@ -213,6 +214,10 @@ export default function Niksel({
   )
 }
 
+export const Niksel = memo(NikselInner)
+Niksel.displayName = 'Niksel'
+export default Niksel
+
 /** Tiny helper — затемнить hex-цвет на n (0..1). Простой HSL-like hack. */
 function darken(hex: string, amount: number): string {
   const h = hex.replace('#', '')
@@ -224,7 +229,7 @@ function darken(hex: string, amount: number): string {
 }
 
 /** Mini version for headers/toolbars — just head + beak */
-export function NikselMini({ size = 32, className, theme = 'auto' }: { size?: number; className?: string; theme?: 'light' | 'dark' | 'auto' }) {
+function NikselMiniInner({ size = 32, className, theme = 'auto' }: { size?: number; className?: string; theme?: 'light' | 'dark' | 'auto' }) {
   const { ink: INK, paper: PAPER } = resolveTheme(theme)
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" className={className} aria-hidden="true">
@@ -239,8 +244,11 @@ export function NikselMini({ size = 32, className, theme = 'auto' }: { size?: nu
   )
 }
 
+export const NikselMini = memo(NikselMiniInner)
+NikselMini.displayName = 'NikselMini'
+
 /** Chat FAB version — penguin head with headphones */
-export function NikselMiniChat({ size = 42, className, theme = 'auto' }: { size?: number; className?: string; theme?: 'light' | 'dark' | 'auto' }) {
+function NikselMiniChatInner({ size = 42, className, theme = 'auto' }: { size?: number; className?: string; theme?: 'light' | 'dark' | 'auto' }) {
   const { ink: INK, paper: PAPER } = resolveTheme(theme)
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" className={className} aria-hidden="true">
@@ -264,3 +272,6 @@ export function NikselMiniChat({ size = 42, className, theme = 'auto' }: { size?
     </svg>
   )
 }
+
+export const NikselMiniChat = memo(NikselMiniChatInner)
+NikselMiniChat.displayName = 'NikselMiniChat'
