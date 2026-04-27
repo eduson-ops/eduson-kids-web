@@ -11,6 +11,7 @@ import {
 } from '../lib/streakReminder'
 import { CHILD_NAME_KEY } from '../lib/auth'
 import { QUALITY_KEY } from '../lib/deviceTier'
+import { DAILY_GOAL_KEY } from '../lib/progress'
 
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
@@ -30,11 +31,11 @@ function applyQuality(q: string) {
 }
 
 function getDailyGoal(): number {
-  const v = parseInt(localStorage.getItem('ek_daily_goal_minutes') ?? '10', 10)
+  const v = parseInt(localStorage.getItem(DAILY_GOAL_KEY) ?? '10', 10)
   return [5, 10, 15, 20].includes(v) ? v : 10
 }
 function setDailyGoal(m: number) {
-  localStorage.setItem('ek_daily_goal_minutes', String(m))
+  localStorage.setItem(DAILY_GOAL_KEY, String(m))
   window.dispatchEvent(new CustomEvent('ek:daily-goal-change', { detail: { minutes: m } }))
 }
 

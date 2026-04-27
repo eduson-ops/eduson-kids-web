@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import { loadAvatar } from '../lib/avatars'
 import { MODULES, ALL_LESSONS, getLesson } from '../lib/curriculum'
+import { STUDIO_KEY } from '../studio/editorState'
 import {
   countDoneInModule,
   getQuizResult,
@@ -82,7 +83,7 @@ export default function StudentPortfolio() {
   // Studio scene data
   const studioParts = useMemo(() => {
     try {
-      const raw = localStorage.getItem('ek_studio_v1')
+      const raw = localStorage.getItem(STUDIO_KEY)
       if (!raw) return 0
       const state = JSON.parse(raw) as { parts?: unknown[] }
       return (state.parts ?? []).length

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { apiLoginChildCode, apiLoginGuest, apiChildLogin, apiParentLogin } from '../lib/api'
 import { startVkLogin, vkConfig } from '../lib/vkAuth'
 import { checkPin } from '../lib/classRoster'
-import { saveSession, CHILD_NAME_KEY } from '../lib/auth'
+import { saveSession, CHILD_NAME_KEY, ADMIN_KEY } from '../lib/auth'
 import Niksel, { NikselMini } from '../design/mascot/Niksel'
 
 /**
@@ -397,7 +397,7 @@ function StaffLogin({
   const demoLogin = () => {
     saveSession({ role, name: demoName, email: 'demo@eduson.ru' })
     if (role === 'teacher') {
-      localStorage.setItem('ek_admin', '1')
+      localStorage.setItem(ADMIN_KEY, '1')
     }
     navigate(redirectTo)
   }

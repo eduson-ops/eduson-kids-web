@@ -1,1 +1,0 @@
-var e=`./`.replace(/\/$/,``);export{e as t};

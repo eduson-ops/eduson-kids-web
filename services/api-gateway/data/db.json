@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "users": {
+    "7f471126-382a-4910-9471-9300bc9dc32c": {
+      "id": "7f471126-382a-4910-9471-9300bc9dc32c",
+      "childCode": "000000",
+      "name": "Гость-7f47",
+      "createdAt": 1776792479677,
+      "progress": {}
+    },
+    "3fca4531-f199-46bc-b900-031adba5e61a": {
+      "id": "3fca4531-f199-46bc-b900-031adba5e61a",
+      "childCode": "123456",
+      "name": "Test",
+      "createdAt": 1776792496069,
+      "progress": {}
+    },
+    "fd0c7f12-05a4-471a-876e-bda2cb74f5c2": {
+      "id": "fd0c7f12-05a4-471a-876e-bda2cb74f5c2",
+      "childCode": "555000",
+      "name": "Игрок-000",
+      "createdAt": 1776792496617,
+      "progress": {
+        "obby-rainbow": {
+          "coins": 5,
+          "bestTimeMs": 24500,
+          "completions": 1,
+          "lastPlayedAt": 1776792497938
+        }
+      },
+      "avatar": {
+        "name": "Dragon",
+        "bodyColor": "#5ba55b",
+        "headColor": "#5ba55b",
+        "accentColor": "#ffd644",
+        "earStyle": "none",
+        "hatStyle": "crown",
+        "tailStyle": "dragon",
+        "bodyShape": "thin"
+      }
+    }
+  },
+  "byCode": {
+    "123456": "3fca4531-f199-46bc-b900-031adba5e61a",
+    "555000": "fd0c7f12-05a4-471a-876e-bda2cb74f5c2"
+  },
+  "sessions": {
+    "b2c2deb6-0719-41c4-b63f-2373d880522b": "7f471126-382a-4910-9471-9300bc9dc32c",
+    "95e1c875-ba13-4e50-84c1-8f9f3063a369": "3fca4531-f199-46bc-b900-031adba5e61a",
+    "8f19e8fd-86b4-453f-a9ec-cde8ff7e2eeb": "fd0c7f12-05a4-471a-876e-bda2cb74f5c2"
+  }
+}

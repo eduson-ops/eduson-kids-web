@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState, type ReactNode } from 'react'
-import { loadSession, clearSession, CHILD_NAME_KEY } from '../lib/auth'
+import { loadSession, clearSession, CHILD_NAME_KEY, ADMIN_KEY } from '../lib/auth'
 import { NikselMini } from '../design/mascot/Niksel'
 import NikselChat from './NikselChat'
 import StreakWidget from './StreakWidget'
@@ -158,7 +158,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
 
   const isAdmin =
     typeof window !== 'undefined' &&
-    (localStorage.getItem('ek_admin') === '1' ||
+    (localStorage.getItem(ADMIN_KEY) === '1' ||
       new URLSearchParams(window.location.search).get('admin') === '1')
 
   const session = loadSession()

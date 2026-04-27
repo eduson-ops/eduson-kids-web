@@ -363,7 +363,8 @@ interface StoreShape {
   recolored: Record<string, Record<string, string>>  // worldId -> { posHash: hex }
 }
 
-const STORAGE_KEY = 'ek_world_edits_v2'
+export const WORLD_EDITS_KEY = 'ek_world_edits_v2'
+const STORAGE_KEY = WORLD_EDITS_KEY
 const listeners = new Set<() => void>()
 
 function load(): StoreShape {

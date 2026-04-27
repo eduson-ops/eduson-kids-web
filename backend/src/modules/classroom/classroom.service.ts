@@ -1,0 +1,103 @@
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
+import * as argon2 from 'argon2';
+import { randomBytes } from 'node:crypto';
+import { Classroom } from './classroom.entity';
+import { User, UserRole } from '../auth/entities/user.entity';
+import { PiiCryptoService } from '../../common/crypto/pii-crypto.service';
+import { TenantContext } from '../../common/tenancy/tenant.context';
+
+@Injectable()
+export class ClassroomService {
+  constructor(
+    @InjectRepository(Classroom) private classroomRepo: Repository<Classroom>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    private dataSource: DataSource,
+    private piiCrypto: PiiCryptoService,
+    private readonly tenantContext: TenantContext,
+  ) {}
+
+  async create(teacherId: string, name: string): Promise<Classroom> {
+    const ctx = this.tenantContext.require();
+    const classroom = this.classroomRepo.create({ teacherId, name, tenantId: ctx.tenantId });
+    return this.classroomRepo.save(classroom);
+  }
+
+  async findById(id: string): Promise<Classroom> {
+    const ctx = this.tenantContext.require();
+    const classroom = await this.classroomRepo.findOne({ where: { id, tenantId: ctx.tenantId } });
+    if (!classroom) throw new NotFoundException('Classroom not found');
+    return classroom;
+  }
+
+  async update(id: string, teacherId: string, name: string): Promise<Classroom> {
+    const classroom = await this.findById(id);
+    if (classroom.teacherId !== teacherId) throw new ForbiddenException();
+    classroom.name = name;
+    return this.classroomRepo.save(classroom);
+  }
+
+  async delete(id: string, teacherId: string): Promise<void> {
+    const ctx = this.tenantContext.require();
+    const classroom = await this.findById(id);
+    if (classroom.teacherId !== teacherId) throw new ForbiddenException();
+    await this.classroomRepo.delete({ id, tenantId: ctx.tenantId });
+  }
+
+  async addStudents(
+    classroomId: string,
+    teacherId: string,
+    count: number,
+    namePrefix: string,
+  ): Promise<Array<{ login: string; pin: string }>> {
+    const ctx = this.tenantContext.require();
+    const classroom = await this.findById(classroomId);
+    if (classroom.teacherId !== teacherId) throw new ForbiddenException();
+
+    const students: Array<{ login: string; pin: string }> = [];
+
+    await this.dataSource.transaction(async (manager) => {
+      for (let i = 1; i <= count; i++) {
+        const pin = this.generatePin();
+        const login = `${namePrefix}-${i}-${randomBytes(2).toString('hex')}`.toLowerCase();
+
+        const passwordHash = await argon2.hash(pin, { type: argon2.argon2id });
+
+        const profile = this.piiCrypto.encryptObject({ firstName: `${namePrefix}-${i}` });
+        const user = manager.create(User, {
+          tenantId: ctx.tenantId,
+          login,
+          role: UserRole.CHILD,
+          passwordHash,
+          classroomId,
+          encryptedProfile: profile.ciphertext,
+          profileIv: profile.iv,
+          profileAuthTag: profile.authTag,
+          isActive: true,
+        });
+        await manager.save(User, user);
+        students.push({ login, pin });
+      }
+
+      await manager.increment(
+        Classroom,
+        { id: classroomId, tenantId: ctx.tenantId },
+        'studentCount',
+        count,
+      );
+    });
+
+    return students;
+  }
+
+  /**
+   * Cryptographically-secure 6-digit PIN. Uses node:crypto (not Math.random)
+   * because PINs gate child account auth — see S-04 audit.
+   */
+  private generatePin(): string {
+    const buf = randomBytes(4);
+    const n = buf.readUInt32BE(0) % 900000;
+    return (100000 + n).toString();
+  }
+}

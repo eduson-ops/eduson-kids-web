@@ -5,10 +5,11 @@
 
 import { apiProgressEvent } from './api'
 
-const KEY_COMPLETED = 'ek_lesson_progress_v1'
-const KEY_QUIZ = 'ek_quiz_results_v1'
+export const KEY_COMPLETED = 'ek_lesson_progress_v1'
+export const KEY_QUIZ = 'ek_quiz_results_v1'
 const KEY_STREAK = 'ek_streak_v1'
 const KEY_ACHIEVEMENTS = 'ek_achievements_v1'
+export const DAILY_GOAL_KEY = 'ek_daily_goal_minutes'
 
 const MS_PER_DAY = 86_400_000
 const MS_PER_WEEK = 604_800_000

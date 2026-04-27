@@ -1,0 +1,4 @@
+cloud_id              = "b1gmseev95ibj8i785f1"
+folder_id             = "b1ggf1ke5g88it9k8n3a"
+container_registry_id = "crp1i8fvm7tp1e4316j3"
+api_image             = "cr.yandex/crp1i8fvm7tp1e4316j3/eduson-api:bootstrap"

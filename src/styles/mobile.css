@@ -1,0 +1,114 @@
+/* ──────────────────────────────────────────────────────────────
+   mobile.css — shared mobile/touch utilities for the Capacitor port.
+   Imported AFTER App.css from App.tsx so these win the cascade.
+   ────────────────────────────────────────────────────────────── */
+
+/* ── Bottom-sheet slide-up transition ──────────────────────────
+   Add .bottom-sheet to the container and toggle .is-open. */
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: translateY(100%);
+  transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left:  env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  z-index: 1000;
+  will-change: transform;
+}
+.bottom-sheet.is-open {
+  transform: translateY(0%);
+}
+.bottom-sheet__handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.35);
+  margin: 8px auto 6px;
+}
+
+/* Backdrop that dims the app behind any sheet/modal. */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease-out;
+  z-index: 999;
+}
+.sheet-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Tap-scale affordance ──────────────────────────────────────
+   Add .tap-scale to any button/link that should "press" on touch. */
+.tap-scale {
+  transition: transform 120ms ease-out, opacity 120ms ease-out;
+  touch-action: manipulation;
+}
+.tap-scale:active {
+  transform: scale(0.96);
+  opacity: 0.88;
+}
+
+/* ── No-select chrome ──────────────────────────────────────────
+   UI elements that must never invoke iOS/Android long-press
+   selection, copy-menu, or drag-ghost. */
+.no-select,
+.ui-chrome {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+
+/* ── Touch-friendly minimum tap target (Apple HIG 44×44).
+   Apply .tap-target to tiny icons/buttons that would otherwise
+   be too small to reliably tap. */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Full-height helper that uses the --vh JS-calibrated var.
+   Safer than 100vh on iOS Safari (which counts the URL bar). */
+.min-h-screen-safe {
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+.h-screen-safe {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+/* ── Scroll containers that shouldn't propagate to body. */
+.scroll-contain {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Kill iOS input zoom: font-size ≥16 on focused inputs.
+   Apply class when you explicitly opted into non-zooming inputs. */
+.no-zoom-input {
+  font-size: 16px;
+}
+
+/* ── Hide on small screens / hide on desktop helpers. */
+@media (max-width: 480px) {
+  .hide-on-mobile { display: none !important; }
+}
+@media (min-width: 481px) {
+  .show-on-mobile { display: none !important; }
+}
+
+/* ── Pull-to-refresh suppression on fullscreen game/studio views. */
+.no-pull-refresh {
+  overscroll-behavior-y: contain;
+  touch-action: pan-x pan-y;
+}

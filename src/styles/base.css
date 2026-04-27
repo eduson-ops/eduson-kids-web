@@ -1,0 +1,241 @@
+/* ═══════════════════════════════════════════════════════════════════
+   BASE — :root variables, CSS resets, html/body/typography defaults
+   Extracted from App.css during refactor R6 (2026-04-26)
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ═══ Eduson Kids Brand Tokens v2.0 (Designbook) ═══ */
+  /* Ink & paper */
+  --ink: #15141B;
+  --ink-soft: #2B2A36;
+  --paper: #FFFBF3;
+  --paper-2: #F4EFE3;
+  --paper-3: #ECE4D2;
+
+  /* Brand — Eduson inheritance */
+  --yellow: #FFD43C;  --yellow-ink: #7A5900;  --yellow-soft: #FFF0B0;  --yellow-deep: #C99E00;
+  --violet: #6B5CE7;  --violet-deep: #4A3DC9; --violet-soft: #E4E0FC;  --violet-ink: #2A1F8C;
+  --mint:   #9FE8C7;  --mint-deep:   #3DB07A; --mint-soft:   #E1F7EC;  --mint-ink:   #0C4E2E;
+  --pink-br:#FFB4C8;  --pink-deep:   #E8517B; --pink-soft:   #FFE4EC;  --pink-ink:   #6A1A33;
+  --sky:    #A9D8FF;  --sky-deep:    #3E87E8; --sky-soft:    #DFF0FF;  --sky-ink:    #1A3A6E;
+  --orange: #FF9454;  --orange-deep: #D96A24; --orange-soft: #FFE2CE;  --orange-ink: #6B2A05;
+
+  /* Block-coding category colors (must match Blockly) */
+  --b-move: var(--violet);    --b-move-ink: var(--paper);
+  --b-logic: var(--yellow);   --b-logic-ink: var(--yellow-ink);
+  --b-data: var(--mint);      --b-data-ink: var(--mint-ink);
+  --b-event: var(--pink-br);  --b-event-ink: var(--pink-ink);
+  --b-world: var(--sky);      --b-world-ink: var(--sky-ink);
+  --b-sound: var(--orange);   --b-sound-ink: var(--orange-ink);
+
+  /* Typography */
+  --f-display: 'Nunito', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --f-ui:      'Nunito', 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  --f-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Shapes */
+  --r-block: 14px;
+  --r-card: 22px;
+  --r-card-lg: 32px;
+  --r-pill: 999px;
+
+  /* Warm shadows — chunky block style */
+  --sh-1: 0 1px 0 rgba(21,20,27,.08), 0 2px 6px rgba(21,20,27,.06);
+  --sh-2: 0 2px 0 rgba(21,20,27,.10), 0 8px 20px rgba(21,20,27,.08);
+  --sh-3: 0 3px 0 rgba(21,20,27,.14), 0 16px 40px rgba(21,20,27,.10);
+  --sh-press: 0 1px 0 rgba(21,20,27,.14);
+  --sh-block: 0 4px 0 0 rgba(21,20,27,.22);
+
+  --ease: cubic-bezier(.22,1,.36,1);
+
+  /* ═══ Legacy vars mapped to brand (dark mode studio/game surfaces) ═══ */
+  --bg: #0f1420;          /* game/studio dark surface */
+  --bg-2: #161c2b;
+  --card: #1a2030;
+  --accent: var(--violet);
+  --accent-hover: #8575ff;
+  --pink: var(--pink-deep);
+  --text: #e8eaf2;
+  --muted: #a4a9bc;
+  --err: var(--pink-deep);
+  --ok: var(--mint-deep);
+  --border: rgba(255, 255, 255, 0.08);
+  --radius: 14px;
+
+  font-family: var(--f-ui);
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ═══ Light brand theme — platform shell (lobby, profile, curriculum) ═══ */
+.brand-shell {
+  --bg: var(--paper);
+  --bg-2: var(--paper-2);
+  --card: var(--paper);
+  --text: var(--ink);
+  --muted: var(--ink-soft);
+  --border: rgba(21,20,27,.08);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-ui);
+  min-height: 100vh;
+  /* Subtle dot-grid paper texture */
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(21,20,27,.05) 1.4px, transparent 1.4px);
+  background-size: 32px 32px;
+}
+
+/* ── CSS Reset ── */
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; min-height: 100vh; }
+body { background: radial-gradient(circle at top, #202840 0%, #0f1420 60%) fixed; }
+
+/* ── Standalone typography utilities (usable without .brand-shell) ── */
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--ink-soft, #2B2A36);
+  opacity: .7;
+  display: block;
+}
+.h1 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 56px;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  margin: 0;
+  color: var(--ink, #15141B);
+}
+.h2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink, #15141B);
+}
+.h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--ink, #15141B);
+}
+.lead {
+  font-size: 18px;
+  color: var(--ink-soft, #2B2A36);
+  line-height: 1.55;
+  margin: 0;
+}
+/* brand-shell variants override color context */
+.brand-shell .eyebrow { color: var(--ink-soft); }
+.brand-shell .h1, .brand-shell .h2, .brand-shell .h3 { color: var(--ink); }
+
+/* ═══════════════════════════════════════════════════════════
+   Кастомный скроллбар — убираем уродливый браузерный.
+   Firefox: scrollbar-width + scrollbar-color
+   WebKit/Blink: ::-webkit-scrollbar
+   ═══════════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 92, 255, 0.45) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background: transparent;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(124, 92, 255, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background 0.15s;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 92, 255, 0.6);
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:active {
+  background: rgba(124, 92, 255, 0.85);
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-corner { background: transparent; }
+
+/* Светлая тема — тёмный большой на белом фоне */
+.brand-shell *, .brand-shell *::before, .brand-shell *::after {
+  scrollbar-color: rgba(21, 20, 27, 0.3) transparent;
+}
+.brand-shell *::-webkit-scrollbar-thumb {
+  background: rgba(21, 20, 27, 0.22);
+  background-clip: content-box;
+}
+.brand-shell *::-webkit-scrollbar-thumb:hover {
+  background: rgba(21, 20, 27, 0.42);
+  background-clip: content-box;
+}
+
+/* ─── Ultra-wide monitors (34", 21:9, 3440×1440) ─────────────────── */
+@media (min-width: 2000px) {
+  /* Lift narrow content caps so studio/lobby/hub fill more horizontal space */
+  .kb-shell-main,
+  .lobby-wrap,
+  .hub-wrap,
+  .play-wrap,
+  .lessons-wrap,
+  .portfolio-wrap,
+  .teacher-wrap,
+  .parent-wrap,
+  .admin-wrap,
+  .settings-wrap,
+  .auth-wrap,
+  .signup-wrap,
+  .lobby-section,
+  .lobby-grid,
+  .games-grid {
+    max-width: 1800px !important;
+  }
+  .brand-shell--sidenav .kb-shell-main {
+    max-width: 1800px !important;
+    padding-right: 72px !important;
+  }
+  /* Wider lesson/trainer cards grid */
+  .games-grid,
+  .lessons-grid,
+  .trainers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  }
+  /* Slightly larger base font for readability at distance */
+  html { font-size: 17px; }
+}
+
+@media (min-width: 2800px) {
+  /* True 4K/5K: even wider */
+  .kb-shell-main,
+  .lobby-wrap,
+  .hub-wrap,
+  .play-wrap,
+  .lessons-wrap,
+  .portfolio-wrap,
+  .teacher-wrap,
+  .parent-wrap,
+  .admin-wrap,
+  .settings-wrap,
+  .auth-wrap,
+  .signup-wrap {
+    max-width: 2200px !important;
+  }
+  html { font-size: 18px; }
+}

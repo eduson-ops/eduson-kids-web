@@ -1,0 +1,178 @@
+name: API Deploy
+on:
+  push:
+    branches: [main, night-sonnet-2026-04-23, deploy/backend]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/api-deploy.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: cr.yandex
+  IMAGE_NAME: ${{ secrets.YC_CR_ID }}/eduson-api
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: eduson
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: eduson_kids_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci --legacy-peer-deps
+
+      - name: Run tests
+        working-directory: backend
+        run: npm test -- --forceExit
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: eduson
+          DB_PASSWORD: testpass
+          DB_NAME: eduson_kids_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_ACCESS_SECRET: test-access-secret-64-chars-placeholder-xxxxxxxxxxxx
+          JWT_REFRESH_SECRET: test-refresh-secret-64-chars-placeholder-xxxxxxxxxxxx
+          PII_KEY: ${{ secrets.TEST_PII_KEY }}
+
+      - name: Build
+        working-directory: backend
+        run: npm run build
+
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to YC Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: cr.yandex
+          username: json_key
+          password: ${{ secrets.YC_SA_KEY }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,suffix=,format=short
+            type=raw,value=latest
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to YC Serverless Container
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Install YC CLI
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh -o /tmp/yc-install.sh
+          bash /tmp/yc-install.sh -i $HOME -n
+          echo "$HOME/bin" >> $GITHUB_PATH
+          $HOME/bin/yc --version
+
+      - name: Authenticate YC CLI
+        run: |
+          echo '${{ secrets.YC_SA_KEY }}' > /tmp/sa-key.json
+          yc config set service-account-key /tmp/sa-key.json
+          yc config set folder-id ${{ secrets.YC_FOLDER_ID }}
+
+      - name: Deploy container revision
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$(echo '${{ github.sha }}' | cut -c1-7)"
+          yc serverless container revision deploy \
+            --container-name eduson-api \
+            --image "$IMAGE" \
+            --service-account-id ${{ secrets.YC_SA_ID }} \
+            --memory 512m \
+            --cores 1 \
+            --execution-timeout 30s \
+            --network-id ${{ secrets.YC_NETWORK_ID }} \
+            --environment NODE_ENV=production \
+            --environment DB_HOST=${{ secrets.YC_DB_HOST }} \
+            --environment DB_PORT=6432 \
+            --environment DB_USER=eduson \
+            --environment DB_NAME=eduson_kids \
+            --environment DB_SSL=true \
+            --environment REDIS_HOST=${{ secrets.YC_REDIS_HOST }} \
+            --environment REDIS_PORT=6379 \
+            --environment REDIS_TLS=false \
+            --environment "DB_PASSWORD=${{ secrets.APP_DB_PASSWORD }}" \
+            --environment "REDIS_PASSWORD=${{ secrets.APP_DB_PASSWORD }}" \
+            --environment "JWT_ACCESS_SECRET=${{ secrets.APP_JWT_ACCESS_SECRET }}" \
+            --environment "JWT_REFRESH_SECRET=${{ secrets.APP_JWT_REFRESH_SECRET }}" \
+            --environment "PII_KEY=${{ secrets.APP_PII_KEY }}" \
+            --environment "LIVEKIT_URL=${{ secrets.LIVEKIT_URL }}" \
+            --environment "LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}" \
+            --environment "LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}" \
+            --environment "CORS_WHITELIST=http://localhost:5173,http://localhost:4173,https://eduson-ops.github.io" \
+            --environment "SCHOOL_CODES=${{ secrets.SCHOOL_CODES }}"
+
+      - name: Smoke test
+        run: |
+          sleep 20
+          CONTAINER_URL=$(yc serverless container get eduson-api --format json | jq -r '.url' | sed 's|/*$||')
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${CONTAINER_URL}/health")
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Health check failed with status: $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Deployment successful! URL: ${CONTAINER_URL}"
+
+      - name: Cleanup key
+        if: always()
+        run: rm -f /tmp/sa-key.json

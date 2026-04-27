@@ -1,0 +1,33 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+backend/dist/
+backend/node_modules/
+
+# Editor / batch tooling artifacts
+*.tmp
+wa_batch*.tmp
+
+# GH Pages deploy temp build (182 MB, rebuilt by deploy script)
+apps/gh-pages-tmp/
