@@ -34,36 +34,6 @@ export function useIsMobile(): boolean {
   return isMobile
 }
 
-/** useIsTouch — чистая media-query `(pointer: coarse)`. */
-export function useIsTouch(): boolean {
-  const [isTouch, setIsTouch] = useState<boolean>(() => detectCoarse())
-
-  useEffect(() => {
-    const mq = window.matchMedia('(pointer: coarse)')
-    const update = () => setIsTouch(mq.matches)
-    if (mq.addEventListener) mq.addEventListener('change', update)
-    else mq.addListener(update)
-    return () => {
-      if (mq.removeEventListener) mq.removeEventListener('change', update)
-      else mq.removeListener(update)
-    }
-  }, [])
-
-  return isTouch
-}
-
-/** useIsNative — true если работаем внутри Capacitor (iOS/Android shell). */
-export function useIsNative(): boolean {
-  const [isNative, setIsNative] = useState<boolean>(() => detectNative())
-
-  useEffect(() => {
-    // isNativePlatform is sync and stable — one check is enough, но
-    // react-strict-mode двойной mount требует аккуратности: просто проверяем заново.
-    setIsNative(detectNative())
-  }, [])
-
-  return isNative
-}
 
 function detectMobile(): boolean {
   if (typeof window === 'undefined') return false

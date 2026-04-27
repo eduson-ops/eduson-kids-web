@@ -110,3 +110,25 @@ export const OUTPUT_PREVIEW_LIMIT = 6 as const
  * `uses-feature` check when `call3` is requested.
  */
 export const USES_FEATURE_MIN_CALLS = 3 as const
+
+// ──────────────────────────────────────────────────────────────
+// TestTab / world runtime
+// ──────────────────────────────────────────────────────────────
+
+/** Degrees-to-radians multiplier (π/180). */
+export const DEG_TO_RAD = Math.PI / 180
+
+/** Frame rate used for obj_glide_to and live-mode command steps. */
+export const ANIM_FPS = 30 as const
+
+/** Interval (ms) between on_tick calls for scripted objects. */
+export const TICK_INTERVAL_MS = 1000 as const
+
+/** Minimum allowed object scale (obj_change_size clamp). */
+export const SCALE_MIN = 0.1 as const
+
+/** Maximum allowed object scale (obj_change_size clamp). */
+export const SCALE_MAX = 10 as const
+
+/** Command step (ms) in live/autorun mode — faster than COMMAND_STEP_MS. */
+export const LIVE_STEP_MS = 30 as const

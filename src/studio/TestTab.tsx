@@ -29,6 +29,7 @@ import { addCoin, setScore, playerSay } from '../lib/gameState'
 import type { WorldCommand } from '../lib/python-world-runtime'
 import { runPython } from '../lib/pyodide-executor'
 import { wrapObjectPython } from '../lib/objectBlocks'
+import { DEG_TO_RAD, ANIM_FPS, TICK_INTERVAL_MS, SCALE_MIN, SCALE_MAX, LIVE_STEP_MS } from '../lib/constants'
 
 /** PartGeometry — рендер корректной геометрии по type (coin/wall/floor/ramp/roof/cube). */
 function PartGeometry({ type }: { type: PartObject['type'] }) {
@@ -258,7 +259,7 @@ export default function TestTab({ state }: { state: EditorState }) {
     for (const p of state.parts) {
       if (p.scripts?.python && p.scripts.python.includes('def on_tick')) {
         // Interval 1с (в прелюде нет точного парсинга комментария — берём дефолт)
-        const id = window.setInterval(() => void runObjectHandler(p.id, 'on_tick'), 1000)
+        const id = window.setInterval(() => void runObjectHandler(p.id, 'on_tick'), TICK_INTERVAL_MS)
         tickIntervalsRef.current.push(id)
       }
     }
@@ -323,7 +324,7 @@ export default function TestTab({ state }: { state: EditorState }) {
       if (isExecutingRef.current) return
       isExecutingRef.current = true
       const live = getEditorState().autoRun
-      const step = live ? 30 : COMMAND_STEP_MS
+      const step = live ? LIVE_STEP_MS : COMMAND_STEP_MS
       try {
         for (const cmd of cmds) {
           await executeCmd(cmd, stateRef, runBroadcast)
@@ -481,7 +482,7 @@ async function executeCmd(
     case 'obj_rotate': {
       const p = stateRef.current.parts.find((x) => x.id === cmd.target)
       if (p) {
-        const rad = (cmd.deg * Math.PI) / 180
+        const rad = cmd.deg * DEG_TO_RAD
         updatePart(p.id, {
           rotation: [p.rotation[0], p.rotation[1] + rad, p.rotation[2]],
         })
@@ -530,7 +531,7 @@ async function executeCmd(
       if (!p) break
       const from: [number, number, number] = [p.position[0], p.position[1], p.position[2]]
       const to: [number, number, number] = [cmd.x, cmd.y, cmd.z]
-      const frames = Math.max(1, Math.round(cmd.seconds * 30))
+      const frames = Math.max(1, Math.round(cmd.seconds * ANIM_FPS))
       for (let i = 1; i <= frames; i++) {
         const t = i / frames
         updatePart(cmd.target, {
@@ -540,14 +541,14 @@ async function executeCmd(
             from[2] + (to[2] - from[2]) * t,
           ],
         })
-        await delay(Math.round(1000 / 30))
+        await delay(Math.round(1000 / ANIM_FPS))
       }
       break
     }
     case 'obj_change_size': {
       const p = stateRef.current.parts.find((x) => x.id === cmd.target)
       if (!p) break
-      const s = Math.max(0.1, Math.min(10, p.scale[0] + cmd.delta))
+      const s = Math.max(SCALE_MIN, Math.min(SCALE_MAX, p.scale[0] + cmd.delta))
       updatePart(cmd.target, { scale: [s, s, s] })
       break
     }
