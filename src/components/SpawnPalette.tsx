@@ -204,9 +204,10 @@ export default function SpawnPalette() {
                   key={item.kind}
                   className={`spawn-item ${placement?.kind === item.kind ? 'active' : ''}`}
                   onClick={() => pickItem(item)}
-                  title={item.label}
+                  aria-label={`Добавить ${item.label}`}
+                  aria-pressed={placement?.kind === item.kind}
                 >
-                  <span className="spawn-item-emoji">{item.emoji}</span>
+                  <span className="spawn-item-emoji" aria-hidden>{item.emoji}</span>
                   <span className="spawn-item-label">{item.label}</span>
                 </button>
               ))}

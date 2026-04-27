@@ -296,10 +296,10 @@ export default function ScriptTab() {
       <button
         className={`script-help-fab ${helpOpen ? 'open' : ''}`}
         onClick={() => setHelpOpen((v) => !v)}
-        title="Подсказка"
-        aria-label="Подсказка"
+        aria-label={helpOpen ? 'Закрыть подсказку' : 'Открыть подсказку'}
+        aria-expanded={helpOpen}
       >
-        {helpOpen ? '×' : '?'}
+        <span aria-hidden>{helpOpen ? '×' : '?'}</span>
       </button>
 
       {helpOpen && <HelpDrawer mode={mode} onClose={() => setHelpOpen(false)} />}

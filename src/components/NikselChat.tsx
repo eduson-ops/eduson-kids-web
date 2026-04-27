@@ -131,10 +131,10 @@ export default function NikselChat() {
       <button
         className={`nk-chat-fab ${open ? 'active' : ''}`}
         onClick={() => setOpen((v) => !v)}
-        title={open ? 'Закрыть Никселя' : 'Спросить Никселя'}
         aria-label={open ? 'Закрыть чат с Никселем' : 'Открыть чат с Никселем'}
+        aria-expanded={open}
       >
-        {open ? '×' : <NikselMiniChat size={42} />}
+        {open ? <span aria-hidden>×</span> : <NikselMiniChat size={42} />}
       </button>
 
       {open && (

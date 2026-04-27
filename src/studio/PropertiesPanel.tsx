@@ -57,7 +57,7 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                 onChange={(e) => updatePart(selected.id, { name: e.target.value })}
               />
               <span className="prop-type">{selected.type}</span>
-              {selected.scripts && <span className="prop-script-badge" title="У объекта есть скрипт">⚡</span>}
+              {selected.scripts && <span className="prop-script-badge" aria-label="У объекта есть скрипт"><span aria-hidden>⚡</span></span>}
             </div>
             <div className="prop-actions">
               <button onClick={() => duplicatePart(selected.id)}>Дублировать</button>
@@ -245,7 +245,7 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                 >
                   <span className="scene-dot" style={{ background: p.color }} />
                   <span>{p.name}</span>
-                  {p.scripts && <span className="scene-item-badge" title="Запрограммирован">⚡</span>}
+                  {p.scripts && <span className="scene-item-badge" aria-label="Объект запрограммирован"><span aria-hidden>⚡</span></span>}
                 </li>
               ))}
             </ul>
