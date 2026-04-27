@@ -235,29 +235,3 @@ button.tiny, .btn.tiny { padding: 4px 10px; font-size: 13px; }
   backdrop-filter: blur(6px);
 }
 
-/* ──────────────────────────────────────────── Badge (players, generic) */
-.players-badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: var(--pink);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 999px;
-  letter-spacing: 0.01em;
-}
-.players-badge-v2 {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: #c879ff;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-  letter-spacing: 0.01em;
-  z-index: 2;
-}
