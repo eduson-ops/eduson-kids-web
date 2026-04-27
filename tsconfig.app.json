@@ -16,11 +16,8 @@
     "jsx": "react-jsx",
 
     /* Strict type checking — gradual enablement */
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
+    "strict": true,
     "noImplicitOverride": true,
-    /* "strict": true, */
     /* "noUncheckedIndexedAccess": true, */
     /* "exactOptionalPropertyTypes": true, */
 
