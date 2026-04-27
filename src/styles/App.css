@@ -131,29 +131,6 @@
   justify-content: center;
 }
 .goal-actions button { min-width: 120px; }
-.hud-toast {
-  position: absolute;
-  top: 38%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 16px 36px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  border-radius: 14px;
-  backdrop-filter: blur(10px);
-  z-index: 9;
-  animation: toast-in 0.3s ease-out, toast-out 0.3s ease-in 1.9s forwards;
-}
-@keyframes toast-in {
-  from { opacity: 0; transform: translate(-50%, -60%); }
-  to { opacity: 1; transform: translate(-50%, -50%); }
-}
-@keyframes toast-out {
-  to { opacity: 0; transform: translate(-50%, -40%); }
-}
 .hud-help {
   position: absolute;
   bottom: 16px;
@@ -4603,10 +4580,6 @@
   line-height: 1.1;
   margin-top: 4px;
 }
-.curric-continue {
-  white-space: nowrap;
-}
-
 .curric-modules {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -4662,10 +4635,6 @@
   margin: 4px 0 0;
   font-size: 18px;
   color: var(--ink, #15141b);
-}
-.curric-module-lock {
-  font-size: 16px;
-  color: rgba(21, 20, 27, 0.45);
 }
 .curric-module-story {
   margin: 0;
@@ -6490,7 +6459,6 @@
 .kb-btn--ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
 .kb-btn--ghost:hover { background: rgba(21,20,27,.04); }
 .kb-btn--ghost:active { transform: translateY(1px); }
-.kb-btn--danger { background: var(--pink-br); color: var(--pink-ink); box-shadow: 0 4px 0 var(--pink-deep); }
 .kb-btn--lg { font-size: 18px; padding: 18px 28px 20px; border-radius: 18px; }
 .kb-btn--sm { font-size: 13px; padding: 8px 14px 10px; border-radius: 10px; }
 .kb-btn:disabled,
@@ -6524,9 +6492,6 @@
   font-family: var(--f-ui);
 }
 .kb-chip--active { background: var(--ink); color: var(--paper); }
-.kb-chip--violet { background: var(--violet-soft); color: var(--violet-ink); border-color: var(--violet); }
-.kb-chip--mint   { background: var(--mint-soft);   color: var(--mint-ink);   border-color: var(--mint-deep); }
-.kb-chip--yellow { background: var(--yellow-soft); color: var(--yellow-ink); border-color: var(--yellow); }
 
 /* Cards */
 .kb-card {
@@ -6615,8 +6580,6 @@
   min-height: 44px;
   box-shadow: 0 4px 0 rgba(21,20,27,.25);
 }
-.kb-block--hat { border-radius: 22px 22px 14px 14px; padding-top: 18px; }
-.kb-block--reporter { border-radius: 999px; padding: 8px 18px; min-height: 36px; font-size: 14px; }
 .kb-block--move   { --c: var(--violet);  --ci: var(--paper); }
 .kb-block--logic  { --c: var(--yellow);  --ci: var(--yellow-ink); }
 .kb-block--data   { --c: var(--mint);    --ci: var(--mint-ink); }
@@ -6977,7 +6940,6 @@
 .kb-cover--yellow { background: var(--yellow); color: var(--ink); }
 .kb-cover--ink    { background: var(--ink);    color: var(--paper); }
 .kb-cover--mint   { background: var(--mint-deep); color: var(--paper); }
-.kb-cover--pink   { background: var(--pink-deep); color: var(--paper); }
 .kb-cover--violet { background: var(--violet); color: var(--paper); }
 
 .kb-cover-meta {
@@ -7114,7 +7076,6 @@
   opacity: 0;
   pointer-events: none;
 }
-.kb-cover-deco-block.b-move   { background: var(--violet-soft); color: var(--violet-ink); }
 .kb-cover-deco-block.b-logic  { background: var(--yellow); color: var(--yellow-ink); }
 .kb-cover-deco-block.b-data   { background: var(--mint); color: var(--mint-ink); }
 .kb-cover-deco-block.b-event  { background: var(--pink-br, var(--pink)); color: var(--pink-ink); }
@@ -7646,44 +7607,11 @@
 }
 
 /* ═══ Mobile bottom-tab bar (<768px) ═══ */
-.kb-bottom-tabs {
-  display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: var(--ink, #15141b);
-  border-top: 1px solid rgba(255,251,243,.08);
-  padding: 6px 4px 8px;
-  z-index: 9300;
-  justify-content: space-around;
-  align-items: center;
-}
-.kb-bottom-tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 6px 4px;
-  text-decoration: none;
-  color: rgba(255,251,243,.55);
-  font-family: var(--f-ui);
-  font-size: 10px;
-  font-weight: 600;
-  border-radius: 10px;
-  transition: color .15s;
-}
-.kb-bottom-tab-emoji { font-size: 20px; line-height: 1; }
-.kb-bottom-tab.active {
-  color: var(--yellow, #FFD43C);
-}
-.kb-bottom-tab:active { background: rgba(255,251,243,.06); }
-
 @media (max-width: 900px) {
   /* Streak widget overlaps with top sidenav bar — hide it on mobile */
   .kb-streak-widget { display: none; }
 }
 @media (max-width: 768px) {
-  .kb-bottom-tabs { display: flex; }
   .brand-shell--sidenav { padding-bottom: 72px; }
   /* FAB and chat panel float above bottom tabs */
   .nk-chat-fab { bottom: 80px; right: 16px; width: 52px; height: 52px; }
@@ -8030,21 +7958,6 @@ button:focus:not(:focus-visible) {
   }
 }
 
-/* High contrast mode — для ГОСТ Р 52872 / Dyslexia toggle */
-.a11y-high-contrast {
-  --ink: #000;
-  --ink-soft: #222;
-  --paper: #fff;
-  --paper-2: #f0f0f0;
-}
-.a11y-high-contrast .kb-btn,
-.a11y-high-contrast .kb-card {
-  border-width: 2.5px !important;
-}
-
-/* Font scaling — привязано к классу на html/body */
-.a11y-font-large { font-size: 18px; }
-.a11y-font-xl { font-size: 20px; }
 
 /* ═══════════════════════════════════════════════════════════
    Trainer / Puzzle UI  (3-column horizontal layout)
@@ -9020,14 +8933,7 @@ body:has(.story-slide) { overflow: hidden; }
   .hud-right { gap: 6px; }
   .hud-pill { font-size: 13px; padding: 6px 10px; }
 
-  /* Toasts & help text sit inside safe-area. */
-  .hud-toast {
-    font-size: 20px;
-    padding: 12px 24px;
-    max-width: calc(100% - 32px);
-    white-space: normal;
-    text-align: center;
-  }
+  /* help text sits inside safe-area */
   .hud-help {
     bottom: max(12px, env(safe-area-inset-bottom, 0px));
     font-size: 12px;
@@ -9095,7 +9001,6 @@ body:has(.story-slide) { overflow: hidden; }
   .hud-title { font-size: 12px; padding: 6px 10px; }
   .hud-pill { font-size: 12px; padding: 5px 8px; }
   .hud-btn { width: 44px; height: 44px; /* keep HIG target */ }
-  .hud-toast { font-size: 17px; padding: 10px 18px; }
 
   .mobile-dpad { width: 96px; height: 96px; }
   .dpad-btn { width: 32px; height: 32px; font-size: 14px; }
