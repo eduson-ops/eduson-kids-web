@@ -3793,26 +3793,6 @@
   gap: 40px;
   margin-bottom: 32px;
 }
-.portfolio-hero-meta {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 16px;
-}
-.portfolio-hero-tag {
-  padding: 8px 16px;
-  background: rgba(107, 92, 231, 0.1);
-  border: 1px solid rgba(107, 92, 231, 0.25);
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink, #15141b);
-}
-.portfolio-hero-tag.streak {
-  background: rgba(255, 84, 100, 0.1);
-  border-color: rgba(255, 84, 100, 0.3);
-  color: #d93848;
-}
 .portfolio-progress-ring {
   flex-shrink: 0;
 }
@@ -7425,11 +7405,6 @@
   0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
   50%      { transform: translateY(-4px) rotate(-2deg); opacity: 0.95; }
 }
-/* Рука машет */
-.nk-wave-arm {
-  animation: nk-wave 1.1s ease-in-out infinite;
-  transform-box: fill-box;
-}
 @keyframes nk-wave {
   0%, 100% { transform: rotate(-8deg); }
   50%      { transform: rotate(18deg); }
@@ -7749,7 +7724,6 @@
   max-width: 85%;
   gap: 4px;
 }
-.nk-chat-msg--user { align-self: flex-end; align-items: flex-end; }
 .nk-chat-msg--assistant { align-self: flex-start; }
 .nk-chat-bubble {
   padding: 10px 14px;
@@ -7758,11 +7732,6 @@
   line-height: 1.45;
   white-space: pre-wrap;
   word-wrap: break-word;
-}
-.nk-chat-msg--user .nk-chat-bubble {
-  background: var(--violet);
-  color: var(--paper);
-  border-bottom-right-radius: 4px;
 }
 .nk-chat-msg--assistant .nk-chat-bubble {
   background: var(--paper-2, #F4EFE3);
@@ -7950,7 +7919,6 @@ button:focus:not(:focus-visible) {
   .mascot-bubble,
   .nk-breathe,
   .nk-blink,
-  .nk-wave-arm,
   .nk-star,
   .nk-caret,
   .nk-think-bubble {
