@@ -9,6 +9,7 @@ import AvatarModel from './AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from './PlayerCharacter'
 import Penguin3D from '../design/mascot/Penguin3D'
 import { SFX } from '../lib/audio'
+import { DEG_TO_RAD } from '../lib/constants'
 
 type Controls = {
   forward: boolean
@@ -105,7 +106,7 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
     }
     const onTurn = (e: Event) => {
       const { degrees = 0 } = (e as CustomEvent).detail ?? {}
-      desiredRotY.current += (Number(degrees) * Math.PI) / 180
+      desiredRotY.current += Number(degrees) * DEG_TO_RAD
     }
     const onJump = () => {
       if (!body.current) return
