@@ -102,8 +102,3 @@ export function seedDefaultQualityFromTier(): void {
     // localStorage может быть недоступен (privacy mode) — игнорируем
   }
 }
-
-/** Для тестов. */
-export function __resetDeviceTierCache(): void {
-  cached = null
-}

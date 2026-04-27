@@ -265,16 +265,6 @@ export function applyPromo(code: string): { ok: boolean; message: string } {
   return { ok: false, message: 'Неизвестный промокод' }
 }
 
-/** Начислить реферальный бонус (когда другой ребёнок оплатил по ссылке). */
-export function addReferralReward(): void {
-  state = {
-    ...state,
-    referralConverts: state.referralConverts + 1,
-    referralBonusMonths: state.referralBonusMonths + 1,
-  }
-  save(state)
-  emit()
-}
 
 /** Вызывается из progress.ts при завершении урока — списывает 1 урок из пакета. */
 export function useLesson(): void {

@@ -102,19 +102,6 @@ export function playerSay(text: string) {
   window.dispatchEvent(new CustomEvent('ek:player-say', { detail: { text: String(text).slice(0, MAX_SAY_LENGTH) } }))
 }
 
-/**
- * Apply a WorldCommand (from Python runtime) to the live game state.
- * Returns true if handled, false if unknown op.
- */
-export function applyWorldCommand(cmd: { op: string; [k: string]: unknown }): boolean {
-  switch (cmd.op) {
-    case 'add_score': addCoin((cmd.n as number) ?? 1); return true
-    case 'set_score': setScore((cmd.n as number) ?? 0); return true
-    case 'player_say': playerSay((cmd.text as string) ?? ''); return true
-    case 'enemy_hit': enemyHit(); return true
-    default: return false
-  }
-}
 
 export function setGoal(g: GoalResult) {
   if (state.goal) return

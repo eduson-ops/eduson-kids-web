@@ -192,18 +192,6 @@ export async function apiLeaderboard(gameId: string) {
   )
 }
 
-export function apiLogout() {
-  clearToken()
-  // F-12: also ask backend to clear the HttpOnly access_token + refresh_token
-  // cookies. Best-effort — if it fails, the local state is already wiped and
-  // the JWT will expire on the server side anyway.
-  if (API_URL) {
-    void fetch(API_URL + '/api/v1/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(() => {})
-  }
-}
 
 export async function apiGetClassroom(id: string): Promise<{ id: string; name: string; teacherId: string; students: Array<{ firstName: string; lastName: string; login: string }> } | null> {
   if (!getToken()) return null
@@ -254,5 +242,4 @@ export async function apiRoomToken(
   })
 }
 
-export const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true'
 export function getApiToken(): string | null { return getToken() }

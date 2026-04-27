@@ -117,13 +117,3 @@ export async function runPython(code: string): Promise<Command[]> {
     w.postMessage({ id, type: 'run', code } satisfies InMsg)
   })
 }
-
-export async function resetRuntime(): Promise<void> {
-  if (!worker) return
-  const w = worker
-  const id = nextId++
-  await new Promise<void>((resolve, reject) => {
-    pending.set(id, { resolve: () => resolve(), reject })
-    w.postMessage({ id, type: 'reset' } satisfies InMsg)
-  })
-}

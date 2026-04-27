@@ -76,7 +76,6 @@ export function clearAccessToken(): void {
   }
 }
 
-export const ACCESS_TOKEN_KEY = TOKEN_KEY
 
 /**
  * F-12: returns the access token from localStorage when available.
