@@ -30,6 +30,9 @@ import {
   cancelSubscription,
   lessonsRemaining,
   formatRub,
+  PLAN_INFO,
+  PRICE_INSTALLMENT_48,
+  PRICE_PACK_10,
 } from '../lib/billing'
 
 const TOTAL_LESSONS = 48
@@ -324,7 +327,7 @@ export default function StudentPortfolio() {
               )}
               {!billing.subscription.active && (
                 <p style={{ margin: '6px 0 0', fontSize: 13, color: 'var(--ink-soft)' }}>
-                  {formatRub(5937)}/мес за&nbsp;безлимит уроков. Отключение в&nbsp;1 клик (ст. 32 ЗоЗПП).
+                  {formatRub(PLAN_INFO.monthly.pricePerMonth)}/мес за&nbsp;безлимит уроков. Отключение в&nbsp;1 клик (ст. 32 ЗоЗПП).
                 </p>
               )}
             </div>
@@ -334,7 +337,7 @@ export default function StudentPortfolio() {
               </button>
             ) : (
               <button className="kb-btn kb-btn--secondary kb-btn--lg" onClick={() => startSubscription()}>
-                Подключить за {formatRub(5937)}/мес
+                Подключить за {formatRub(PLAN_INFO.monthly.pricePerMonth)}/мес
               </button>
             )}
           </div>
@@ -344,7 +347,7 @@ export default function StudentPortfolio() {
         <div className="kb-grid-2">
           <div className="kb-card" style={{ borderLeft: '4px solid var(--violet)' }}>
             <span className="eyebrow">Полный курс в рассрочку</span>
-            <h3 className="h3" style={{ marginTop: 6 }}>48 уроков за {formatRub(71244)}</h3>
+            <h3 className="h3" style={{ marginTop: 6 }}>48 уроков за {formatRub(PRICE_INSTALLMENT_48)}</h3>
             <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink-soft)' }}>
               Разовое зачисление 48 уроков сразу. Рассрочка через банк-партнёр, платишь помесячно.
             </p>
@@ -355,7 +358,7 @@ export default function StudentPortfolio() {
 
           <div className="kb-card" style={{ borderLeft: '4px solid var(--yellow)' }}>
             <span className="eyebrow">Пак-добивка</span>
-            <h3 className="h3" style={{ marginTop: 6 }}>+10 уроков за {formatRub(9900)}</h3>
+            <h3 className="h3" style={{ marginTop: 6 }}>+10 уроков за {formatRub(PRICE_PACK_10)}</h3>
             <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink-soft)' }}>
               Если нужно больше занятий помимо подписки или базового курса. Зачисляем моментально.
             </p>

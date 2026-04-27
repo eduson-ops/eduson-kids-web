@@ -14,6 +14,8 @@ import {
   formatRub,
   applyPromo,
   PLAN_INFO,
+  PRICE_INSTALLMENT_48,
+  PRICE_PACK_10,
   type SubscriptionPlan,
 } from '../lib/billing'
 
@@ -194,7 +196,7 @@ export default function Billing() {
             <PlanCard
               plan="monthly"
               title="Месячная"
-              priceLine={`${formatRub(5937)}/мес`}
+              priceLine={`${formatRub(PLAN_INFO.monthly.pricePerMonth)}/мес`}
               subLine="Привычный формат"
               bullets={['1 ребёнок', 'Отмена в 1 клик', 'Email-уведомления']}
               onPick={() => startSubscription('monthly')}
@@ -202,8 +204,8 @@ export default function Billing() {
             <PlanCard
               plan="annual"
               title="Годовая"
-              priceLine={`${formatRub(49900)}/год`}
-              subLine={`≈ ${formatRub(4158)}/мес · −30%`}
+              priceLine={`${formatRub(PLAN_INFO.annual.totalRubIfYear ?? 49900)}/год`}
+              subLine={`≈ ${formatRub(PLAN_INFO.annual.pricePerMonth)}/мес · −30%`}
               bullets={['1 ребёнок', 'Экономия 21 344 ₽', 'Можно отменить, вернём остаток']}
               badge="Выгодно"
               onPick={() => startSubscription('annual')}
@@ -211,7 +213,7 @@ export default function Billing() {
             <PlanCard
               plan="family-2"
               title="Семейная · 2"
-              priceLine={`${formatRub(8937)}/мес`}
+              priceLine={`${formatRub(PLAN_INFO['family-2'].pricePerMonth)}/мес`}
               subLine={`−25% vs 2× monthly`}
               bullets={['2 ребёнка', 'Один родитель · /parent', 'Отмена в 1 клик']}
               onPick={() => startSubscription('family-2')}
@@ -219,7 +221,7 @@ export default function Billing() {
             <PlanCard
               plan="family-3"
               title="Семейная · 3"
-              priceLine={`${formatRub(11937)}/мес`}
+              priceLine={`${formatRub(PLAN_INFO['family-3'].pricePerMonth)}/мес`}
               subLine={`−33% vs 3× monthly`}
               bullets={['3 ребёнка', 'Max выгода для семьи', 'Отмена в 1 клик']}
               badge="Лучшее"
@@ -319,7 +321,7 @@ export default function Billing() {
         <div className="kb-grid-2">
           <div className="kb-card" style={{ borderLeft: '4px solid var(--violet)' }}>
             <span className="eyebrow">Полный курс в рассрочку</span>
-            <h3 className="h3" style={{ marginTop: 6 }}>48 уроков за {formatRub(71244)}</h3>
+            <h3 className="h3" style={{ marginTop: 6 }}>48 уроков за {formatRub(PRICE_INSTALLMENT_48)}</h3>
             <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
               Разовое зачисление 48&nbsp;уроков сразу в&nbsp;баланс. Оплата через банк-партнёр —
               платишь помесячно, учится без&nbsp;ограничений с&nbsp;первого дня.
@@ -336,7 +338,7 @@ export default function Billing() {
 
           <div className="kb-card" style={{ borderLeft: '4px solid var(--yellow)' }}>
             <span className="eyebrow">Пак-добивка</span>
-            <h3 className="h3" style={{ marginTop: 6 }}>+10 уроков за {formatRub(9900)}</h3>
+            <h3 className="h3" style={{ marginTop: 6 }}>+10 уроков за {formatRub(PRICE_PACK_10)}</h3>
             <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
               Если нужно больше занятий помимо подписки или&nbsp;базового курса.
               Зачисляем моментально после оплаты. 990&nbsp;₽ за&nbsp;урок.
