@@ -298,7 +298,7 @@ export function getUnlockedAchievements(): Set<string> { return achievements }
 export function countAchievements(): number { return achievements.size }
 
 // ─── Reset ───────────────────────────────────────────
-export function resetAllProgress() {
+function resetAllProgress() {
   completed = new Set()
   quizResults = {}
   achievements = new Set()
