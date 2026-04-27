@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 40 — Игровые состояния в PyGame Zero · Финал сквозного #1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --red: #EF4444;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 56px 72px 86px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .badge--purple { color: #C4B5FD; }
+  .badge--purple .dot { background: #A78BFA; box-shadow: 0 0 10px #A78BFA; }
+  .badge--pink { color: #F9A8D4; }
+  .badge--pink .dot { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .badge--yellow { color: #FDE68A; }
+  .badge--yellow .dot { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+  .badge--green { color: #86EFAC; }
+  .badge--green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .badge--red { color: #FCA5A5; }
+  .badge--red .dot { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+  h1 {
+    font-size: 62px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 14px 0;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 60%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 18px;
+  }
+  h2 .grad {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h3 { font-size: 21px; font-weight: 700; margin-bottom: 10px; }
+  p, li { font-size: 18px; line-height: 1.55; color: #CBD1DE; }
+  .muted { color: var(--muted); }
+  .big { font-size: 22px; }
+
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide .meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px;
+  }
+  .title-slide .subtitle {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 840px;
+    margin-top: 8px;
+  }
+  .title-slide .foot {
+    display: flex; gap: 32px; margin-top: 38px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .title-slide .foot b { color: var(--text); }
+
+  .grid { display: grid; gap: 18px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.45); transform: translateY(-3px); }
+  .card .ico {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.25));
+    border: 1px solid var(--border);
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .card--purple { background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(124,58,237,0.03)); border-color: rgba(124,58,237,0.35); }
+  .card--cyan { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(6,182,212,0.03)); border-color: rgba(6,182,212,0.35); }
+  .card--pink { background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(236,72,153,0.03)); border-color: rgba(236,72,153,0.35); }
+  .card--yellow { background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.35); }
+  .card--green { background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.03)); border-color: rgba(16,185,129,0.35); }
+  .card--red { background: linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.03)); border-color: rgba(239,68,68,0.35); }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 9px 0 9px 32px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+    font-size: 17px;
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .check-list li::before {
+    content: '✓';
+    position: absolute; left: 0; top: 9px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .num-list { list-style: none; padding: 0; counter-reset: step; }
+  .num-list li {
+    padding: 11px 0 11px 50px;
+    position: relative;
+    counter-increment: step;
+    border-bottom: 1px dashed var(--border);
+    font-size: 17px;
+  }
+  .num-list li:last-child { border-bottom: 0; }
+  .num-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: grid; place-items: center;
+  }
+
+  pre[class*="language-"] {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0A0E18 !important;
+    font-size: 13.5px;
+    padding: 16px 20px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #A5F3FC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88em;
+  }
+  .code-window {
+    background: #0A0E18;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .code-window__bar {
+    background: rgba(255,255,255,0.04);
+    padding: 9px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-window__bar .dots { display: flex; gap: 6px; margin-right: 10px; }
+  .code-window__bar .dots span {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: #3b3f4a;
+  }
+  .code-window__bar .dots span:nth-child(1) { background: #ff5f56; }
+  .code-window__bar .dots span:nth-child(2) { background: #ffbd2e; }
+  .code-window__bar .dots span:nth-child(3) { background: #27c93f; }
+  .code-window pre[class*="language-"] {
+    margin: 0; border: 0; border-radius: 0; box-shadow: none;
+  }
+
+  .kbd {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.88em;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(6,182,212,0.12);
+    color: #67E8F9;
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 2px;
+  }
+  .tag--purple { background: rgba(124,58,237,0.16); color: #C4B5FD; border-color: rgba(124,58,237,0.35); }
+  .tag--pink { background: rgba(236,72,153,0.16); color: #F9A8D4; border-color: rgba(236,72,153,0.35); }
+  .tag--yellow { background: rgba(245,197,24,0.16); color: #FDE68A; border-color: rgba(245,197,24,0.35); }
+  .tag--green { background: rgba(16,185,129,0.16); color: #86EFAC; border-color: rgba(16,185,129,0.35); }
+  .tag--red { background: rgba(239,68,68,0.16); color: #FCA5A5; border-color: rgba(239,68,68,0.35); }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-row:last-child { border-bottom: 0; }
+  .plan-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 15px;
+    padding-top: 2px;
+  }
+  .plan-row .tl { font-weight: 600; margin-bottom: 4px; font-size: 17px; }
+  .plan-row .dc { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .quote {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 14px 20px;
+    border-left: 3px solid var(--purple);
+    background: var(--glass);
+    border-radius: 0 16px 16px 0;
+    color: #E6E8EC;
+  }
+  .quote small {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .warn {
+    background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .warn .i { font-size: 22px; color: var(--yellow); }
+  .warn .t { color: #FDE68A; font-weight: 600; margin-bottom: 3px; }
+  .warn .d { color: #CBD1DE; font-size: 15px; }
+
+  .kw { color: var(--cyan); font-weight: 600; }
+  .kw--purple { color: #C4B5FD; }
+  .kw--pink { color: #F9A8D4; }
+  .kw--yellow { color: var(--yellow); }
+  .kw--green { color: #86EFAC; }
+  .kw--red { color: #FCA5A5; }
+
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 11px 15px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .flow .arr {
+    color: var(--cyan);
+    font-size: 22px;
+  }
+
+  .final-center { align-items: center; justify-content: center; text-align: center; }
+  .final-center h1 { font-size: 82px; }
+
+  .notes-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    padding: 18px 40px;
+    max-height: 40vh;
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform .4s ease;
+    z-index: 50;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #CBD1DE;
+  }
+  .notes-panel.open { transform: translateY(0); }
+  .notes-panel h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .title-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  .two-col--code { grid-template-columns: 1fr 1.15fr; }
+
+  .center { text-align: center; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-14 { margin-top: 14px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+
+  /* State-machine diagram */
+  .states-map {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+  .state-node {
+    position: relative;
+    border-radius: 18px;
+    padding: 20px 18px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    text-align: center;
+  }
+  .state-node .em { font-size: 32px; margin-bottom: 8px; }
+  .state-node .n {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .state-node .d { font-size: 14px; color: var(--muted); line-height: 1.45; }
+  .state-node--menu { border-color: rgba(124,58,237,0.4); background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(124,58,237,0.03)); }
+  .state-node--menu .n { color: #C4B5FD; }
+  .state-node--play { border-color: rgba(16,185,129,0.4); background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(16,185,129,0.03)); }
+  .state-node--play .n { color: #86EFAC; }
+  .state-node--pause { border-color: rgba(245,197,24,0.4); background: linear-gradient(135deg, rgba(245,197,24,0.16), rgba(245,197,24,0.02)); }
+  .state-node--pause .n { color: #FDE68A; }
+  .state-node--over { border-color: rgba(239,68,68,0.4); background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.03)); }
+  .state-node--over .n { color: #FCA5A5; }
+
+  .arrow-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; margin: 10px 0;
+  }
+  .arrow-row .ar {
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+
+  /* Mock PGZ window */
+  .pgz-frame {
+    background: linear-gradient(180deg, #87CEEB 0%, #B8E0FF 45%, #7ED957 45%, #5EB03F 100%);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    min-height: 240px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  .pgz-frame__bar {
+    background: rgba(0,0,0,0.25);
+    padding: 8px 12px;
+    display: flex; align-items: center; gap: 8px;
+    backdrop-filter: blur(4px);
+  }
+  .pgz-frame__bar .dots { display: flex; gap: 5px; }
+  .pgz-frame__bar .dots span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.6); }
+  .pgz-frame__bar .ttl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(0,0,0,0.55);
+    font-weight: 600;
+  }
+  .pgz-frame__scene {
+    padding: 30px 24px 20px;
+    position: relative;
+    min-height: 210px;
+  }
+  .pgz-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: #3B1E6E;
+    text-align: center;
+    text-shadow: 0 3px 0 rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .pgz-sub {
+    text-align: center;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.55);
+    border-radius: 999px;
+    padding: 6px 14px;
+    width: fit-content;
+    margin: 0 auto 12px;
+  }
+  .pgz-hud {
+    position: absolute;
+    display: flex; gap: 10px;
+    top: 14px; left: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .pgz-hud .hud {
+    background: rgba(0,0,0,0.4);
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+  .pgz-apple {
+    position: absolute;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  }
+  .pgz-basket {
+    position: absolute;
+    bottom: 14px; left: 50%;
+    transform: translateX(-50%);
+    width: 70px; height: 40px;
+    background: linear-gradient(180deg, #b5651d, #6b3b0f);
+    border-radius: 0 0 18px 18px;
+    border-top: 4px solid #8b4513;
+  }
+  .pgz-over {
+    position: absolute;
+    inset: 30px;
+    background: rgba(0,0,0,0.55);
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+  }
+  .pgz-over h4 {
+    font-size: 28px; font-weight: 900; color: #FCA5A5;
+    margin-bottom: 4px;
+  }
+  .pgz-over small { font-family: 'JetBrains Mono', monospace; color: #FDE68A; font-size: 13px; }
+
+  /* Variable chip */
+  .var-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .var-chip {
+    display: flex; gap: 10px; align-items: center;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  .var-chip .k { color: #C4B5FD; font-weight: 700; }
+  .var-chip .v { color: #86EFAC; font-weight: 700; }
+  .var-chip .t { color: var(--muted); font-size: 12px; }
+
+  .compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+  .compare .col {
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+  }
+  .compare .col--bad {
+    border-color: rgba(239,68,68,0.3);
+    background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.02));
+  }
+  .compare .col--good {
+    border-color: rgba(16,185,129,0.35);
+    background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.02));
+  }
+  .compare h4 { margin-bottom: 8px; font-size: 18px; display: flex; gap: 8px; align-items: center; }
+
+  .keymap {
+    display: grid; grid-template-columns: auto 1fr; gap: 10px 18px;
+    align-items: center;
+  }
+  .keymap kbd {
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 15px; font-weight: 700;
+    min-width: 76px;
+    text-align: center;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+  }
+
+  .hud-ex {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .hud-ex .hitem {
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+  }
+  .hud-ex .hitem b { color: #FDE68A; }
+
+  .mood-row {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 14px;
+  }
+  .mood {
+    text-align: center;
+    padding: 18px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+  }
+  .mood .em { font-size: 40px; margin-bottom: 6px; }
+  .mood .lbl { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--cyan); margin-bottom: 4px; font-weight: 700; }
+  .mood .txt { font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+  .mini-bar { height: 8px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+  .mini-bar > span { display: block; height: 100%; background: linear-gradient(90deg, #7C3AED, #06B6D4); border-radius: 999px; }
+
+  .hearts { display: inline-flex; gap: 4px; }
+  .hearts span {
+    width: 16px; height: 16px;
+    display: inline-block;
+    background: #ef4444;
+    clip-path: polygon(50% 15%, 70% 0%, 100% 25%, 100% 45%, 50% 100%, 0% 45%, 0% 25%, 30% 0%);
+  }
+  .hearts span.empty { background: rgba(255,255,255,0.15); }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .pill b { color: #E6E8EC; }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+<div class="deck">
+
+  <!-- SLIDE 1: Title -->
+  <section class="slide title-slide active" data-notes="Привет. 40-й урок — финал сквозного проекта. Сегодня добавляем игровые состояния, счёт, жизни и получаем ПОЛНОЦЕННУЮ игру, которую не стыдно показать. До урока: убедись, что у ребёнка работает игра с падающими яблоками из урока 39 — без неё не начинаем. Покажи финальную версию игры в начале, чтобы была цель. Бейдж «Первый геймдев» — подготовь заранее.">
+    <div class="meta">
+      <div class="badge"><span class="dot"></span>Отдел разработки · Неделя 20</div>
+      <div class="badge badge--purple"><span class="dot"></span>Урок 40 / 48</div>
+      <div class="badge badge--pink"><span class="dot"></span>Возраст 8-14</div>
+      <div class="badge badge--green"><span class="dot"></span>Сквозной #1 · ч.4 · ФИНАЛ</div>
+    </div>
+    <div class="title-num">УРОК № 40</div>
+    <h1>Игровые <span class="grad">состояния</span><br/>в PyGame Zero</h1>
+    <p class="subtitle">Меню, игра, пауза, проигрыш. Счёт растёт, жизни убывают, кнопка «пробел» — как кнопка «power». Сегодня собираем финал игры «Поймай яблоко» и защищаем сквозной проект №1.</p>
+    <div class="foot">
+      <div>Длительность<br/><b>60 мин</b></div>
+      <div>Строк кода<br/><b>~120</b></div>
+      <div>Новые концепции<br/><b>4 состояния, текст, клавиатура</b></div>
+      <div>Бейдж на выходе<br/><b>🏅 Первый геймдев</b></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Where we are -->
+  <section class="slide" data-notes="Напомни путь. Урок 37 — окно и корзинка. Урок 38 — мышь двигает корзинку. Урок 39 — список яблок, коллизии. Сегодня закрываем гештальт: меню, счёт, жизни. Важно показать, что ребёнок уже 3 урока строил, а сегодня игра «схлопывается» в готовый продукт. Подчеркни: без сегодняшнего урока у игры нет «начала и конца», а значит, нет и ощущения игры.">
+    <div class="badge badge--purple"><span class="dot"></span>Где мы в сквозном проекте #1</div>
+    <h2 style="margin-top:16px;">Маршрут «Поймай <span class="grad">яблоко</span>»</h2>
+    <div class="grid grid-4 mt-20">
+      <div class="card">
+        <div class="ico">🎬</div>
+        <h3>Урок 37</h3>
+        <p class="muted" style="font-size:15px;">Окно <code>800×600</code>, корзинка, небо. Первая сцена.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🖱️</div>
+        <h3>Урок 38</h3>
+        <p class="muted" style="font-size:15px;">Корзинка следует за мышью. События и состояния.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🍎</div>
+        <h3>Урок 39</h3>
+        <p class="muted" style="font-size:15px;">Список яблок, <code>colliderect</code>, случайный спавн.</p>
+      </div>
+      <div class="card card--purple">
+        <div class="ico">🏁</div>
+        <h3>Урок 40 · сегодня</h3>
+        <p style="font-size:15px;">Меню, счёт, жизни, gameover, пауза. <b>ФИНАЛ.</b></p>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">💡</div>
+      <div><div class="t">Главное отличие</div><div class="d">До сегодня игра «просто шла». После сегодня — у неё есть начало (меню), процесс (игра), конец (gameover) и кнопка «заново». Это и есть ИГРА, а не прототип.</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: Goal -->
+  <section class="slide" data-notes="Цель: дойти до ПОЛНОЦЕННОЙ игры. Ключевое слово — «защитить». Игра, которая переключается между экранами, считает очки и теряет жизни — это уже артефакт, который ребёнок покажет родителям и положит в портфолио. Результаты перечитай вслух — пусть ребёнок услышит, что ОН будет уметь через 60 минут.">
+    <div class="badge"><span class="dot"></span>Цель урока</div>
+    <h2 style="margin-top:16px;">Сделать игру, которую <span class="grad">не стыдно защитить</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <div class="card card--cyan">
+          <h3>🎯 Что ребёнок получит</h3>
+          <ul class="check-list mt-14">
+            <li>Игра переключается между 4 экранами</li>
+            <li>Счёт <b>растёт</b> при ловле, жизни <b>убывают</b> при промахе</li>
+            <li>Проигрыш <b>без перезапуска программы</b></li>
+            <li>Пауза на <code>P</code> — как у взрослых</li>
+            <li>Бейдж «Первый геймдев» и 2-мин защита</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card card--purple">
+          <h3>📚 Новые концепции</h3>
+          <ul class="check-list mt-14">
+            <li><code>game_state</code> — строковая переменная</li>
+            <li>Паттерн <code>if/elif</code> по состоянию</li>
+            <li><code>on_key_down(key)</code> — пробел, P</li>
+            <li><code>screen.draw.text()</code> — текст на экране</li>
+            <li>Рестарт = обнуление переменных</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="quote mt-30">«Состояние — это настроение игры. В меню она спит, в playing — бежит, в gameover — плачет». <small>— преподавательская метафора</small></div>
+  </section>
+
+  <!-- SLIDE 4: States map -->
+  <section class="slide" data-notes="Рисуй на доске параллельно. Четыре «комнаты», между ними двери-переходы. Пробел открывает дверь из меню, жизни на нуле — игрок падает в gameover, P — ставит игру на паузу. Ребёнок должен увидеть граф. Это важнее любого кода. Спроси: «А если игрок в пауze нажмёт пробел — что должно случиться? Ничего. Почему?» — пробел работает только в определённых состояниях.">
+    <div class="badge badge--green"><span class="dot"></span>Карта состояний</div>
+    <h2 style="margin-top:16px;">Четыре <span class="grad">комнаты</span> одной игры</h2>
+    <div class="states-map mt-20">
+      <div class="state-node state-node--menu">
+        <div class="em">🏠</div>
+        <div class="n">menu</div>
+        <div class="d">Заставка. Ждём пробел. Игрок смотрит и думает.</div>
+      </div>
+      <div class="state-node state-node--play">
+        <div class="em">🎮</div>
+        <div class="n">playing</div>
+        <div class="d">Яблоки падают, корзинка ловит, счёт растёт.</div>
+      </div>
+      <div class="state-node state-node--pause">
+        <div class="em">⏸️</div>
+        <div class="n">paused</div>
+        <div class="d">Игра замерла. Логика спит, картинка есть.</div>
+      </div>
+      <div class="state-node state-node--over">
+        <div class="em">💀</div>
+        <div class="n">gameover</div>
+        <div class="d">Жизни кончились. Счёт и кнопка «заново».</div>
+      </div>
+    </div>
+    <div class="arrow-row mt-20">
+      <span class="pill">menu</span>
+      <span class="ar">— SPACE →</span>
+      <span class="pill">playing</span>
+      <span class="ar">— P ⇄ —</span>
+      <span class="pill">paused</span>
+      <span class="ar">— lives=0 →</span>
+      <span class="pill">gameover</span>
+      <span class="ar">— SPACE →</span>
+      <span class="pill">menu</span>
+    </div>
+    <p class="muted mt-20" style="font-size:16px;">Одна и та же функция <code>draw()</code> рисует 4 разные картинки — в зависимости от значения <code>game_state</code>.</p>
+  </section>
+
+  <!-- SLIDE 5: Lesson plan -->
+  <section class="slide" data-notes="Держи темп! На совместном кодинге пиши МЕДЛЕННО, чтобы ребёнок успевал повторить. На самостоятельной — сядь рядом, но не пиши за него. На усложнении (пауза) — можно быстрее, это уже «на сдачу». Защита в конце — не пропусти, даже если игра полу-рабочая. Ребёнку важно сказать «я сделал игру».">
+    <div class="badge badge--yellow"><span class="dot"></span>Поминутный план · 60 минут</div>
+    <h2 style="margin-top:16px;">Как пройдёт <span class="grad">урок</span></h2>
+    <div class="grid mt-20" style="gap:4px;">
+      <div class="plan-row">
+        <div class="tm">00-05</div>
+        <div><div class="tl">Разбор ДЗ с урока 39</div><div class="dc">Смотрим 3 вида яблок у разных учеников. Хвалим за Kandinsky.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">05-15</div>
+        <div><div class="tl">Теория: карта состояний на доске</div><div class="dc">Рисую <code>menu → playing → paused → gameover → menu</code>. Объясняю паттерн <code>if game_state == 'playing'</code>.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">15-30</div>
+        <div><div class="tl">Совместный кодинг: меню + переход</div><div class="dc">Переменная <code>game_state</code>, ветки в <code>draw()</code>, <code>on_key_down</code> ловит пробел, переход в <code>playing</code>.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">30-45</div>
+        <div><div class="tl">Самостоятельно: жизни и проигрыш</div><div class="dc"><code>lives = 3</code>. Яблоко улетело — <code>lives -= 1</code>. <code>lives == 0</code> — переход в gameover.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">45-55</div>
+        <div><div class="tl">Усложнение: пауза и счёт в углу</div><div class="dc">Клавиша <code>P</code>, полупрозрачный экран. <code>screen.draw.text(f'Score: {score}', ...)</code>.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">55-60</div>
+        <div><div class="tl">Защита сквозного проекта #1</div><div class="dc">2-3 минуты: ребёнок показывает игру. Бейдж «Первый геймдев».</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Why states -->
+  <section class="slide" data-notes="Сравнение «до и после» — очень наглядное. Слева — каша if-ов. Справа — красивая структура по состояниям. Ребёнок должен увидеть, что состояния — это не магия, а способ навести порядок в коде. Вспомни: 100 яблок в 100 переменных — плохо, список — хорошо. Здесь та же история: много экранов каши — плохо, game_state — хорошо.">
+    <div class="badge badge--pink"><span class="dot"></span>Зачем вообще состояния?</div>
+    <h2 style="margin-top:16px;">Каша <span style="color:#FCA5A5;">vs</span> <span class="grad">порядок</span></h2>
+    <div class="compare mt-20">
+      <div class="col col--bad">
+        <h4>😵 Без состояний</h4>
+        <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def draw():
+    # если ещё не начали, рисуем меню
+    # но как понять «не начали»?
+    # если жизни кончились — нарисуй gameover
+    # но как понять, что «ещё играем»?
+    if lives == 3 and score == 0:
+        # а если набрал 0 за 10 минут?
+        screen.fill('black')
+    ...</div><div class="compiler-output"></div></div>
+        <p class="muted mt-14" style="font-size:15px;">Не понятно, где игра «сейчас». Всё перепутано.</p>
+      </div>
+      <div class="col col--good">
+        <h4>✨ С game_state</h4>
+        <div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">game_state = 'menu'
+
+def draw():
+    if game_state == 'menu':
+        draw_menu()
+    elif game_state == 'playing':
+        draw_game()
+    elif game_state == 'paused':
+        draw_pause()
+    elif game_state == 'gameover':
+        draw_gameover()</div><div class="compiler-output"></div></div>
+        <p class="muted mt-14" style="font-size:15px;">Один экран — одна ветка. Профессионально.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Three variables -->
+  <section class="slide" data-notes="Все три переменные — в самом верху файла, глобальные. Ребёнок должен понять: game_state — это КОГДА что происходит, score — СКОЛЬКО заработал, lives — СКОЛЬКО осталось. Три разных смысла — три разных переменных. Строка для состояния — потому что удобно читать код («gameover» понятнее чем 3).">
+    <div class="badge"><span class="dot"></span>Три главные переменные</div>
+    <h2 style="margin-top:16px;">Весь «мозг» игры в <span class="grad">трёх строках</span></h2>
+    <div class="code-window mt-20" style="max-width: 700px;">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>game.py · верх файла</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">game_state = 'menu'   # в каком экране игра
+score       = 0       # сколько яблок поймал
+lives       = 3       # сколько жизней осталось</div><div class="compiler-output"></div></div>
+    </div>
+    <div class="var-chips mt-30">
+      <div class="var-chip"><span class="k">game_state</span><span class="t">→</span><span class="v">'menu'</span><span class="t">строка</span></div>
+      <div class="var-chip"><span class="k">score</span><span class="t">→</span><span class="v">0</span><span class="t">число, растёт</span></div>
+      <div class="var-chip"><span class="k">lives</span><span class="t">→</span><span class="v">3</span><span class="t">число, убывает</span></div>
+    </div>
+    <div class="quote mt-30">«Счёт — это число, которое растёт на +1 при ловле. Жизни — тоже число, только идёт вниз. Никакой магии».</div>
+  </section>
+
+  <!-- SLIDE 8: draw() by state -->
+  <section class="slide" data-notes="Это самый важный код урока. Покажи МЕДЛЕННО. Объясни, что функция draw() вызывается 60 раз в секунду — но каждый раз она смотрит на game_state и выбирает нужную ветку. Как турникет: одна функция, четыре выхода. Важно: только одна ветка работает за кадр — elif, не else if в Python.">
+    <div class="badge badge--green"><span class="dot"></span>Совместный кодинг · 15-30</div>
+    <h2 style="margin-top:16px;">Функция <code class="kw">draw()</code> — <span class="grad">турникет</span></h2>
+    <div class="code-window mt-20">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>game.py · def draw()</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def draw():
+    if game_state == 'menu':
+        screen.blit('menu_bg', (0, 0))
+        screen.draw.text('ПОЙМАЙ ЯБЛОКО',
+                         center=(400, 200), fontsize=60, color='white')
+        screen.draw.text('Нажми ПРОБЕЛ чтобы начать',
+                         center=(400, 320), fontsize=32, color='yellow')
+
+    elif game_state == 'playing':
+        screen.blit('background', (0, 0))
+        basket.draw()
+        for apple in apples:
+            apple.draw()
+        screen.draw.text(f'Score: {score}', (10, 10),
+                         color='white', fontsize=36)
+        screen.draw.text(f'Lives: {lives}', (10, 50),
+                         color='red',   fontsize=36)
+
+    elif game_state == 'gameover':
+        screen.blit('gameover_bg', (0, 0))
+        screen.draw.text(f'Игра окончена. Счёт: {score}',
+                         center=(400, 260), fontsize=44, color='white')
+        screen.draw.text('Пробел — заново',
+                         center=(400, 340), fontsize=30, color='cyan')</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: Keyboard input -->
+  <section class="slide" data-notes="Впервые вводим клавиатуру (полноценно — в уроке 42). Сегодня — как инструмент для смены состояний. Важное: on_key_down — ровно один раз за нажатие. Если бы мы проверяли keyboard.space в update(), он бы срабатывал 60 раз в секунду — и в меню игра мгновенно проскочила бы в gameover. Поэтому здесь именно on_key_down.">
+    <div class="badge badge--cyan"><span class="dot"></span>Клавиатура · первое знакомство</div>
+    <h2 style="margin-top:16px;"><code class="kw">on_key_down</code> — <span class="grad">пульт</span> игры</h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <div class="keymap">
+          <kbd>SPACE</kbd><div>Из меню → начать игру. Из gameover → рестарт.</div>
+          <kbd>P</kbd><div>Из playing → пауза. Из paused → продолжить.</div>
+          <kbd>ESC</kbd><div>Выйти из игры (автоматически PGZ).</div>
+        </div>
+        <div class="warn mt-20">
+          <div class="i">⚡</div>
+          <div><div class="t">Событие, а не состояние</div><div class="d"><code>on_key_down</code> сработает <b>РОВНО один раз</b> за нажатие. Не 60 раз в секунду, как <code>keyboard.space</code>.</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>on_key_down(key)</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def on_key_down(key):
+    global game_state, score, lives
+
+    if key == keys.SPACE:
+        if game_state == 'menu':
+            game_state = 'playing'
+        elif game_state == 'gameover':
+            reset_game()  # обнуляем и в меню
+
+    elif key == keys.P:
+        if game_state == 'playing':
+            game_state = 'paused'
+        elif game_state == 'paused':
+            game_state = 'playing'</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: update() guarded -->
+  <section class="slide" data-notes="Ключевая идея: update() тоже должна уважать состояния. В меню яблоки НЕ должны падать, иначе игрок нажимает пробел и сразу проигрывает. В паузе — тоже всё замирает. Добавь простое if game_state != 'playing': return — и всё. Этот паттерн «гвард-условие в начале функции» — взрослая инженерная практика.">
+    <div class="badge badge--green"><span class="dot"></span>update() с охраной</div>
+    <h2 style="margin-top:16px;">Логика <span class="grad">спит</span>, когда не её время</h2>
+    <div class="code-window mt-14">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>def update(dt)</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def update(dt):
+    global score, lives, game_state
+
+    # ГВАРД: в меню / паузе / gameover — ничего не делаем
+    if game_state != 'playing':
+        return
+
+    for apple in apples[:]:
+        apple.y += apple.speed
+
+        # поймали?
+        if basket.colliderect(apple):
+            apples.remove(apple)
+            score += 1
+
+        # улетело за экран?
+        elif apple.y &gt; HEIGHT:
+            apples.remove(apple)
+            lives -= 1
+            if lives &lt;= 0:
+                game_state = 'gameover'</div><div class="compiler-output"></div></div>
+    </div>
+    <p class="muted mt-14" style="font-size:16px;">Одна строка <code>return</code> наверху — и меню больше не превращается в мгновенный gameover.</p>
+  </section>
+
+  <!-- SLIDE 11: Mockups -->
+  <section class="slide" data-notes="Покажи визуальный результат. Ребёнок видит, что мы делаем не просто код, а РАЗНЫЕ экраны. Можно прямо на этом слайде останавливаться и обсуждать: «вот это меню — что бы ты поменял в тексте? в цвете?». Kandinsky поможет сделать фоны. Но эта презентация — уже хороший референс.">
+    <div class="badge badge--pink"><span class="dot"></span>Четыре экрана игры</div>
+    <h2 style="margin-top:16px;">Как это <span class="grad">выглядит</span></h2>
+    <div class="grid grid-2 mt-20" style="gap:18px;">
+      <div>
+        <div class="pgz-frame">
+          <div class="pgz-frame__bar"><div class="dots"><span></span><span></span><span></span></div><div class="ttl">game_state = 'menu'</div></div>
+          <div class="pgz-frame__scene">
+            <div class="pgz-title">ПОЙМАЙ ЯБЛОКО</div>
+            <div class="pgz-sub">Нажми ПРОБЕЛ чтобы начать</div>
+          </div>
+        </div>
+        <p class="muted center mt-14" style="font-size:14px;">Меню · ждём игрока</p>
+      </div>
+      <div>
+        <div class="pgz-frame">
+          <div class="pgz-frame__bar"><div class="dots"><span></span><span></span><span></span></div><div class="ttl">game_state = 'playing'</div></div>
+          <div class="pgz-frame__scene">
+            <div class="pgz-hud"><div class="hud">Score: 7</div><div class="hud">Lives: 3</div></div>
+            <div class="pgz-apple" style="top:60px; left:40%;"></div>
+            <div class="pgz-apple" style="top:120px; left:70%;"></div>
+            <div class="pgz-apple" style="top:40px; left:15%;"></div>
+            <div class="pgz-basket"></div>
+          </div>
+        </div>
+        <p class="muted center mt-14" style="font-size:14px;">Игра · яблоки падают, счёт растёт</p>
+      </div>
+      <div>
+        <div class="pgz-frame">
+          <div class="pgz-frame__bar"><div class="dots"><span></span><span></span><span></span></div><div class="ttl">game_state = 'paused'</div></div>
+          <div class="pgz-frame__scene">
+            <div class="pgz-basket"></div>
+            <div class="pgz-over" style="background:rgba(0,0,0,0.5);">
+              <div><h4 style="color:#FDE68A;">⏸ ПАУЗА</h4><small>P — продолжить</small></div>
+            </div>
+          </div>
+        </div>
+        <p class="muted center mt-14" style="font-size:14px;">Пауза · логика замерла</p>
+      </div>
+      <div>
+        <div class="pgz-frame" style="background:linear-gradient(180deg,#2d1b3d,#1a0f26);">
+          <div class="pgz-frame__bar"><div class="dots"><span></span><span></span><span></span></div><div class="ttl">game_state = 'gameover'</div></div>
+          <div class="pgz-frame__scene">
+            <div class="pgz-over" style="background:transparent; position:static; inset:auto; padding:10px;">
+              <div><h4>ИГРА ОКОНЧЕНА</h4><small style="color:#FDE68A;">Счёт: 12 · Пробел — заново</small></div>
+            </div>
+          </div>
+        </div>
+        <p class="muted center mt-14" style="font-size:14px;">Gameover · счёт и рестарт</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 12: screen.draw.text -->
+  <section class="slide" data-notes="Впервые выводим текст на экран. Три вещи: ЧТО (строка или f-строка), КУДА (координаты или center), КАКИМ (цвет, шрифт, размер). F-строка — это магия из урока про строки. Пусть ребёнок напишет сам: screen.draw.text(f'Score: {score}', ...). Проверь: цвет не совпадает с фоном.">
+    <div class="badge"><span class="dot"></span>Новый инструмент: текст</div>
+    <h2 style="margin-top:16px;"><code class="kw">screen.draw.text</code> — <span class="grad">надписи</span> в игре</h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>примеры текста</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false"># Счёт в углу
+screen.draw.text(
+    f'Score: {score}',
+    (10, 10),
+    color='white',
+    fontsize=36
+)
+
+# Заголовок по центру
+screen.draw.text(
+    'ПОЙМАЙ ЯБЛОКО',
+    center=(400, 200),
+    fontsize=60,
+    color='yellow'
+)
+
+# Подсказка
+screen.draw.text(
+    'Нажми ПРОБЕЛ',
+    center=(400, 320),
+    fontsize=28,
+    color=(124, 58, 237)  # RGB тоже можно
+)</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card card--cyan">
+          <h3>3 обязательных аргумента</h3>
+          <ol class="num-list mt-14">
+            <li><b>Что</b> писать — строка или <code>f'...'</code></li>
+            <li><b>Куда</b> — <code>(x, y)</code> угол или <code>center=(x, y)</code></li>
+            <li><b>Как</b> — <code>color</code>, <code>fontsize</code></li>
+          </ol>
+        </div>
+        <div class="card card--yellow mt-20">
+          <h3>🎨 Цвета, которые работают</h3>
+          <p style="font-size:15px;">Строкой: <code>'white'</code>, <code>'red'</code>, <code>'yellow'</code>, <code>'cyan'</code>, <code>'lime'</code>.<br/>Кортежем RGB: <code>(255, 200, 0)</code>. Проверяй контраст с фоном!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 13: Reset game -->
+  <section class="slide" data-notes="Это ключевой момент для детей: «чтобы начать заново, мы не перезапускаем программу — мы обнуляем переменные». Это важный ментальный сдвиг. И apples.clear() — типичный забытый шаг, после него яблоки остаются от прошлой игры. Разбери ошибку заранее в духе «что будет, если забудем clear?».">
+    <div class="badge badge--purple"><span class="dot"></span>Рестарт без перезапуска</div>
+    <h2 style="margin-top:16px;">Функция <code class="kw--purple">reset_game()</code> — <span class="grad">новый старт</span></h2>
+    <div class="code-window mt-20">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>def reset_game()</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def reset_game():
+    global game_state, score, lives
+    game_state = 'playing'
+    score = 0
+    lives = 3
+    apples.clear()      # ← ВАЖНО! иначе яблоки с прошлой игры останутся</div><div class="compiler-output"></div></div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">⚠️</div>
+      <div><div class="t">Типичный баг: «яблоки остались от прошлой игры»</div><div class="d">Забыли <code>apples.clear()</code>. Разбери это с ребёнком через <code>print(len(apples))</code> — видно, сколько «призраков» осталось.</div></div>
+    </div>
+    <div class="quote mt-20">«Чтобы перезапустить игру, не перезапускаем программу — просто обнуляем переменные». <small>— ключевая фраза урока</small></div>
+  </section>
+
+  <!-- SLIDE 14: Pause -->
+  <section class="slide" data-notes="Пауза — бонусная фича, делаем на 45-55 мин. Но она КАЙФОВАЯ: ребёнок чувствует себя «как в Стиме». Полупрозрачный прямоугольник — через screen.draw.filled_rect с полупрозрачным цветом, или просто через отдельный png с прозрачностью. В 60-минутной группе можно упростить — просто надпись «ПАУЗА» без затемнения.">
+    <div class="badge badge--yellow"><span class="dot"></span>Усложнение · 45-55</div>
+    <h2 style="margin-top:16px;">Пауза на <kbd style="background:rgba(255,255,255,0.1);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:28px;">P</kbd></h2>
+    <div class="two-col--code two-col mt-20">
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>draw() для paused</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">elif game_state == 'paused':
+    # сначала рисуем игру как обычно
+    screen.blit('background', (0, 0))
+    basket.draw()
+    for apple in apples:
+        apple.draw()
+
+    # поверх — полупрозрачный прямоугольник
+    screen.draw.filled_rect(
+        Rect(0, 0, WIDTH, HEIGHT),
+        (0, 0, 0, 150)   # полупрозрачный чёрный
+    )
+
+    # крупная надпись
+    screen.draw.text(
+        '⏸ ПАУЗА',
+        center=(WIDTH/2, HEIGHT/2),
+        fontsize=80, color='white'
+    )</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card card--green">
+          <h3>🔑 Две идеи паузы</h3>
+          <ul class="check-list mt-14">
+            <li><b>update()</b> уже защищён гвардом — логика сама остановится</li>
+            <li><b>draw()</b> продолжает рисовать, просто другую картинку поверх</li>
+          </ul>
+        </div>
+        <div class="card card--purple mt-20">
+          <h3>💬 Что сказать ребёнку</h3>
+          <p style="font-size:15px;">«Смотри: update заснул, а draw продолжает работать. Игра как фотография — видно, но ничего не двигается».</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: Full code shape -->
+  <section class="slide" data-notes="Обзор структуры файла. Пусть ребёнок увидит, что его game.py уже не 20 строк, как на уроке 37 — а стройная программа с разделами. Проговори вслух: «наверху константы, дальше функции-помощники, потом обработчики PGZ, в конце — запуск таймера». Это базовая грамотность любого программиста.">
+    <div class="badge"><span class="dot"></span>Структура game.py</div>
+    <h2 style="margin-top:16px;">Весь файл <span class="grad">одним взглядом</span></h2>
+    <div class="code-window mt-20">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>basket_apple/game.py · ~120 строк</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+# ———— 1. Константы и сцена
+WIDTH, HEIGHT = 800, 600
+basket = Actor('basket', (400, 520))
+apples = []
+
+# ———— 2. Состояния (мозг игры)
+game_state = 'menu'
+score = 0
+lives = 3
+
+# ———— 3. Функции-помощники
+def spawn_apple():
+    if game_state == 'playing':
+        apples.append(Actor('apple_red',
+                            (random.randint(50, WIDTH-50), 0)))
+
+def reset_game():
+    global game_state, score, lives
+    game_state, score, lives = 'playing', 0, 3
+    apples.clear()
+
+# ———— 4. Обработчики PGZ (draw/update/events)
+def draw():       ...   # 4 ветки: menu/playing/paused/gameover
+def update(dt):   ...   # гвард + логика
+def on_mouse_move(pos): basket.x = pos[0]
+def on_key_down(key):   ...   # SPACE, P
+
+# ———— 5. Таймер спавна
+clock.schedule_interval(spawn_apple, 1.0)</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: Common bugs -->
+  <section class="slide" data-notes="Самые типичные проблемы. Пройдись по ним заранее — тогда когда ребёнок столкнётся, он вспомнит. Особо: global. Без него присваивание внутри функции создаёт ЛОКАЛЬНУЮ переменную, и game_state снаружи не меняется. Это бьёт всех новичков.">
+    <div class="badge badge--red"><span class="dot"></span>Сложности и решения</div>
+    <h2 style="margin-top:16px;">4 грабли, <span class="grad">на которые наступают все</span></h2>
+    <div class="grid grid-2 mt-20">
+      <div class="card card--red">
+        <div class="ico" style="background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(239,68,68,0.1));">🧟</div>
+        <h3>Яблоки остались от прошлой игры</h3>
+        <p class="muted" style="font-size:15px;">Забыли <code>apples.clear()</code> в <code>reset_game()</code>. Проверка: <code>print(len(apples))</code> в меню — должно быть 0.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(239,68,68,0.1));">🙈</div>
+        <h3>Счёт не растёт</h3>
+        <p class="muted" style="font-size:15px;"><code>score += 1</code> внутри цикла, но после <code>apples.remove</code>, строка недостижима. Переставляем местами.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(239,68,68,0.1));">👻</div>
+        <h3>Текст не виден</h3>
+        <p class="muted" style="font-size:15px;"><code>color='white'</code> на светлом фоне. Меняем на <code>'black'</code> или <code>'yellow'</code>. Проверяем контраст.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico" style="background:linear-gradient(135deg,rgba(239,68,68,0.3),rgba(239,68,68,0.1));">🧲</div>
+        <h3>Состояние не меняется</h3>
+        <p class="muted" style="font-size:15px;">Забыт <code>global game_state</code> внутри функции. Python создал локальную переменную с тем же именем.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Teacher phrases -->
+  <section class="slide" data-notes="Эти фразы — наработанные за годы, не импровизируй заново. Особенно первая («настроение игры») — работает буквально для всех возрастов. Последняя («как в Steam») — детский язык, но попадает точно.">
+    <div class="badge badge--purple"><span class="dot"></span>Фразы-ключи преподавателя</div>
+    <h2 style="margin-top:16px;">Что <span class="grad">говорить</span>, когда теряешься</h2>
+    <div class="grid grid-2 mt-20">
+      <div class="quote">«Состояние — это как настроение игры. В меню она спит, в playing — бежит, в gameover — плачет». <small>→ вводим game_state</small></div>
+      <div class="quote">«Один экран — одна ветка if/elif». <small>→ структурируем draw()</small></div>
+      <div class="quote">«Счёт — это просто число, которое растёт на +1 при ловле. Жизни — тоже число, только идёт вниз». <small>→ про счёт и жизни</small></div>
+      <div class="quote">«Чтобы перезапустить игру, не перезапускаем программу — просто обнуляем переменные». <small>→ reset_game()</small></div>
+      <div class="quote">«Текст в PyGame Zero: что, куда, каким цветом — три аргумента». <small>→ screen.draw.text</small></div>
+      <div class="quote">«Теперь у тебя настоящая игра с меню — как в Steam». <small>→ в конце защиты</small></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: HUD example -->
+  <section class="slide" data-notes="HUD — интерфейс игры. Добавляем визуальные «штуки» поверх геймплея: счёт, жизни-сердца. Покажи ребёнку пример: три сердца справа. Можно нарисовать текстом ❤️❤️❤️ — это самый простой способ. Родители будут в восторге.">
+    <div class="badge badge--green"><span class="dot"></span>HUD · интерфейс игры</div>
+    <h2 style="margin-top:16px;">Что видит <span class="grad">игрок</span> в углу экрана</h2>
+    <div class="two-col mt-20">
+      <div>
+        <div class="card">
+          <h3>Минимум (сегодня)</h3>
+          <div class="hud-ex mt-14">
+            <div class="hitem">Score: <b>7</b></div>
+            <div class="hitem">Lives: <b>3</b></div>
+          </div>
+          <p class="muted mt-14" style="font-size:15px;">Две строки <code>screen.draw.text</code> в углах. Достаточно для MVP игры.</p>
+        </div>
+        <div class="card card--pink mt-20">
+          <h3>Бонус: сердца вместо числа</h3>
+          <div class="mt-14" style="display:flex; gap:20px; align-items:center;">
+            <div class="hearts"><span></span><span></span><span></span></div>
+            <span class="muted">= 3 жизни</span>
+          </div>
+          <div class="mt-14" style="display:flex; gap:20px; align-items:center;">
+            <div class="hearts"><span></span><span class="empty"></span><span class="empty"></span></div>
+            <span class="muted">= 1 жизнь</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>HUD в playing</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false"># счёт в левом углу
+screen.draw.text(
+    f'Score: {score}',
+    (10, 10),
+    color='white', fontsize=36
+)
+
+# жизни в правом углу
+screen.draw.text(
+    '❤' * lives,   # повтор строки!
+    (WIDTH - 120, 10),
+    color='red', fontsize=36
+)</div><div class="compiler-output"></div></div>
+        </div>
+        <div class="warn mt-14">
+          <div class="i">💎</div>
+          <div><div class="t">Трюк со строкой</div><div class="d"><code>'❤' * 3</code> == <code>'❤❤❤'</code>. Строки в Python умеют умножаться!</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 19: AI help -->
+  <section class="slide" data-notes="ИИ на этом уроке — креатив, не код. YandexGPT для текстов gameover — хорошо мотивирует. Пусть ребёнок придумывает 5 вариантов и выбирает один. Важно: не просить «напиши код», а «придумай тексты». Это граница «ИИ-ассистент vs ИИ-костыль».">
+    <div class="badge badge--pink"><span class="dot"></span>ИИ на этом уроке</div>
+    <h2 style="margin-top:16px;">Kandinsky + YandexGPT = <span class="grad">атмосфера</span></h2>
+    <div class="grid grid-2 mt-20">
+      <div class="card card--purple">
+        <div class="ico">🎨</div>
+        <h3>Kandinsky · фоны</h3>
+        <p class="muted" style="font-size:15px;">Фон меню — детская иллюстрация, заход солнца с корзинкой. Фон gameover — грустный, но не страшный.</p>
+        <div class="mt-14"><span class="tag tag--purple">menu_bg.png</span><span class="tag tag--purple">gameover_bg.png</span></div>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">💬</div>
+        <h3>YandexGPT · тексты</h3>
+        <p class="muted" style="font-size:15px;">Промпт: «Придумай 5 добрых текстов для экрана gameover в детской игре-ловилке. Без уныния».</p>
+        <div class="mt-14">
+          <div class="pill">«Близко! Попробуй ещё»</div><br/>
+          <div class="pill mt-14">«Ты почти чемпион»</div>
+        </div>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">🤖</div>
+      <div><div class="t">Правило ИИ на этом уроке</div><div class="d">ИИ — <b>для креатива</b> (картинки, тексты), <b>не для кода</b>. Код пишет ребёнок сам. Если сломалось — сначала ищем сами, потом спрашиваем ИИ «объясни, что значит ошибка», а не «напиши мне решение».</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 20: Success criteria -->
+  <section class="slide" data-notes="Чек-лист успеха. Пройдись по нему вслух с ребёнком в конце урока. Если все галочки — выдаём бейдж. Если 3 из 5 — тоже хорошо, доделываем в ДЗ. Не требуй идеала: главное — работающая игра с меню и проигрышем.">
+    <div class="badge badge--green"><span class="dot"></span>Критерии успеха</div>
+    <h2 style="margin-top:16px;">Что должно <span class="grad">работать</span> к 55-й минуте</h2>
+    <div class="grid grid-2 mt-20">
+      <div>
+        <div class="card card--green">
+          <h3>✅ Обязательно</h3>
+          <ul class="check-list mt-14">
+            <li>Игра переключается между 4 состояниями</li>
+            <li>Счёт растёт при ловле яблока</li>
+            <li>Жизни падают при промахе</li>
+            <li>Проигрыш → рестарт без перезапуска <code>pgzrun</code></li>
+            <li>Ребёнок объясняет структуру состояний 2 мин</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="card card--yellow">
+          <h3>⭐ Желательно</h3>
+          <ul class="check-list mt-14">
+            <li>Пауза на <code>P</code> (с затемнением)</li>
+            <li>HUD с сердцами вместо числа жизней</li>
+            <li>Фоны меню и gameover из Kandinsky</li>
+            <li>Два разных текста на экране gameover</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="quote mt-30">«На защите говори не „я тупил“, а „столкнулся со сложностью, вот как решил“». <small>— настраиваем ребёнка на защиту</small></div>
+  </section>
+
+  <!-- SLIDE 21: Homework -->
+  <section class="slide" data-notes="ДЗ — про хайскор (из урока 22, files i/o). Это точно доступно. Если ребёнок не помнит — пусть откроет код урока 22 и возьмёт шаблон. Видео 1 минута — обязательно, это материал для чата курса и родителей.">
+    <div class="badge badge--cyan"><span class="dot"></span>Домашнее задание · ≤ 20 минут</div>
+    <h2 style="margin-top:16px;">Дома: рекорд <span class="grad">сохраняется в файл</span></h2>
+    <ol class="num-list mt-20">
+      <li><b>Сохранить рекорд</b> в файл <code>highscore.txt</code>. Когда игра переходит в gameover — если <code>score > highscore</code>, перезаписываем. (Навык из урока 22.)</li>
+      <li><b>Вывести рекорд</b> на экране gameover: «Рекорд: N». Читаем файл при старте программы.</li>
+      <li><b>Записать видео</b> 1 минута: меню → игра → проигрыш → рестарт → новый рекорд. Отправить в чат курса.</li>
+    </ol>
+    <div class="two-col mt-20">
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>подсказка · файлы</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false"># чтение при старте
+try:
+    with open('highscore.txt') as f:
+        highscore = int(f.read())
+except FileNotFoundError:
+    highscore = 0
+
+# запись в gameover
+if score &gt; highscore:
+    with open('highscore.txt', 'w') as f:
+        f.write(str(score))</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="card card--yellow">
+          <h3>🎁 Звёздная задача</h3>
+          <p style="font-size:16px;">Добавь режим <b>«выжить 60 секунд»</b>. Новое состояние <code>'win'</code>, новое условие победы. Это уже уровень олимпиады.</p>
+          <div class="mt-14"><span class="tag tag--yellow">+ время</span><span class="tag tag--yellow">+ состояние 'win'</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 22: Defense -->
+  <section class="slide" data-notes="Защита — главный момент. Дай ребёнку 2 минуты, не больше. Пусть говорит своими словами. Вопросы: «А что было сложнее всего? А что бы ты добавил?». Это репетиция финальной защиты на уроке 48. После защиты — ТОРЖЕСТВЕННО вручи бейдж. Фото, запись, всё в чат курса.">
+    <div class="badge badge--yellow"><span class="dot"></span>55-60 · защита сквозного проекта #1</div>
+    <h2 style="margin-top:16px;">Как <span class="grad">защищать</span> игру за 2 минуты</h2>
+    <div class="grid mt-20" style="gap:12px;">
+      <div class="plan-row">
+        <div class="tm">0:00</div>
+        <div><div class="tl">«Меня зовут, я сделал игру „Поймай яблоко“»</div><div class="dc">Одно предложение про идею.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">0:20</div>
+        <div><div class="tl">Запуск и демо</div><div class="dc">Показываю меню → играю 30 секунд → проигрываю → показываю рестарт.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">1:20</div>
+        <div><div class="tl">«Самое сложное было — …»</div><div class="dc">Пример: «коллизии не срабатывали, я забыл <code>[:]</code> в цикле».</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">1:40</div>
+        <div><div class="tl">«Если бы делал дальше — добавил бы…»</div><div class="dc">2 улучшения. Показывает, что видишь развитие проекта.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">2:00</div>
+        <div><div class="tl">Аплодисменты + бейдж</div><div class="dc">🏅 «Первый геймдев». Проект — в портфолио.</div></div>
+      </div>
+    </div>
+    <div class="mood-row mt-30">
+      <div class="mood"><div class="em">🎯</div><div class="lbl">Идея</div><div class="txt">1 предложение</div></div>
+      <div class="mood"><div class="em">🎮</div><div class="lbl">Демо</div><div class="txt">живой запуск</div></div>
+      <div class="mood"><div class="em">🧩</div><div class="lbl">Сложность</div><div class="txt">и как решил</div></div>
+      <div class="mood"><div class="em">🚀</div><div class="lbl">Развитие</div><div class="txt">что добавить</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 23: What's next -->
+  <section class="slide" data-notes="Переход к уроку 41 — звук и музыка. Поясни, что мы НЕ заканчиваем проект «Поймай яблоко». Следующие 2-3 урока мы его полируем: звук (41), клавиатура и анимация — уже на новом персонаже (42), UX — снова на «яблоке» (43). Это спираль обучения.">
+    <div class="badge badge--purple"><span class="dot"></span>Что дальше</div>
+    <h2 style="margin-top:16px;">Маршрут <span class="grad">отдела разработки</span></h2>
+    <div class="grid grid-4 mt-20">
+      <div class="card card--green">
+        <div class="ico">🎵</div>
+        <h3>Урок 41 · завтра</h3>
+        <p class="muted" style="font-size:14px;">Звук хруста и фоновая музыка. Тот же проект, только со звуком.</p>
+      </div>
+      <div class="card">
+        <div class="ico">⌨️</div>
+        <h3>Урок 42</h3>
+        <p class="muted" style="font-size:14px;">Клавиатура всерьёз + покадровая анимация. Новый персонаж.</p>
+      </div>
+      <div class="card">
+        <div class="ico">✨</div>
+        <h3>Урок 43</h3>
+        <p class="muted" style="font-size:14px;">UX: кнопки, ховер, подсказки. Полируем «яблоко» до блеска.</p>
+      </div>
+      <div class="card card--purple">
+        <div class="ico">🦖</div>
+        <h3>Урок 44</h3>
+        <p class="muted" style="font-size:14px;">Большой проект: Dino-run / Asteroids. Всё вместе.</p>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">📈</div>
+      <div><div class="t">Почему мы возвращаемся к «яблоку» ещё 2 раза</div><div class="d">Спираль обучения: сначала механика (сегодня) → звук (41) → UX (43). Одна и та же игра, но каждый раз сложнее и красивее. Так учатся профессионалы.</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 24: Final -->
+  <section class="slide final-center" data-notes="ФИНАЛ. Бейдж «Первый геймдев». Это первый большой проект курса, и ребёнок его сделал сам. Похвала щедрая. Скажи вслух: «ты сделал свою первую игру». Эти слова запомнятся на годы. Фото с экраном — в чат. Если есть возможность — распечатай бейдж заранее.">
+    <div class="hero-eyebrow">УРОК 40 · ЗАВЕРШЁН · СКВОЗНОЙ #1 ЗАКРЫТ</div>
+    <h1 class="grad">Первый<br/>геймдев</h1>
+    <p class="big muted" style="max-width: 780px;">Ты прошёл 4 урока, написал ~120 строк кода, подключил 4 картинки, освоил мышь, списки, коллизии, состояния, текст и клавиатуру. У тебя есть ИГРА. С началом, серединой и концом.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">🏅 Бейдж «Первый геймдев»</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">🎮 Проект #10 в портфолио</div>
+      <div class="step">🎵 Дальше → звук и музыка</div>
+    </div>
+    <div class="mt-30">
+      <span class="pill"><b>basket_apple/game.py</b> — твоя первая настоящая игра</span>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter"><b id="currentSlide">1</b> / <span id="totalSlides">24</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+
+<div class="notes-panel" id="notesPanel">
+  <h4>Speaker notes · нажми <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 11px;">N</kbd> чтобы скрыть</h4>
+  <div id="notesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const currentEl = document.getElementById('currentSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progressEl = document.getElementById('progress');
+  const notesPanel = document.getElementById('notesPanel');
+  const notesContent = document.getElementById('notesContent');
+
+  totalEl.textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    currentEl.textContent = idx + 1;
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    const notes = slides[idx].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+    slides[idx].scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      e.preventDefault(); notesPanel.classList.toggle('open');
+    }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  let touchStartX = null;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { show(idx + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

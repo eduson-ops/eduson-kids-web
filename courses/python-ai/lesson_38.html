@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 38 — Мышь в PyGame Zero (часть 2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0B0F17;
+    --bg-2:#0E1421;
+    --purple:#7C3AED;
+    --cyan:#06B6D4;
+    --ink:#E6EAF2;
+    --muted:#9AA3B2;
+    --line:rgba(255,255,255,0.09);
+    --glass:rgba(255,255,255,0.06);
+    --glass-2:rgba(255,255,255,0.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(1200px 700px at 10% -10%, rgba(124,58,237,0.28), transparent 60%),
+      radial-gradient(900px 600px at 110% 110%, rgba(6,182,212,0.22), transparent 60%),
+      radial-gradient(600px 400px at 50% 50%, rgba(124,58,237,0.08), transparent 70%);
+  }
+  code,pre,.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace}
+
+  /* progress */
+  .progress{position:fixed;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,0.06);z-index:50}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--cyan));width:0;transition:width .35s ease}
+  .counter{position:fixed;top:14px;right:20px;z-index:51;font-family:'JetBrains Mono';font-size:12px;color:var(--muted);letter-spacing:.04em;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:6px 10px;border:1px solid var(--line);border-radius:999px}
+  .hint{position:fixed;bottom:14px;left:20px;z-index:51;font-family:'JetBrains Mono';font-size:11px;color:var(--muted);background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:6px 10px;border:1px solid var(--line);border-radius:999px}
+  .hint b{color:#cdd5e6}
+  .notes-toggle{position:fixed;bottom:14px;right:20px;z-index:51;font-family:'JetBrains Mono';font-size:11px;color:var(--muted);background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:6px 10px;border:1px solid var(--line);border-radius:999px;cursor:pointer;user-select:none}
+  .notes-toggle:hover{color:#fff;border-color:rgba(124,58,237,.5)}
+
+  /* slide frame */
+  .deck{position:relative;height:100vh;width:100vw;z-index:1}
+  .slide{position:absolute;inset:0;display:flex;padding:56px 72px 72px;opacity:0;transform:translateY(12px) scale(.995);transition:opacity .45s ease, transform .45s ease;pointer-events:none;overflow:auto}
+  .slide.active{opacity:1;transform:none;pointer-events:auto}
+  .slide-inner{margin:auto;width:100%;max-width:1200px}
+  h1,h2,h3{letter-spacing:-.02em;line-height:1.08}
+  h1{font-size:64px;font-weight:800}
+  h2{font-size:44px;font-weight:800}
+  h3{font-size:24px;font-weight:700}
+  p{line-height:1.55;color:#D6DCE8}
+  .muted{color:var(--muted)}
+  .kbd{font-family:'JetBrains Mono';font-size:12px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);background:var(--glass);color:#D6DCE8}
+
+  /* glass card */
+  .card{background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:22px 24px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 40px rgba(0,0,0,.25)}
+  .card.soft{background:var(--glass-2)}
+  .tag{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:12px;color:#D6DCE8;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--glass)}
+  .tag .dot{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--cyan))}
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--glass);font-family:'JetBrains Mono';font-size:12px;color:#cdd5e6}
+  .grad{background:linear-gradient(135deg,#a78bfa 10%,#22d3ee 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .grid{display:grid;gap:18px}
+  .g-2{grid-template-columns:1fr 1fr}
+  .g-3{grid-template-columns:repeat(3,1fr)}
+  .g-4{grid-template-columns:repeat(4,1fr)}
+  .center{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:10px}
+  ul.clean li{position:relative;padding-left:22px;color:#D6DCE8}
+  ul.clean li::before{content:"";position:absolute;left:0;top:10px;width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,var(--purple),var(--cyan));box-shadow:0 0 18px rgba(124,58,237,.5)}
+
+  pre[class*="language-"]{background:rgba(8,12,22,.8)!important;border:1px solid var(--line);border-radius:14px;padding:18px 20px!important;font-size:14.5px;line-height:1.55;max-height:100%;overflow:auto}
+  :not(pre)>code[class*="language-"]{padding:2px 6px;border-radius:6px;background:rgba(8,12,22,.6);border:1px solid var(--line);font-size:13px}
+  .kline{font-family:'JetBrains Mono';font-size:13px;color:#cdd5e6}
+
+  /* title slide */
+  .title-hero{position:relative;border-radius:28px;padding:60px 56px;border:1px solid var(--line);background:
+      radial-gradient(600px 300px at 20% 0%, rgba(124,58,237,.35), transparent 60%),
+      radial-gradient(600px 300px at 90% 100%, rgba(6,182,212,.28), transparent 60%),
+      linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      overflow:hidden;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .title-hero::after{content:"";position:absolute;inset:-1px;border-radius:28px;pointer-events:none;background:linear-gradient(135deg, rgba(124,58,237,.35), transparent 40%, rgba(6,182,212,.35));-webkit-mask:linear-gradient(#000,#000) content-box, linear-gradient(#000,#000); -webkit-mask-composite:xor;mask-composite:exclude;padding:1px}
+  .badge-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+  /* speaker notes */
+  .notes{position:fixed;left:0;right:0;bottom:0;z-index:52;max-height:45vh;overflow:auto;padding:24px 36px;background:linear-gradient(180deg, rgba(11,15,23,.86), rgba(11,15,23,.98));border-top:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transform:translateY(100%);transition:transform .35s ease}
+  .notes.open{transform:none}
+  .notes h4{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase;margin-bottom:10px}
+  .notes p{font-size:14px;color:#D6DCE8;line-height:1.55}
+  .notes ul{margin-top:6px;padding-left:20px;color:#D6DCE8;font-size:14px}
+  .notes ul li{margin:4px 0}
+
+  /* specific */
+  .two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:22px;align-items:stretch}
+  .two-col.flip{grid-template-columns:.95fr 1.05fr}
+  .mini-h{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+  .eyebrow{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .compare-col{padding:18px 20px;border-radius:16px;border:1px solid var(--line);background:var(--glass)}
+  .compare-col.purple{border-color:rgba(124,58,237,.45);box-shadow:inset 0 0 0 1px rgba(124,58,237,.12), 0 10px 40px rgba(124,58,237,.1)}
+  .compare-col.cyan{border-color:rgba(6,182,212,.45);box-shadow:inset 0 0 0 1px rgba(6,182,212,.12), 0 10px 40px rgba(6,182,212,.1)}
+  .compare-col h3{margin-bottom:8px}
+  .compare-col .label{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .compare-col.purple .label{color:#c4b5fd}
+  .compare-col.cyan .label{color:#67e8f9}
+
+  .stage{position:relative;border:1px dashed rgba(255,255,255,.12);border-radius:16px;height:220px;background:rgba(8,12,22,.5);overflow:hidden}
+  .stage .basket{position:absolute;bottom:14px;width:90px;height:56px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,#f59e0b,#b45309);box-shadow:inset 0 -8px 0 rgba(0,0,0,.25)}
+  .stage .apple{position:absolute;top:14px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #fca5a5, #b91c1c)}
+  .axes{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);background-size:40px 40px}
+
+  .footstep{display:grid;grid-template-columns:40px 1fr;gap:14px;align-items:start;margin:8px 0}
+  .footstep .n{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg, rgba(124,58,237,.35), rgba(6,182,212,.35));border:1px solid var(--line);font-family:'JetBrains Mono';font-weight:700}
+
+  .kv{display:grid;grid-template-columns:150px 1fr;gap:10px 18px;align-items:start;font-size:15px}
+  .kv .k{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);padding-top:4px}
+
+  .bignum{font-family:'JetBrains Mono';font-size:72px;font-weight:700;line-height:1}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--glass);font-family:'JetBrains Mono';font-size:12px;color:#cdd5e6}
+
+  .timeline{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+  .tl-item{flex:1 1 120px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--glass)}
+  .tl-item .t{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.12em;color:var(--cyan);text-transform:uppercase}
+  .tl-item .h{font-weight:700;margin-top:4px}
+  .tl-item .d{color:var(--muted);font-size:13px;margin-top:6px}
+
+  .checkbox{display:inline-block;width:16px;height:16px;border:1.5px solid var(--cyan);border-radius:4px;margin-right:10px;vertical-align:-3px}
+  .warn{border-left:3px solid #f59e0b;padding-left:14px;color:#e9d5a3}
+  .ok{border-left:3px solid #22d3ee;padding-left:14px;color:#c7e9ee}
+
+  @media (max-width:900px){
+    .slide{padding:32px 20px}
+    h1{font-size:40px}h2{font-size:30px}
+    .g-2,.g-3,.g-4,.two-col,.two-col.flip{grid-template-columns:1fr}
+  }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+<div class="counter" id="counter">01 / 22</div>
+<div class="hint">← → или <b>Space</b> · <b>F</b> fullscreen · <b>N</b> notes</div>
+<div class="notes-toggle" id="notesToggle">N speaker notes</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1. TITLE -->
+  <section class="slide active">
+    <div class="slide-inner center">
+      <div class="title-hero" style="width:100%">
+        <span class="tag"><span class="dot"></span>Урок 38 · PyGame Zero · часть 2</span>
+        <h1 style="margin-top:18px"><span class="grad">Мышь оживляет игру</span></h1>
+        <p style="margin-top:18px;max-width:820px;font-size:20px;color:#D6DCE8">Сквозной проект «Поймай яблоко»: корзинка следует за курсором, реагирует на клики и не улетает за край. Сегодня ты чувствуешь — «я управляю персонажем, я разработчик».</p>
+        <div class="badge-row">
+          <span class="chip">Возраст 8-14</span>
+          <span class="chip">60 минут</span>
+          <span class="chip">Неделя 19</span>
+          <span class="chip">Отдел «Разработки»</span>
+          <span class="chip">#МышьPyGameZero</span>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:22px;font-family:'JetBrains Mono';font-size:12px">Eduson Kids · Python и нейросети · Step 1</p>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Поприветствуй ребёнка, напомни, что прошлый урок закончили статичной корзинкой и падающим яблоком. Сегодняшний урок превращает игру в управляемую: мышь — самый простой способ ввода. Настрой: «ты уже разработчик, мы только добавим руки». Проверь, открыт ли проект basket_apple/ с урока 37, установлен ли pgzero.
+    </div>
+  </section>
+
+  <!-- 2. CONTEXT / WHERE WE ARE -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Где мы на маршруте</div>
+      <h2>Урок 38 — вторая остановка <span class="grad">сквозного проекта #1</span></h2>
+      <p class="muted" style="margin-top:10px;max-width:820px">Четыре урока — одна игра. Сегодня превращаем картинку в интерактив.</p>
+      <div class="timeline" style="margin-top:28px">
+        <div class="tl-item"><div class="t">урок 37 · ✅</div><div class="h">Окно и корзинка</div><div class="d">draw(), update(), Actor, pgzrun</div></div>
+        <div class="tl-item" style="border-color:rgba(124,58,237,.6);background:linear-gradient(180deg, rgba(124,58,237,.15), rgba(124,58,237,.05))"><div class="t" style="color:#c4b5fd">урок 38 · сейчас</div><div class="h">Мышь</div><div class="d">on_mouse_move, on_mouse_down, clamp</div></div>
+        <div class="tl-item"><div class="t">урок 39</div><div class="h">Коллизии и списки</div><div class="d">colliderect, много яблок</div></div>
+        <div class="tl-item"><div class="t">урок 40</div><div class="h">Состояния</div><div class="d">меню, счёт, жизни — ФИНАЛ</div></div>
+      </div>
+      <div class="card soft" style="margin-top:22px">
+        <p><b>Что уже работает у тебя дома</b> (из ДЗ урока 37): окно 800×600, фон, корзинка, и одно яблоко, которое падает через <code class="language-python">apple.y += 2</code>. Сейчас корзинка неподвижна — пора это исправить.</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Задача слайда — дать ребёнку ощущение «карты». Покажи: урок 37 позади, 39-40 впереди. Сегодня — один кирпичик из четырёх. Спроси, как прошло ДЗ: у всех ли упало яблоко. Если у кого-то не получилось — зафиксируй, разберёте на плановом блоке 0-5 мин.
+    </div>
+  </section>
+
+  <!-- 3. GOAL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Цель урока</div>
+      <h2>Заставить корзинку <span class="grad">слушаться мыши</span></h2>
+      <div class="grid g-3" style="margin-top:26px">
+        <div class="card">
+          <div class="mini-h">Итог для рук</div>
+          <h3>Управляемая корзинка</h3>
+          <p class="muted" style="margin-top:8px">Движется за курсором, меняет картинку по клику, не вылетает за экран.</p>
+        </div>
+        <div class="card">
+          <div class="mini-h">Итог для головы</div>
+          <h3>Событие vs состояние</h3>
+          <p class="muted" style="margin-top:8px">Клик — вспышка (один раз). Зажатая кнопка — состояние (проверяется 60 раз/сек).</p>
+        </div>
+        <div class="card">
+          <div class="mini-h">Итог для души</div>
+          <h3>«Я — разработчик»</h3>
+          <p class="muted" style="margin-top:8px">Первое ощущение, что ты управляешь живым объектом. Важнее любого кода.</p>
+        </div>
+      </div>
+      <p style="margin-top:28px;max-width:820px;color:#D6DCE8"><b>К концу урока</b> ты знаешь три функции-обработчика и умеешь привязать Actor к координатам мыши.</p>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Цель дроби на три уровня — руки, голова, душа. «Душа» важнее всего: мотивация держит курс. Озвучь цель вслух, спроси «как думаешь, что сложнее — подвинуть картинку или отличить клик от зажатой кнопки?» — запусти диалог.
+    </div>
+  </section>
+
+  <!-- 4. WARMUP / HW review -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">0-5 мин · разбор ДЗ</div>
+      <h2>Проверяем падение яблока</h2>
+      <div class="two-col" style="margin-top:22px">
+        <div class="card">
+          <div class="mini-h">Что должно быть</div>
+          <ul class="clean">
+            <li>Фон, корзинка, облако — на месте с урока 37</li>
+            <li>В <code class="language-python">images/</code> появилось <code class="language-python">apple.png</code> (Kandinsky, 200×200, прозрачный)</li>
+            <li>Actor яблока создан в точке <code class="language-python">(400, 50)</code></li>
+            <li>В <code class="language-python">update()</code> строка <code class="language-python">apple.y += 2</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="mini-h">Типичные баги</div>
+          <ul class="clean">
+            <li><b>Яблоко «стоит»</b> — забыт <code class="language-python">+=</code> или строка в <code class="language-python">draw()</code>, а не в <code class="language-python">update()</code></li>
+            <li><b>Яблоко пропало</b> — улетело ниже 600, это нормально, фикс — на уроке 39</li>
+            <li><b>No such file</b> — имя с большой буквы: <code class="language-python">Apple.png</code> ≠ <code class="language-python">apple.png</code></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card soft" style="margin-top:18px">
+        <p class="mono" style="font-size:13px;color:#cdd5e6">Показываю свой пример, затем собираем у каждого 20-секундный скрин геймплея — оценка «падает ли».</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Держи этот блок строго 5 минут. Длинный разбор ДЗ выжигает энергию перед новой темой. Если у одного-двух детей яблоко не падает — фиксируй в заметках, починишь на блоке 15-30 в их собственном коде.
+    </div>
+  </section>
+
+  <!-- 5. BIG IDEA: event vs state -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Главная идея урока</div>
+      <h2><span class="grad">Событие</span> и <span class="grad">состояние</span> — это разные вещи</h2>
+      <div class="grid g-2" style="margin-top:26px">
+        <div class="compare-col purple">
+          <div class="label">Event · вспышка</div>
+          <h3 style="margin-top:6px">Событие</h3>
+          <p style="margin-top:8px;color:#D6DCE8">Произошло одноразово и пропало. Кликнул — один раз сработало.</p>
+          <ul class="clean" style="margin-top:10px">
+            <li><code class="language-python">on_mouse_down(pos, button)</code></li>
+            <li><code class="language-python">on_mouse_up(pos)</code></li>
+            <li>Метафора: <b>звонок в дверь</b></li>
+          </ul>
+        </div>
+        <div class="compare-col cyan">
+          <div class="label">State · проверка</div>
+          <h3 style="margin-top:6px">Состояние</h3>
+          <p style="margin-top:8px;color:#D6DCE8">Всегда можно спросить: «сейчас — да или нет?». Например, мышь зажата.</p>
+          <ul class="clean" style="margin-top:10px">
+            <li><code class="language-python">on_mouse_move(pos)</code> — поток апдейтов</li>
+            <li>Похоже на <code class="language-python">keyboard.left</code> (будет на уроке 42)</li>
+            <li>Метафора: <b>держишь рукоятку</b></li>
+          </ul>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:22px;max-width:900px">Правило: <b>прыжок — событие</b>, <b>бег — состояние</b>. Сегодня тренируемся на мыши, с клавиатурой применим тот же приём через 4 урока.</p>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Это стержневая идея всего блока PyGame Zero. Объясни через аналогию звонка в дверь: никто же не стоит у двери и не спрашивает «а нажимают ли звонок сейчас?» — дверь сама сообщает. Запиши на доске/бумаге два столбца. Уточни у ребёнка: «приход смс — событие или состояние?» (событие). «Заряд батареи — событие или состояние?» (состояние).
+    </div>
+  </section>
+
+  <!-- 6. Three handlers -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">5-15 мин · теория</div>
+      <h2>Три обработчика мыши в PyGame Zero</h2>
+      <div class="grid g-3" style="margin-top:22px">
+        <div class="card">
+          <div class="mini-h">Курсор движется</div>
+          <h3>on_mouse_move(pos)</h3>
+          <p class="muted" style="margin-top:8px">Вызывается <b>много раз</b>, пока мышь двигается. <code class="language-python">pos</code> — кортеж <code class="language-python">(x, y)</code>.</p>
+        </div>
+        <div class="card">
+          <div class="mini-h">Кнопку нажали</div>
+          <h3>on_mouse_down(pos, button)</h3>
+          <p class="muted" style="margin-top:8px">Одна вспышка. <code class="language-python">button</code>: <code class="language-python">mouse.LEFT</code>, <code class="language-python">RIGHT</code>, <code class="language-python">MIDDLE</code>.</p>
+        </div>
+        <div class="card">
+          <div class="mini-h">Кнопку отпустили</div>
+          <h3>on_mouse_up(pos)</h3>
+          <p class="muted" style="margin-top:8px">Тоже одна вспышка. Пригодится для «оттащить и бросить».</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:22px">
+        <div class="mini-h">Живая демка — пишу прямо сейчас</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def on_mouse_down(pos):
+    print(pos)   # кликаю — в консоли выскакивает (x, y)</div><div class="compiler-output"></div></div>
+        <p class="muted" style="margin-top:10px">Запускаю игру, кликаю в 5 точек, показываю, как появляются пары чисел. Это доказательство, что PyGame Zero действительно вызывает функцию.</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Главная мысль слайда: «PyGame Zero сам ищет функции с именами on_...». Объясни, что для IDE это просто обычные функции — никакой магии. Обязательно покажи живую консоль с print(pos). Для ребёнка это «ого, действительно работает».
+    </div>
+  </section>
+
+  <!-- 7. Coordinates refresher -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Мини-напоминание</div>
+      <h2>Система координат: (0, 0) — <span class="grad">верхний левый</span></h2>
+      <div class="two-col" style="margin-top:22px">
+        <div class="card">
+          <div class="stage" id="coordStage">
+            <div class="axes"></div>
+            <div class="basket" style="left:360px"></div>
+            <div class="apple" style="left:410px"></div>
+          </div>
+          <p class="muted" style="margin-top:10px;font-family:'JetBrains Mono';font-size:12px">ось X — вправо, ось Y — <b>вниз</b> (не как в математике)</p>
+        </div>
+        <div class="card">
+          <h3>pos — это кортеж</h3>
+          <p style="margin-top:10px">Такой же, как списки из урока 6, только не меняется.</p>
+          <ul class="clean" style="margin-top:12px">
+            <li><code class="language-python">pos[0]</code> — координата x</li>
+            <li><code class="language-python">pos[1]</code> — координата y</li>
+            <li>Можно распаковать: <code class="language-python">x, y = pos</code></li>
+          </ul>
+          <div class="warn" style="margin-top:14px">Y растёт <b>вниз</b>. Это главное «сбивает с толку» в играх. Привыкнешь за один урок.</div>
+        </div>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Рисуем сеточку в стиле тетради, но (0,0) — слева сверху. Спроси: «если корзинка в (400, 520), где она?» (снизу по центру). Это опорная точка для всего сегодняшнего кода.
+    </div>
+  </section>
+
+  <!-- 8. Step 1 — follow mouse -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">15-30 мин · совместный кодинг · шаг 1</div>
+      <h2>Корзинка следит за курсором</h2>
+      <div class="two-col" style="margin-top:22px">
+        <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import pgzrun
+
+WIDTH, HEIGHT = 800, 600
+basket = Actor('basket', (400, 520))
+apple  = Actor('apple',  (400, 50))
+
+def draw():
+    screen.fill('skyblue')
+    basket.draw()
+    apple.draw()
+
+def update():
+    apple.y += 2
+
+def on_mouse_move(pos):
+    basket.x = pos[0]   # pos[0] — это x
+
+pgzrun.go()</div><div class="compiler-output"></div></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="mini-h">Что происходит построчно</div>
+            <div class="footstep"><div class="n">1</div><div><b>Импорт и размер окна</b> — базовое, как на уроке 37.</div></div>
+            <div class="footstep"><div class="n">2</div><div><b>Два Actor</b> — корзинка внизу, яблоко сверху.</div></div>
+            <div class="footstep"><div class="n">3</div><div><b>draw()</b> — рисует, и только рисует.</div></div>
+            <div class="footstep"><div class="n">4</div><div><b>update()</b> — яблоко продолжает падать.</div></div>
+            <div class="footstep"><div class="n">5</div><div><b>on_mouse_move</b> — PyGame Zero сам зовёт его, когда двигаешь мышью.</div></div>
+          </div>
+          <div class="ok" style="margin-top:14px">Запускаем <code class="language-python">pgzrun game.py</code> — корзинка едет за курсором. Это магия.</div>
+        </div>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Пиши код прямо перед ребёнком, линию за линией, не копипасти. Чтобы корзинка ехала только по горизонтали — меняем только basket.x. Спроси: «почему бы нам не менять и y?» (получится неестественно — корзинка взлетит к потолку, когда курсор вверху). Это подводка к clamp.
+    </div>
+  </section>
+
+  <!-- 9. Reminder: no logic in draw -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Правило ремесла</div>
+      <h2><span class="grad">draw()</span> — только рисует. <span class="grad">update()</span> — только думает.</h2>
+      <div class="grid g-2" style="margin-top:26px">
+        <div class="compare-col purple">
+          <div class="label">Nope</div>
+          <h3 style="margin-top:6px">Плохо</h3>
+<pre style="margin-top:10px"><code class="language-python">def draw():
+    screen.fill('skyblue')
+    apple.y += 2            # логика в draw()!
+    basket.draw()
+    apple.draw()</code></pre>
+        </div>
+        <div class="compare-col cyan">
+          <div class="label">OK</div>
+          <h3 style="margin-top:6px">Хорошо</h3>
+<pre style="margin-top:10px"><code class="language-python">def update():
+    apple.y += 2            # логика здесь
+
+def draw():
+    screen.fill('skyblue')
+    basket.draw()
+    apple.draw()</code></pre>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:22px;max-width:900px"><b>Почему это важно.</b> В будущем PyGame Zero сможет пропускать <code class="language-python">draw()</code> при низком FPS, а <code class="language-python">update()</code> — нет. Если смешать, игра станет «дрожащей».</p>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Это правило ребёнок услышит и на уроке 37, но здесь имеет смысл повторить — именно сейчас появляются mouse-обработчики, и соблазн написать проверку в draw() велик. Фраза преподавателя из плана: «Не пиши логику в draw() — это место только для рисования».
+    </div>
+  </section>
+
+  <!-- 10. Step 2 — click reaction -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">30-45 мин · самостоятельно · шаг 2</div>
+      <h2>Клик — корзинка <span class="grad">улыбается</span></h2>
+      <div class="two-col">
+        <div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def reset_basket():
+    basket.image = 'basket'
+
+def on_mouse_down(pos, button):
+    if button == mouse.LEFT:
+        basket.image = 'basket_happy'
+        clock.schedule(reset_basket, 0.3)</div><div class="compiler-output"></div></div>
+          <p class="muted" style="margin-top:10px;font-family:'JetBrains Mono';font-size:12px">Понадобится <code class="language-python">images/basket_happy.png</code> — корзинка с улыбкой.</p>
+        </div>
+        <div class="card">
+          <div class="mini-h">Разбираем новое</div>
+          <ul class="clean">
+            <li><code class="language-python">basket.image = 'basket_happy'</code> — меняет картинку у Actor. <b>Без</b> расширения <code class="language-python">.png</code>.</li>
+            <li><code class="language-python">mouse.LEFT</code> — встроенная константа, читается как «левая кнопка».</li>
+            <li><code class="language-python">clock.schedule(func, 0.3)</code> — таймер: через 0.3 сек вызовет <code class="language-python">reset_basket</code>.</li>
+          </ul>
+          <div class="ok" style="margin-top:14px"><b>Итог:</b> кликнул — корзинка улыбнулась. Через треть секунды сама вернулась. Никаких «зависаний» — поток игры не прерывается.</div>
+        </div>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Первый раз вводим clock.schedule — делай это вместе, не отдавай на самостоятельно. Объясни: «таймер — это заметка на холодильнике, PyGame Zero запомнит и сам вызовет функцию». Подчеркни: функция передаётся БЕЗ скобок (reset_basket, не reset_basket()).
+    </div>
+  </section>
+
+  <!-- 11. Schedule vs interval -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Быстрый словарь таймеров</div>
+      <h2>clock — <span class="grad">твой будильник</span> в PyGame Zero</h2>
+      <div class="grid g-2" style="margin-top:22px">
+        <div class="card">
+          <div class="mini-h">Один раз</div>
+          <h3>clock.schedule(func, sec)</h3>
+          <p style="margin-top:8px" class="muted">Зовёт функцию <b>один раз</b> через <code class="language-python">sec</code> секунд.</p>
+<pre style="margin-top:10px"><code class="language-python">clock.schedule(reset_basket, 0.3)</code></pre>
+        </div>
+        <div class="card">
+          <div class="mini-h">Регулярно</div>
+          <h3>clock.schedule_interval(func, sec)</h3>
+          <p style="margin-top:8px" class="muted">Зовёт <b>каждые</b> <code class="language-python">sec</code> секунд. Пригодится на уроке 39 для спавна яблок.</p>
+<pre style="margin-top:10px"><code class="language-python">clock.schedule_interval(spawn_apple, 1.0)</code></pre>
+        </div>
+      </div>
+      <div class="card soft" style="margin-top:18px">
+        <p><b>Приём senior-разработчиков:</b> в <code class="language-python">schedule</code> всегда передавай <u>имя</u> функции, а не её вызов. <code class="language-python">reset_basket</code> — это «запиши мне адрес», а <code class="language-python">reset_basket()</code> — «сделай это прямо сейчас».</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Слайд-справочник, можно показать быстро — полноценно использовать interval будем на уроке 39. Но засеять сейчас — хорошо: ребёнок будет готов, и пара вопросов из ДЗ про «подпрыгивание 0.2 сек» опирается на schedule.
+    </div>
+  </section>
+
+  <!-- 12. Step 3 — clamp -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">45-55 мин · усложнение · шаг 3</div>
+      <h2>Не даём корзинке <span class="grad">убежать за экран</span></h2>
+      <div class="two-col flip">
+        <div class="card">
+          <div class="mini-h">Проблема</div>
+          <p>Если курсор ушёл за край окна, корзинка уедет туда же — и пропадёт.</p>
+          <div class="mini-h" style="margin-top:14px">Решение — «зажим в коридор»</div>
+<pre style="margin-top:8px"><code class="language-python">def on_mouse_move(pos):
+    x = pos[0]
+    x = max(50, min(WIDTH - 50, x))
+    basket.x = x
+</code></pre>
+          <p class="muted" style="margin-top:10px"><code class="language-python">max(50, ...)</code> — не меньше 50. <code class="language-python">min(WIDTH-50, ...)</code> — не больше WIDTH−50.</p>
+        </div>
+        <div class="card">
+          <div class="mini-h">Слово дня</div>
+          <h3 class="grad">clamp</h3>
+          <p style="margin-top:8px">Так называют этот приём «взрослые» программисты. Переводится как «зажим/струбцина». Значит: «возьми число, и если оно меньше минимума — подними до минимума; если больше максимума — опусти до максимума».</p>
+          <div class="ok" style="margin-top:14px">Когда встретишь clamp в чужом коде — сразу поймёшь, что это про ограничение диапазона.</div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:18px;font-family:'JetBrains Mono';font-size:12px">Почему именно 50? Половина ширины корзинки — чтобы она не «наполовину вылезала» за экран. Если у тебя корзинка 200 пикселей — используй 100.</p>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Сильный слайд: вводим академический термин (clamp), связываем с конкретной проблемой и даём формулу. Попроси ребёнка сказать вслух формулу своими словами. Если корзинка у ребёнка другая по ширине — поменяйте 50 на половину ширины.
+    </div>
+  </section>
+
+  <!-- 13. Live state visualization -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Визуализация</div>
+      <h2>Корзинка ездит в <span class="grad">коридоре</span></h2>
+      <div class="card">
+        <div class="stage" style="height:260px" id="clampStage">
+          <div class="axes"></div>
+          <!-- invisible walls markers -->
+          <div style="position:absolute;left:40px;top:0;bottom:0;border-left:2px dashed rgba(124,58,237,.55)"></div>
+          <div style="position:absolute;right:40px;top:0;bottom:0;border-left:2px dashed rgba(6,182,212,.55)"></div>
+          <div style="position:absolute;left:40px;top:8px;color:#c4b5fd;font-family:'JetBrains Mono';font-size:11px">x = 50</div>
+          <div style="position:absolute;right:40px;top:8px;color:#67e8f9;font-family:'JetBrains Mono';font-size:11px">x = WIDTH-50</div>
+          <div class="basket" id="movingBasket" style="left:360px;transition:left .1s linear"></div>
+          <div class="apple" style="left:120px;top:20px;animation:fall 3s linear infinite"></div>
+          <div class="apple" style="left:520px;top:20px;animation:fall 4s linear infinite .8s"></div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:18px;font-family:'JetBrains Mono';font-size:12px">В браузерной демке корзинка движется сама — двигай курсор над зоной, чтобы почувствовать эффект.</p>
+      <style>
+        @keyframes fall { from{top:10px} to{top:230px} }
+      </style>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      В браузере корзинка «ездит» по скрипту ниже — имитируем то, что ребёнок увидит у себя. Если хочешь, можешь запустить pgzrun параллельно и показать живую игру — эффект один и тот же.
+    </div>
+  </section>
+
+  <!-- 14. Key phrases -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Коробка фраз</div>
+      <h2>Что говорить вслух <span class="grad">по ходу урока</span></h2>
+      <div class="grid g-2" style="margin-top:22px">
+        <div class="card">
+          <ul class="clean">
+            <li>«Мышь — самый простой способ ввода, поэтому начинаем с неё.»</li>
+            <li>«Событие — одноразовая вспышка, <code class="language-python">on_mouse_down</code> сработает <b>ровно один раз</b> за клик.»</li>
+            <li>«<code class="language-python">pos</code> приходит кортежем, как координаты в морском бою: сначала x, потом y.»</li>
+          </ul>
+        </div>
+        <div class="card">
+          <ul class="clean">
+            <li>«Не пиши логику в <code class="language-python">draw()</code> — это место <b>только для рисования</b>.»</li>
+            <li>«<code class="language-python">max(50, min(WIDTH-50, x))</code> — зажим в коридор, взрослые называют <b>clamp</b>.»</li>
+            <li>«Не реагирует? Проверь имя функции — <code class="language-python">on_mouse_down</code>, через подчёркивания, без опечаток.»</li>
+            <li>«PyGame Zero сам найдёт все функции <code class="language-python">on_...</code> и будет их вызывать — это магия фреймворка.»</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Распечатай или держи открытыми эти фразы. Не читай как по бумажке — вплетай в диалог. После урока спроси у ребёнка: «запомни одну фразу, которая тебе понравилась» — это закрепляет формулу.
+    </div>
+  </section>
+
+  <!-- 15. Debug playbook -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Если не работает</div>
+      <h2>Плейбук <span class="grad">типичных багов</span></h2>
+      <div class="grid g-3" style="margin-top:22px">
+        <div class="card">
+          <div class="mini-h">Не реагирует на мышь</div>
+          <h3>Опечатка в имени</h3>
+          <ul class="clean" style="margin-top:10px">
+            <li><code class="language-python">on_mousedown</code> ❌</li>
+            <li><code class="language-python">on_mouse_down</code> ✅</li>
+            <li>Только нижнее подчёркивание и нижний регистр.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="mini-h">Картинка не меняется</div>
+          <h3>Расширение в имени</h3>
+          <ul class="clean" style="margin-top:10px">
+            <li><code class="language-python">basket.image = 'basket.png'</code> ❌</li>
+            <li><code class="language-python">basket.image = 'basket_happy'</code> ✅</li>
+            <li>Pgzero сам найдёт файл в <code class="language-python">images/</code>.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="mini-h">Корзинка дёргается</div>
+          <h3>Это нормально</h3>
+          <p class="muted" style="margin-top:10px">Мышь шлёт сотни событий в секунду — корзинка просто очень точно их отрабатывает. На уроке 42 покажем сглаживание.</p>
+        </div>
+      </div>
+      <div class="card soft" style="margin-top:18px">
+        <p><b>На крайний случай.</b> Если IDE ругается «clock is not defined» — добавь <code class="language-python">from pgzero.clock import clock</code> в начало файла. В 99% случаев это не нужно — clock в PyGame Zero встроен.</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Показывай слайд, когда реально возникает баг. Это уменьшает «я тупой, у меня не работает». Важный вайб: «типичные баги есть у всех, в том числе у взрослых разработчиков Riot Games».
+    </div>
+  </section>
+
+  <!-- 16. AI integration -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Где подключаем ИИ</div>
+      <h2>Сегодня ИИ — это <span class="grad">вторая пара глаз</span></h2>
+      <div class="two-col" style="margin-top:22px">
+        <div class="card">
+          <div class="mini-h">YandexGPT · дебаггер</div>
+          <h3>Учимся спрашивать с контекстом</h3>
+          <p style="margin-top:10px;color:#D6DCE8">Если корзинка «прыгает странно» — не иди к преподавателю сразу. Сначала копируй код в YandexGPT и спроси:</p>
+<pre style="margin-top:10px"><code class="language-markdown">Я пишу игру на PyGame Zero. Вот мой on_mouse_down:
+(код)
+Почему на клике спрайт мигает только иногда?
+</code></pre>
+          <p class="muted" style="margin-top:10px">Учишься формулировать вопрос — ключевой навык 2026 года.</p>
+        </div>
+        <div class="card">
+          <div class="mini-h">Kandinsky · декоратор</div>
+          <h3>Альтернативная корзинка</h3>
+          <ul class="clean" style="margin-top:8px">
+            <li><code class="language-markdown">корабль-бластер, вид сверху, прозрачный фон, 200×200</code></li>
+            <li><code class="language-markdown">иконка звонка, мультяшная, прозрачный фон, 64×64</code> (для клика)</li>
+          </ul>
+          <div class="ok" style="margin-top:12px">Замени <code class="language-python">basket.image = 'spaceship'</code> — и тот же код управляет кораблём. <b>Игра та же, но своя.</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Учим главному: ИИ — помощник, а не замена. Показывай не «ИИ дал код», а «ИИ объяснил ошибку». Если видишь, что ребёнок пытается попросить готовое решение — мягко разверни: «а давай сначала сам прочтёшь сообщение об ошибке».
+    </div>
+  </section>
+
+  <!-- 17. Bonus / star task -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Звёздная задача</div>
+      <h2>Кликнул и зажал — корзинка <span class="grad">оставляет след</span></h2>
+      <div class="two-col">
+        <div class="card">
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">trail = []
+drawing = False
+
+def on_mouse_down(pos, button):
+    global drawing
+    if button == mouse.LEFT:
+        drawing = True
+
+def on_mouse_up(pos):
+    global drawing
+    drawing = False
+
+def on_mouse_move(pos):
+    if drawing:
+        trail.append(pos)
+    basket.x = pos[0]
+
+def draw():
+    screen.fill('skyblue')
+    for i in range(len(trail) - 1):
+        screen.draw.line(trail[i], trail[i+1], 'magenta')
+    basket.draw()
+    apple.draw()</div><div class="compiler-output"></div></div>
+        </div>
+        <div class="card">
+          <div class="mini-h">Что нового</div>
+          <ul class="clean">
+            <li><b>Список позиций</b> — опережает урок 6-7 в контексте игр</li>
+            <li><b>Глобальная переменная</b> состояния (<code class="language-python">drawing</code>)</li>
+            <li><b>Цикл по парам точек</b> и <code class="language-python">screen.draw.line</code></li>
+          </ul>
+          <p class="muted" style="margin-top:14px">Если успел обычную часть за 30 минут — попробуй. Получится первая в твоей жизни «рисовалка».</p>
+        </div>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Этот бонус — серьёзный. Давай его ребёнку только если он уже свободно пишет on_mouse_move и on_mouse_down. В мини-группе предлагай одному-двум мотивированным. Для остальных — ссылка «попробуй дома».
+    </div>
+  </section>
+
+  <!-- 18. Full final code of lesson -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Итог урока</div>
+      <h2>Финальный <span class="grad">game.py</span> после занятия</h2>
+<pre style="max-height:420px"><code class="language-python">import pgzrun
+
+WIDTH, HEIGHT = 800, 600
+basket = Actor('basket', (400, 520))
+apple  = Actor('apple',  (400, 50))
+
+def draw():
+    screen.fill('skyblue')
+    basket.draw()
+    apple.draw()
+
+def update():
+    apple.y += 2
+
+def reset_basket():
+    basket.image = 'basket'
+
+def on_mouse_move(pos):
+    x = max(50, min(WIDTH - 50, pos[0]))
+    basket.x = x
+
+def on_mouse_down(pos, button):
+    if button == mouse.LEFT:
+        basket.image = 'basket_happy'
+        clock.schedule(reset_basket, 0.3)
+
+pgzrun.go()
+</code></pre>
+      <p class="muted" style="margin-top:14px;font-family:'JetBrains Mono';font-size:12px">Около 25 строк. На уроке 39 добавим список яблок и коллизии — и станет ~50.</p>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Покажи ребёнку целиком — это «снимок» того, что у него должно быть. Если рассинхрон — подкопи код вместе. Попроси ребёнка вслух пересказать, что делает каждая функция — проверка понимания.
+    </div>
+  </section>
+
+  <!-- 19. Timing plan -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">55-60 мин · обзор</div>
+      <h2>Как прошли <span class="grad">60 минут</span></h2>
+      <div class="timeline" style="margin-top:22px">
+        <div class="tl-item"><div class="t">0-5 мин</div><div class="h">Разбор ДЗ</div><div class="d">Падает ли яблоко у каждого</div></div>
+        <div class="tl-item"><div class="t">5-15 мин</div><div class="h">Теория</div><div class="d">Событие vs состояние, живая демка</div></div>
+        <div class="tl-item"><div class="t">15-30 мин</div><div class="h">Совместный код</div><div class="d">on_mouse_move → корзинка за мышью</div></div>
+        <div class="tl-item"><div class="t">30-45 мин</div><div class="h">Самостоятельно</div><div class="d">on_mouse_down + clock.schedule</div></div>
+        <div class="tl-item"><div class="t">45-55 мин</div><div class="h">Усложнение</div><div class="d">clamp — зажим в коридор</div></div>
+        <div class="tl-item"><div class="t">55-60 мин</div><div class="h">Итог + ДЗ</div><div class="d">Демонстрация и выдача задачи</div></div>
+      </div>
+      <div class="card soft" style="margin-top:22px">
+        <p><b>Совет по темпу.</b> Если ребёнок застрял на step-1 (on_mouse_move), <u>не иди</u> в step-2 — лучше закрепи это как домашку. Второй половиной урока потренируйтесь кликами в чистом файле.</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Слайд-хронометраж — держи под рукой. Не стремись закрыть всё, стремись, чтобы ребёнок понял. Частая ошибка преподавателя — галопом пройти 6 блоков, а у ребёнка в голове каша.
+    </div>
+  </section>
+
+  <!-- 20. Success criteria -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Критерии успеха</div>
+      <h2>Когда можно <span class="grad">закрывать урок</span></h2>
+      <div class="grid g-2" style="margin-top:22px">
+        <div class="card">
+          <div class="mini-h">Руки</div>
+          <ul class="clean">
+            <li><span class="checkbox"></span>Корзинка корректно следует за мышью</li>
+            <li><span class="checkbox"></span>Не выезжает за экран слева и справа</li>
+            <li><span class="checkbox"></span>При клике есть видимая реакция (смена спрайта или подпрыгивание)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="mini-h">Голова</div>
+          <ul class="clean">
+            <li><span class="checkbox"></span>Объясняет разницу <code class="language-python">on_mouse_move</code> и <code class="language-python">on_mouse_down</code></li>
+            <li><span class="checkbox"></span>Может прочитать свой код и сказать, что делает каждая строчка</li>
+            <li><span class="checkbox"></span>Знает слова «событие», «состояние», «clamp»</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="mini-h">Зелёный флаг</div>
+        <p>Ребёнок сам предлагает идею — «а давай корзинка ещё…». Это значит, что мышь перестала быть «темой урока» и стала инструментом. Именно этого мы добивались.</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Чек-лист — не формальный, а инструмент преподавателя. Если минимум из 4 пунктов не закрыт — лучше чуть сдвинуть урок 39, а 38 зацементировать. Игра строится слоями, провал в мышке сломает коллизии.
+    </div>
+  </section>
+
+  <!-- 21. Homework -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">ДЗ · не более 20 минут</div>
+      <h2>Домашнее задание к уроку 39</h2>
+      <div class="grid g-3" style="margin-top:22px">
+        <div class="card">
+          <div class="bignum grad">1</div>
+          <h3 style="margin-top:6px">Правая кнопка = подпрыгивание</h3>
+          <p style="margin-top:8px;color:#D6DCE8">Если <code class="language-python">button == mouse.RIGHT</code>, корзинка прыгает вверх на 20 пикселей и возвращается через 0.2 сек (<code class="language-python">clock.schedule</code>).</p>
+        </div>
+        <div class="card">
+          <div class="bignum grad">2</div>
+          <h3 style="margin-top:6px">Второе яблоко</h3>
+          <p style="margin-top:8px;color:#D6DCE8">Добавь ещё один Actor яблока на другой <code class="language-python">x</code>-координате, пусть падает с другой скоростью.</p>
+        </div>
+        <div class="card">
+          <div class="bignum grad">3</div>
+          <h3 style="margin-top:6px">Видео 20 секунд</h3>
+          <p style="margin-top:8px;color:#D6DCE8">Запиши геймплей на 20 секунд и отправь в чат курса. Покажи движение мышью и клик.</p>
+        </div>
+      </div>
+      <div class="card soft" style="margin-top:18px">
+        <p><b>Подсказка родителям.</b> Если ребёнок застрял — пусть покажет код YandexGPT со словами «почему корзинка не прыгает на правую кнопку». Это часть обучения формулировать запрос.</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Напомни, что записывать видео можно штатным инструментом Windows (Win+G) или через OBS у старших. ДЗ разбито на 3 чётких шага, сложность нарастает. Если класс слабоват — сделай пункт 1 обязательным, 2-3 по желанию.
+    </div>
+  </section>
+
+  <!-- 22. Closing -->
+  <section class="slide">
+    <div class="slide-inner center">
+      <div class="title-hero" style="max-width:920px">
+        <span class="tag"><span class="dot"></span>Урок 38 завершён</span>
+        <h1 style="margin-top:18px"><span class="grad">Ты — разработчик.</span><br/>Мышь теперь <u>в твоей власти</u>.</h1>
+        <p style="margin-top:18px;max-width:720px;margin-left:auto;margin-right:auto;color:#D6DCE8">На следующем уроке добавим коллизии и список падающих яблок. Игра наконец-то станет игрой.</p>
+        <div class="badge-row" style="justify-content:center">
+          <span class="chip">+ on_mouse_move</span>
+          <span class="chip">+ on_mouse_down</span>
+          <span class="chip">+ clock.schedule</span>
+          <span class="chip">+ clamp</span>
+        </div>
+        <p style="margin-top:30px;font-family:'JetBrains Mono';font-size:12px;color:var(--muted)">Следующий урок · 39 · Коллизии, списки, colliderect → «Поймай яблоко», часть 3</p>
+      </div>
+    </div>
+    <div class="speaker-notes" style="display:none">
+      Заключительные 2 минуты — эмоциональные. Поздравь. Попроси ребёнка одной фразой описать, «чему научился». Запиши в чат курса два слова — это формирует привычку к рефлексии. Спасибо, до следующего занятия.
+    </div>
+  </section>
+
+</div>
+
+<!-- Speaker notes panel -->
+<aside class="notes" id="notes">
+  <h4>Speaker notes · слайд <span id="notesCounter">1</span></h4>
+  <div id="notesBody"></div>
+</aside>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script>
+  Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  const progress = document.getElementById('progressFill');
+  const counter = document.getElementById('counter');
+  const notesPanel = document.getElementById('notes');
+  const notesBody = document.getElementById('notesBody');
+  const notesCounter = document.getElementById('notesCounter');
+  const notesToggle = document.getElementById('notesToggle');
+  let idx = 0;
+
+  function pad(n){return String(n).padStart(2,'0')}
+  function show(i){
+    i = Math.max(0, Math.min(total-1, i));
+    slides.forEach((s,k)=>s.classList.toggle('active', k===i));
+    idx = i;
+    progress.style.width = ((i+1)/total*100) + '%';
+    counter.textContent = pad(i+1) + ' / ' + pad(total);
+    const note = slides[i].querySelector('.speaker-notes');
+    notesBody.innerHTML = note ? note.innerHTML : '<p class="muted">Нет заметок.</p>';
+    notesCounter.textContent = (i+1);
+  }
+  function next(){show(idx+1)}
+  function prev(){show(idx-1)}
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='ArrowRight' || e.key===' ' || e.key==='PageDown'){e.preventDefault();next()}
+    else if(e.key==='ArrowLeft' || e.key==='PageUp'){e.preventDefault();prev()}
+    else if(e.key==='Home'){e.preventDefault();show(0)}
+    else if(e.key==='End'){e.preventDefault();show(total-1)}
+    else if(e.key==='f' || e.key==='F'){
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    } else if(e.key==='n' || e.key==='N'){
+      notesPanel.classList.toggle('open');
+    } else if(/^[0-9]$/.test(e.key)){
+      const n = parseInt(e.key,10); if(n>=1 && n<=total) show(n-1);
+    }
+  });
+  notesToggle.addEventListener('click', ()=>notesPanel.classList.toggle('open'));
+
+  // Auto-moving basket in clamp demo slide
+  const mb = document.getElementById('movingBasket');
+  if(mb){
+    let t = 0;
+    setInterval(()=>{
+      t += 0.04;
+      const w = mb.parentElement.clientWidth;
+      let x = w/2 + Math.sin(t)*(w/2 - 80);
+      // clamp visualization
+      x = Math.max(40, Math.min(w-40-90, x));
+      mb.style.left = x + 'px';
+    }, 40);
+  }
+  show(0);
+</script>
+</body>
+</html>

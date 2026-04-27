@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Урок 8 — Домен и SSL Let's Encrypt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #0B0F17;
+  color: #E6EAF2;
+}
+:root {
+  --bg: #0B0F17;
+  --bg2: #111826;
+  --violet: #7C3AED;
+  --cyan: #06B6D4;
+  --text: #E6EAF2;
+  --muted: #8B93A7;
+  --danger: #EF4444;
+  --success: #10B981;
+  --yellow: #F59E0B;
+  --glass: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.09);
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(124,58,237,0.18), transparent 50%),
+    radial-gradient(circle at 85% 80%, rgba(6,182,212,0.14), transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(124,58,237,0.06), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--violet), var(--cyan));
+  box-shadow: 0 0 20px rgba(124,58,237,0.6);
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  z-index: 100;
+  border-radius: 0 4px 4px 0;
+}
+.counter {
+  position: fixed;
+  top: 18px;
+  right: 26px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  padding: 7px 14px;
+  border-radius: 999px;
+  backdrop-filter: blur(14px);
+  z-index: 99;
+  letter-spacing: 0.5px;
+}
+.hint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.45;
+  z-index: 99;
+  letter-spacing: 0.6px;
+}
+.hint kbd {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  padding: 2px 7px;
+  border-radius: 5px;
+  margin: 0 3px;
+  font-size: 10px;
+}
+.slides {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+.slide {
+  position: absolute;
+  inset: 0;
+  padding: 60px 72px 72px;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  animation: fadeIn 0.55s cubic-bezier(0.25, 0.8, 0.35, 1);
+  overflow-y: auto;
+}
+.slide.active { display: flex; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.slide-num {
+  position: absolute;
+  top: 40px;
+  left: 72px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+h1 {
+  font-size: clamp(36px, 5.2vw, 68px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+}
+h2 {
+  font-size: clamp(28px, 3.4vw, 46px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 28px;
+}
+h3 {
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+p, li {
+  font-size: clamp(15px, 1.25vw, 19px);
+  line-height: 1.55;
+  color: #C9D1E0;
+}
+.grad {
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.muted { color: var(--muted); }
+.tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(6,182,212,0.2));
+  border: 1px solid rgba(124,58,237,0.35);
+  color: #C4B5FD;
+  margin-bottom: 22px;
+}
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px 28px;
+}
+.grid {
+  display: grid;
+  gap: 18px;
+}
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 22px 24px;
+  transition: transform 0.3s, border-color 0.3s;
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(124,58,237,0.4);
+}
+.card .ico {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--cyan);
+  margin-bottom: 10px;
+}
+.card h4 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.card p { font-size: 14px; line-height: 1.5; color: var(--muted); }
+ul.bulls {
+  list-style: none;
+  padding: 0;
+}
+ul.bulls li {
+  padding-left: 28px;
+  position: relative;
+  margin-bottom: 13px;
+  font-size: 17px;
+}
+ul.bulls li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  box-shadow: 0 0 10px var(--violet);
+}
+pre[class*="language-"] {
+  background: #0a0d14 !important;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 20px 22px !important;
+  font-size: 14px !important;
+  line-height: 1.6;
+  font-family: 'JetBrains Mono', monospace !important;
+  overflow-x: auto;
+  margin: 12px 0;
+}
+code { font-family: 'JetBrains Mono', monospace; font-size: 0.92em; }
+p code, li code {
+  background: rgba(124,58,237,0.14);
+  color: #C4B5FD;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 0.88em;
+}
+.kvs {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.kv .k {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--cyan);
+}
+.kv .v { color: var(--muted); }
+.steps {
+  counter-reset: step;
+  list-style: none;
+}
+.steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 56px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.steps li::before {
+  content: counter(step, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: -3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.15));
+  border: 1px solid rgba(124,58,237,0.35);
+  color: #C4B5FD;
+}
+.diag {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.diag .node {
+  padding: 16px 20px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  min-width: 120px;
+}
+.diag .node.active {
+  border-color: var(--violet);
+  background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(6,182,212,0.08));
+  box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+}
+.diag .node .label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+.diag .node .val {
+  font-size: 14px;
+  font-weight: 600;
+}
+.arr {
+  color: var(--violet);
+  font-size: 22px;
+  font-weight: bold;
+}
+.callout {
+  padding: 18px 22px;
+  border-left: 4px solid var(--violet);
+  background: linear-gradient(90deg, rgba(124,58,237,0.08), transparent);
+  border-radius: 8px;
+  margin: 16px 0;
+}
+.callout.warn { border-left-color: var(--yellow); background: linear-gradient(90deg, rgba(245,158,11,0.08), transparent); }
+.callout.danger { border-left-color: var(--danger); background: linear-gradient(90deg, rgba(239,68,68,0.08), transparent); }
+.callout.ok { border-left-color: var(--success); background: linear-gradient(90deg, rgba(16,185,129,0.08), transparent); }
+.callout p { color: var(--text); font-size: 15px; }
+.quote {
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  padding: 40px 0;
+  position: relative;
+}
+.quote::before {
+  content: '"';
+  position: absolute;
+  top: -30px;
+  left: -20px;
+  font-size: 120px;
+  color: var(--violet);
+  opacity: 0.2;
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+.quote .author {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+}
+.note {
+  display: none;
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 780px;
+  width: 90%;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: rgba(17,24,38,0.97);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 22px 26px;
+  z-index: 200;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+.note.open { display: block; }
+.note h4 {
+  color: var(--cyan);
+  margin-bottom: 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.note ul { padding-left: 18px; }
+.note li { margin-bottom: 6px; font-size: 14px; }
+.chart-bar {
+  height: 36px;
+  background: var(--glass);
+  border-radius: 8px;
+  position: relative;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.chart-bar .fill {
+  height: 100%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding-left: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+}
+.money {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--success);
+  font-weight: 700;
+}
+.cover {
+  text-align: left;
+  justify-content: center;
+}
+.cover .kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.cover h1 {
+  font-size: clamp(44px, 6.5vw, 94px);
+}
+.cover .sub {
+  font-size: clamp(18px, 1.9vw, 26px);
+  color: var(--muted);
+  max-width: 800px;
+  margin-top: 18px;
+  line-height: 1.4;
+}
+.cover .meta {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.cover .meta .m {
+  padding: 14px 22px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+.cover .meta .m .l {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+.cover .meta .m .v {
+  font-size: 16px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+.flex-center { display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+.big-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(70px, 10vw, 140px);
+  font-weight: 800;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--violet), var(--cyan));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 16px;
+}
+.lock-ico {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.15));
+  border: 2px solid rgba(16,185,129,0.45);
+  border-radius: 24px;
+  font-size: 44px;
+}
+.table-ss {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 18px;
+}
+.table-ss th, .table-ss td {
+  padding: 13px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+  font-size: 14px;
+}
+.table-ss th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  background: var(--glass);
+}
+.table-ss td code { font-size: 0.85em; }
+.badge-ok { background: rgba(16,185,129,0.18); color: #34D399; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+.badge-err { background: rgba(239,68,68,0.18); color: #F87171; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+.end-big {
+  font-size: clamp(60px, 9vw, 120px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  margin-bottom: 30px;
+}
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--violet), var(--cyan));
+}
+.tl-item {
+  position: relative;
+  padding-bottom: 18px;
+}
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: -27px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--violet);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 14px var(--violet);
+}
+.tl-item .t {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--cyan);
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.tl-item h4 { font-size: 17px; margin-bottom: 4px; color: var(--text); }
+.tl-item p { font-size: 14px; color: var(--muted); }
+@media (max-width: 820px) {
+  .slide { padding: 40px 28px 60px; }
+  .slide-num { left: 28px; top: 22px; }
+  .g2, .g3, .g4 { grid-template-columns: 1fr; }
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">01 / 22</div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды <kbd>N</kbd> заметки <kbd>F</kbd> fullscreen</div>
+
+<div class="slides" id="slides">
+
+<!-- Slide 1: Cover -->
+<section class="slide active cover">
+  <div class="slide-num">Урок 08 / Step 2 / Неделя 8</div>
+  <div class="kicker">Модуль 1 — Я понимаю интернет изнутри</div>
+  <h1>Домен и <span class="grad">SSL-сертификат</span><br>Let's Encrypt</h1>
+  <p class="sub">От голого IP-адреса к собственному домену с HTTPS и зелёным замочком. 199 ₽ и 45 минут — и у тебя появляется визитка в интернете на годы.</p>
+  <div class="meta">
+    <div class="m"><div class="l">Длительность</div><div class="v">60 минут</div></div>
+    <div class="m"><div class="l">Сложность</div><div class="v">3 / 5</div></div>
+    <div class="m"><div class="l">Стоимость</div><div class="v">199 ₽/год</div></div>
+    <div class="m"><div class="l">Результат</div><div class="v">https://you.ru</div></div>
+  </div>
+</section>
+
+<!-- Slide 2: Goal -->
+<section class="slide">
+  <div class="slide-num">02 / 22 — Цель урока</div>
+  <span class="tag">Goal</span>
+  <h2>Собственный домен + HTTPS<br>за 60 минут</h2>
+  <div class="grid g2" style="margin-top:20px;">
+    <div class="card">
+      <div class="ico">01</div>
+      <h4>Купить домен .ru</h4>
+      <p>Зарегистрировать человеческое имя через reg.ru за <span class="money">199 ₽</span> и привязать к своей VM.</p>
+    </div>
+    <div class="card">
+      <div class="ico">02</div>
+      <h4>Настроить A-запись</h4>
+      <p>Рассказать миру, что <code>your.ru</code> живёт по твоему IP-адресу.</p>
+    </div>
+    <div class="card">
+      <div class="ico">03</div>
+      <h4>Выпустить SSL-сертификат</h4>
+      <p>Через certbot + Let's Encrypt — бесплатно и автоматически.</p>
+    </div>
+    <div class="card">
+      <div class="ico">04</div>
+      <h4>Получить зелёный замочек</h4>
+      <p>Перенастроить Nginx на HTTPS и убедиться, что автопродление работает.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 3: What will you know -->
+<section class="slide">
+  <div class="slide-num">03 / 22 — Результаты</div>
+  <span class="tag">Knows / Understands / Can</span>
+  <h2>Что ты <span class="grad">унесёшь</span> с урока</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="color:var(--cyan);">Знает</h3>
+      <ul class="bulls">
+        <li>Как устроен DNS и что такое A-запись</li>
+        <li>Что такое TLS/SSL и зачем он нужен</li>
+        <li>Кто такой Let's Encrypt и почему бесплатный</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Понимает</h3>
+      <ul class="bulls">
+        <li>Почему сайт без HTTPS в 2026 — риск</li>
+        <li>Что поисковики не индексируют HTTP</li>
+        <li>Почему Telegram WebApp требует HTTPS</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Умеет</h3>
+      <ul class="bulls">
+        <li>Настроить A-запись у регистратора</li>
+        <li>Выпустить сертификат через certbot</li>
+        <li>Перенастроить Nginx на порты 80 → 443</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Владеет</h3>
+      <ul class="bulls">
+        <li>Автопродлением сертификата (certbot сам)</li>
+        <li>Проверкой SSL через SSL Labs</li>
+        <li>HSTS-заголовком для жёсткого HTTPS</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 4: DNS explained -->
+<section class="slide">
+  <div class="slide-num">04 / 22 — DNS: записная книжка интернета</div>
+  <span class="tag">DNS / A-record</span>
+  <h2>Как работает <span class="grad">DNS</span></h2>
+  <p class="muted" style="margin-bottom:24px;">Браузер не знает IP-адресов. Он знает только человеческие имена. DNS — это система, которая переводит одно в другое.</p>
+  <div class="diag">
+    <div class="node"><div class="label">Ты</div><div class="val">browser</div></div>
+    <span class="arr">→</span>
+    <div class="node"><div class="label">Спрашивает</div><div class="val">your.ru?</div></div>
+    <span class="arr">→</span>
+    <div class="node active"><div class="label">DNS</div><div class="val">resolver</div></div>
+    <span class="arr">→</span>
+    <div class="node"><div class="label">Отвечает</div><div class="val">185.23.55.10</div></div>
+    <span class="arr">→</span>
+    <div class="node"><div class="label">VM</div><div class="val">Nginx :80</div></div>
+  </div>
+  <div class="glass" style="margin-top:24px;">
+    <h3 style="color:var(--cyan);">A-запись = пара «имя → IP»</h3>
+    <div class="kvs">
+      <div class="kv"><span class="k">@ → 185.23.55.10</span><span class="v">корневой домен your.ru</span></div>
+      <div class="kv"><span class="k">www → 185.23.55.10</span><span class="v">www.your.ru</span></div>
+      <div class="kv"><span class="k">api → 185.23.55.11</span><span class="v">поддомен api.your.ru</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 5: HTTPS explained -->
+<section class="slide">
+  <div class="slide-num">05 / 22 — HTTPS: шифрование трафика</div>
+  <span class="tag">TLS / HTTPS</span>
+  <h2>HTTPS = <span class="grad">HTTP + шифрование</span></h2>
+  <div class="grid g2" style="margin-top:20px;">
+    <div class="card">
+      <div class="ico" style="color:var(--danger);">HTTP</div>
+      <h4>Открытый текст</h4>
+      <p>Весь трафик виден любому между тобой и сервером: Wi-Fi роутеру кафешки, провайдеру, школьной сети. Логины, пароли, токены — всё читается.</p>
+      <pre class="language-http"><code>POST /login HTTP/1.1
+Host: site.ru
+
+login=vanya&password=12345  ← видно всем</code></pre>
+    </div>
+    <div class="card">
+      <div class="ico" style="color:var(--success);">HTTPS</div>
+      <h4>Зашифрованный канал</h4>
+      <p>TLS-рукопожатие создаёт приватный канал. Даже если перехватят — увидят только мусор. Браузер показывает зелёный замочек.</p>
+      <pre class="language-http"><code>POST /login HTTP/1.1
+Host: site.ru
+
+●◉◒◐◑◓▲◊⬢⬡◈◎◯◌  ← зашифровано</code></pre>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:20px;">
+    <p><strong>TLS</strong> — это преемник SSL. Имена используют как синонимы, но технически сейчас везде TLS 1.2 и TLS 1.3. «SSL-сертификат» = «TLS-сертификат», просто название прижилось.</p>
+  </div>
+</section>
+
+<!-- Slide 6: Let's Encrypt -->
+<section class="slide">
+  <div class="slide-num">06 / 22 — Let's Encrypt</div>
+  <span class="tag">Certificate Authority</span>
+  <h2>Let's Encrypt — <span class="grad">бесплатный CA</span></h2>
+  <div class="grid g2">
+    <div>
+      <p>Центр сертификации (Certificate Authority, CA) — это организация, которой доверяют все браузеры. Она выпускает сертификаты, подтверждающие: «да, это действительно тот сайт, за который себя выдаёт».</p>
+      <div class="callout ok" style="margin-top:20px;">
+        <p><strong>Раньше:</strong> сертификат стоил 2000–20 000 ₽/год у Comodo, DigiCert, GlobalSign.</p>
+      </div>
+      <div class="callout" style="margin-top:14px;">
+        <p><strong>С 2015:</strong> Let's Encrypt выдаёт то же самое бесплатно и автоматически. Спонсоры — Mozilla, Cisco, EFF, Google.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Характеристики</h3>
+      <div class="kvs">
+        <div class="kv"><span class="k">Цена</span><span class="v money">0 ₽</span></div>
+        <div class="kv"><span class="k">Срок действия</span><span class="v">90 дней</span></div>
+        <div class="kv"><span class="k">Автопродление</span><span class="v">certbot --nginx</span></div>
+        <div class="kv"><span class="k">Rate-limit</span><span class="v">5 сертов / неделю</span></div>
+        <div class="kv"><span class="k">Wildcards</span><span class="v">*.your.ru — есть</span></div>
+        <div class="kv"><span class="k">Шифры</span><span class="v">TLS 1.2, 1.3</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 7: Plan -->
+<section class="slide">
+  <div class="slide-num">07 / 22 — Поминутный план</div>
+  <span class="tag">60 min</span>
+  <h2>Как пройдёт <span class="grad">сегодняшний урок</span></h2>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="t">00:00 – 00:05</div>
+      <h4>Разбор ДЗ</h4>
+      <p>У кого <code>/health</code> возвращает 200 — бейдж «Health-checker».</p>
+    </div>
+    <div class="tl-item">
+      <div class="t">00:05 – 00:15</div>
+      <h4>Теория-демо</h4>
+      <p>DNS, A-запись, TLS/SSL, Let's Encrypt. Схема и определения.</p>
+    </div>
+    <div class="tl-item">
+      <div class="t">00:15 – 00:45</div>
+      <h4>Практика</h4>
+      <p>Покупаем домен, настраиваем A-запись, ставим certbot, выпускаем сертификат, проверяем HTTPS.</p>
+    </div>
+    <div class="tl-item">
+      <div class="t">00:45 – 00:55</div>
+      <h4>Проект</h4>
+      <p>Коммит Nginx-конфига, обновление README с гордой ссылкой <code>https://your.ru</code>.</p>
+    </div>
+    <div class="tl-item">
+      <div class="t">00:55 – 01:00</div>
+      <h4>Демо</h4>
+      <p>Скидываем свои домены в группу, все переходят и проверяют.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 8: Step 1 — Buy domain -->
+<section class="slide">
+  <div class="slide-num">08 / 22 — Шаг 1: покупаем домен</div>
+  <span class="tag">Step 01</span>
+  <h2>reg.ru и <span class="grad">199 ₽/год</span></h2>
+  <div class="grid g2">
+    <div>
+      <h3>С чего начинаем</h3>
+      <ul class="bulls">
+        <li>Заходим на <code>reg.ru</code> (или nic.ru, timeweb.com)</li>
+        <li>Вбиваем желаемое имя: <code>&lt;фамилия&gt;-vibe.ru</code></li>
+        <li>Берём домен с родителями — нужна карта</li>
+        <li>Оплачиваем <span class="money">199 ₽</span> и получаем домен</li>
+      </ul>
+      <div class="callout warn" style="margin-top:16px;">
+        <p><strong>Важно:</strong> подтверждение владельца приходит на email. Не игнорируй — через 15 дней без подтверждения домен заблокируют.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Варианты имён</h3>
+      <div class="kvs">
+        <div class="kv"><span class="k">petrov-vibe.ru</span><span class="v money">199 ₽</span></div>
+        <div class="kv"><span class="k">vanya-code.ru</span><span class="v money">199 ₽</span></div>
+        <div class="kv"><span class="k">coolnick.ru</span><span class="v money">299 ₽</span></div>
+        <div class="kv"><span class="k">yourname.tech</span><span class="v">~800 ₽</span></div>
+        <div class="kv"><span class="k">cool.io</span><span class="v">~3500 ₽</span></div>
+      </div>
+      <p class="muted" style="margin-top:14px;font-size:13px;">Первый год часто дешевле — продление уже по стандартному тарифу. Проверяй внимательно.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 9: Step 2 — A-record -->
+<section class="slide">
+  <div class="slide-num">09 / 22 — Шаг 2: A-запись</div>
+  <span class="tag">Step 02</span>
+  <h2>Привязываем домен к <span class="grad">IP твоей VM</span></h2>
+  <p class="muted" style="margin-bottom:16px;">В личном кабинете reg.ru находим раздел «DNS» / «Управление зоной». Добавляем две A-записи:</p>
+  <table class="table-ss">
+    <thead>
+      <tr><th>Хост</th><th>Тип</th><th>Значение</th><th>TTL</th><th>Смысл</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>@</code></td><td>A</td><td><code>185.23.55.10</code></td><td>3600</td><td>корень your.ru</td></tr>
+      <tr><td><code>www</code></td><td>A</td><td><code>185.23.55.10</code></td><td>3600</td><td>www.your.ru</td></tr>
+      <tr><td><code>api</code></td><td>A</td><td><code>185.23.55.11</code></td><td>3600</td><td>поддомен (опционально)</td></tr>
+    </tbody>
+  </table>
+  <h3 style="margin-top:26px;">Проверяем распространение DNS</h3>
+  <pre class="language-bash"><code># На своём компе:
+ping your.ru
+# должен вернуть твой IP VM
+
+# Или через dig:
+dig your.ru +short
+nslookup your.ru</code></pre>
+  <div class="callout warn" style="margin-top:14px;">
+    <p><strong>DNS обновляется не мгновенно.</strong> Обычно 5–20 минут, иногда до 24 часов. Если через 5 минут не работает — не паникуй, сделай чай и подожди 20.</p>
+  </div>
+</section>
+
+<!-- Slide 10: Step 3 — Install certbot -->
+<section class="slide">
+  <div class="slide-num">10 / 22 — Шаг 3: установка certbot</div>
+  <span class="tag">Step 03</span>
+  <h2>Ставим <span class="grad">certbot</span> на VM</h2>
+  <p class="muted" style="margin-bottom:14px;">Заходим по SSH на свою VM и ставим certbot с плагином для Nginx:</p>
+  <pre class="language-bash"><code># Обновляем список пакетов
+sudo apt update
+
+# Ставим certbot и nginx-плагин
+sudo apt install certbot python3-certbot-nginx -y
+
+# Проверяем, что встало
+certbot --version
+# → certbot 2.9.0</code></pre>
+  <h3 style="margin-top:22px;">Что делает nginx-плагин?</h3>
+  <div class="grid g3" style="margin-top:14px;">
+    <div class="card">
+      <div class="ico">A</div>
+      <h4>Автонастройка</h4>
+      <p>Сам редактирует Nginx-конфиг — добавляет listen 443 и пути к сертификату.</p>
+    </div>
+    <div class="card">
+      <div class="ico">B</div>
+      <h4>HTTP-01 challenge</h4>
+      <p>Let's Encrypt проверяет, что ты владеешь доменом, через файл на порту 80.</p>
+    </div>
+    <div class="card">
+      <div class="ico">C</div>
+      <h4>Редирект 80 → 443</h4>
+      <p>Можно включить одной командой — весь трафик форсированно идёт по HTTPS.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 11: Step 4 — Issue certificate -->
+<section class="slide">
+  <div class="slide-num">11 / 22 — Шаг 4: выпуск сертификата</div>
+  <span class="tag">Step 04 / The big moment</span>
+  <h2>Запускаем <span class="grad">certbot --nginx</span></h2>
+  <pre class="language-bash"><code>sudo certbot --nginx -d your.ru -d www.your.ru
+
+# Certbot задаст вопросы:
+# 1. Email для уведомлений о продлении
+# 2. Согласие с Terms of Service
+# 3. Подписаться на новости EFF? (можно No)
+# 4. Делать редирект HTTP → HTTPS? → 2 (да)
+
+# Успех:
+# Congratulations! You have successfully enabled
+# https://your.ru and https://www.your.ru</code></pre>
+  <div class="grid g2" style="margin-top:20px;">
+    <div class="card">
+      <h3 style="color:var(--success);font-size:17px;">Что произошло</h3>
+      <ul class="bulls">
+        <li>Сгенерирована пара приватный + публичный ключ</li>
+        <li>Let's Encrypt проверил владение доменом</li>
+        <li>Выдан сертификат на 90 дней</li>
+        <li>Nginx-конфиг обновлён автоматически</li>
+        <li>Добавлен cron для автопродления</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);font-size:17px;">Где файлы?</h3>
+      <div class="kvs">
+        <div class="kv"><span class="k">fullchain.pem</span><span class="v">публичный серт</span></div>
+        <div class="kv"><span class="k">privkey.pem</span><span class="v">приватный ключ</span></div>
+        <div class="kv"><span class="k">chain.pem</span><span class="v">цепочка</span></div>
+      </div>
+      <p class="muted" style="margin-top:10px;font-size:13px;">Все в <code>/etc/letsencrypt/live/your.ru/</code>. Nginx-плагин уже прописал пути в конфиг.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 12: Nginx after certbot -->
+<section class="slide">
+  <div class="slide-num">12 / 22 — Nginx-конфиг после certbot</div>
+  <span class="tag">Config diff</span>
+  <h2>Что certbot <span class="grad">допишет</span> в конфиг</h2>
+  <pre class="language-nginx"><code>server {
+    server_name your.ru www.your.ru;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # ← Добавлено certbot:
+    listen 443 ssl;
+    ssl_certificate     /etc/letsencrypt/live/your.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your.ru/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    # Редирект HTTP → HTTPS
+    if ($host = your.ru)     { return 301 https://$host$request_uri; }
+    if ($host = www.your.ru) { return 301 https://$host$request_uri; }
+    listen 80;
+    server_name your.ru www.your.ru;
+    return 404;
+}</code></pre>
+</section>
+
+<!-- Slide 13: Lock icon -->
+<section class="slide flex-center">
+  <div class="slide-num">13 / 22 — Зелёный замочек</div>
+  <div class="lock-ico">🔒</div>
+  <h1 style="text-align:center;">Открываем <span class="grad">https://your.ru/docs</span></h1>
+  <p class="sub muted" style="max-width:700px;margin-top:12px;text-align:center;">В адресной строке — зелёный замочек (или просто не-перечёркнутый). Это значит: TLS работает, сертификат валиден, трафик зашифрован.</p>
+  <div class="grid g3" style="margin-top:36px;width:100%;max-width:900px;">
+    <div class="card" style="text-align:center;">
+      <div class="ico" style="color:var(--success);">✓</div>
+      <h4>Swagger работает</h4>
+      <p>Все эндпоинты FastAPI доступны через HTTPS</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="ico" style="color:var(--success);">✓</div>
+      <h4>HTTP редиректит</h4>
+      <p>Набрали <code>http://your.ru</code> — попали на <code>https://</code></p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="ico" style="color:var(--success);">✓</div>
+      <h4>www работает</h4>
+      <p>Оба варианта — с www и без — ведут на тот же сайт</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 14: Auto-renewal -->
+<section class="slide">
+  <div class="slide-num">14 / 22 — Автопродление</div>
+  <span class="tag">Renewal</span>
+  <h2>Сертификат живёт <span class="grad">90 дней</span> — что дальше?</h2>
+  <div class="grid g2">
+    <div>
+      <p>Let's Encrypt выдаёт короткие сертификаты специально: чтобы заставить всех автоматизировать продление. Certbot делает это за тебя — через systemd timer или cron.</p>
+      <h3 style="margin-top:18px;">Проверяем, что автопродление работает:</h3>
+      <pre class="language-bash"><code># Dry-run — безопасная проверка
+sudo certbot renew --dry-run
+
+# Успех:
+# Congratulations, all simulated renewals
+# succeeded!
+
+# Посмотреть таймер systemd:
+systemctl list-timers | grep certbot</code></pre>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Как это работает</h3>
+      <ul class="bulls">
+        <li>Каждый день systemd-таймер запускает <code>certbot renew</code></li>
+        <li>Certbot проверяет: до истечения &lt; 30 дней?</li>
+        <li>Если да — продлевает, обновляет файлы</li>
+        <li>Перезагружает Nginx (<code>systemctl reload nginx</code>)</li>
+        <li>Ты даже не замечаешь — всё произошло в 3 часа ночи</li>
+      </ul>
+      <div class="callout ok" style="margin-top:14px;">
+        <p>Настроил один раз — забыл на годы. Certbot сам пришлёт email, если что-то пойдёт не так.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 15: Key phrases -->
+<section class="slide">
+  <div class="slide-num">15 / 22 — Ключевые мысли урока</div>
+  <span class="tag">Mantras</span>
+  <h2>Что <span class="grad">запомнить</span></h2>
+  <div class="grid g2">
+    <div class="callout">
+      <p><strong>«DNS обновляется не мгновенно.</strong> Если через 5 минут не работает — подожди 20».</p>
+    </div>
+    <div class="callout">
+      <p><strong>«HTTPS в 2026 — это не роскошь,</strong> это минимум. Без него даже Telegram WebApp не пустит твой сайт».</p>
+    </div>
+    <div class="callout">
+      <p><strong>«Let's Encrypt бесплатный —</strong> потому что так захотел мир. Запомни это имя».</p>
+    </div>
+    <div class="callout">
+      <p><strong>«Certbot сам обновляет сертификат</strong> каждые 60 дней. Ты к этому не возвращаешься».</p>
+    </div>
+    <div class="callout">
+      <p><strong>«Домен .ru стоит 199 ₽ в год —</strong> это меньше, чем шаурма. Не экономь».</p>
+    </div>
+    <div class="callout">
+      <p><strong>«Зелёный замочек в браузере —</strong> это и есть TLS».</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 16: Common errors -->
+<section class="slide">
+  <div class="slide-num">16 / 22 — Если что-то пошло не так</div>
+  <span class="tag">Troubleshooting</span>
+  <h2>Типичные <span class="grad">ошибки</span> и решения</h2>
+  <div class="grid g3">
+    <div class="card">
+      <div class="ico" style="color:var(--yellow);">!</div>
+      <h4>A-запись не подтянулась</h4>
+      <p class="muted" style="font-size:13px;">DNS не успел распространиться. Ждём до 24 часов, обычно 5–10 минут.</p>
+      <pre class="language-bash"><code>dig your.ru
+nslookup your.ru</code></pre>
+    </div>
+    <div class="card">
+      <div class="ico" style="color:var(--danger);">!</div>
+      <h4>Certbot: rate limit</h4>
+      <p class="muted" style="font-size:13px;">Не запускай 10 раз подряд. Лимит — 5 успешных запусков в неделю на домен.</p>
+      <p style="font-size:13px;margin-top:8px;">Используй <code>--staging</code> для тестов.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="color:var(--yellow);">!</div>
+      <h4>Swagger битый через HTTPS</h4>
+      <p class="muted" style="font-size:13px;">В FastAPI ставим <code>root_path</code> или проверяем proxy-заголовки в Nginx.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="color:var(--danger);">!</div>
+      <h4>80 порт закрыт firewall'ом</h4>
+      <p class="muted" style="font-size:13px;">Certbot общается с LE через 80. <code>sudo ufw allow 80</code> — и запускаем снова.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="color:var(--yellow);">!</div>
+      <h4>Mixed content warning</h4>
+      <p class="muted" style="font-size:13px;">Страница HTTPS, но картинка подгружается по HTTP. Правим в коде или через CSP.</p>
+    </div>
+    <div class="card">
+      <div class="ico" style="color:var(--danger);">!</div>
+      <h4>DNSSEC mismatch</h4>
+      <p class="muted" style="font-size:13px;">Если включил DNSSEC на reg.ru — отключи для школьного проекта. Причина половины странных ошибок.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 17: SSL Labs check -->
+<section class="slide">
+  <div class="slide-num">17 / 22 — Проверяем себя через SSL Labs</div>
+  <span class="tag">Quality check</span>
+  <h2>Получаем <span class="grad">grade A+</span></h2>
+  <div class="grid g2">
+    <div>
+      <p>SSL Labs от Qualys — бесплатный инструмент от индустрии безопасности. Прогоняет твой HTTPS через десятки тестов и ставит оценку.</p>
+      <div class="callout" style="margin-top:16px;">
+        <p>Открой: <code>https://www.ssllabs.com/ssltest/</code> — и вбей свой домен.</p>
+      </div>
+      <h3 style="margin-top:20px;">Шкала оценок</h3>
+      <ul class="bulls">
+        <li><span class="badge-ok">A+</span> Отлично — HSTS, современные шифры</li>
+        <li><span class="badge-ok">A</span> Хорошо — всё правильно, но без HSTS</li>
+        <li><span class="badge-ok">B</span> Приемлемо — есть к чему стремиться</li>
+        <li><span class="badge-err">C / F</span> Проблемы с шифрами или цепочкой</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Что прокачать до A+</h3>
+      <pre class="language-nginx"><code># В Nginx добавляем HSTS:
+add_header Strict-Transport-Security
+  "max-age=31536000;
+   includeSubDomains;
+   preload" always;
+
+# Запрет старых протоколов
+ssl_protocols TLSv1.2 TLSv1.3;
+
+# OCSP stapling
+ssl_stapling on;
+ssl_stapling_verify on;</code></pre>
+      <p class="muted" style="margin-top:12px;font-size:13px;">HSTS говорит браузеру: «этот сайт только по HTTPS, забудь про HTTP навсегда».</p>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 18: Quote -->
+<section class="slide flex-center">
+  <div class="slide-num">18 / 22 — Философская пауза</div>
+  <div class="quote" style="max-width:900px;text-align:left;">
+    Зелёный замочек — это не про <span class="grad">безопасность банка</span>. Это про уважение к пользователю: ты не отдаёшь его логин школьному админу Wi-Fi, кафешке, провайдеру и всем случайным людям на пути.
+    <div class="author">— Принцип чистого HTTPS</div>
+  </div>
+</section>
+
+<!-- Slide 19: Mini project -->
+<section class="slide">
+  <div class="slide-num">19 / 22 — Мини-проект урока</div>
+  <span class="tag">Artifact</span>
+  <h2>Что ты <span class="grad">закоммитишь</span> сегодня</h2>
+  <div class="grid g2">
+    <div>
+      <h3>1. Обновлённый Nginx-конфиг</h3>
+      <p class="muted" style="margin-bottom:12px;">Коммитим в <code>deploy/nginx/your.ru.conf</code> — только публичную часть. Приватный ключ НЕ коммитим никогда.</p>
+      <h3 style="margin-top:20px;">2. Обновлённый README</h3>
+      <pre class="language-markdown"><code># vibe-step2-vanya
+
+[![uptime](https://img.shields.io/...)]
+[![python](https://img.shields.io/badge/python-3.11-blue)]
+
+## Demo
+
+🔒 https://vanya-vibe.ru/docs
+
+REST API с интеграцией GigaChat
+и YandexGPT на своём домене
+с Let's Encrypt SSL.</code></pre>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Артефакт для портфолио</h3>
+      <p>Собственный домен с HTTPS — это <strong>серьёзная строчка</strong> в резюме даже для 14-летнего. Это показывает:</p>
+      <ul class="bulls" style="margin-top:14px;">
+        <li>Ты умеешь работать с DNS и доменами</li>
+        <li>Ты понимаешь, как работает TLS/SSL</li>
+        <li>Ты настроил продакшн-инфраструктуру</li>
+        <li>Твой сервис живёт в интернете 24/7</li>
+      </ul>
+      <div class="callout ok" style="margin-top:16px;">
+        <p><strong>Обязательно:</strong> пост в Telegram-канал «Запустил свой сервис: https://your.ru»</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 20: Homework -->
+<section class="slide">
+  <div class="slide-num">20 / 22 — Домашнее задание</div>
+  <span class="tag">≤ 20 минут</span>
+  <h2>ДЗ к <span class="grad">следующему уроку</span></h2>
+  <div class="grid g2">
+    <div class="card">
+      <div class="ico">HW 1</div>
+      <h3>Прислать ссылку на свой домен</h3>
+      <p>В чат группы: <code>https://your.ru/docs</code> — все откроют, проверят зелёный замочек.</p>
+    </div>
+    <div class="card">
+      <div class="ico">HW 2</div>
+      <h3>Скриншот Swagger по HTTPS</h3>
+      <p>Открыл в браузере, сделал скрин с видимой адресной строкой — отправил в чат.</p>
+    </div>
+    <div class="card">
+      <div class="ico">HW 3</div>
+      <h3>Проверить через SSL Labs</h3>
+      <p><code>ssllabs.com/ssltest/</code> — должен быть grade A или A+. Скрин оценки — в чат.</p>
+    </div>
+    <div class="card">
+      <div class="ico">HW 4</div>
+      <h3>Бонус: HSTS</h3>
+      <p>Добавить HSTS-заголовок в Nginx и повторно проверить — должно стать A+.</p>
+    </div>
+  </div>
+  <div class="callout ok" style="margin-top:18px;">
+    <p><strong>Критерии успеха:</strong> <code>https://your.ru/docs</code> с зелёным замочком. HTTP редиректит на HTTPS. <code>certbot renew --dry-run</code> проходит без ошибок.</p>
+  </div>
+</section>
+
+<!-- Slide 21: Money -->
+<section class="slide">
+  <div class="slide-num">21 / 22 — Как это монетизировать</div>
+  <span class="tag">💰 Реальные деньги</span>
+  <h2>Navык, за который <span class="grad">платят сегодня</span></h2>
+  <div class="grid g2">
+    <div>
+      <h3>Услуга: настройка SSL и домена</h3>
+      <p class="muted" style="margin-bottom:18px;">Многие владельцы мелких сайтов живут на HTTP, потому что не разобрались. За полчаса ты апгрейдишь их до зелёного замочка.</p>
+      <div class="chart-bar"><div class="fill" style="width:35%;background:linear-gradient(90deg,var(--violet),#A78BFA);">1 000 ₽</div></div>
+      <div class="chart-bar"><div class="fill" style="width:60%;background:linear-gradient(90deg,var(--cyan),#67E8F9);">1 800 ₽ — средний чек</div></div>
+      <div class="chart-bar"><div class="fill" style="width:85%;background:linear-gradient(90deg,var(--violet),var(--cyan));">2 500 ₽ — с HSTS и оптимизацией</div></div>
+      <p class="muted" style="margin-top:12px;font-size:14px;">Типичный заказ на Kwork: «установите SSL на мой сайт на VPS» → 30 минут работы.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--cyan);">Математика на 2026</h3>
+      <div class="kvs">
+        <div class="kv"><span class="k">1 заказ</span><span class="v money">1 500 ₽</span></div>
+        <div class="kv"><span class="k">Времени</span><span class="v">30 минут</span></div>
+        <div class="kv"><span class="k">Твоя ставка</span><span class="v money">~3 000 ₽/час</span></div>
+        <div class="kv"><span class="k">2 заказа/неделю</span><span class="v money">12 000 ₽/мес</span></div>
+      </div>
+      <div class="callout" style="margin-top:16px;">
+        <p style="font-size:14px;">+ свой домен — это <strong>визитка в интернете на годы вперёд</strong>. Это актив, который работает на тебя 24/7.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Slide 22: End -->
+<section class="slide flex-center">
+  <div class="slide-num">22 / 22 — Финал</div>
+  <div class="end-big"><span class="grad">https://</span> 🔒</div>
+  <h2 style="text-align:center;max-width:900px;">Твой код теперь живёт на <span class="grad">своём домене</span> с зелёным замочком</h2>
+  <p class="sub muted" style="text-align:center;max-width:700px;margin-top:20px;">Дальше — промпт-инжиниринг и сравнение LLM. Научимся писать промпты, на которые GigaChat и YandexGPT отвечают так, как нужно.</p>
+  <div class="grid g3" style="margin-top:40px;width:100%;max-width:900px;">
+    <div class="card" style="text-align:center;">
+      <div class="ico">→</div>
+      <h4>Урок 9</h4>
+      <p>Эндпоинт «Гороскоп», промпт-инжиниринг, сравнение LLM</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="ico">→</div>
+      <h4>Урок 10</h4>
+      <p>Мониторинг, логирование, защита от абьюза</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div class="ico">→</div>
+      <h4>Урок 12</h4>
+      <p>Защита проекта Модуля 1. Бейджи.</p>
+    </div>
+  </div>
+  <p style="margin-top:40px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:2px;">END OF LESSON 08 / STEP 2</p>
+</section>
+
+</div>
+
+<!-- Speaker notes -->
+<div class="note" id="note">
+  <h4 id="note-title">Speaker Notes</h4>
+  <div id="note-body"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-nginx.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-http.min.js"></script>
+<script>
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const noteEl = document.getElementById('note');
+const noteTitle = document.getElementById('note-title');
+const noteBody = document.getElementById('note-body');
+let current = 0;
+
+const notes = {
+  0: {title:'Обложка', body:'<p>Это урок 8 Step 2. Предыдущий был про Nginx — сегодня доводим инфраструктуру до боевого состояния с HTTPS.</p><p>Ключевое: после урока у каждого ребёнка должна быть <strong>рабочая ссылка</strong> вида https://их_домен.ru/docs с зелёным замочком.</p><ul><li>Имеет смысл заранее иметь список рекомендованных имён (ребёнок + vibe, ник, фамилия).</li><li>Родителей уведомить заранее — нужна карта на 199 ₽.</li></ul>'},
+  1: {title:'Цель урока', body:'<p>Прямо проговорить: «Сегодня у тебя появится свой личный домен и HTTPS. Это больше, чем у 95% твоих ровесников». Это мотивационный якорь.</p><p>Не затягивать — два слайда про цели и результаты, общее 3 минуты.</p>'},
+  2: {title:'Результаты', body:'<p>Особо остановиться на <em>«понимает»</em>. Знание команд без понимания, зачем — бесполезно.</p><p>Вопрос классу: «А что будет, если мы оставим сайт на HTTP?» Дать 30 секунд на ответы. Обычно вспоминают «взломают пароль», но не вспоминают поисковики и Telegram.</p>'},
+  3: {title:'DNS', body:'<p>Использовать аналогию «телефонный справочник»: браузер не помнит номеров, он помнит имена.</p><p>Показать вживую: открыть консоль и сделать <code>dig google.com</code>. У всех в группе один IP или разные (CDN)? Объяснить, почему это важно для масштабирования.</p>'},
+  4: {title:'HTTPS', body:'<p>Демонстрация: открыть DevTools на сайте без HTTPS и показать, как видны заголовки. Дать почувствовать уязвимость.</p><p>TLS vs SSL — объяснить, что современные «SSL-сертификаты» это всегда TLS 1.2/1.3, но название SSL приклеилось.</p>'},
+  5: {title:'Let\'s Encrypt', body:'<p>Подчеркнуть историю: до 2015 шифрование было платной роскошью. LE изменил интернет — потому что сделал HTTPS массовым.</p><p>Упомянуть: есть и другие бесплатные CA (ZeroSSL, Buypass), но LE — дефолт.</p>'},
+  6: {title:'План', body:'<p>Напомнить, что основная часть (30 мин практики) потребует полной концентрации. Пока сидят и слушают — можно переключаться, дальше — нет.</p>'},
+  7: {title:'Покупка домена', body:'<p>Показать экран: зайти на reg.ru, вбить свой домен, показать что свободно. Если у ребёнка имя фамилия уже занято — помочь с вариантами: добавить -code, -vibe, -dev.</p><p>Важно: напомнить про подтверждение email — это самая частая проблема через 2 недели.</p>'},
+  8: {title:'A-запись', body:'<p>Живое демо в панели reg.ru. Показать, где находится «Управление зоной». TTL 3600 — достаточно для нашего случая.</p><p>Если у кого-то DNS не поднялся за время урока — переключаемся на резервный план: пока курс продолжается через IP, вечером дома проверяет.</p>'},
+  9: {title:'Установка certbot', body:'<p>Важно: certbot может быть как snap-пакетом, так и apt-пакетом. В Ubuntu 24.04 apt-версия нормальная, берём её. Snap усложняет для детей.</p><p>Проверить, что python3-certbot-nginx встал — именно он делает автонастройку.</p>'},
+  10: {title:'Выпуск сертификата', body:'<p>Это кульминация урока. Момент, когда нажимается Enter и через 5 секунд появляется «Congratulations». Дать детям прожить эту эмоцию — это якорь.</p><p>Если что-то пошло не так — идти по слайду troubleshooting, самая частая проблема: порт 80 закрыт файрволом.</p>'},
+  11: {title:'Конфиг после certbot', body:'<p>Разобрать строки вместе. Показать: <code>listen 443 ssl</code>, пути к сертификату, редирект с 80. Это не магия — это обычный конфиг Nginx, просто сгенерированный автоматически.</p><p>Задача: ребёнок должен уметь прочитать этот конфиг, даже если не писал сам.</p>'},
+  12: {title:'Зелёный замочек', body:'<p>Моральный якорь. Сказать: «Посмотри на адресную строку. Замочек. Это значит — ты сделал настоящий интернет-сервис».</p><p>Скриншот в Telegram-канал — обязательно. Это маркетинг себя.</p>'},
+  13: {title:'Автопродление', body:'<p>Объяснить, почему сертификаты короткие: LE принуждает всех автоматизировать. Это хорошая практика безопасности — компрометация ключа ограничена 90 днями.</p><p>Dry-run запустить обязательно на уроке: лучше сейчас увидеть проблему, чем через 89 дней обнаружить, что автопродление не работает.</p>'},
+  14: {title:'Ключевые мысли', body:'<p>Это слайд-мантры — их можно фотографировать и распечатывать. Каждая фраза должна быть понятна без контекста.</p>'},
+  15: {title:'Troubleshooting', body:'<p>Пройтись быстро — это слайд для обратной связи. Если у кого-то на практике была проблема, указать на неё здесь.</p><p>DNSSEC — это редкая, но очень коварная проблема. Если у ребёнка ничего не работает без видимой причины — проверить DNSSEC.</p>'},
+  16: {title:'SSL Labs', body:'<p>Сделать вживую один прогон — показать красоту отчёта. Там видны цепочка сертификатов, шифры, уязвимости.</p><p>Цель A+ — мотивационная. Достичь легко, и чувство «у меня A+, как у больших сайтов» даёт уверенность.</p>'},
+  17: {title:'Философская пауза', body:'<p>Короткий слайд-передышка. Прочитать цитату вслух. Подчеркнуть этическую сторону: HTTPS — это про уважение к пользователю.</p>'},
+  18: {title:'Мини-проект', body:'<p>Важный момент: НЕ коммитить приватный ключ. Это критично. Проверить у каждого, что в коммите только публичный конфиг.</p><p>README с бейджами — учимся продавать свой продукт.</p>'},
+  19: {title:'ДЗ', body:'<p>ДЗ сегодня лёгкое, потому что основное сделали на уроке. Главное — проверить SSL Labs и получить A.</p><p>Бонус с HSTS — для сильных учеников, необязателен.</p>'},
+  20: {title:'Монетизация', body:'<p>Реальный пример: я сам в 13 лет такое бы не сделал, потому что не знал, что это можно. У детей должно быть ощущение: «я уже умею то, за что платят».</p><p>Подчеркнуть: навык не в «нажать certbot --nginx», а в том, чтобы разобраться, когда что-то сломается у клиента.</p>'},
+  21: {title:'Финал', body:'<p>Показать анонс урока 9 — промпт-инжиниринг. Это переход от инфраструктуры к настоящему AI-творчеству.</p><p>Дать всем 30 секунд, чтобы скинуть ссылку на свой домен в чат. Короткий момент взаимного уважения.</p>'}
+};
+
+function show(i) {
+  slides.forEach(s => s.classList.remove('active'));
+  slides[i].classList.add('active');
+  current = i;
+  counter.textContent = String(i+1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+  progress.style.width = ((i+1)/total*100) + '%';
+  noteEl.classList.remove('open');
+  if (window.Prism) Prism.highlightAll();
+}
+
+function next() { if (current < total-1) show(current+1); }
+function prev() { if (current > 0) show(current-1); }
+
+function toggleNote() {
+  const n = notes[current];
+  if (!n) return;
+  if (noteEl.classList.contains('open')) {
+    noteEl.classList.remove('open');
+  } else {
+    noteTitle.textContent = n.title;
+    noteBody.innerHTML = n.body;
+    noteEl.classList.add('open');
+  }
+}
+
+function toggleFull() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+  else if (e.key === 'Home') { show(0); }
+  else if (e.key === 'End') { show(total-1); }
+  else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') { toggleNote(); }
+  else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') { toggleFull(); }
+});
+
+let startX = 0;
+document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - startX;
+  if (dx < -40) next(); else if (dx > 40) prev();
+});
+
+show(0);
+</script>
+</body>
+</html>
