@@ -138,6 +138,7 @@ export default function LiveOverlay() {
               autoCorrect="off"
               autoCapitalize="off"
               wrap="off"
+              aria-label="Python-код для авто-запуска"
               placeholder={PLACEHOLDER}
             />
             <div className="live-hint">

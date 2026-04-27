@@ -46,6 +46,8 @@ export default function Palette({ state, variant = 'desktop', onClose }: Props) 
             className={`tool-btn ${state.tool === 'select' ? 'active' : ''}`}
             onClick={() => setTool('select')}
             title="Выделить (V)"
+            aria-label="Выделить объект"
+            aria-pressed={state.tool === 'select'}
           >
             ↖ <small>выбор</small>
           </button>
@@ -53,6 +55,8 @@ export default function Palette({ state, variant = 'desktop', onClose }: Props) 
             className={`tool-btn ${state.tool === 'place' ? 'active' : ''}`}
             onClick={() => setTool('place')}
             title="Поставить (B)"
+            aria-label="Поставить объект"
+            aria-pressed={state.tool === 'place'}
           >
             ＋ <small>поставить</small>
           </button>

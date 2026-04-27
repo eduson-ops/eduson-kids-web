@@ -276,22 +276,28 @@ export default function Studio() {
           <span style={{ opacity: .4, margin: '0 4px' }}>·</span>
           <span style={{ color: 'var(--yellow)' }}>Студия</span>
         </Link>
-        <nav className="studio-tabs">
+        <nav className="studio-tabs" role="tablist" aria-label="Режимы студии">
           <button
+            role="tab"
             className={`studio-tab ${tab === 'build' ? 'active' : ''}`}
             onClick={() => setTab('build')}
+            aria-selected={tab === 'build'}
           >
             🧱 Строить
           </button>
           <button
+            role="tab"
             className={`studio-tab ${tab === 'script' ? 'active' : ''}`}
             onClick={() => setTab('script')}
+            aria-selected={tab === 'script'}
           >
             🧩 Скрипт
           </button>
           <button
+            role="tab"
             className={`studio-tab ${tab === 'test' ? 'active' : ''}`}
             onClick={() => setTab('test')}
+            aria-selected={tab === 'test'}
           >
             ▶ Тест
           </button>

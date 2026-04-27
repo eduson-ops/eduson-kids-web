@@ -363,8 +363,8 @@ function ModeChip({
   onClick: () => void
 }) {
   return (
-    <button className={`mode-chip ${active ? 'active' : ''}`} onClick={onClick} type="button">
-      <span className="mode-chip-icon">{icon}</span>
+    <button className={`mode-chip ${active ? 'active' : ''}`} onClick={onClick} type="button" aria-pressed={active}>
+      <span className="mode-chip-icon" aria-hidden="true">{icon}</span>
       <span className="mode-chip-text">
         <strong className="mode-chip-label">{label}</strong>
         <small className="mode-chip-sub">{sub}</small>
