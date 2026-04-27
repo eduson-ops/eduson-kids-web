@@ -317,9 +317,9 @@ export default function Studio() {
                     cursor: 'pointer',
                     color: 'inherit',
                   }}
-                  title="Повторить сохранение"
+                  aria-label="Повторить сохранение"
                 >
-                  ↻
+                  <span aria-hidden>↻</span>
                 </button>
               )}
             </span>

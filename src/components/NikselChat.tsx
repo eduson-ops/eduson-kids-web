@@ -151,8 +151,8 @@ export default function NikselChat() {
             </div>
             {confirmReset ? (
               <span style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                <button className="nk-chat-reset" onClick={reset} title="Подтвердить очистку" aria-label="Подтвердить очистку чата" style={{ color: '#ff5464' }}>✓</button>
-                <button className="nk-chat-reset" onClick={() => setConfirmReset(false)} title="Отмена" aria-label="Отмена">✕</button>
+                <button className="nk-chat-reset" onClick={reset} aria-label="Подтвердить очистку чата" style={{ color: '#ff5464' }}><span aria-hidden>✓</span></button>
+                <button className="nk-chat-reset" onClick={() => setConfirmReset(false)} aria-label="Отмена очистки"><span aria-hidden>✕</span></button>
               </span>
             ) : (
               <button
