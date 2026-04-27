@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="14" fill="#0C0533"/>
+  <!-- Stylized "EK" mark with a cube silhouette -->
+  <g transform="translate(10,12)">
+    <!-- Cube (isometric) -->
+    <path d="M22 0 L44 11 L44 33 L22 44 L0 33 L0 11 Z" fill="#6B5CE7" opacity="0.18"/>
+    <path d="M22 0 L44 11 L22 22 L0 11 Z" fill="#6B5CE7" opacity="0.55"/>
+    <path d="M22 22 L44 11 L44 33 L22 44 Z" fill="#4E3FD1" opacity="0.9"/>
+    <path d="M22 22 L0 11 L0 33 L22 44 Z" fill="#3A2DA8" opacity="0.9"/>
+    <!-- Spark / play triangle -->
+    <path d="M16 14 L30 22 L16 30 Z" fill="#FFE066"/>
+  </g>
+</svg>

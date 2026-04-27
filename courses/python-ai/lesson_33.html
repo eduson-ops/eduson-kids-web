@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 33 — ИИ в повседневной жизни и обучении</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --red: #EF4444;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* Slide counter */
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  /* Deck */
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 64px 80px 90px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Background glow orbs */
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* Shared elements */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .badge--purple { color: #C4B5FD; }
+  .badge--purple .dot { background: #A78BFA; box-shadow: 0 0 10px #A78BFA; }
+  .badge--pink { color: #F9A8D4; }
+  .badge--pink .dot { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .badge--yellow { color: #FDE68A; }
+  .badge--yellow .dot { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+  .badge--green { color: #86EFAC; }
+  .badge--green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .badge--red { color: #FCA5A5; }
+  .badge--red .dot { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+  h1 {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 16px 0;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 60%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 22px;
+  }
+  h2 .grad {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  p, li { font-size: 19px; line-height: 1.55; color: #CBD1DE; }
+  .muted { color: var(--muted); }
+  .big { font-size: 24px; }
+
+  /* Title slide */
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide .meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .title-slide .subtitle {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 820px;
+    margin-top: 8px;
+  }
+  .title-slide .foot {
+    display: flex; gap: 32px; margin-top: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .title-slide .foot b { color: var(--text); }
+
+  /* Grid / cards */
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 24px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.45); transform: translateY(-3px); }
+  .card .ico {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.25));
+    border: 1px solid var(--border);
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .card--purple { background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(124,58,237,0.03)); border-color: rgba(124,58,237,0.35); }
+  .card--cyan { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(6,182,212,0.03)); border-color: rgba(6,182,212,0.35); }
+  .card--pink { background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(236,72,153,0.03)); border-color: rgba(236,72,153,0.35); }
+  .card--yellow { background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.35); }
+  .card--green { background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.03)); border-color: rgba(16,185,129,0.35); }
+  .card--red { background: linear-gradient(135deg, rgba(239,68,68,0.16), rgba(239,68,68,0.03)); border-color: rgba(239,68,68,0.35); }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 10px 0 10px 34px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .check-list li::before {
+    content: '✓';
+    position: absolute; left: 0; top: 10px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .x-list { list-style: none; padding: 0; }
+  .x-list li {
+    padding: 10px 0 10px 34px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+  }
+  .x-list li:last-child { border-bottom: 0; }
+  .x-list li::before {
+    content: '✗';
+    position: absolute; left: 0; top: 10px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #EF4444, #EC4899);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .num-list { list-style: none; padding: 0; counter-reset: step; }
+  .num-list li {
+    padding: 12px 0 12px 52px;
+    position: relative;
+    counter-increment: step;
+  }
+  .num-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: grid; place-items: center;
+  }
+
+  /* Code */
+  pre[class*="language-"] {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0A0E18 !important;
+    font-size: 15px;
+    padding: 18px 22px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #A5F3FC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88em;
+  }
+
+  .kbd {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.85em;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(6,182,212,0.12);
+    color: #67E8F9;
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 2px;
+  }
+  .tag--purple { background: rgba(124,58,237,0.16); color: #C4B5FD; border-color: rgba(124,58,237,0.35); }
+  .tag--pink { background: rgba(236,72,153,0.16); color: #F9A8D4; border-color: rgba(236,72,153,0.35); }
+  .tag--yellow { background: rgba(245,197,24,0.16); color: #FDE68A; border-color: rgba(245,197,24,0.35); }
+  .tag--green { background: rgba(16,185,129,0.16); color: #86EFAC; border-color: rgba(16,185,129,0.35); }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-row:last-child { border-bottom: 0; }
+  .plan-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 15px;
+    padding-top: 2px;
+  }
+  .plan-row .tl { font-weight: 600; margin-bottom: 4px; font-size: 18px; }
+  .plan-row .dc { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .quote {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 18px 24px;
+    border-left: 3px solid var(--purple);
+    background: var(--glass);
+    border-radius: 0 16px 16px 0;
+    color: #E6E8EC;
+  }
+  .quote small {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .warn {
+    background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .warn .i { font-size: 22px; color: var(--yellow); }
+  .warn .t { color: #FDE68A; font-weight: 600; margin-bottom: 3px; }
+  .warn .d { color: #CBD1DE; font-size: 15px; }
+
+  .danger {
+    background: linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.02));
+    border: 1px solid rgba(239,68,68,0.35);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .danger .i { font-size: 22px; color: var(--red); }
+  .danger .t { color: #FCA5A5; font-weight: 600; margin-bottom: 3px; }
+  .danger .d { color: #CBD1DE; font-size: 15px; }
+
+  /* Keyword highlight */
+  .kw { color: var(--cyan); font-weight: 600; }
+  .kw--purple { color: #C4B5FD; }
+  .kw--pink { color: #F9A8D4; }
+  .kw--yellow { color: var(--yellow); }
+  .kw--green { color: #86EFAC; }
+
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .flow .arr {
+    color: var(--cyan);
+    font-size: 22px;
+  }
+
+  .final-center { align-items: center; justify-content: center; text-align: center; }
+  .final-center h1 { font-size: 84px; }
+
+  /* Speaker notes */
+  .notes { display: none; }
+  .notes-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    padding: 18px 40px;
+    max-height: 40vh;
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform .4s ease;
+    z-index: 50;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #CBD1DE;
+  }
+  .notes-panel.open { transform: translateY(0); }
+  .notes-panel h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .title-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+
+  .center { text-align: center; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+
+  /* VS table */
+  .vs-table {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .vs-table .head {
+    padding: 16px 20px;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .vs-table .head.a { background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(6,182,212,0.05)); color: #A5F3FC; }
+  .vs-table .head.b { background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(124,58,237,0.05)); color: #C4B5FD; }
+  .vs-table .cell {
+    padding: 14px 20px;
+    font-size: 16px;
+    color: #CBD1DE;
+    border-top: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* Chat bubbles */
+  .chat { display: flex; flex-direction: column; gap: 12px; }
+  .bub {
+    max-width: 88%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .bub--user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(6,182,212,0.05));
+    border: 1px solid rgba(6,182,212,0.3);
+    color: #E6F9FD;
+  }
+  .bub--ai {
+    align-self: flex-start;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: #E6E8EC;
+  }
+  .bub--ai.ok { border-color: rgba(16,185,129,0.4); background: linear-gradient(135deg, rgba(16,185,129,0.14), rgba(16,185,129,0.02)); }
+  .bub--ai.bad { border-color: rgba(239,68,68,0.4); background: linear-gradient(135deg, rgba(239,68,68,0.14), rgba(239,68,68,0.02)); }
+  .bub .who {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .rule-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(6,182,212,0.08));
+    border: 1px solid rgba(124,58,237,0.35);
+    border-radius: 18px;
+    padding: 24px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .rule-card .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 52px;
+    font-weight: 800;
+    color: rgba(124,58,237,0.3);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .rule-card h3 { font-size: 24px; margin-bottom: 8px; }
+  .rule-card p { font-size: 16px; color: #CBD1DE; }
+
+  /* small screens */
+  @media (max-width: 1100px) {
+    .slide { padding: 40px 40px 90px; }
+    h1 { font-size: 48px; }
+    h2 { font-size: 32px; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .vs-table { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: Title -->
+  <section class="slide title-slide active" data-notes="Добро пожаловать на первый урок отдела Искусственный интеллект. Три следующих урока (33–35) — вводные в ИИ, 36-й — финальный проект. Сегодня говорим не про код: разговорный урок. Цель — чтобы ребёнок понял, где ИИ живёт в его жизни (а их уже десятки мест), и начал относиться к нему критически. Главное — научить: ИИ не магия, а статистика; иногда врёт уверенно; проверять важное обязательно. Это фундамент для следующих трёх уроков. В конце урока ребёнок называет 5 мест, где встречает ИИ, различает жёсткую программу и нейросеть, умеет показать пример галлюцинации.">
+    <div class="title-num">УРОК 33 · ОТДЕЛ ИИ · НЕДЕЛЯ 9 · 60 МИНУТ</div>
+    <div class="meta">
+      <div class="badge badge--purple"><span class="dot"></span>Отдел: Искусственный интеллект</div>
+      <div class="badge badge--pink"><span class="dot"></span>8–14 лет</div>
+      <div class="badge badge--yellow"><span class="dot"></span>Вводный, без кода</div>
+    </div>
+    <h1>
+      <span class="grad">ИИ живёт<br/>рядом с тобой</span>
+    </h1>
+    <p class="subtitle">Где ты уже пользуешься искусственным интеллектом, где он помогает, а где — уверенно врёт. Учимся думать критически.</p>
+    <div class="foot">
+      <div><b>Алиса</b> ya.ru/alisa</div>
+      <div><b>YandexGPT</b></div>
+      <div><b>GigaChat</b></div>
+      <div><b>Perplexity</b></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Мозгоштурм -->
+  <section class="slide" data-notes="Первые 5 минут. Быстрая проверка ДЗ по Тамагочи — не застреваем. Главный ход: мозгоштурм. Спрашиваем: «Где ты СЕГОДНЯ уже пользовался ИИ?» Ребёнок часто отвечает: «никогда». И тут — показываем ему: YouTube открывал? Рекомендации смотрел? Значит — пользовался. Фото делал на телефон? Там фильтр на базе ИИ. Музыку через Шазам узнавал? ИИ. Карты с пробками? ИИ. Пусть назовёт 5, дальше мы добавим. Цель — шок-открытие, что он окружён ИИ и не замечал.">
+    <div class="badge badge--cyan"><span class="dot"></span>Разминка · 0–5 мин</div>
+    <h2>Где ты <span class="grad">СЕГОДНЯ</span> уже пользовался ИИ?</h2>
+    <p class="big muted mt-12" style="max-width:800px;">Большинство детей отвечает «никогда». Это не так. Давай посчитаем.</p>
+    <div class="grid grid-4 mt-30 gap-12">
+      <div class="card card--purple"><div class="ico">📱</div><h3>YouTube</h3><p class="muted" style="font-size:14px;">Следующее видео — ИИ угадал под тебя.</p></div>
+      <div class="card card--cyan"><div class="ico">📸</div><h3>Камера</h3><p class="muted" style="font-size:14px;">Авто-фильтр лица и улучшение фото.</p></div>
+      <div class="card card--pink"><div class="ico">🎵</div><h3>Шазам</h3><p class="muted" style="font-size:14px;">Узнаёт песню по 5 секундам звука.</p></div>
+      <div class="card card--yellow"><div class="ico">🗺️</div><h3>Карты с пробками</h3><p class="muted" style="font-size:14px;">ИИ предсказывает, где затор через час.</p></div>
+      <div class="card card--green"><div class="ico">🗣️</div><h3>Алиса / Siri</h3><p class="muted" style="font-size:14px;">Понимает твою речь и отвечает.</p></div>
+      <div class="card card--red"><div class="ico">🛡️</div><h3>Антиспам</h3><p class="muted" style="font-size:14px;">Фильтрует странные письма в почте.</p></div>
+      <div class="card card--purple"><div class="ico">😀</div><h3>Face ID</h3><p class="muted" style="font-size:14px;">Разблокирует телефон по лицу.</p></div>
+      <div class="card card--cyan"><div class="ico">📝</div><h3>Автокоррекция</h3><p class="muted" style="font-size:14px;">Исправляет опечатки в клавиатуре.</p></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: Цели урока -->
+  <section class="slide" data-notes="Цели из программы Eduson Kids. Не учимся кодить — учимся понимать. Что ИИ. Где он есть. Как помогает в учёбе. Где у него ограничения. Это фундамент следующих 3 уроков: 34 — ИИ-ассистенты для кода, 35 — ИИ-IDE и платформы, 36 — финальный проект сайта-визитки. Если не заложим понимание сегодня, дальше будет сложно.">
+    <div class="badge"><span class="dot"></span>Цель занятия</div>
+    <h2>Чему <span class="grad">научимся</span> за 60 минут</h2>
+    <div class="grid grid-2 mt-20">
+      <ul class="check-list">
+        <li>Понимать <b>что такое ИИ</b> и чем он отличается от обычной программы</li>
+        <li>Видеть, <b>где ИИ уже живёт</b> в повседневной жизни</li>
+        <li>Использовать ИИ для <b>обучения</b> и повседневных задач</li>
+      </ul>
+      <ul class="check-list">
+        <li>Понимать <b>возможности</b> ИИ: идеи, черновики, объяснения</li>
+        <li>Понимать <b>ограничения</b>: галлюцинации, ошибки, старые данные</li>
+        <li>Критически <b>проверять</b> информацию от ИИ</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: Инструменты -->
+  <section class="slide" data-notes="Без кода. Только браузер и 4 ИИ-сервиса. Алиса — общая для голоса и текста. YandexGPT — через Алису, отдельная вкладка. GigaChat — альтернатива от Сбера. Perplexity — самый важный, единственный даёт ссылки на источники. Регистрация через родителя. Личные данные в ИИ не пишем никогда.">
+    <div class="badge badge--purple"><span class="dot"></span>Инструменты</div>
+    <h2>С чем <span class="grad">работаем</span></h2>
+    <div class="grid grid-4 mt-20 gap-12">
+      <div class="card card--cyan">
+        <div class="ico">🤖</div>
+        <h3>Алиса</h3>
+        <p class="muted" style="font-size:14px;">ya.ru/alisa — голос и чат. Универсал.</p>
+      </div>
+      <div class="card card--purple">
+        <div class="ico">📝</div>
+        <h3>YandexGPT</h3>
+        <p class="muted" style="font-size:14px;">Тексты, пересказы, стихи, объяснения.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">💬</div>
+        <h3>GigaChat</h3>
+        <p class="muted" style="font-size:14px;">giga.chat — альтернатива от Сбера.</p>
+      </div>
+      <div class="card card--yellow">
+        <div class="ico">🔎</div>
+        <h3>Perplexity</h3>
+        <p class="muted" style="font-size:14px;">Факты <b>с источниками</b> — ссылки обязательны.</p>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">🔑</div>
+      <div>
+        <div class="t">Техтребования</div>
+        <div class="d">Выход в интернет. Аккаунт <b>Яндекса</b> (для Алисы/YandexGPT) или <b>Сбер ID</b> (для GigaChat). Perplexity — регистрация через родителя.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: План урока -->
+  <section class="slide" data-notes="60 минут, 6 блоков. Первые 15 — теория и мозгоштурм. Потом 10 минут демонстрации на Алисе и GigaChat — живьём, 3 вопроса разной сложности. Потом 20 минут самостоятельной практики — 3 задания на выбор. Самая важная часть — 45–55 минут: разбор галлюцинаций. Специально вызываем враньё ИИ, показываем ребёнку. Это ключевой момент урока — без него ребёнок будет слепо верить ИИ.">
+    <div class="badge badge--yellow"><span class="dot"></span>Тайминг</div>
+    <h2>Поминутный план <span class="grad">60 мин</span></h2>
+    <div class="card mt-20" style="padding: 10px 26px;">
+      <div class="plan-row">
+        <div class="tm">0–5</div>
+        <div><div class="tl">Проверка ДЗ + мозгоштурм</div><div class="dc">Тамагочи-ДЗ. Вопрос: «Где ты сегодня использовал ИИ?»</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">5–15</div>
+        <div><div class="tl">Теория: что такое ИИ</div><div class="dc">Жёсткая программа vs ИИ. Примеры из жизни: Алиса, Siri, YouTube, Шазам, карты.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">15–25</div>
+        <div><div class="tl">Демо: 3 вопроса в Алисе и GigaChat</div><div class="dc">Простой · средний · творческий. Сравниваем ответы.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">25–45</div>
+        <div><div class="tl">Самостоятельная практика (3 задания)</div><div class="dc">Perplexity · Алиса · YandexGPT. Фиксируем где соврал, где помог.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">45–55</div>
+        <div><div class="tl">Разбор галлюцинаций</div><div class="dc">Специально провоцируем ИИ на враньё. Учимся не верить на слово.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">55–60</div>
+        <div><div class="tl">Итог: 3 правила + ДЗ</div><div class="dc">Главные выводы. ДЗ — эссе «Как я использую ИИ в учёбе».</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Что такое ИИ -->
+  <section class="slide" data-notes="Ключевое определение. ИИ — не магия, не человечек в компьютере. Это программа, которую обучили на миллионах примеров. Она не знает правду — она угадывает лучшее. Важно: ребёнок должен запомнить слово «угадывает». Это объясняет всё — и помощь, и ошибки. Пример для сравнения — калькулятор (точный, жёсткие правила) против переводчика Яндекса (нейросеть, угадывает, иногда смешно ошибается).">
+    <div class="badge badge--purple"><span class="dot"></span>Теория · 5–15 мин</div>
+    <h2>Что такое <span class="grad">искусственный интеллект</span></h2>
+    <div class="quote mt-20">
+      ИИ — это программа, которая училась на миллионах примеров и <span class="kw">угадывает</span> лучший ответ. Не магия. Не человечек в компьютере. <span class="kw--purple">Статистика</span>.
+      <small>Ключевое слово — «угадывает». Не «знает».</small>
+    </div>
+    <div class="grid grid-3 mt-30">
+      <div class="card card--cyan">
+        <div class="ico">📚</div>
+        <h3>Училась на примерах</h3>
+        <p class="muted">Миллионы текстов, фото, звуков. Запомнила закономерности.</p>
+      </div>
+      <div class="card card--purple">
+        <div class="ico">🎲</div>
+        <h3>Угадывает ответ</h3>
+        <p class="muted">Выбирает самый вероятный, а не единственно правильный.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">⚠️</div>
+        <h3>Может ошибаться</h3>
+        <p class="muted">Иногда выдаёт уверенный бред. Это называется «галлюцинация».</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Программа vs ИИ -->
+  <section class="slide" data-notes="Самое важное сравнение урока. Жёсткая программа — это «если X, то Y». Калькулятор. Светофор. Кран. Всегда одно и то же. ИИ — совсем другое. Один и тот же вопрос может дать 5 разных ответов. Потому что он не вычисляет, а угадывает. Пример: калькулятор 2+2 всегда 4. Яндекс-переводчик одну и ту же фразу может перевести сегодня так, а завтра иначе — обучали дальше.">
+    <div class="badge badge--yellow"><span class="dot"></span>Сравнение</div>
+    <h2>Обычная программа <span class="grad">vs</span> нейросеть</h2>
+    <div class="vs-table mt-20">
+      <div class="head a">🧮 Обычная программа</div>
+      <div class="head b">🧠 ИИ / нейросеть</div>
+      <div class="cell">Правила жёсткие: <code>если X то Y</code></div>
+      <div class="cell">Училась на примерах. Правил в коде — нет</div>
+      <div class="cell">Калькулятор: 2 + 2 = 4 <b>всегда точно</b></div>
+      <div class="cell">Переводчик: иногда идеально, иногда криво</div>
+      <div class="cell">Одинаковый вход → одинаковый выход</div>
+      <div class="cell">Одинаковый вопрос → <b>разные</b> ответы</div>
+      <div class="cell">Не умеет творить, только выполнять</div>
+      <div class="cell">Придумает стих, историю, идею — за 3 секунды</div>
+      <div class="cell">Не ошибается в своей области</div>
+      <div class="cell">Может <span class="kw--pink">уверенно соврать</span></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: ИИ в жизни -->
+  <section class="slide" data-notes="Показываем, что ИИ — это не будущее, это уже везде. Голосовые помощники. Рекомендательные системы — главная точка, где дети его встречают. Автофильтр спама. Face ID. Шазам. Карты с пробками — Яндекс.Пробки, 2ГИС. Переводчики. Игровые NPC. Автокоррекция клавиатуры. Пусть ребёнок сам добавит 3 места, которых здесь нет.">
+    <div class="badge badge--cyan"><span class="dot"></span>Где встречаешь</div>
+    <h2>12 мест, где ИИ <span class="grad">уже сейчас</span></h2>
+    <div class="grid grid-4 mt-20 gap-12">
+      <div class="card"><div class="ico">🗣️</div><h3>Алиса, Siri</h3><p class="muted" style="font-size:14px;">Голосовые помощники понимают речь.</p></div>
+      <div class="card"><div class="ico">▶️</div><h3>YouTube</h3><p class="muted" style="font-size:14px;">Рекомендации подбирает нейросеть.</p></div>
+      <div class="card"><div class="ico">🎬</div><h3>Кинопоиск</h3><p class="muted" style="font-size:14px;">«Вам понравится» — угадано ИИ.</p></div>
+      <div class="card"><div class="ico">📧</div><h3>Спам-фильтр</h3><p class="muted" style="font-size:14px;">ИИ ловит странные письма.</p></div>
+      <div class="card"><div class="ico">😀</div><h3>Face ID</h3><p class="muted" style="font-size:14px;">Узнаёт лицо и разблокирует телефон.</p></div>
+      <div class="card"><div class="ico">🎵</div><h3>Шазам</h3><p class="muted" style="font-size:14px;">Находит песню по 5 секундам.</p></div>
+      <div class="card"><div class="ico">🚗</div><h3>Яндекс.Пробки</h3><p class="muted" style="font-size:14px;">Предсказывает заторы через час.</p></div>
+      <div class="card"><div class="ico">🌐</div><h3>Переводчик</h3><p class="muted" style="font-size:14px;">Яндекс, Google — работают на нейросетях.</p></div>
+      <div class="card"><div class="ico">📷</div><h3>Фильтры камеры</h3><p class="muted" style="font-size:14px;">Авто-портрет, размытие фона, улучшение.</p></div>
+      <div class="card"><div class="ico">⌨️</div><h3>T9 / автокоррекция</h3><p class="muted" style="font-size:14px;">Угадывает следующее слово.</p></div>
+      <div class="card"><div class="ico">🎮</div><h3>NPC в играх</h3><p class="muted" style="font-size:14px;">Боты учатся играть против тебя.</p></div>
+      <div class="card"><div class="ico">🛒</div><h3>Озон, WB</h3><p class="muted" style="font-size:14px;">«С этим товаром покупают» — ИИ.</p></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: Демо - 3 вопроса -->
+  <section class="slide" data-notes="Практика 15–25 минут. Открываем Алису. Задаём подряд 3 вопроса разной сложности. Ребёнок видит: простой вопрос — Алиса отвечает идеально. Средний — начинается интересное: может быть правильно, может и нет. Творческий — часто хорошо, но разное качество. Потом повторяем те же 3 вопроса в GigaChat — показываем, что два разных ИИ дают два разных ответа. Это и есть «статистика, а не истина».">
+    <div class="badge badge--pink"><span class="dot"></span>Демо · 15–25 мин</div>
+    <h2>Задаём Алисе <span class="grad">3 вопроса</span> разной сложности</h2>
+    <div class="grid grid-3 mt-20">
+      <div class="card card--green">
+        <div class="ico">🟢</div>
+        <h3>Простой</h3>
+        <div class="tag tag--green">факт</div>
+        <p class="muted mt-12" style="font-size:16px;">«Расскажи про кота»</p>
+        <p class="muted" style="font-size:14px; margin-top:8px;">Справится отлично — общие факты.</p>
+      </div>
+      <div class="card card--yellow">
+        <div class="ico">🟡</div>
+        <h3>Средний</h3>
+        <div class="tag tag--yellow">математика</div>
+        <p class="muted mt-12" style="font-size:16px;">«Реши задачу про 3 яблока»</p>
+        <p class="muted" style="font-size:14px; margin-top:8px;">Может правильно, может и нет. Проверяй!</p>
+      </div>
+      <div class="card card--purple">
+        <div class="ico">🎨</div>
+        <h3>Творческий</h3>
+        <div class="tag tag--purple">стих</div>
+        <p class="muted mt-12" style="font-size:16px;">«Напиши стишок про Python»</p>
+        <p class="muted" style="font-size:14px; margin-top:8px;">Часто красиво. Качество — разное.</p>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">🔁</div>
+      <div>
+        <div class="t">Повторим эти же 3 вопроса в GigaChat</div>
+        <div class="d">Сравниваем ответы двух ИИ на один и тот же вопрос. Вывод: они <b>разные</b>. ИИ не знает «правильного» ответа — он знает вероятный.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: Практика 3 задания -->
+  <section class="slide" data-notes="Самостоятельная практика 20 минут. Три задания на выбор. Первое — Perplexity, факт про любимое животное и проверка по ссылкам. Перплексити уникальна — она ВСЕГДА даёт источники. Учим нажимать на ссылки. Второе — Алиса объясняет школьную тему. Третье — творческое, пересказ Колобка как детектив в YandexGPT. Ребёнок выбирает 1–2. Главное — фиксирует в тетради: что понравилось, где соврал.">
+    <div class="badge badge--cyan"><span class="dot"></span>Практика · 25–45 мин</div>
+    <h2>3 задания на <span class="grad">выбор</span></h2>
+    <ol class="num-list mt-20">
+      <li>
+        <div style="font-weight:700; font-size:19px;">Perplexity + любимое животное</div>
+        <p class="muted">Спроси <b>факт</b> про любимое животное. <b>Проверь</b> по ссылкам — Perplexity даёт источники под каждым абзацем.</p>
+      </li>
+      <li>
+        <div style="font-weight:700; font-size:19px;">Алиса объясняет школьную тему</div>
+        <p class="muted">Выбери тему, которая не даётся в школе. Попроси Алису объяснить <b>простыми словами</b> для ребёнка 12 лет.</p>
+      </li>
+      <li>
+        <div style="font-weight:700; font-size:19px;">YandexGPT: «Колобок» как детектив</div>
+        <p class="muted">Попроси пересказать сказку <b>«Колобок» в жанре детектива</b>. Оцени, насколько творчески справился ИИ.</p>
+      </li>
+    </ol>
+    <div class="card card--green mt-30">
+      <h3>📝 Фиксируем в тетради</h3>
+      <p>Что понравилось · где ИИ соврал (часто!) · где был полезен · какой сервис понравился больше</p>
+    </div>
+  </section>
+
+  <!-- SLIDE 11: Perplexity key -->
+  <section class="slide" data-notes="Perplexity — гвоздь урока. Это единственный ИИ в нашем списке, который ОБЯЗАТЕЛЬНО даёт источники. Каждый факт — со ссылкой [1], [2], [3]. Показываем живьём: спрашиваем про Юпитер, видим ответ, кликаем по ссылке — попадаем на ncbi или nasa.gov. Это и есть взрослый подход: не верь на слово, ходи по ссылкам. Алиса и YandexGPT ссылок не дают — для фактов они хуже.">
+    <div class="badge badge--yellow"><span class="dot"></span>Фокус</div>
+    <h2>Почему <span class="grad">Perplexity</span> особенный</h2>
+    <div class="two-col mt-20">
+      <div>
+        <ul class="check-list">
+          <li>Даёт <b>ссылку на источник</b> под каждым фактом</li>
+          <li>Ссылки — <code>[1]</code> <code>[2]</code> <code>[3]</code> сбоку от текста</li>
+          <li>Можно <b>кликнуть</b> и проверить</li>
+          <li>Если сайт серьёзный (nasa.gov, ncbi) — факт надёжный</li>
+          <li>Если ссылка на странный блог — <span class="kw--pink">не доверяй</span></li>
+        </ul>
+      </div>
+      <div class="chat">
+        <div class="bub bub--user">
+          <div class="who">Ты</div>
+          Сколько у осьминога сердец?
+        </div>
+        <div class="bub bub--ai ok">
+          <div class="who">Perplexity</div>
+          У осьминога <b>три сердца</b>. Два прокачивают кровь через жабры, одно — по телу <code>[1]</code> <code>[2]</code>.
+          <div class="muted" style="margin-top:8px; font-size:13px;">Источники: national-geographic.com, ncbi.nlm.nih.gov</div>
+        </div>
+        <div class="bub bub--user">
+          <div class="who">Ты</div>
+          Проверяю ссылку [1] → открываю → <span class="kw--green">факт подтверждён</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 12: Галлюцинация -->
+  <section class="slide" data-notes="Главный блок урока — 45–55 минуты. Учим слово «галлюцинация». ИИ уверенно выдаёт то, чего нет в реальности. И он не знает, что врёт. Это не ошибка — это особенность устройства. Поэтому проверка — обязательна.">
+    <div class="badge badge--red"><span class="dot"></span>Ключевое понятие · 45–55 мин</div>
+    <h2 style="color:#FCA5A5;">Галлюцинация — когда ИИ <span style="color:#F9A8D4;">уверенно врёт</span></h2>
+    <div class="quote mt-20" style="border-left-color: var(--red);">
+      Галлюцинация — это когда ИИ придумывает факты так <span class="kw--pink">уверенно</span>, что не отличить от правды. Он <b>не знает</b>, что врёт. Это не баг — это особенность.
+      <small>Именно поэтому важное всегда проверяй.</small>
+    </div>
+    <div class="grid grid-3 mt-30">
+      <div class="card card--red">
+        <div class="ico">🧑‍🔬</div>
+        <h3>Фейковые учёные</h3>
+        <p class="muted">Может придумать «профессора Петрова» с биографией.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico">📖</div>
+        <h3>Книги, которых нет</h3>
+        <p class="muted">Назовёт автора, год, издательство — всё выдумано.</p>
+      </div>
+      <div class="card card--red">
+        <div class="ico">🔢</div>
+        <h3>Неверные числа</h3>
+        <p class="muted">«Эверест 8432 м» — на самом деле 8849 м.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 13: Галлюцинация пример -->
+  <section class="slide" data-notes="Живой эксперимент. Специально провоцируем ИИ на вранье. Просим рассказать про «учёного Петрова, родившегося в 1834 году, изобретателя парового самовара». Такого человека нет. ИИ с вероятностью 80% выдаст связный текст: «Пётр Иванович Петров, русский изобретатель, родился в Твери...» — и так далее. Ребёнок видит: ИИ не сказал «не знаю». Он придумал. Это урок на всю жизнь.">
+    <div class="badge badge--red"><span class="dot"></span>Эксперимент</div>
+    <h2>Ловим <span class="grad">галлюцинацию</span> живьём</h2>
+    <div class="chat mt-20">
+      <div class="bub bub--user">
+        <div class="who">Ты · провокация</div>
+        Расскажи мне про учёного Петрова, который родился в 1834 году и изобрёл паровой самовар.
+      </div>
+      <div class="bub bub--ai bad">
+        <div class="who">ИИ · уверенный бред</div>
+        <b>Пётр Иванович Петров</b> (1834–1897) — русский инженер и изобретатель. Родился в Твери, учился в Петербурге. В 1862 году представил на выставке первый <b>паровой самовар</b> собственной конструкции. Его разработка получила награду…
+      </div>
+      <div class="bub bub--user">
+        <div class="who">Проверка</div>
+        Гуглим имя → <span class="kw--pink">такого человека не существует</span>. ИИ придумал всё.
+      </div>
+    </div>
+    <div class="danger mt-30">
+      <div class="i">🚨</div>
+      <div>
+        <div class="t">Вывод</div>
+        <div class="d">ИИ не сказал «не знаю». Он <b>сочинил связную биографию</b>. Настоящий навык — уметь это распознавать.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 14: Плюсы / минусы ИИ -->
+  <section class="slide" data-notes="Обобщаем: где ИИ — отличный помощник, где — опасный советчик. Для идей, черновиков, объяснений, перевода, сокращения текста, мозгоштурма — отлично. Для точных фактов, математики (без калькулятора), свежих новостей, важных решений — плохо. Пусть ребёнок сам приведёт пример в каждую колонку из своего опыта.">
+    <div class="badge"><span class="dot"></span>Баланс</div>
+    <h2>Где ИИ <span class="grad">хорош</span>, где — плох</h2>
+    <div class="two-col mt-20">
+      <div class="card card--green">
+        <h3 style="color:#86EFAC;">✅ ИИ здесь сильный</h3>
+        <ul class="check-list" style="margin-top:10px;">
+          <li><b>Идеи</b> — «придумай 10 имён»</li>
+          <li><b>Черновики</b> — эссе, пост, письмо</li>
+          <li><b>Объяснения</b> простыми словами</li>
+          <li><b>Перевод</b> и пересказ</li>
+          <li><b>Мозгоштурм</b> и варианты</li>
+          <li>Помощь в учёбе как «второй учитель»</li>
+        </ul>
+      </div>
+      <div class="card card--red">
+        <h3 style="color:#FCA5A5;">⚠️ ИИ здесь слабый</h3>
+        <ul class="x-list" style="margin-top:10px;">
+          <li><b>Точные факты</b> — проверяй по Perplexity</li>
+          <li><b>Математика</b> — лучше калькулятор</li>
+          <li><b>Свежие новости</b> — не знает, что было вчера</li>
+          <li><b>Важные решения</b> — спроси живого человека</li>
+          <li><b>Личные данные</b> — никогда не передавай</li>
+          <li>Заменить твой мозг и домашку</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: Ключевые фразы -->
+  <section class="slide" data-notes="Фразы, которые преподаватель повторяет несколько раз за урок. Они должны остаться у ребёнка в памяти. Первая — про магию. Вторая — про угадывание. Третья — про галлюцинации. Четвертая — про помощника, не замену. Эти формулы дети запомнят надолго.">
+    <div class="badge badge--purple"><span class="dot"></span>Фразы урока</div>
+    <h2>Что <span class="grad">повторяем</span> несколько раз</h2>
+    <div class="grid grid-2 mt-20">
+      <div class="quote">«ИИ — не магия, это программа, которая училась на миллионах примеров»<small>Сбивает ореол волшебства</small></div>
+      <div class="quote" style="border-left-color:var(--cyan);">«Обычная программа знает точно, ИИ — угадывает лучшее»<small>Главное слово урока: угадывает</small></div>
+      <div class="quote" style="border-left-color:var(--pink);">«Галлюцинация — когда ИИ уверенно врёт. Он не знает, что врёт»<small>Термин, который останется на всю жизнь</small></div>
+      <div class="quote" style="border-left-color:var(--yellow);">«ИИ — помощник, не замена мозга. Думай сам, ИИ — второе мнение»<small>Правильная рамка отношений</small></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: 3 Правила финал -->
+  <section class="slide" data-notes="55–60 минуты. Три правила, которые ребёнок должен унести с собой. Первое — про природу ИИ. Второе — про проверку. Третье — про роль ИИ в жизни. Пусть проговорит их вслух. Запиши эти три правила на стикер и повесь рядом с компьютером.">
+    <div class="badge badge--yellow"><span class="dot"></span>Итог · 55–60 мин</div>
+    <h2>3 правила <span class="grad">на всю жизнь</span></h2>
+    <div class="grid grid-3 mt-20">
+      <div class="rule-card">
+        <div class="num">01</div>
+        <h3>ИИ угадывает, не вычисляет</h3>
+        <p>Он не знает правильного ответа — выбирает вероятный. Одинаковый вопрос может дать разные ответы.</p>
+      </div>
+      <div class="rule-card">
+        <div class="num">02</div>
+        <h3>Важное — проверяй</h3>
+        <p>Факты — в Perplexity по ссылкам. Математику — калькулятором. Код — запуском.</p>
+      </div>
+      <div class="rule-card">
+        <div class="num">03</div>
+        <h3>ИИ — помощник, не замена</h3>
+        <p>Он второе мнение. Первое мнение — твой мозг. Думай сам, потом сверяйся.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Промпт для детей -->
+  <section class="slide" data-notes="Готовим почву для следующего урока 34. Показываем, что хороший промпт резко улучшает ответ ИИ. Мини-подсказка: «Я ребёнок 12 лет, объясни простыми словами». Это изменит ответ кардинально. Пусть ребёнок попробует прямо сейчас одну и ту же фразу с этим префиксом и без.">
+    <div class="badge badge--cyan"><span class="dot"></span>Лайфхак</div>
+    <h2>Мини-подсказка для <span class="grad">лучшего ответа</span></h2>
+    <p class="big muted mt-12">Одна и та же фраза в начале делает ответ в 2 раза понятнее:</p>
+    <div class="chat mt-20">
+      <div class="bub bub--user" style="max-width:70%;">
+        <div class="who">Плохо</div>
+        Объясни рекурсию.
+      </div>
+      <div class="bub bub--ai bad" style="max-width:70%;">
+        <div class="who">Ответ</div>
+        Рекурсия — это метод программирования, при котором функция вызывает саму себя, создавая стек вызовов с базовым условием…
+      </div>
+      <div class="bub bub--user">
+        <div class="who">Хорошо</div>
+        Я ребёнок 12 лет, учу Python. Объясни рекурсию простыми словами с примером из жизни. Не больше 5 строк.
+      </div>
+      <div class="bub bub--ai ok">
+        <div class="who">Ответ</div>
+        Представь матрёшку: открываешь — внутри матрёшка поменьше, внутри ещё меньше… Рекурсия — это функция-матрёшка: внутри неё спрятана такая же, только поменьше. Пока не дойдём до самой маленькой.
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: Сложности -->
+  <section class="slide" data-notes="Типичные проблемы детей на этом уроке. 1) Слепо верит ИИ — разбиваем примером галлюцинации. 2) Думает, что ИИ сам понимает — объясняем, что только статистика. 3) Не хочет проверять — «важное всегда проверяй». 4) Пытается слить личные данные — запрещаем категорически. 5) Пытается списать — договариваемся, что списывать = не учиться.">
+    <div class="badge badge--red"><span class="dot"></span>Сложности</div>
+    <h2>Типичные <span class="grad">ловушки</span> и как с ними</h2>
+    <div class="grid grid-2 mt-20">
+      <div class="card card--red">
+        <h3>«ИИ всегда прав»</h3>
+        <p class="muted">→ Показываем галлюцинацию с «профессором Петровым»</p>
+      </div>
+      <div class="card card--red">
+        <h3>«ИИ сам думает»</h3>
+        <p class="muted">→ «Нет, это только статистика на миллионах примеров»</p>
+      </div>
+      <div class="card card--red">
+        <h3>Не хочет проверять факты</h3>
+        <p class="muted">→ Правило: важное — <b>всегда</b> проверяй по Perplexity</p>
+      </div>
+      <div class="card card--red">
+        <h3>Передаёт личные данные</h3>
+        <p class="muted">→ <b>Запрещаем категорически</b>. Пароли, адрес, телефон — никогда</p>
+      </div>
+      <div class="card card--red">
+        <h3>Списывает готовое из ИИ</h3>
+        <p class="muted">→ «Списывать = не учиться». ИИ как учитель, а не как шпаргалка</p>
+      </div>
+      <div class="card card--red">
+        <h3>Верит любому факту</h3>
+        <p class="muted">→ Каждый ответ — «а ты проверил по источникам?»</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 19: Мини-проект -->
+  <section class="slide" data-notes="Мини-проект на уроке. Таблица «где я встретил ИИ за день» — 10 реальных примеров из своей жизни со скриншотами. Делаем в Google Slides или Яндекс.Документах. Пример: 1) Открыл YouTube — ИИ подобрал видео. 2) Написал маме в мессенджер — автокоррекция помогла. 3) Сфотографировал — камера включила авто-режим. И так до 10. Это прикладное закрепление всей теории.">
+    <div class="badge badge--green"><span class="dot"></span>Мини-проект на уроке</div>
+    <h2>Таблица <span class="grad">«ИИ за мой день»</span></h2>
+    <p class="big muted mt-12">10 примеров со скриншотами в твоей любимой презентации.</p>
+    <div class="grid grid-2 mt-30">
+      <div>
+        <h3>Формат записи</h3>
+        <ul class="check-list">
+          <li><b>Время</b> — когда встретил</li>
+          <li><b>Где</b> — приложение / сайт / устройство</li>
+          <li><b>Что сделал ИИ</b> — в одной строке</li>
+          <li><b>Скриншот</b> — для доказательства</li>
+        </ul>
+      </div>
+      <div class="card card--green">
+        <h3>🎯 Пример</h3>
+        <p class="muted">
+          <b>08:15</b> — будильник на телефоне → ИИ распознал команду «ещё 10 минут»<br/><br/>
+          <b>08:40</b> — YouTube Shorts → подборка видео для меня<br/><br/>
+          <b>09:05</b> — камера → авто-портрет с размытым фоном<br/><br/>
+          <b>14:20</b> — Шазам узнал песню из кафе
+        </p>
+      </div>
+    </div>
+    <p class="muted mt-20"><b>Инструменты:</b> Google Slides / Яндекс.Документы / Keynote / PowerPoint — что любишь.</p>
+  </section>
+
+  <!-- SLIDE 20: Бонус -->
+  <section class="slide" data-notes="Звёздная задача, для тех кто быстрее всех. Один вопрос — три ИИ. Алиса, GigaChat, Perplexity. Запиши три ответа рядом. Найди: что общего, что разного. Кто был понятнее? Кто полнее? Это первый шаг к критическому мышлению по отношению к ИИ. Взрослые эксперты так и работают.">
+    <div class="badge badge--purple"><span class="dot"></span>Бонус · звёздная задача</div>
+    <h2>Один вопрос — <span class="grad">три ИИ</span></h2>
+    <p class="big muted mt-12">Сравни ответы Алисы, GigaChat и Perplexity на один и тот же вопрос. Найди различия.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">❓ Твой вопрос</div>
+      <div class="arr">→</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(239,68,68,0.05)); border-color: rgba(239,68,68,0.3);">🤖 Алиса</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(16,185,129,0.05)); border-color: rgba(16,185,129,0.3);">💬 GigaChat</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(245,197,24,0.2), rgba(245,197,24,0.05)); border-color: rgba(245,197,24,0.3);">🔎 Perplexity</div>
+    </div>
+    <div class="grid grid-3 mt-30">
+      <div class="card card--cyan"><h3>Что общего?</h3><p class="muted">Ищи пересечения — это, скорее всего, правда</p></div>
+      <div class="card card--pink"><h3>Что разное?</h3><p class="muted">Разница — сигнал «проверь сам»</p></div>
+      <div class="card card--yellow"><h3>Кто точнее?</h3><p class="muted">Только у Perplexity есть ссылки</p></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 21: ДЗ -->
+  <section class="slide" data-notes="Домашнее задание — 20 минут максимум. Эссе в 10 строк: как я использую ИИ в учёбе. Потом — трюк, который покажет силу ИИ: прогоняем это же эссе через YandexGPT с промптом «Улучши стиль, не меняя смысл». Сравниваем версии. Ребёнок сам увидит, где ИИ помог, а где сломал его стиль. Это и есть обучение на практике.">
+    <div class="badge badge--yellow"><span class="dot"></span>Домашнее задание · ≤20 мин</div>
+    <h2>Эссе + <span class="grad">ИИ-редактор</span></h2>
+    <ol class="num-list mt-20">
+      <li>
+        <div style="font-weight:700; font-size:19px;">Напиши эссе в 10 строк</div>
+        <p class="muted">Тема: <b>«Как я использую ИИ в учёбе»</b>. Пиши своими словами — это важно.</p>
+      </li>
+      <li>
+        <div style="font-weight:700; font-size:19px;">Прогонишь через YandexGPT</div>
+        <p class="muted">Промпт: <code>«Улучши стиль, не меняя смысл»</code>. Получишь новую версию.</p>
+      </li>
+      <li>
+        <div style="font-weight:700; font-size:19px;">Сравни обе версии</div>
+        <p class="muted">Где ИИ помог? Где сломал твой стиль? Какая версия тебе ближе?</p>
+      </li>
+    </ol>
+    <div class="warn mt-30">
+      <div class="i">💡</div>
+      <div>
+        <div class="t">Критерии успеха урока</div>
+        <div class="d">Ты называешь <b>5 мест</b>, где ИИ уже в жизни. Различаешь «знает точно» и «угадывает». Приводишь пример галлюцинации.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 22: Финал + следующий урок -->
+  <section class="slide final-center" data-notes="Финал урока. Ребёнок уходит с тремя правилами и с открытыми глазами. ИИ — помощник, не замена. Следующий урок 34 — ИИ-ассистенты для кода: YandexGPT, Perplexity с точки зрения программиста. Учим формулу КРФЗ (Контекст-Роль-Формат-Задача). Потом 35 — автокомплит и ИИ-IDE. И 36 — финал: сайт-визитка через Lovable.dev. Большое приключение в отделе ИИ начинается.">
+    <div class="hero-eyebrow">УРОК 33 · ЗАВЕРШЁН · ОТДЕЛ ИИ СТАРТОВАЛ</div>
+    <h1 class="grad" style="font-size: 88px;">Глаза<br/>открыты</h1>
+    <p class="big muted" style="max-width: 720px;">Ты увидел ИИ везде: в YouTube, в камере, в карте, в Шазаме. Ты узнал, что ИИ — это статистика, а не магия. И что он умеет уверенно врать. Теперь ты умеешь думать критически.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">📝 ДЗ: эссе + YandexGPT</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">🤖 Урок 34 → ИИ для кода</div>
+      <div class="step">🚀 Урок 36 → твой сайт</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter"><b id="currentSlide">1</b> / <span id="totalSlides">22</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+
+<div class="notes-panel" id="notesPanel">
+  <h4>Speaker notes · нажми <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 11px;">N</kbd> чтобы скрыть</h4>
+  <div id="notesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const currentEl = document.getElementById('currentSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progressEl = document.getElementById('progress');
+  const notesPanel = document.getElementById('notesPanel');
+  const notesContent = document.getElementById('notesContent');
+
+  totalEl.textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    currentEl.textContent = idx + 1;
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    const notes = slides[idx].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+    slides[idx].scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      e.preventDefault(); notesPanel.classList.toggle('open');
+    }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  let touchStartX = null;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { show(idx + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

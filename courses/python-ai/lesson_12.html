@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 12 — База данных по игре + генерация изображений ИИ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* Slide counter */
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  /* Deck */
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 64px 80px 90px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Background glow orbs */
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* Shared elements */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .badge--purple { color: #C4B5FD; }
+  .badge--purple .dot { background: #A78BFA; box-shadow: 0 0 10px #A78BFA; }
+  .badge--pink { color: #F9A8D4; }
+  .badge--pink .dot { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .badge--yellow { color: #FDE68A; }
+  .badge--yellow .dot { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+
+  h1 {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 16px 0;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 60%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 22px;
+  }
+  h2 .grad {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  p, li { font-size: 19px; line-height: 1.55; color: #CBD1DE; }
+  .muted { color: var(--muted); }
+  .big { font-size: 24px; }
+
+  /* Title slide */
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide .meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .title-slide .subtitle {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 780px;
+    margin-top: 8px;
+  }
+  .title-slide .foot {
+    display: flex; gap: 32px; margin-top: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .title-slide .foot b { color: var(--text); }
+
+  /* Grid / cards */
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 24px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.45); transform: translateY(-3px); }
+  .card .ico {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.25));
+    border: 1px solid var(--border);
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .card--purple { background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(124,58,237,0.03)); border-color: rgba(124,58,237,0.35); }
+  .card--cyan { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(6,182,212,0.03)); border-color: rgba(6,182,212,0.35); }
+  .card--pink { background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(236,72,153,0.03)); border-color: rgba(236,72,153,0.35); }
+  .card--yellow { background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.35); }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 10px 0 10px 34px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .check-list li::before {
+    content: '✓';
+    position: absolute; left: 0; top: 10px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .num-list { list-style: none; padding: 0; counter-reset: step; }
+  .num-list li {
+    padding: 12px 0 12px 52px;
+    position: relative;
+    counter-increment: step;
+  }
+  .num-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: grid; place-items: center;
+  }
+
+  /* Code */
+  pre[class*="language-"] {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0A0E18 !important;
+    font-size: 15px;
+    padding: 18px 22px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #A5F3FC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88em;
+  }
+  .code-window {
+    background: #0A0E18;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .code-window__bar {
+    background: rgba(255,255,255,0.04);
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-window__bar .dots { display: flex; gap: 6px; margin-right: 10px; }
+  .code-window__bar .dots span {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #3b3f4a;
+  }
+  .code-window__bar .dots span:nth-child(1) { background: #ff5f56; }
+  .code-window__bar .dots span:nth-child(2) { background: #ffbd2e; }
+  .code-window__bar .dots span:nth-child(3) { background: #27c93f; }
+  .code-window pre[class*="language-"] {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .kbd {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.85em;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(6,182,212,0.12);
+    color: #67E8F9;
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 2px;
+  }
+  .tag--purple { background: rgba(124,58,237,0.16); color: #C4B5FD; border-color: rgba(124,58,237,0.35); }
+  .tag--pink { background: rgba(236,72,153,0.16); color: #F9A8D4; border-color: rgba(236,72,153,0.35); }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  /* Character card */
+  .hero-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(6,182,212,0.08));
+    border: 1px solid rgba(124,58,237,0.35);
+    border-radius: 20px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card .avatar {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 14px;
+    margin-bottom: 14px;
+    display: grid; place-items: center;
+    font-size: 72px;
+    background: linear-gradient(135deg, #1a1f2e, #0f1523);
+    border: 1px dashed var(--border);
+  }
+  .hero-card .name {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .hero-card .stat {
+    display: flex; justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+  }
+  .hero-card .stat span:last-child { color: var(--cyan); font-weight: 700; }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-row:last-child { border-bottom: 0; }
+  .plan-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 15px;
+    padding-top: 2px;
+  }
+  .plan-row .tl { font-weight: 600; margin-bottom: 4px; font-size: 18px; }
+  .plan-row .dc { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .quote {
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 20px 28px;
+    border-left: 3px solid var(--purple);
+    background: var(--glass);
+    border-radius: 0 16px 16px 0;
+    color: #E6E8EC;
+  }
+  .quote small {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .warn {
+    background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .warn .i { font-size: 22px; color: var(--yellow); }
+  .warn .t { color: #FDE68A; font-weight: 600; margin-bottom: 3px; }
+  .warn .d { color: #CBD1DE; font-size: 15px; }
+
+  /* Keyword highlight */
+  .kw { color: var(--cyan); font-weight: 600; }
+  .kw--purple { color: #C4B5FD; }
+  .kw--pink { color: #F9A8D4; }
+  .kw--yellow { color: var(--yellow); }
+
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .flow .arr {
+    color: var(--cyan);
+    font-size: 22px;
+  }
+
+  .final-center { align-items: center; justify-content: center; text-align: center; }
+  .final-center h1 { font-size: 84px; }
+
+  /* Speaker notes */
+  .notes {
+    display: none;
+  }
+  .notes-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    padding: 18px 40px;
+    max-height: 40vh;
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform .4s ease;
+    z-index: 50;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #CBD1DE;
+  }
+  .notes-panel.open { transform: translateY(0); }
+  .notes-panel h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .title-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+  .two-col--code { grid-template-columns: 1fr 1.1fr; }
+
+  .center { text-align: center; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+
+  /* small screens */
+  @media (max-width: 1100px) {
+    .slide { padding: 40px 40px 90px; }
+    h1 { font-size: 48px; }
+    h2 { font-size: 32px; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: Title -->
+  <section class="slide title-slide active" data-notes="Привет! Сегодня — третий большой проект курса. Не просто программа — прототип настоящей игры. С паролем, с выбором персонажа, и впервые мы сгенерируем картинки героев через ИИ. 60 минут — и у вас будет проект, который можно показать родителям. Цель: закрепить вложенные условия + ИИ как инструмент художника.">
+    <div class="title-num">УРОК 12 · МОДУЛЬ 3 · 60 МИНУТ</div>
+    <div class="meta">
+      <div class="badge badge--purple"><span class="dot"></span>Отдел: Игровая логика</div>
+      <div class="badge badge--pink"><span class="dot"></span>8–14 лет</div>
+      <div class="badge badge--yellow"><span class="dot"></span>Проект #3</div>
+    </div>
+    <h1>
+      <span class="grad">База данных<br/>по игре</span>
+      <br/>+ ИИ-художник
+    </h1>
+    <p class="subtitle">Пароль. Вложенные условия. Выбор персонажа. И три героя, нарисованных нейросетью Kandinsky прямо на уроке.</p>
+    <div class="foot">
+      <div><b>Python</b> 3.11+</div>
+      <div><b>Kandinsky</b> / YandexArt</div>
+      <div><b>GigaChat</b> для описаний</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Что получится -->
+  <section class="slide" data-notes="Показываем готовый эталон. Запускаем программу — она спрашивает пароль. Пишем pythonMaster. Программа пускает. Выбираем воина. И появляется карточка: имя, здоровье, атака, описание + путь к картинке, которую мы нарисовали. Вот это — сегодняшний результат. 40+ строк, настоящий прототип.">
+    <div class="badge badge--cyan"><span class="dot"></span>Демо эталона</div>
+    <h2>Что мы соберём за урок <span class="grad">→</span></h2>
+    <div class="flow mt-20">
+      <div class="step">🔐 Пароль</div>
+      <div class="arr">→</div>
+      <div class="step">⚔️ Выбор героя</div>
+      <div class="arr">→</div>
+      <div class="step">📇 Карточка</div>
+      <div class="arr">→</div>
+      <div class="step">🎨 ИИ-картинка</div>
+    </div>
+    <div class="grid grid-3 mt-30">
+      <div class="card card--purple">
+        <div class="ico">🧩</div>
+        <h3>40+ строк</h3>
+        <p class="muted">Настоящая программа с логином, ветвлениями и защитой от ошибок.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🎭</div>
+        <h3>3 персонажа</h3>
+        <p class="muted">Воин, маг, лучник. Имя, здоровье, атака, биография — всё своё.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🖼️</div>
+        <h3>3 ИИ-арта</h3>
+        <p class="muted">Сгенерировали промптом, скачали в <code>characters/</code>, показали в коде.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: Цели -->
+  <section class="slide" data-notes="Цели простые: 1) понять, что пароль — это сравнение строк с lower/strip, 2) вложить условие в условие, 3) подружиться с ИИ-художником. К концу урока вы не только напишете код — вы поймёте идею: код + ИИ = готовый продукт.">
+    <div class="badge"><span class="dot"></span>Цель занятия</div>
+    <h2>Чему <span class="grad">научимся</span> за 60 минут</h2>
+    <div class="grid grid-2 mt-20">
+      <ul class="check-list">
+        <li>Сравнивать введённое значение с заданным паролем</li>
+        <li>Строить <b>вложенные</b> условия (<code>if</code> внутри <code>if</code>)</li>
+        <li>Применять <code>.lower()</code> и <code>.strip()</code> к вводу</li>
+        <li>Выводить разную информацию по выбору пользователя</li>
+      </ul>
+      <ul class="check-list">
+        <li>Ловить неправильный ввод через <code>else</code></li>
+        <li>Генерировать картинки через <b>Kandinsky / YandexArt</b></li>
+        <li>Писать точные промпты для ИИ-художника</li>
+        <li>Собирать прототип игры с защитой доступа</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: Инструменты -->
+  <section class="slide" data-notes="Инструменты те же + две новые вкладки в браузере. Kandinsky — это наш Midjourney, бесплатный, на русском. YandexArt — альтернатива. GigaChat поможет придумать имена и цифры характеристик, если фантазия закончилась. Перед уроком — открыть вкладки, проверить логин.">
+    <div class="badge badge--purple"><span class="dot"></span>Инструменты</div>
+    <h2>С чем <span class="grad">работаем</span></h2>
+    <div class="grid grid-3 mt-20">
+      <div class="card card--purple">
+        <div class="ico">🐍</div>
+        <h3>Python 3.11+</h3>
+        <p class="muted">GigaIDE Desktop — основная среда. Colab — запасной вариант.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🎨</div>
+        <h3>Kandinsky</h3>
+        <p class="muted">fusionbrain.ai — «Midjourney для России». Бесплатно. На русском.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🤖</div>
+        <h3>GigaChat</h3>
+        <p class="muted">Придумает имя, здоровье, атаку, биографию героя за пару секунд.</p>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">📂</div>
+      <div>
+        <div class="t">Подготовка</div>
+        <div class="d">В корне проекта создаём папку <code>characters/</code>. Туда будем класть 3 картинки: <code>warrior.png</code>, <code>mage.png</code>, <code>archer.png</code>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: План урока -->
+  <section class="slide" data-notes="Держим темп. 5 минут разбираем ДЗ и анонсируем проект. 10 минут смотрим эталон и демо Kandinsky. 30 минут — самостоятельно пишем код в 3 шага. 10 минут — идём рисовать героев в нейросети. 5 минут — защита. Засекайте время, не давайте застревать на одном этапе.">
+    <div class="badge badge--yellow"><span class="dot"></span>Тайминг</div>
+    <h2>Поминутный план <span class="grad">60 мин</span></h2>
+    <div class="card mt-20" style="padding: 10px 26px;">
+      <div class="plan-row">
+        <div class="tm">0–5</div>
+        <div><div class="tl">Разбор ДЗ + анонс проекта</div><div class="dc">«Сегодня — третий большой проект. С паролем. И впервые — ИИ-картинки».</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">5–15</div>
+        <div><div class="tl">Разбор ТЗ + демо эталона</div><div class="dc">Запускаем готовую программу. Показываем Kandinsky вживую.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">15–45</div>
+        <div><div class="tl">Самостоятельная разработка (3 шага)</div><div class="dc">Пароль → вложенное условие → каскад <code>if/elif/else</code> на 3 персонажа.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">45–55</div>
+        <div><div class="tl">ИИ-генерация картинок</div><div class="dc">Пишем промпты, скачиваем в <code>characters/</code>, подключаем к коду.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">55–60</div>
+        <div><div class="tl">Защита проекта + бейдж</div><div class="dc">Демо: пароль → выбор → карточка. Бейдж «Повелитель условий».</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Архитектура программы -->
+  <section class="slide" data-notes="Вот весь мозг программы на одной схеме. Программа начинается с пароля. Если верный — идём в выбор персонажа. Если персонаж из списка — показываем карточку. Если нет — ругаемся. Если пароль неверный — сразу доступ запрещён. Это и есть вложенная логика.">
+    <div class="badge badge--cyan"><span class="dot"></span>Как устроено</div>
+    <h2>Архитектура программы <span class="grad">на салфетке</span></h2>
+    <div class="card mt-20" style="padding: 30px;">
+      <pre style="font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.9; color: #CBD1DE; white-space: pre;">
+START
+  │
+  ├── <span class="kw">input(пароль)</span>
+  │       │
+  │       ├── <span class="kw--pink">верно?</span> ──► <span class="kw--purple">input(персонаж)</span>
+  │       │                   │
+  │       │                   ├── воин  ──► карточка + <span class="kw--yellow">картинка</span>
+  │       │                   ├── маг   ──► карточка + <span class="kw--yellow">картинка</span>
+  │       │                   ├── лучник──► карточка + <span class="kw--yellow">картинка</span>
+  │       │                   └── <span class="kw">else</span>    ──► «такого персонажа нет»
+  │       │
+  │       └── <span class="kw--pink">неверно</span> ──► «доступ запрещён»
+END</pre>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Шаг 1 — пароль -->
+  <section class="slide" data-notes="Шаг 1 — 7 минут. Пишем переменную с паролем pythonMaster. Просим ввод. И внимание — применяем к обоим вариантам lower и strip. Это магия: теперь пользователь может ввести PYTHON, PythonMaster, с пробелами — всё равно сравнится. Если забыли lower с одной стороны — ничего не совпадёт никогда.">
+    <div class="badge badge--purple"><span class="dot"></span>Шаг 1 · 7 минут</div>
+    <h2>Пароль: <span class="grad">.lower().strip()</span></h2>
+    <div class="two-col two-col--code mt-20">
+      <div>
+        <ul class="num-list">
+          <li><b>Задаём пароль</b><br/><span class="muted">Переменная <code>password = "pythonMaster"</code>.</span></li>
+          <li><b>Просим ввод</b><br/><span class="muted"><code>input()</code> + сразу <code>.strip()</code> + <code>.lower()</code>.</span></li>
+          <li><b>Сравниваем</b><br/><span class="muted">Важно: <code>.lower()</code> с обеих сторон!</span></li>
+        </ul>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          game.py
+        </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">password = "pythonMaster"
+
+user_input = input("Введи пароль: ").strip().lower()
+
+if user_input == password.lower():
+    print("✅ Доступ разрешён")
+else:
+    print("❌ Доступ запрещён")</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">⚡</div>
+      <div>
+        <div class="t">Лайфхак</div>
+        <div class="d"><code>.strip()</code> убирает случайные пробелы в начале и конце. <code>.lower()</code> переводит в нижний регистр. Комбо — защита от «PYTHONMASTER » и «  PythonMaster».</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: Шаг 2 — вложенное условие -->
+  <section class="slide" data-notes="Шаг 2 — 10 минут. Внутрь верной ветки if вкладываем ещё один input — выбор персонажа. Обратите внимание: отступ 4 пробела. Вложенность — это про то, что одно условие внутри другого. Пароль открыл дверь — за дверью выбор.">
+    <div class="badge"><span class="dot"></span>Шаг 2 · 10 минут</div>
+    <h2>Вложенное условие: <span class="grad">выбор героя</span></h2>
+    <div class="code-window mt-20">
+      <div class="code-window__bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        game.py · шаг 2
+      </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">password = "pythonMaster"
+user_input = input("Введи пароль: ").strip().lower()
+
+if user_input == password.lower():
+    print("✅ Добро пожаловать, герой!")
+    character = input("Выбери: воин / маг / лучник: ").strip().lower()
+    print(f"Ты выбрал: {character}")
+else:
+    print("❌ Доступ запрещён")</div><div class="compiler-output"></div></div>
+    </div>
+    <div class="grid grid-2 mt-30">
+      <div class="card card--purple">
+        <h3>🔑 Главная идея</h3>
+        <p class="muted">Второй <code>input()</code> — <b>внутри</b> ветки верного пароля. Неверный пароль = никакого выбора. Естественная иерархия.</p>
+      </div>
+      <div class="card card--cyan">
+        <h3>🪜 Отступ решает</h3>
+        <p class="muted">4 пробела — и код «вложен». Без отступа — он выполнится всегда, даже при неверном пароле. Это баг.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: Шаг 3 — каскад if/elif/else -->
+  <section class="slide" data-notes="Шаг 3 — 13 минут. Добавляем внутрь каскад if/elif/else на три персонажа. Каждому — имя, здоровье, атака, описание, путь к картинке. На else — честно говорим: такого нет. Вся соль — в ветке else. Без неё программа молча проглотит любой ввод и ничего не покажет.">
+    <div class="badge badge--pink"><span class="dot"></span>Шаг 3 · 13 минут</div>
+    <h2>Каскад <span class="grad">if / elif / else</span></h2>
+    <div class="code-window mt-20">
+      <div class="code-window__bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        game.py · шаг 3
+      </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">if character == "воин":
+    print("⚔️ Имя: Эладар | HP: 250 | Атака: 60")
+    print("Отважный воин-эльф из Светлого леса.")
+    print("См. картинку: characters/warrior.png")
+elif character == "маг":
+    print("🔮 Имя: Мирра | HP: 150 | Атака: 80")
+    print("Юная волшебница стихии огня.")
+    print("См. картинку: characters/mage.png")
+elif character == "лучник":
+    print("🏹 Имя: Финн | HP: 180 | Атака: 70")
+    print("Меткий следопыт северных гор.")
+    print("См. картинку: characters/archer.png")
+else:
+    print("❓ Такого персонажа нет. Попробуй ещё раз.")</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: Карточки персонажей -->
+  <section class="slide" data-notes="Вот как это выглядит. Три карточки — три героя. Цифры балансим: у воина много HP мало атаки, у мага наоборот, лучник посередине. Такой баланс делает игру интересной. Дети могут придумать свои цифры — это часть творчества.">
+    <div class="badge badge--yellow"><span class="dot"></span>Наши герои</div>
+    <h2>Три персонажа <span class="grad">из кода</span></h2>
+    <div class="grid grid-3 mt-20">
+      <div class="hero-card">
+        <div class="avatar">⚔️</div>
+        <div class="name">Эладар</div>
+        <div class="muted" style="font-size:14px; margin-bottom:10px;">Воин-эльф</div>
+        <div class="stat"><span>HP</span><span>250</span></div>
+        <div class="stat"><span>Атака</span><span>60</span></div>
+        <div class="stat"><span>Файл</span><span>warrior.png</span></div>
+      </div>
+      <div class="hero-card" style="border-color: rgba(236,72,153,0.4);">
+        <div class="avatar">🔮</div>
+        <div class="name">Мирра</div>
+        <div class="muted" style="font-size:14px; margin-bottom:10px;">Маг огня</div>
+        <div class="stat"><span>HP</span><span>150</span></div>
+        <div class="stat"><span>Атака</span><span>80</span></div>
+        <div class="stat"><span>Файл</span><span>mage.png</span></div>
+      </div>
+      <div class="hero-card" style="border-color: rgba(6,182,212,0.4);">
+        <div class="avatar">🏹</div>
+        <div class="name">Финн</div>
+        <div class="muted" style="font-size:14px; margin-bottom:10px;">Лучник-следопыт</div>
+        <div class="stat"><span>HP</span><span>180</span></div>
+        <div class="stat"><span>Атака</span><span>70</span></div>
+        <div class="stat"><span>Файл</span><span>archer.png</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 11: Kandinsky -->
+  <section class="slide" data-notes="Минуты 45–55. Открываем fusionbrain точка ai. Это Kandinsky — нейросеть, которая рисует картинки по описанию. Работает на русском. Бесплатно. Одна картинка генерится 10–30 секунд. Пока ждём — можем параллельно писать код. Это важное правило: ИИ-картинки — не мгновенные.">
+    <div class="badge badge--pink"><span class="dot"></span>45–55 мин · ИИ-художник</div>
+    <h2>Kandinsky: <span class="grad">рисуем героев</span></h2>
+    <div class="grid grid-2 mt-20">
+      <div>
+        <h3 style="color: #F9A8D4;">🎨 Что это</h3>
+        <p class="muted" style="margin-bottom:14px;">Нейросеть, которая превращает текст в картинку. Русскоязычная. Бесплатная.</p>
+        <h3 style="color: #F9A8D4; margin-top: 16px;">🌐 Где жить</h3>
+        <p><code>fusionbrain.ai</code></p>
+        <h3 style="color: #F9A8D4; margin-top: 16px;">⏱️ Время</h3>
+        <p class="muted">10–30 секунд на картинку. Пока ждём — пишем код!</p>
+      </div>
+      <div class="card card--pink">
+        <h3>📋 Чек-лист</h3>
+        <ul class="check-list mt-20" style="font-size: 16px;">
+          <li>Открыли fusionbrain.ai</li>
+          <li>Написали промпт (см. следующий слайд)</li>
+          <li>Нажали «Сгенерировать»</li>
+          <li>Скачали PNG в папку <code>characters/</code></li>
+          <li>Переименовали: <code>warrior.png</code>, <code>mage.png</code>, <code>archer.png</code></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 12: Промпт -->
+  <section class="slide" data-notes="Промпт — это задание художнику. Чем точнее — тем лучше результат. Смотрите структуру: КТО, ЧТО делает, СТИЛЬ, ДЛЯ КОГО. Всё через запятую. Обязательно добавляем «мультяшный стиль», «для детской игры», «яркие цвета». Это защита от страшных картинок.">
+    <div class="badge badge--purple"><span class="dot"></span>Секрет хорошего промпта</div>
+    <h2>Промпт — это <span class="grad">задание художнику</span></h2>
+    <div class="card card--purple mt-20" style="padding: 28px;">
+      <div class="hero-eyebrow" style="color: #C4B5FD; margin-bottom: 10px;">ПРИМЕР ПРОМПТА</div>
+      <p style="font-size: 22px; line-height: 1.5; color: #E6E8EC;">
+        «Персонаж фэнтези-игры: <span class="kw">воин-эльф в доспехах</span>, полный рост,
+        <span class="kw--purple">мультяшный стиль</span>,
+        <span class="kw--pink">для детской игры</span>,
+        <span class="kw--yellow">яркие цвета</span>, без страшных элементов, белый фон»
+      </p>
+    </div>
+    <div class="grid grid-4 mt-30 gap-12">
+      <div class="card center"><div class="ico" style="margin: 0 auto 10px;">👤</div><h3 style="font-size: 15px;">КТО</h3><p class="muted" style="font-size: 13px;">воин-эльф</p></div>
+      <div class="card center"><div class="ico" style="margin: 0 auto 10px;">⚡</div><h3 style="font-size: 15px;">ЧТО</h3><p class="muted" style="font-size: 13px;">в доспехах, полный рост</p></div>
+      <div class="card center"><div class="ico" style="margin: 0 auto 10px;">🎭</div><h3 style="font-size: 15px;">СТИЛЬ</h3><p class="muted" style="font-size: 13px;">мультяшный, яркий</p></div>
+      <div class="card center"><div class="ico" style="margin: 0 auto 10px;">👶</div><h3 style="font-size: 15px;">ДЛЯ КОГО</h3><p class="muted" style="font-size: 13px;">детская игра</p></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 13: 3 промпта -->
+  <section class="slide" data-notes="Готовые промпты. Можно копировать. Обратите внимание: структура одинаковая, меняется только КТО и атрибут. Это называется «шаблон промпта» — один раз придумал, дальше подставляешь.">
+    <div class="badge badge--cyan"><span class="dot"></span>Готовые промпты</div>
+    <h2>Три героя — <span class="grad">три промпта</span></h2>
+    <div class="grid grid-3 mt-20">
+      <div class="card card--purple">
+        <div class="ico">⚔️</div>
+        <h3>Воин</h3>
+        <p class="muted" style="font-size: 15px; line-height: 1.5;">Воин-эльф в доспехах с мечом, полный рост, мультяшный стиль, детская игра, яркие цвета, белый фон</p>
+        <div class="tag tag--purple mt-20">warrior.png</div>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🔮</div>
+        <h3>Маг</h3>
+        <p class="muted" style="font-size: 15px; line-height: 1.5;">Юная волшебница с огненным посохом, длинное платье, мультяшный стиль, детская игра, яркие цвета, белый фон</p>
+        <div class="tag tag--pink mt-20">mage.png</div>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🏹</div>
+        <h3>Лучник</h3>
+        <p class="muted" style="font-size: 15px; line-height: 1.5;">Следопыт с луком и плащом, капюшон, мультяшный стиль, детская игра, яркие цвета, белый фон</p>
+        <div class="tag mt-20">archer.png</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 14: GigaChat помощник -->
+  <section class="slide" data-notes="Если фантазия затыкается — GigaChat выручит. Просим его: придумай имя, HP, атаку и биографию. Он выдаст варианты. Берём, что нравится, подставляем в код. ИИ — не автор, а помощник. Финальное слово за вами.">
+    <div class="badge badge--yellow"><span class="dot"></span>ИИ-соавтор</div>
+    <h2>GigaChat придумает <span class="grad">характеристики</span></h2>
+    <div class="quote">
+      «Придумай имя, здоровье (100–300), атаку (20–80) и биографию в 2 предложения для фэнтези-воина-эльфа для детской игры.»
+      <small>Промпт в GigaChat</small>
+    </div>
+    <div class="grid grid-2 mt-30">
+      <div class="card card--cyan">
+        <div class="ico">🎯</div>
+        <h3>Что вернёт ИИ</h3>
+        <p class="muted">Имя, цифры, сюжетную биографию. За 3 секунды.</p>
+      </div>
+      <div class="card card--purple">
+        <div class="ico">✏️</div>
+        <h3>Твоя работа</h3>
+        <p class="muted">Выбрать лучшее, подправить под себя, вставить в <code>print()</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: Полный код -->
+  <section class="slide" data-notes="Вот весь код целиком — 25 строк. Это минимум. Дети могут расширять: эмодзи, ascii-арт, больше строк биографии. Но скелет — вот он. Проговариваем: пароль-вложенность-каскад-else.">
+    <div class="badge"><span class="dot"></span>Эталон целиком</div>
+    <h2>Программа <span class="grad">на 40+ строк</span></h2>
+    <div class="code-window">
+      <div class="code-window__bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        game_db.py
+      </div>
+<pre style="max-height: 58vh;"><code class="language-python">password = "pythonMaster"
+
+user_input = input("🔐 Введи пароль: ").strip().lower()
+
+if user_input == password.lower():
+    print("✅ Добро пожаловать, герой!")
+    character = input("Выбери: воин / маг / лучник: ").strip().lower()
+
+    if character == "воин":
+        print("⚔️  Имя: Эладар | HP: 250 | Атака: 60")
+        print("Отважный воин-эльф из Светлого леса.")
+        print("См. картинку: characters/warrior.png")
+    elif character == "маг":
+        print("🔮 Имя: Мирра | HP: 150 | Атака: 80")
+        print("Юная волшебница стихии огня.")
+        print("См. картинку: characters/mage.png")
+    elif character == "лучник":
+        print("🏹 Имя: Финн | HP: 180 | Атака: 70")
+        print("Меткий следопыт северных гор.")
+        print("См. картинку: characters/archer.png")
+    else:
+        print("❓ Такого персонажа нет. Попробуй ещё раз.")
+else:
+    print("❌ Доступ запрещён")</code></pre>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: Ключевые фразы -->
+  <section class="slide" data-notes="Эти фразы стоит говорить вслух во время урока — они якорят понимание. Особенно про lower с обеих сторон. И про else-ловушку. Повторяем 2–3 раза — запомнится на всю жизнь.">
+    <div class="badge badge--purple"><span class="dot"></span>Преподавательский язык</div>
+    <h2>Ключевые фразы <span class="grad">урока</span></h2>
+    <div class="grid grid-2 gap-20 mt-20">
+      <div class="quote"><span class="kw">.lower()</span> с обеих сторон сравнения — защита от «Python», «python» и «PYTHON» одновременно.<small>Фраза #2</small></div>
+      <div class="quote"><span class="kw--pink">.strip()</span> — убираем случайные пробелы. Это вежливость к пользователю.<small>Фраза #3</small></div>
+      <div class="quote">Вложенный <span class="kw--purple">if</span> — пароль открывает дверь, за ней выбор героя. Естественная иерархия.<small>Фраза #4</small></div>
+      <div class="quote">Ветка <span class="kw--yellow">else</span> — ловушка для неожиданного ввода. Всегда пиши.<small>Фраза #5</small></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Типичные ошибки -->
+  <section class="slide" data-notes="Это карта минного поля. Ловим эти ошибки за учеником заранее. Самая частая — забытый lower с одной стороны: ввод всегда в нижнем, а пароль с большой — никогда не совпадёт. Детектив на 2 минуты.">
+    <div class="badge badge--yellow"><span class="dot"></span>Подводные камни</div>
+    <h2>Что обычно <span class="grad">ломается</span></h2>
+    <div class="grid grid-2 gap-20 mt-20">
+      <div class="warn">
+        <div class="i">🔤</div>
+        <div><div class="t">Пароли не совпадают</div><div class="d">Забыт <code>.lower()</code> на одной стороне. Проверяем обе.</div></div>
+      </div>
+      <div class="warn">
+        <div class="i">␣</div>
+        <div><div class="t">Пробелы в input</div><div class="d">Добавляем <code>.strip()</code> — снимаем мусор.</div></div>
+      </div>
+      <div class="warn">
+        <div class="i">🐢</div>
+        <div><div class="t">Kandinsky долго думает</div><div class="d">ИИ-картинки — не мгновенны. Пока ждём — пишем код.</div></div>
+      </div>
+      <div class="warn">
+        <div class="i">🤔</div>
+        <div><div class="t">Странная картинка</div><div class="d">Улучшаем промпт: «мультяшный», «яркие цвета», «без оружия».</div></div>
+      </div>
+      <div class="warn">
+        <div class="i">🤫</div>
+        <div><div class="t">Молчаливая программа</div><div class="d">Забыл <code>else</code>. Тестируем ввод, которого нет в списке.</div></div>
+      </div>
+      <div class="warn">
+        <div class="i">📁</div>
+        <div><div class="t">Картинки не там</div><div class="d">Путь <code>characters/warrior.png</code> ↔ реальное имя файла. Сверяем.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: Бонус — 3 попытки -->
+  <section class="slide" data-notes="Бонус для быстрых. 3 попытки без циклов — через вложенность. Показываем как концепт: если не прошёл первый раз, даём второй. Не прошёл второй — третий. Не прошёл третий — блокировка. Пока неуклюже, но идея жизни понятна. На следующем модуле циклы это упростят в 3 строки.">
+    <div class="badge badge--pink"><span class="dot"></span>Бонус для опережающих</div>
+    <h2>Три попытки пароля <span class="grad">без циклов</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">Идея: 3 вложенных <code>if</code>. Если первая попытка неверна — вторая. Если и вторая — третья. Иначе — блок.</p>
+        <div class="warn mt-20">
+          <div class="i">💡</div>
+          <div><div class="t">Учебный момент</div><div class="d">Это громоздко. На модуле про циклы решим то же самое тремя строчками.</div></div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar">
+          <div class="dots"><span></span><span></span><span></span></div>
+          bonus.py
+        </div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">p1 = input("Пароль: ").strip().lower()
+if p1 == password.lower():
+    print("✅ Вход!")
+else:
+    p2 = input("Ещё раз: ").strip().lower()
+    if p2 == password.lower():
+        print("✅ Вход!")
+    else:
+        p3 = input("Последняя: ").strip().lower()
+        if p3 == password.lower():
+            print("✅ Вход!")
+        else:
+            print("🔒 Заблокировано")</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 19: Критерии успеха -->
+  <section class="slide" data-notes="Это чеклист защиты. Если все 4 пункта — зелёные, бейдж в кармане. Проверяем у каждого ребёнка перед бейджем. Не стесняйтесь тестировать «плохим» вводом: пустая строка, другой регистр, несуществующий персонаж.">
+    <div class="badge"><span class="dot"></span>Критерии успеха</div>
+    <h2>Как <span class="grad">засчитать</span> урок</h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div class="card card--purple">
+        <div class="ico">🔐</div>
+        <h3>Пароль</h3>
+        <p class="muted">Проверяется через <code>.lower().strip()</code>. Ввод с пробелами и в любом регистре — работает.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🌳</div>
+        <h3>3 варианта + else</h3>
+        <p class="muted">Минимум 3 персонажа через <code>if/elif/else</code>. Ветка на некорректный ввод — обязательна.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🎨</div>
+        <h3>3 ИИ-картинки</h3>
+        <p class="muted">Минимум 3 картинки сгенерированы через Kandinsky и сохранены в <code>characters/</code>.</p>
+      </div>
+      <div class="card card--yellow">
+        <div class="ico">🎤</div>
+        <h3>Защита</h3>
+        <p class="muted">Демо по шаблону: что делает, сложное, что улучшить, вопросы.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 20: Защита проекта -->
+  <section class="slide" data-notes="5 минут защиты — не больше. Шаблон жёсткий, чтобы ребёнок научился презентовать. Каждая часть — 30-60 секунд. В чате с родителями отправляем скриншот работы программы.">
+    <div class="badge badge--yellow"><span class="dot"></span>55–60 мин · Защита</div>
+    <h2>Как <span class="grad">показать</span> проект</h2>
+    <div class="flow mt-20">
+      <div class="step">1. Что делает</div>
+      <div class="arr">→</div>
+      <div class="step">2. Демо</div>
+      <div class="arr">→</div>
+      <div class="step">3. Что сложное</div>
+      <div class="arr">→</div>
+      <div class="step">4. Что улучшить</div>
+      <div class="arr">→</div>
+      <div class="step">5. Вопросы</div>
+    </div>
+    <div class="grid grid-2 mt-30 gap-20">
+      <div class="card card--purple">
+        <h3>📱 Куда показать</h3>
+        <p class="muted">В чат родителям: «Моя игра — с паролем и настоящими персонажами!» + скриншот + папка картинок.</p>
+      </div>
+      <div class="card card--cyan">
+        <h3>🏅 Бейдж</h3>
+        <p class="muted"><b style="color: var(--yellow);">Повелитель условий</b> — вручаем после успешной защиты. Следующий модуль — циклы!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 21: Домашнее задание -->
+  <section class="slide" data-notes="ДЗ на 20 минут. Добавить лекаря и вора — два новых персонажа. Для каждого сгенерировать картинку. Обновить elif-цепочку. Прислать скриншот и папку. Никаких новых концепций — только закрепление.">
+    <div class="badge badge--pink"><span class="dot"></span>Домашнее задание</div>
+    <h2>ДЗ · <span class="grad">≤ 20 минут</span></h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div>
+        <ul class="num-list">
+          <li><b>Добавь 4-го персонажа</b><br/><span class="muted">Например, <code>лекарь</code> — высокий HP, средняя атака.</span></li>
+          <li><b>Добавь 5-го персонажа</b><br/><span class="muted">Например, <code>вор</code> — низкий HP, очень высокая атака.</span></li>
+          <li><b>Сгенерируй 2 картинки</b><br/><span class="muted">В Kandinsky: <code>healer.png</code>, <code>rogue.png</code>.</span></li>
+          <li><b>Обнови <code>elif</code>-цепочку</b><br/><span class="muted">Две новых ветки перед <code>else</code>.</span></li>
+          <li><b>Пришли скриншот + папку</b><br/><span class="muted">В чат урока — результат работы + папка <code>characters/</code>.</span></li>
+        </ul>
+      </div>
+      <div class="card card--pink">
+        <h3>💡 Подсказки</h3>
+        <ul class="check-list mt-20" style="font-size: 15px;">
+          <li>Баланс HP и атаки — по аналогии с 3 героями</li>
+          <li>Шаблон промпта — тот же, что на уроке</li>
+          <li>Имена файлов — только латиница, без пробелов</li>
+          <li>Порядок <code>elif</code> не важен, но <code>else</code> всегда последний</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 22: Чему научились -->
+  <section class="slide" data-notes="Итог. Уложили в один проект 3 больших идеи: сравнение строк с нормализацией, вложенная логика, ИИ как инструмент. Это не просто урок — это законченный продукт. Его можно показывать и гордиться.">
+    <div class="badge"><span class="dot"></span>Итоги урока</div>
+    <h2>Что <span class="grad">у нас теперь</span> в кармане</h2>
+    <div class="grid grid-3 mt-20 gap-20">
+      <div class="card card--purple">
+        <div class="ico">🔐</div>
+        <h3>Логин в программу</h3>
+        <p class="muted">Пароль с нормализацией через <code>.lower()</code> и <code>.strip()</code>.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🌳</div>
+        <h3>Вложенная логика</h3>
+        <p class="muted"><code>if</code> внутри <code>if</code> — иерархия решений, как в настоящей программе.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🎨</div>
+        <h3>ИИ-художник в команде</h3>
+        <p class="muted">Kandinsky и GigaChat — инструменты, а не магия. Мы управляем ими промптом.</p>
+      </div>
+    </div>
+    <p class="big mt-30 center muted">Это был <b style="color: var(--text);">проект #3</b> курса. Впереди — модуль циклов и «Лабиринт».</p>
+  </section>
+
+  <!-- SLIDE 23: Что дальше -->
+  <section class="slide" data-notes="Переход. 3 попытки пароля в бонусе были громоздкие — на следующем модуле научимся писать 3 строки вместо 12. Циклы — это магия повторения.">
+    <div class="badge badge--cyan"><span class="dot"></span>Следующий модуль</div>
+    <h2>Модуль 4 · <span class="grad">циклы + Лабиринт</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <p class="big">Помнишь тот бонус с 3 попытками пароля? Это было 12 строк. Через цикл — всего <b style="color: var(--cyan);">3 строки</b>.</p>
+        <p class="muted big mt-20">Цикл — это «повтори N раз» или «повторяй, пока условие верно». Программа начнёт жить своей жизнью.</p>
+      </div>
+      <div class="card card--cyan">
+        <h3>🎯 Проект-финалист модуля</h3>
+        <p style="font-size: 22px; margin: 12px 0;"><b>🧭 Лабиринт</b></p>
+        <p class="muted">Герой ходит по карте: вверх, вниз, влево, вправо. Цикл считает шаги. <code>if</code> проверяет стены. Персонажи из сегодняшнего урока — внутри!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 24: Финал -->
+  <section class="slide final-center" data-notes="Финал. Бейдж — не формальность, это символ. Повелитель условий — тот, кто может разветвлять логику. Поздравляем, делаем фото бейджа, и до следующего урока!">
+    <div class="hero-eyebrow">УРОК 12 · ЗАВЕРШЁН</div>
+    <h1 class="grad" style="font-size: 96px;">Повелитель<br/>условий</h1>
+    <p class="big muted" style="max-width: 640px;">Бейдж твой. Ты умеешь вкладывать условия, работать с паролями и управлять ИИ-художником.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">🏅 Бейдж получен</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">📬 Скриншот родителям</div>
+      <div class="step">🚀 Модуль 4 → циклы</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter"><b id="currentSlide">1</b> / <span id="totalSlides">24</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+
+<div class="notes-panel" id="notesPanel">
+  <h4>Speaker notes · нажми <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 11px;">N</kbd> чтобы скрыть</h4>
+  <div id="notesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const currentEl = document.getElementById('currentSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progressEl = document.getElementById('progress');
+  const notesPanel = document.getElementById('notesPanel');
+  const notesContent = document.getElementById('notesContent');
+
+  totalEl.textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    currentEl.textContent = idx + 1;
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    const notes = slides[idx].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+    // scroll active slide to top
+    slides[idx].scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      e.preventDefault(); notesPanel.classList.toggle('open');
+    }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  // swipe
+  let touchStartX = null;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { show(idx + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

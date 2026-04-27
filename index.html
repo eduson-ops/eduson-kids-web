@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0"
+    />
+    <meta name="theme-color" content="#6B5CE7" />
+    <meta name="description" content="Eduson Kids — строй 3D-миры, учись Python играя. Образовательная платформа 9-15 лет." />
+    <title>Eduson Kids — Эдюсон Kids · 3D Coding Platform</title>
+
+    <!-- PWA / iOS home-screen -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Eduson Kids" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+
+    <!-- Brand fonts (per Designbook v1.0) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- modulepreload убран: он был валидным только в dev, в бандле Vite сам добавляет preload-хинты
+         для реальных чанков. Ручной href="/src/main.tsx" ломался в Capacitor (MIME octet-stream). -->
+
+
+    <!-- WebGL2 проверка до загрузки React. При отсутствии — показывается fallback вместо пустого экрана. -->
+    <script type="text/javascript">
+      (function() {
+        try {
+          var c = document.createElement('canvas');
+          var gl = c.getContext('webgl2');
+          if (!gl) {
+            document.documentElement.setAttribute('data-no-webgl2', 'true');
+          }
+        } catch (e) {
+          document.documentElement.setAttribute('data-no-webgl2', 'true');
+        }
+      })();
+    </script>
+
+    <!-- SPA redirect decoder для GitHub Pages. Парный к public/404.html. -->
+    <script type="text/javascript">
+      (function(l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&');
+          }).join('?');
+          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+        }
+      })(window.location);
+    </script>
+
+    <style>
+      /* Fallback-экран для браузеров без WebGL2 (показывается до рендера React) */
+      html[data-no-webgl2] #root { display: none; }
+      html[data-no-webgl2]::before {
+        content: '';
+        position: fixed; inset: 0;
+        background: linear-gradient(245deg, #975118 0%, #7E192F 33%, #400355 69%, #0C0533 100%);
+        z-index: 1;
+      }
+      html[data-no-webgl2]::after {
+        content: 'Твой браузер не поддерживает WebGL 2.0 — обнови Chrome/Edge/Firefox или включи аппаратное ускорение в настройках.';
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        padding: 32px; text-align: center;
+        color: #fff; font: 600 17px/1.5 'Nunito', system-ui, sans-serif;
+        z-index: 2;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-C-wbFowG.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-S-ySWqyJ.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-capacitor-B_f_dcov.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-livekit-BzmvgSqw.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-physics-AUvR81v8.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-react-D_bBS7I7.js">
+    <link rel="modulepreload" crossorigin href="./assets/Niksel-BYRdBkhn.js">
+    <link rel="modulepreload" crossorigin href="./assets/api-BdpT7R8O.js">
+    <link rel="modulepreload" crossorigin href="./assets/progress-B4zfHuYz.js">
+    <link rel="modulepreload" crossorigin href="./assets/PlatformShell-PE4wtw92.js">
+    <link rel="modulepreload" crossorigin href="./assets/publicPath-J5b42Dh2.js">
+    <link rel="modulepreload" crossorigin href="./assets/curriculum-TkO6BD6R.js">
+    <link rel="stylesheet" crossorigin href="./assets/vendor-livekit-BJb23pw-.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-C-AXtrqN.css">
+  <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

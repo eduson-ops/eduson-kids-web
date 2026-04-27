@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 28 — Проект: «Виселица» + генерация презентации игры</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 64px 80px 90px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .badge--purple { color: #C4B5FD; }
+  .badge--purple .dot { background: #A78BFA; box-shadow: 0 0 10px #A78BFA; }
+  .badge--pink { color: #F9A8D4; }
+  .badge--pink .dot { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .badge--yellow { color: #FDE68A; }
+  .badge--yellow .dot { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+  .badge--green { color: #86EFAC; }
+  .badge--green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+
+  h1 {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 16px 0;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 60%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 22px;
+  }
+  h2 .grad {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  p, li { font-size: 19px; line-height: 1.55; color: #CBD1DE; }
+  .muted { color: var(--muted); }
+  .big { font-size: 24px; }
+
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide .meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .title-slide .subtitle {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 820px;
+    margin-top: 8px;
+  }
+  .title-slide .foot {
+    display: flex; gap: 32px; margin-top: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .title-slide .foot b { color: var(--text); }
+
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 24px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.45); transform: translateY(-3px); }
+  .card .ico {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.25));
+    border: 1px solid var(--border);
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .card--purple { background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(124,58,237,0.03)); border-color: rgba(124,58,237,0.35); }
+  .card--cyan { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(6,182,212,0.03)); border-color: rgba(6,182,212,0.35); }
+  .card--pink { background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(236,72,153,0.03)); border-color: rgba(236,72,153,0.35); }
+  .card--yellow { background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.35); }
+  .card--green { background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.03)); border-color: rgba(16,185,129,0.35); }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 10px 0 10px 34px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .check-list li::before {
+    content: '✓';
+    position: absolute; left: 0; top: 10px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .num-list { list-style: none; padding: 0; counter-reset: step; }
+  .num-list li {
+    padding: 12px 0 12px 52px;
+    position: relative;
+    counter-increment: step;
+  }
+  .num-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: grid; place-items: center;
+  }
+
+  pre[class*="language-"] {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0A0E18 !important;
+    font-size: 15px;
+    padding: 18px 22px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #A5F3FC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88em;
+  }
+  .code-window {
+    background: #0A0E18;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .code-window__bar {
+    background: rgba(255,255,255,0.04);
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-window__bar .dots { display: flex; gap: 6px; margin-right: 10px; }
+  .code-window__bar .dots span {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #3b3f4a;
+  }
+  .code-window__bar .dots span:nth-child(1) { background: #ff5f56; }
+  .code-window__bar .dots span:nth-child(2) { background: #ffbd2e; }
+  .code-window__bar .dots span:nth-child(3) { background: #27c93f; }
+  .code-window pre[class*="language-"] {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .kbd {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.85em;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(6,182,212,0.12);
+    color: #67E8F9;
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 2px;
+  }
+  .tag--purple { background: rgba(124,58,237,0.16); color: #C4B5FD; border-color: rgba(124,58,237,0.35); }
+  .tag--pink { background: rgba(236,72,153,0.16); color: #F9A8D4; border-color: rgba(236,72,153,0.35); }
+  .tag--yellow { background: rgba(245,197,24,0.16); color: #FDE68A; border-color: rgba(245,197,24,0.35); }
+  .tag--green { background: rgba(16,185,129,0.16); color: #86EFAC; border-color: rgba(16,185,129,0.35); }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-row:last-child { border-bottom: 0; }
+  .plan-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 15px;
+    padding-top: 2px;
+  }
+  .plan-row .tl { font-weight: 600; margin-bottom: 4px; font-size: 18px; }
+  .plan-row .dc { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .quote {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 18px 24px;
+    border-left: 3px solid var(--purple);
+    background: var(--glass);
+    border-radius: 0 16px 16px 0;
+    color: #E6E8EC;
+  }
+  .quote small {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .warn {
+    background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .warn .i { font-size: 22px; color: var(--yellow); }
+  .warn .t { color: #FDE68A; font-weight: 600; margin-bottom: 3px; }
+  .warn .d { color: #CBD1DE; font-size: 15px; }
+
+  .kw { color: var(--cyan); font-weight: 600; }
+  .kw--purple { color: #C4B5FD; }
+  .kw--pink { color: #F9A8D4; }
+  .kw--yellow { color: var(--yellow); }
+  .kw--green { color: #86EFAC; }
+
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .flow .arr {
+    color: var(--cyan);
+    font-size: 22px;
+  }
+
+  .final-center { align-items: center; justify-content: center; text-align: center; }
+  .final-center h1 { font-size: 84px; }
+
+  .notes { display: none; }
+  .notes-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    padding: 18px 40px;
+    max-height: 40vh;
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform .4s ease;
+    z-index: 50;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #CBD1DE;
+  }
+  .notes-panel.open { transform: translateY(0); }
+  .notes-panel h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .title-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+  .two-col--code { grid-template-columns: 1fr 1.1fr; }
+
+  .center { text-align: center; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+
+  .term {
+    background: #07090F;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #CBD1DE;
+    white-space: pre-wrap;
+  }
+  .term .prompt { color: var(--green); font-weight: 700; }
+  .term .q { color: #FDE68A; }
+  .term .ok { color: #86EFAC; }
+  .term .err { color: #F9A8D4; }
+  .term .inp { color: var(--cyan); }
+
+  .func-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .func-head .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+  }
+  .func-head code {
+    background: transparent !important;
+    border: 0 !important;
+    color: #E6E8EC !important;
+    padding: 0 !important;
+    font-size: 17px !important;
+    font-weight: 700 !important;
+  }
+
+  .ds-block {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+  }
+  .ds-block h3 { margin-bottom: 6px; }
+  .ds-block .sig {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: var(--cyan);
+    margin-bottom: 10px;
+  }
+  .ds-block .why { color: #CBD1DE; font-size: 16px; line-height: 1.5; }
+
+  .ascii {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: pre;
+    color: #E6E8EC;
+    background: #07090F;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  @media (max-width: 1100px) {
+    .slide { padding: 40px 40px 90px; }
+    h1 { font-size: 48px; }
+    h2 { font-size: 32px; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .two-col, .two-col--code { grid-template-columns: 1fr; }
+  }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: Title -->
+  <section class="slide title-slide active" data-notes="Добро пожаловать. Сегодня капстоун отдела «Проектирование структур» — живая игра «Виселица». Это не новая тема: это проверка, что ребёнок ВСЁ понял. В одной программе — кортеж, множество, словарь, строки, циклы, условия, random, функции. Говорим прямо: если справишься сегодня — пройдёшь любой отдельный урок. А в конце — защита проекта через ИИ-презентацию. Финал недели 7.">
+    <div class="title-num">УРОК 28 · НЕДЕЛЯ 7 · 60 МИНУТ</div>
+    <div class="meta">
+      <div class="badge badge--purple"><span class="dot"></span>Отдел: Проектирование структур</div>
+      <div class="badge badge--pink"><span class="dot"></span>8–14 лет</div>
+      <div class="badge badge--yellow"><span class="dot"></span>Капстоун отдела</div>
+    </div>
+    <h1>
+      Проект <span class="grad">«Виселица»</span>
+      <br/>+ ИИ-защита проекта
+    </h1>
+    <p class="subtitle">Одна программа. Все инструменты недели сразу: кортеж, множество, словарь, циклы, условия, <code>random</code>. Ребёнок — архитектор, ИИ — помощник и презентёр.</p>
+    <div class="foot">
+      <div><b>Python</b> 3.11+</div>
+      <div><b>random</b> встроенный</div>
+      <div><b>YandexGPT</b> / GigaChat</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Что соберём -->
+  <section class="slide" data-notes="Показываем готовый эталон. Запускаем виселицу — случайное слово, угадываем по букве, 6 жизней. Победа → играем ещё раз, статистика копится в словаре. В конце — ИИ пишет защиту из 5 слайдов. Это кульминация всего, что ребёнок учил. Давайте фиксировать цель на доске большими буквами.">
+    <div class="badge badge--cyan"><span class="dot"></span>Демо эталона</div>
+    <h2>Что соберём за 60 минут <span class="grad">→</span></h2>
+    <div class="flow mt-20">
+      <div class="step">🎲 Случайное слово</div>
+      <div class="arr">→</div>
+      <div class="step">⌨️ Вводим букву</div>
+      <div class="arr">→</div>
+      <div class="step">🔎 Проверяем</div>
+      <div class="arr">→</div>
+      <div class="step">💀 6 жизней</div>
+      <div class="arr">→</div>
+      <div class="step">🏆 Статистика</div>
+      <div class="arr">→</div>
+      <div class="step">🤖 ИИ-защита</div>
+    </div>
+    <div class="grid grid-3 mt-30">
+      <div class="card card--purple">
+        <div class="ico">🧩</div>
+        <h3>3 структуры данных</h3>
+        <p class="muted">Кортеж слов, множество букв, словарь статистики — каждая на своём месте.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🔁</div>
+        <h3>Главный цикл</h3>
+        <p class="muted"><code>while lives &gt; 0 and '_' in shown</code> — элегантное завершение игры.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🎤</div>
+        <h3>Защита через ИИ</h3>
+        <p class="muted">5 слайдов от YandexGPT. Ребёнок представляет проект родителям.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: Цели -->
+  <section class="slide" data-notes="Цели из источника. Сегодня ребёнок не учит новое — он ДОКАЗЫВАЕТ, что может. Десять навыков недели собираются в один рабочий продукт. Читаем список вслух: каждый пункт — кирпичик. Если выпал один — игра не встанет. Говорим прямо: 'Это экзамен, но весёлый'.">
+    <div class="badge"><span class="dot"></span>Цель занятия</div>
+    <h2>Что ребёнок <span class="grad">докажет</span> за урок</h2>
+    <div class="grid grid-2 mt-20">
+      <ul class="check-list">
+        <li>Писать повторяющиеся действия через <b><code>while</code></b> и <b><code>for</code></b></li>
+        <li>Ветвить логику через <b>условия</b></li>
+        <li>Писать и вызывать <b>функции</b></li>
+        <li>Корректно использовать <b>глобальные и локальные</b> переменные</li>
+        <li>Обрабатывать <b>ввод пользователя</b> и проверять корректность</li>
+      </ul>
+      <ul class="check-list">
+        <li>Использовать <b><code>random.choice</code></b> для выбора элемента</li>
+        <li>Работать со <b>счётчиками</b> и переменными состояния</li>
+        <li>Комбинировать циклы + условия + <b>коллекции</b></li>
+        <li>Реализовать <b>множество</b> угаданных букв</li>
+        <li>Собрать <b>словарь статистики</b> побед и поражений</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: Инструменты -->
+  <section class="slide" data-notes="Инструменты знакомые. GigaIDE Desktop или Colab — по вкусу. Python 3.11+. Модуль random — встроенный, импортируем одной строкой. Два ИИ-помощника: YandexGPT (через Алису) для объяснения багов, сборки презентации и генерации тематических слов на ДЗ. GigaChat — альтернатива, если YandexGPT недоступен.">
+    <div class="badge badge--purple"><span class="dot"></span>Инструменты</div>
+    <h2>С чем <span class="grad">работаем</span></h2>
+    <div class="grid grid-4 mt-20 gap-12">
+      <div class="card card--purple">
+        <div class="ico">🐍</div>
+        <h3>Python 3.11+</h3>
+        <p class="muted" style="font-size:14px;">GigaIDE Desktop или Colab — на выбор.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🎲</div>
+        <h3>random</h3>
+        <p class="muted" style="font-size:14px;">Встроенный модуль. <code>random.choice</code> — случайное слово из кортежа.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🤖</div>
+        <h3>YandexGPT</h3>
+        <p class="muted" style="font-size:14px;">Объясняет баги, собирает защиту из 5 слайдов.</p>
+      </div>
+      <div class="card card--yellow">
+        <div class="ico">💬</div>
+        <h3>GigaChat</h3>
+        <p class="muted" style="font-size:14px;">Запасной ИИ — если YandexGPT недоступен.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: Поминутный план -->
+  <section class="slide" data-notes="Поминутный план на 60 минут. 5 минут на демо готового эталона — ребёнок видит цель. 10 минут рисуем на бумаге архитектуру: какие структуры выбираем и почему. 10 минут совместного кода — показываем функцию show. 20 минут ребёнок пишет главный цикл САМ, учитель помогает наводящими. 10 минут тесты и фиксы. Последние 5 — ИИ собирает презентацию.">
+    <div class="badge badge--yellow"><span class="dot"></span>Поминутный план · 60 мин</div>
+    <h2>Как <span class="grad">распределяем</span> урок</h2>
+    <div class="mt-20">
+      <div class="plan-row">
+        <div class="tm">0–5</div>
+        <div>
+          <div class="tl">🎬 Демо готовой виселицы</div>
+          <div class="dc">Преподаватель играет эталонную версию. Ребёнок видит цель и формулирует «как это устроено внутри».</div>
+        </div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">5–15</div>
+        <div>
+          <div class="tl">✏️ Архитектура на листочке</div>
+          <div class="dc">Рисуем поток: выбор слова → пока есть жизни → буква → проверка → обновление. Решаем, кто кортеж, кто множество, кто словарь.</div>
+        </div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">15–25</div>
+        <div>
+          <div class="tl">👥 Совместный кодинг</div>
+          <div class="dc">Вместе пишем <code>show(word, guessed)</code> и выбор слова через <code>random.choice</code>.</div>
+        </div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">25–45</div>
+        <div>
+          <div class="tl">🧑‍💻 Самостоятельная задача</div>
+          <div class="dc">Ребёнок пишет главный <code>while</code>-цикл: жизни, ввод, валидация, множество, условия победы и поражения.</div>
+        </div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">45–55</div>
+        <div>
+          <div class="tl">🐞 Тесты и фиксы + ИИ</div>
+          <div class="dc">Играем 2 раза. Зовём YandexGPT объяснить баг или написать красивую ASCII-виселицу.</div>
+        </div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">55–60</div>
+        <div>
+          <div class="tl">🎤 Защита через ИИ</div>
+          <div class="dc">Промпт: «Презентация из 5 слайдов про мою игру Виселица». 2 минуты защиты. ДЗ — темы слов.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Архитектура -->
+  <section class="slide" data-notes="Самый важный слайд урока. Объясняем ребёнку: ВЫБОР СТРУКТУРЫ ДАННЫХ — это половина программы. Кортеж нужен для слов, потому что список слов не должен меняться во время игры. Множество — для угаданных букв, чтобы нельзя было засчитать одну букву дважды (дубликаты запрещены). Словарь — для статистики: ключ 'победы' → число. Каждая структура — на своём месте. Это архитектура.">
+    <div class="badge badge--purple"><span class="dot"></span>Архитектура · сердце урока</div>
+    <h2>Три структуры — <span class="grad">три роли</span></h2>
+    <div class="grid grid-3 mt-20">
+      <div class="ds-block">
+        <div class="tag tag--purple">кортеж</div>
+        <h3 class="mt-20"><span class="kw--purple">WORDS</span></h3>
+        <div class="sig">WORDS = ("python", "кортеж", ...)</div>
+        <p class="why">Неизменяемый список слов. Во время игры слова <b>не должны</b> меняться — поэтому кортеж, а не список.</p>
+      </div>
+      <div class="ds-block">
+        <div class="tag tag--green">множество</div>
+        <h3 class="mt-20"><span class="kw--green">guessed</span></h3>
+        <div class="sig">guessed = set()</div>
+        <p class="why">Угаданные буквы. Дубликаты запрещены — одну букву нельзя засчитать дважды. Множество — это гарантия.</p>
+      </div>
+      <div class="ds-block">
+        <div class="tag tag--yellow">словарь</div>
+        <h3 class="mt-20"><span class="kw--yellow">stats</span></h3>
+        <div class="sig">stats = {"победы": 0, "поражения": 0}</div>
+        <p class="why">Статистика по всем играм. Ключ → число. Легко обновлять: <code>stats["победы"] += 1</code>.</p>
+      </div>
+    </div>
+    <div class="warn mt-30">
+      <div class="i">💡</div>
+      <div>
+        <div class="t">Главная мысль для ребёнка</div>
+        <div class="d">«Правильная структура данных = половина программы. Вторая половина — логика.»</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Поток данных -->
+  <section class="slide" data-notes="Рисуем на бумаге ВМЕСТЕ с ребёнком. Это главное упражнение первых 15 минут — не код, а схема. Поток: random выбирает слово → while проверяет жизни → input ловит букву → проверка 'была ли уже' → проверка 'есть ли в слове' → обновляем множество и жизни → перерисовываем строку. Прогоните в воздухе, пальцем по стрелкам — пусть ребёнок сам назовёт каждый шаг.">
+    <div class="badge badge--cyan"><span class="dot"></span>Поток программы</div>
+    <h2>Как <span class="grad">думает</span> виселица</h2>
+    <div class="flow mt-20" style="gap: 8px;">
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(124,58,237,0.1));">🎲 random.choice(WORDS)</div>
+      <div class="arr">→</div>
+      <div class="step">🔁 while lives &gt; 0</div>
+      <div class="arr">→</div>
+      <div class="step">👁 show(word, guessed)</div>
+    </div>
+    <div class="flow mt-20" style="gap: 8px;">
+      <div class="step">⌨️ input("Буква: ")</div>
+      <div class="arr">→</div>
+      <div class="step">🛡 if letter in guessed</div>
+      <div class="arr">→</div>
+      <div class="step">➕ guessed.add(letter)</div>
+    </div>
+    <div class="flow mt-20" style="gap: 8px;">
+      <div class="step">❓ if letter not in secret</div>
+      <div class="arr">→</div>
+      <div class="step">💔 lives -= 1</div>
+      <div class="arr">→</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(16,185,129,0.1));">🏆 Победа / Поражение</div>
+      <div class="arr">→</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(245,197,24,0.3), rgba(245,197,24,0.1));">📊 stats += 1</div>
+    </div>
+    <p class="muted mt-30" style="font-size: 16px;">Сначала рисуем на бумаге, <b>потом</b> пишем код. Всегда.</p>
+  </section>
+
+  <!-- SLIDE 8: Функция show -->
+  <section class="slide" data-notes="Совместный кодинг. Первая функция — show. Простая, но содержит всё: generator expression, условие, join, строки. Читаем слева направо: 'для каждой буквы c в слове — если c угадана, оставь букву, иначе нарисуй _, соедини через пробел'. Показываем на примере: если слово 'кот', guessed={'к'}, получим 'к _ _'. Пусть ребёнок предскажет результат для других слов.">
+    <div class="badge"><span class="dot"></span>Функция №1 · 15–20 мин</div>
+    <h2>Функция <span class="grad">show</span></h2>
+    <div class="two-col--code grid gap-20 mt-20">
+      <div>
+        <p>Задача: превратить <code>"кошка"</code> + угаданные <code>{"к", "а"}</code> в красивую строку <code>к _ _ к а</code>.</p>
+        <div class="func-head mt-30"><span class="dot"></span><code>show(word, guessed)</code></div>
+        <ul class="check-list">
+          <li>Проходим по каждой букве слова</li>
+          <li>Если буква в множестве — показываем её</li>
+          <li>Если нет — вместо неё <code>_</code></li>
+          <li>Соединяем через пробел: <code>" ".join(...)</code></li>
+        </ul>
+        <div class="quote mt-30" style="font-size: 17px;">«Сначала проговори вслух, что возвращает функция. Потом пиши.»
+        <small>— ключевая фраза преподавателя</small></div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>show.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">def show(word, guessed):
+    return " ".join(
+        c if c in guessed else "_"
+        for c in word
+    )
+
+# проверяем:
+print(show("кошка", {"к", "а"}))
+# → к _ _ к а</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: random.choice -->
+  <section class="slide" data-notes="Вторая маленькая функция — выбор слова. Одна строка, но важная. random.choice — берёт случайный элемент из любой коллекции. Работает и на кортеже, и на списке. Покажи ребёнку: запустим 5 раз подряд — каждый раз разное слово. Это и есть 'жизнь' программы. Кто-то может удивиться: 'а если слово одно?' Работает. Не бойся.">
+    <div class="badge badge--pink"><span class="dot"></span>Случайность · 20–25 мин</div>
+    <h2>Выбираем слово <span class="grad">случайно</span></h2>
+    <div class="two-col--code grid gap-20 mt-20">
+      <div>
+        <h3><code>random.choice</code> — любимая функция недели</h3>
+        <p class="mt-20">Берёт <b>один случайный элемент</b> из любой коллекции: кортежа, списка, даже строки.</p>
+        <ul class="check-list mt-20">
+          <li>Импорт один раз в начале файла</li>
+          <li>Работает и на одном элементе — не боимся</li>
+          <li>Каждый запуск — новое слово</li>
+          <li>Это и есть «живость» игры</li>
+        </ul>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>choose.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+WORDS = ("python", "кортеж",
+         "множество", "словарь",
+         "виселица")
+
+secret = random.choice(WORDS)
+print(secret)
+# "словарь" (или любое другое)</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: Главный цикл -->
+  <section class="slide" data-notes="25-45 минут — главная самостоятельная работа. Ребёнок пишет ГЛАВНЫЙ ЦИКЛ. Это задача экзаменационного уровня. Жизни (6), ввод, три проверки подряд: (1) была ли буква уже, (2) есть ли она в слове, (3) всё ли угадано. Валидация ввода — .lower().strip(). Множество — добавление через .add. Условия победы/поражения. Говорим: 'не спеши, думай вслух'.">
+    <div class="badge badge--yellow"><span class="dot"></span>Самостоятельно · 25–45 мин</div>
+    <h2>Главный <span class="grad">while-цикл</span></h2>
+    <div class="two-col--code grid gap-20 mt-20">
+      <div>
+        <p>Ребёнок пишет <b>сам</b>. Преподаватель — только наводящими вопросами.</p>
+        <ol class="num-list mt-20">
+          <li>Начать с <code>lives = 6</code> и <code>guessed = set()</code></li>
+          <li>Внутри цикла — показать слово и жизни</li>
+          <li>Считать букву, привести к нижнему регистру</li>
+          <li>Проверить — не была ли уже</li>
+          <li>Добавить в множество, сбавить жизни если ошибка</li>
+          <li>Выйти когда слово угадано или жизни кончились</li>
+        </ol>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>main_loop.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">lives = 6
+guessed = set()
+while lives &gt; 0:
+    shown = show(secret, guessed)
+    print(shown, f"жизни: {lives}")
+    if "_" not in shown:
+        print("Победа!", secret)
+        break
+    letter = input("Буква: ").lower().strip()
+    if letter in guessed:
+        print("Уже было"); continue
+    guessed.add(letter)
+    if letter not in secret:
+        lives -= 1
+else:
+    print("Поражение:", secret)</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 11: Полный код -->
+  <section class="slide" data-notes="Финальный эталонный код — ~30 строк. Всё собрано. Функция play возвращает True/False — выиграл или проиграл. Главный цикл снаружи обновляет статистику и спрашивает «ещё?». Разбираем ВМЕСТЕ каждую строчку. 'Почему return True?' — потому что игра закончилась победой, вызывающий код это поймёт и добавит +1 в победы. Функции с возвратом — важный шаг к следующему отделу.">
+    <div class="badge badge--green"><span class="dot"></span>Эталонный код · hangman.py</div>
+    <h2>Всё <span class="grad">вместе</span></h2>
+    <div class="code-window mt-20">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>hangman.py · ~30 строк</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">import random
+
+WORDS = ("python", "кортеж", "множество", "словарь", "виселица")
+
+def play():
+    secret = random.choice(WORDS)
+    guessed = set()
+    lives = 6
+    while lives &gt; 0:
+        shown = " ".join(c if c in guessed else "_" for c in secret)
+        print(shown, f"жизни: {lives}")
+        if "_" not in shown:
+            print("Победа! Слово было:", secret); return True
+        letter = input("Буква: ").lower().strip()
+        if letter in guessed:
+            print("Уже было"); continue
+        guessed.add(letter)
+        if letter not in secret:
+            lives -= 1
+    print("Поражение. Слово было:", secret)
+    return False
+
+stats = {"победы": 0, "поражения": 0}
+while True:
+    if play(): stats["победы"] += 1
+    else: stats["поражения"] += 1
+    print(stats)
+    if input("Ещё? д/н: ") != "д": break</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 12: Пример игры -->
+  <section class="slide" data-notes="Эмулируем одну игру целиком в терминале. Секретное слово — 'кортеж' (случайно). Игрок начинает вводить буквы. Пусть ребёнок проследит: каждая буква либо в слове есть — и открывается, либо её нет — и минус жизнь. Дубликат — 'Уже было', жизнь не снимается. Это демо-прогон, все условия кода проигрываются вживую.">
+    <div class="badge badge--cyan"><span class="dot"></span>Как это выглядит в консоли</div>
+    <h2>Демо <span class="grad">одной игры</span></h2>
+    <div class="term mt-20"><span class="prompt">$</span> python hangman.py
+_ _ _ _ _ _ жизни: 6
+<span class="q">Буква:</span> <span class="inp">о</span>
+_ о _ _ _ _ жизни: 6
+<span class="q">Буква:</span> <span class="inp">а</span>
+<span class="err">_ о _ _ _ _ жизни: 5</span>
+<span class="q">Буква:</span> <span class="inp">о</span>
+<span class="err">Уже было</span>
+<span class="q">Буква:</span> <span class="inp">к</span>
+к о _ _ _ _ жизни: 5
+<span class="q">Буква:</span> <span class="inp">т</span>
+к о _ т _ _ жизни: 5
+<span class="q">Буква:</span> <span class="inp">е ж р</span>
+<span class="ok">Победа! Слово было: кортеж</span>
+{'победы': 1, 'поражения': 0}
+<span class="q">Ещё? д/н:</span> <span class="inp">д</span></div>
+  </section>
+
+  <!-- SLIDE 13: Фразы преподавателя -->
+  <section class="slide" data-notes="Десять ключевых фраз из методички. Эти фразы — не украшение, это способ зашить концепции в голову. Ребёнок запоминает не определения, а фразы. 'Слова — кортеж, потому что список слов не должен меняться' — это не правило, это история. Использовать фразы по 2-3 за урок, повторять на следующих. Это якоря памяти.">
+    <div class="badge badge--purple"><span class="dot"></span>10 ключевых фраз · методичка</div>
+    <h2>Говорим <span class="grad">так</span></h2>
+    <div class="grid grid-2 mt-20" style="font-size: 16px;">
+      <div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px;">«Это капстоун отдела — проверка, что ты ВСЁ понял.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px;">«Сначала план на бумаге, потом код. Всегда.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px;">«Слова — кортеж, потому что список слов не должен меняться во время игры.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px;">«Угаданные буквы — множество, чтобы нельзя было засчитать одну дважды.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px;">«Статистика — словарь: победы → число, поражения → число.»</div>
+      </div>
+      <div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px; border-color: var(--cyan);">«<code>random.choice(words)</code> вернёт одно случайное слово.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px; border-color: var(--cyan);">«Если игрок уже вводил букву — скажи ему, не наказывай жизнью.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px; border-color: var(--cyan);">«<code>while lives &gt; 0 and '_' in displayed</code> — элегантное завершение.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; margin-bottom:10px; border-color: var(--cyan);">«Повесил? Покажи слово целиком, пусть ребёнок увидит, что ему загадали.»</div>
+        <div class="quote" style="font-size:16px; padding:12px 16px; border-color: var(--cyan);">«В конце обязательно спроси — ещё раз? И обновляй словарь статистики.»</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 14: Сложности -->
+  <section class="slide" data-notes="Пять типичных ловушек. Каждую надо увидеть ВЖИВУЮ — не в теории. Забыл .lower() — ввёл 'А', слово 'а' — жизнь потерял ни за что. Разбираем. Не учитывает повтор — жизни тратятся зря, чиним через `if letter in guessed`. random.choice на одном элементе работает — это не баг. Множество и список путать не надо: в множестве дубликатов нет. Бесконечный цикл — Ctrl+C и разбор.">
+    <div class="badge badge--yellow"><span class="dot"></span>Типичные ловушки</div>
+    <h2>Что пойдёт <span class="grad">не так</span> — и как чинить</h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div class="warn">
+        <div class="i">⚠️</div>
+        <div>
+          <div class="t">Забыл <code>.lower()</code></div>
+          <div class="d">Ввёл «А», слово — «а». Лишняя жизнь в минус. Лечится одной цепочкой: <code>.lower().strip()</code>.</div>
+        </div>
+      </div>
+      <div class="warn">
+        <div class="i">⚠️</div>
+        <div>
+          <div class="t">Не учитывает повтор буквы</div>
+          <div class="d">Тратит жизни зря на одну и ту же. Чиним: <code>if letter in guessed: continue</code>.</div>
+        </div>
+      </div>
+      <div class="warn">
+        <div class="i">⚠️</div>
+        <div>
+          <div class="t">Боится <code>random.choice</code> на одном элементе</div>
+          <div class="d">Работает штатно. Успокаиваем — покажи и запусти прямо на одном слове.</div>
+        </div>
+      </div>
+      <div class="warn">
+        <div class="i">⚠️</div>
+        <div>
+          <div class="t">Путает множество и список</div>
+          <div class="d">Напоминаем: дубликаты нам не нужны — значит множество.</div>
+        </div>
+      </div>
+      <div class="warn" style="grid-column: 1 / -1;">
+        <div class="i">⚠️</div>
+        <div>
+          <div class="t">Бесконечный цикл без <code>break</code></div>
+          <div class="d"><kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">C</kbd> — спокойно останавливаем. Разбираем, какое условие забыто.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: ИИ помогает -->
+  <section class="slide" data-notes="Минута 45-55. Играем, ловим баг — зовём ИИ. Важно: ребёнок сам пишет промпт, не учитель. Два сценария — объясни баг (вставляем traceback) и напиши красивую функцию вывода ASCII-виселицы 7 стадий. ИИ — НЕ пишет код за ребёнка, а помогает понять. Это принцип всего курса.">
+    <div class="badge badge--pink"><span class="dot"></span>ИИ как помощник · 45–55 мин</div>
+    <h2>Где зовём <span class="grad">YandexGPT</span></h2>
+    <div class="grid grid-3 mt-20">
+      <div class="card card--purple">
+        <div class="ico">🐞</div>
+        <h3>1 · Объяснить баг</h3>
+        <p class="muted" style="font-size:15px;">Вставляем traceback, просим: «Объясни ошибку простым языком, не переписывай код».</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🎨</div>
+        <h3>2 · ASCII-арт виселицы</h3>
+        <p class="muted" style="font-size:15px;">«Напиши функцию вывода виселицы ASCII-артом, 7 стадий по количеству жизней».</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">📝</div>
+        <h3>3 · Темы слов для ДЗ</h3>
+        <p class="muted" style="font-size:15px;">«Дай 20 слов по темам: животные, города, еда. Только существительные.»</p>
+      </div>
+    </div>
+    <div class="quote mt-30">«ИИ объясняет и предлагает — но печатает код всегда сам ребёнок. Это принцип.»</div>
+  </section>
+
+  <!-- SLIDE 16: ASCII бонус -->
+  <section class="slide" data-notes="Бонус-часть. Если остаётся время — просим ИИ сгенерировать ASCII-виселицу. 7 стадий: от пустой виселицы до повешенного человечка. Показываем, как индекс жизни мапится в строку массива: stages[6 - lives]. Ребёнок видит, что красивый UI — это не магия, это просто список строк и индекс.">
+    <div class="badge badge--yellow"><span class="dot"></span>Бонус · ASCII-виселица</div>
+    <h2>7 стадий — <span class="grad">одним списком</span></h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div>
+        <p>Индекс стадии — количество <b>потерянных</b> жизней: <code>6 − lives</code>.</p>
+        <p class="mt-20">Смотрим: каждая стадия — просто строка в списке. Код ничего не рисует — он выбирает готовую картинку из коллекции.</p>
+        <ul class="check-list mt-20">
+          <li>7 стадий = 7 строк в списке</li>
+          <li>Индекс = потерянные жизни</li>
+          <li>Генерирует ИИ — вставляем готовое</li>
+        </ul>
+      </div>
+      <div class="ascii">  _______
+  |     |
+  |     O
+  |    /|\
+  |    / \
+  |
+  | жизни: 0</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Мини-проект -->
+  <section class="slide" data-notes="Итоговая проверка. Файл hangman.py, 70-100 строк. Игра запускается, не падает на повторной букве, корректно завершается, статистика копится. Критерии — из методички, проверяем ВСЕ четыре. Если хоть один не выполнен — доделываем на месте, без домашнего задания.">
+    <div class="badge badge--green"><span class="dot"></span>Мини-проект · критерии успеха</div>
+    <h2>Что должен <span class="grad">уметь код</span></h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div class="card card--green">
+        <div class="ico">📄</div>
+        <h3>Файл <code>hangman.py</code></h3>
+        <p class="muted">~70–100 строк. Один файл. Запускается командой <code>python hangman.py</code>.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🚀</div>
+        <h3>Запускается и не падает</h3>
+        <p class="muted">Особенно на повторных буквах и пустом вводе. Валидация — обязательна.</p>
+      </div>
+      <div class="card card--purple">
+        <div class="ico">🏁</div>
+        <h3>Корректно завершается</h3>
+        <p class="muted">Победа — когда всё угадано. Поражение — когда жизни кончились. Слово показывается в обоих случаях.</p>
+      </div>
+      <div class="card card--yellow">
+        <div class="ico">📊</div>
+        <h3>Статистика копится</h3>
+        <p class="muted">Словарь <code>stats</code> обновляется после каждой игры. Выводится между раундами.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: Защита проекта -->
+  <section class="slide" data-notes="Последние 5 минут урока. Финал недели 7 = защита. Ребёнок 2 минуты рассказывает: что делает игра, какие структуры использовал, что было сложно, что улучшит. ИИ помогает СОБРАТЬ презентацию, но говорит ребёнок САМ. Промпт — в слайде. Пусть зачитает вслух, скопирует в Алису, получит 5 слайдов — и защитит.">
+    <div class="badge badge--pink"><span class="dot"></span>55–60 мин · защита через ИИ</div>
+    <h2>Финальные <span class="grad">2 минуты</span></h2>
+    <div class="two-col grid gap-20 mt-20">
+      <div>
+        <h3>Что рассказываем</h3>
+        <ol class="num-list mt-20">
+          <li>Что делает игра</li>
+          <li>Демо — играем вживую</li>
+          <li>Какие структуры использовал (кортеж / множество / словарь)</li>
+          <li>Самая сложная часть</li>
+          <li>Что улучшу дальше</li>
+        </ol>
+      </div>
+      <div>
+        <h3>Промпт для Алисы</h3>
+        <div class="code-window mt-20">
+          <div class="code-window__bar">промпт.txt</div>
+<pre style="margin:0; padding: 16px 18px; color: #E6E8EC; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.55; white-space: pre-wrap;">Я школьник, написал игру
+«Виселица» на Python.
+Помоги составить презентацию
+из 5 слайдов:
+1 — что делает,
+2 — демо,
+3 — структуры данных
+   (кортеж/множество/словарь),
+4 — самая сложная часть,
+5 — что улучшу.
+Пиши простым языком.</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 19: Домашнее задание -->
+  <section class="slide" data-notes="Домашнее задание. Меньше 20 минут работы. Добавить темы слов. Словарь, где ключ — тема, значение — кортеж слов. Игрок сначала выбирает тему, потом играет. YandexGPT генерирует 20 слов на каждую тему — это единственная задача для ИИ. Это плавный мостик к следующему модулю про классы: ребёнок уже работает с вложенными структурами данных.">
+    <div class="badge badge--purple"><span class="dot"></span>Домашка · ≤ 20 мин</div>
+    <h2>ДЗ: <span class="grad">темы слов</span></h2>
+    <div class="two-col--code grid gap-20 mt-20">
+      <div>
+        <p>Расширяем игру: теперь слово выбирается <b>не из одного кортежа</b>, а по теме.</p>
+        <ul class="check-list mt-20">
+          <li>Словарь <code>THEMES</code>: ключ — тема, значение — кортеж слов</li>
+          <li>Игрок вводит название темы</li>
+          <li>Случайное слово берётся из <code>THEMES[theme]</code></li>
+          <li>Попросить у YandexGPT по <b>20 слов</b> на тему</li>
+        </ul>
+        <div class="warn mt-30">
+          <div class="i">🎯</div>
+          <div>
+            <div class="t">Цель ДЗ</div>
+            <div class="d">Поработать с <b>вложенной</b> коллекцией — словарь с кортежами внутри.</div>
+          </div>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>hangman_themes.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">THEMES = {
+    "животные": ("тигр", "заяц",
+                 "кит", "ёж"),
+    "города": ("москва", "париж",
+               "токио", "лима"),
+    "еда": ("пицца", "суши",
+            "борщ", "манго"),
+}
+
+theme = input("Тема: ").lower()
+words = THEMES[theme]
+secret = random.choice(words)</div><div class="compiler-output"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 20: Итог -->
+  <section class="slide" data-notes="Итог урока в 3 пунктах. Первый — ребёнок собрал работающий продукт из всех недельных кирпичиков. Второй — научился выбирать структуры данных осознанно, а не наугад. Третий — впервые использовал ИИ как соавтора презентации, не кодера. Это ГЛАВНОЕ, что он должен унести: структуры = архитектура; ИИ = партнёр.">
+    <div class="badge badge--green"><span class="dot"></span>Итог урока</div>
+    <h2>Что ребёнок <span class="grad">унесёт</span></h2>
+    <div class="grid grid-3 mt-20">
+      <div class="card card--purple">
+        <div class="ico">🏗</div>
+        <h3>Продукт собран</h3>
+        <p class="muted">~30 строк кода, 3 структуры, 1 функция + главный цикл. Работает.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🧠</div>
+        <h3>Структуры — осознанно</h3>
+        <p class="muted">Выбирает кортеж / множество / словарь не наугад, а по назначению.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🤝</div>
+        <h3>ИИ — партнёр</h3>
+        <p class="muted">Не заменяет, а помогает: объясняет баги, собирает защиту, даёт слова.</p>
+      </div>
+    </div>
+    <div class="quote mt-30">«Неделя 7 закрыта. Структуры данных — освоены. Дальше — классы и объекты.»</div>
+  </section>
+
+  <!-- SLIDE 21: Мостик к 29 -->
+  <section class="slide" data-notes="Мостик к следующему уроку. На уроке 29 начинается отдел 'Классы' — объектно-ориентированное программирование. Говорим: 'Ты хранил героя в словаре — а теперь будешь в классе. И у класса ещё и методы появятся'. Виселица сегодня = финал эпохи словарей. Следующий раз — новая эпоха. Интрига.">
+    <div class="badge badge--yellow"><span class="dot"></span>Что дальше</div>
+    <h2>Мостик к <span class="grad">уроку 29</span></h2>
+    <div class="two-col grid gap-20 mt-20">
+      <div class="card card--purple">
+        <div class="ico">🏛</div>
+        <h3>Отдел «Классы» · неделя 8</h3>
+        <p class="muted mt-20">Начинаем объектно-ориентированное программирование. <b>Класс — чертёж, объект — здание.</b></p>
+        <ul class="check-list mt-20" style="font-size:16px;">
+          <li><code>class Dog:</code> — первый класс</li>
+          <li><code>self</code> — «я сам»</li>
+          <li>Атрибуты + методы вместе</li>
+          <li>Много объектов из одного класса</li>
+        </ul>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🌉</div>
+        <h3>Переход логичный</h3>
+        <p class="muted mt-20">Сегодня хранили персонажа в словаре. В уроке 29 начнём хранить — в классе. И у класса появятся <b>методы</b>.</p>
+        <div class="quote mt-30" style="font-size:17px;">«Словари — хорошо, классы — ещё лучше, когда у вещи есть действия.»</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 22: Финал -->
+  <section class="slide final-center" data-notes="Финал. Капстоун отдела 'Проектирование структур' — закрыт. Ребёнок собрал рабочую игру, защитил её через ИИ, понял разницу между кортежем, множеством и словарём на уровне интуиции. Бейдж 'Архитектор данных' — заслужен. Фото результата, скрин родителям, следующий модуль — классы. Урок окончен.">
+    <div class="hero-eyebrow">УРОК 28 · ЗАВЕРШЁН · БЕЙДЖ «АРХИТЕКТОР ДАННЫХ»</div>
+    <h1><span class="grad">Архитектор<br/>данных</span></h1>
+    <p class="big muted" style="max-width: 720px;">Ты собрал Виселицу из кортежа, множества и словаря. Написал главный цикл сам. Защитил проект через ИИ. Неделя 7 — твоя.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">🏅 Бейдж получен</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">📬 Скриншот родителям</div>
+      <div class="step">🚀 Неделя 8 → классы</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter"><b id="currentSlide">1</b> / <span id="totalSlides">22</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+
+<div class="notes-panel" id="notesPanel">
+  <h4>Speaker notes · нажми <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 11px;">N</kbd> чтобы скрыть</h4>
+  <div id="notesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const currentEl = document.getElementById('currentSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progressEl = document.getElementById('progress');
+  const notesPanel = document.getElementById('notesPanel');
+  const notesContent = document.getElementById('notesContent');
+
+  totalEl.textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    currentEl.textContent = idx + 1;
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    const notes = slides[idx].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+    slides[idx].scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      e.preventDefault(); notesPanel.classList.toggle('open');
+    }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  let touchStartX = null;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { show(idx + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>

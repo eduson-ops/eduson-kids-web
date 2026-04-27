@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Урок 29 — Что такое ООП, класс и объект</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: #0B0F17;
+    color: #E6E8EC;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  :root {
+    --bg: #0B0F17;
+    --bg-2: #0F1523;
+    --purple: #7C3AED;
+    --cyan: #06B6D4;
+    --pink: #EC4899;
+    --yellow: #F5C518;
+    --green: #10B981;
+    --text: #E6E8EC;
+    --muted: #8B93A7;
+    --border: rgba(255,255,255,0.09);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+  .progress__fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 18px rgba(124,58,237,0.55);
+    transition: width .45s cubic-bezier(.2,.8,.2,1);
+  }
+
+  /* Slide counter */
+  .counter {
+    position: fixed;
+    bottom: 20px; right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .counter b { color: var(--text); }
+
+  .hint {
+    position: fixed;
+    bottom: 20px; left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  .hint kbd {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin: 0 2px;
+  }
+
+  /* Deck */
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 64px 80px 90px;
+    display: none;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    overflow: auto;
+  }
+  .slide.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Background glow orbs */
+  .slide::before, .slide::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .slide::before {
+    width: 520px; height: 520px;
+    background: radial-gradient(circle, #7C3AED, transparent 70%);
+    top: -150px; left: -140px;
+  }
+  .slide::after {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, #06B6D4, transparent 70%);
+    bottom: -160px; right: -120px;
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* Shared elements */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    width: fit-content;
+  }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+  }
+  .badge--purple { color: #C4B5FD; }
+  .badge--purple .dot { background: #A78BFA; box-shadow: 0 0 10px #A78BFA; }
+  .badge--pink { color: #F9A8D4; }
+  .badge--pink .dot { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .badge--yellow { color: #FDE68A; }
+  .badge--yellow .dot { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+  .badge--green { color: #86EFAC; }
+  .badge--green .dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
+
+  h1 {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin: 16px 0;
+  }
+  h1 .grad {
+    background: linear-gradient(135deg, #7C3AED 0%, #06B6D4 60%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h2 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 22px;
+  }
+  h2 .grad {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  p, li { font-size: 19px; line-height: 1.55; color: #CBD1DE; }
+  .muted { color: var(--muted); }
+  .big { font-size: 24px; }
+
+  /* Title slide */
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide .meta {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  .title-slide .subtitle {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 820px;
+    margin-top: 8px;
+  }
+  .title-slide .foot {
+    display: flex; gap: 32px; margin-top: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .title-slide .foot b { color: var(--text); }
+
+  /* Grid / cards */
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background: var(--glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 22px 24px;
+    transition: transform .25s ease, border-color .25s ease;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.45); transform: translateY(-3px); }
+  .card .ico {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.25));
+    border: 1px solid var(--border);
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+  .card--purple { background: linear-gradient(135deg, rgba(124,58,237,0.16), rgba(124,58,237,0.03)); border-color: rgba(124,58,237,0.35); }
+  .card--cyan { background: linear-gradient(135deg, rgba(6,182,212,0.16), rgba(6,182,212,0.03)); border-color: rgba(6,182,212,0.35); }
+  .card--pink { background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(236,72,153,0.03)); border-color: rgba(236,72,153,0.35); }
+  .card--yellow { background: linear-gradient(135deg, rgba(245,197,24,0.14), rgba(245,197,24,0.03)); border-color: rgba(245,197,24,0.35); }
+  .card--green { background: linear-gradient(135deg, rgba(16,185,129,0.16), rgba(16,185,129,0.03)); border-color: rgba(16,185,129,0.35); }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li {
+    padding: 10px 0 10px 34px;
+    position: relative;
+    border-bottom: 1px dashed var(--border);
+  }
+  .check-list li:last-child { border-bottom: 0; }
+  .check-list li::before {
+    content: '✓';
+    position: absolute; left: 0; top: 10px;
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    color: white;
+    font-size: 13px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+
+  .num-list { list-style: none; padding: 0; counter-reset: step; }
+  .num-list li {
+    padding: 12px 0 12px 52px;
+    position: relative;
+    counter-increment: step;
+  }
+  .num-list li::before {
+    content: counter(step);
+    position: absolute; left: 0; top: 8px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    display: grid; place-items: center;
+  }
+
+  /* Code */
+  pre[class*="language-"] {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: #0A0E18 !important;
+    font-size: 15px;
+    padding: 18px 22px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  :not(pre) > code {
+    background: rgba(6,182,212,0.12);
+    border: 1px solid rgba(6,182,212,0.25);
+    color: #A5F3FC;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.88em;
+  }
+  .code-window {
+    background: #0A0E18;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .code-window__bar {
+    background: rgba(255,255,255,0.04);
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-window__bar .dots { display: flex; gap: 6px; margin-right: 10px; }
+  .code-window__bar .dots span {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #3b3f4a;
+  }
+  .code-window__bar .dots span:nth-child(1) { background: #ff5f56; }
+  .code-window__bar .dots span:nth-child(2) { background: #ffbd2e; }
+  .code-window__bar .dots span:nth-child(3) { background: #27c93f; }
+  .code-window pre[class*="language-"] {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .kbd {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.85em;
+  }
+
+  .tag {
+    display: inline-block;
+    background: rgba(6,182,212,0.12);
+    color: #67E8F9;
+    border: 1px solid rgba(6,182,212,0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 2px;
+  }
+  .tag--purple { background: rgba(124,58,237,0.16); color: #C4B5FD; border-color: rgba(124,58,237,0.35); }
+  .tag--pink { background: rgba(236,72,153,0.16); color: #F9A8D4; border-color: rgba(236,72,153,0.35); }
+  .tag--yellow { background: rgba(245,197,24,0.16); color: #FDE68A; border-color: rgba(245,197,24,0.35); }
+  .tag--green { background: rgba(16,185,129,0.16); color: #86EFAC; border-color: rgba(16,185,129,0.35); }
+
+  .hero-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+
+  .plan-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-row:last-child { border-bottom: 0; }
+  .plan-row .tm {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 15px;
+    padding-top: 2px;
+  }
+  .plan-row .tl { font-weight: 600; margin-bottom: 4px; font-size: 18px; }
+  .plan-row .dc { color: var(--muted); font-size: 15px; line-height: 1.5; }
+
+  .quote {
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding: 18px 24px;
+    border-left: 3px solid var(--purple);
+    background: var(--glass);
+    border-radius: 0 16px 16px 0;
+    color: #E6E8EC;
+  }
+  .quote small {
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .warn {
+    background: linear-gradient(135deg, rgba(245,197,24,0.12), rgba(245,197,24,0.02));
+    border: 1px solid rgba(245,197,24,0.3);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex; gap: 14px;
+    align-items: flex-start;
+  }
+  .warn .i { font-size: 22px; color: var(--yellow); }
+  .warn .t { color: #FDE68A; font-weight: 600; margin-bottom: 3px; }
+  .warn .d { color: #CBD1DE; font-size: 15px; }
+
+  .kw { color: var(--cyan); font-weight: 600; }
+  .kw--purple { color: #C4B5FD; }
+  .kw--pink { color: #F9A8D4; }
+  .kw--yellow { color: var(--yellow); }
+  .kw--green { color: #86EFAC; }
+
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow .step {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .flow .arr {
+    color: var(--cyan);
+    font-size: 22px;
+  }
+
+  .final-center { align-items: center; justify-content: center; text-align: center; }
+  .final-center h1 { font-size: 84px; }
+
+  /* Speaker notes */
+  .notes { display: none; }
+  .notes-panel {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,23,0.97);
+    border-top: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    padding: 18px 40px;
+    max-height: 40vh;
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform .4s ease;
+    z-index: 50;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #CBD1DE;
+  }
+  .notes-panel.open { transform: translateY(0); }
+  .notes-panel h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 10px;
+  }
+
+  .title-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; }
+  .two-col--code { grid-template-columns: 1fr 1.1fr; }
+
+  .center { text-align: center; }
+  .gap-12 { gap: 12px; }
+  .gap-20 { gap: 20px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-30 { margin-top: 30px; }
+
+  /* Blueprint / metaphor */
+  .blueprint {
+    background:
+      linear-gradient(rgba(6,182,212,0.06) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, rgba(6,182,212,0.06) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(135deg, rgba(6,182,212,0.08), rgba(124,58,237,0.08));
+    border: 1px dashed rgba(6,182,212,0.4);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    color: #A5F3FC;
+  }
+  .blueprint .big-icon { font-size: 70px; display: block; margin-bottom: 10px; }
+  .blueprint .lbl { font-size: 13px; letter-spacing: 0.2em; color: var(--muted); margin-bottom: 4px; }
+
+  .house-card {
+    background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(236,72,153,0.08));
+    border: 1px solid rgba(124,58,237,0.4);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+  }
+  .house-card .big-icon { font-size: 70px; display: block; margin-bottom: 10px; }
+  .house-card .lbl { font-size: 13px; letter-spacing: 0.2em; color: var(--muted); margin-bottom: 4px; }
+
+  .big-arrow {
+    font-size: 36px; color: var(--cyan);
+    display: grid; place-items: center;
+  }
+
+  .dog-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+  .dog-card .emo { font-size: 36px; margin-bottom: 6px; }
+  .dog-card .nm { font-weight: 700; color: var(--text); }
+  .dog-card .at { color: var(--muted); font-size: 13px; font-family: 'JetBrains Mono', monospace; }
+
+  /* small screens */
+  @media (max-width: 1100px) {
+    .slide { padding: 40px 40px 90px; }
+    h1 { font-size: 48px; }
+    h2 { font-size: 32px; }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+<style>
+/* ===== Interactive compiler (ChildCode) ===== */
+.compiler {
+  background: linear-gradient(180deg, rgba(10,13,19,1) 0%, rgba(15,20,34,1) 100%);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 12px;
+  margin: 18px 0;
+  overflow: hidden;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 13px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(124, 58, 237, 0.1);
+}
+.compiler-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(124, 58, 237, 0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.compiler-header .lang-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #c4b5fd; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.compiler-header .lang-badge::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 8px rgba(16,185,129,0.6);
+}
+.compiler-header .compiler-actions {
+  display: flex; gap: 6px;
+}
+.compiler-editor {
+  padding: 14px 18px;
+  color: #E2E8F0;
+  max-height: 340px;
+  overflow: auto;
+  outline: none;
+  white-space: pre;
+  tab-size: 4;
+  line-height: 1.55;
+}
+.compiler-editor[contenteditable="true"]:focus {
+  background: rgba(124, 58, 237, 0.03);
+}
+.compiler-btn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+}
+.compiler-btn.run {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+}
+.compiler-btn.run:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.3);
+}
+.compiler-btn.reset {
+  background: rgba(255,255,255,0.08);
+  color: #94A3B8;
+}
+.compiler-btn.reset:hover {
+  background: rgba(255,255,255,0.14);
+  color: #E2E8F0;
+}
+.compiler-output {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 18px;
+  background: #050810;
+  color: #86efac;
+  font-size: 12.5px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.compiler-output.show { display: block; }
+.compiler-output.error { color: #fca5a5; }
+.compiler-output.html-preview {
+  background: #fff; color: #111; font-family: 'Inter', sans-serif;
+  padding: 0; min-height: 140px; overflow: hidden;
+}
+.compiler-output.html-preview iframe {
+  border: 0; width: 100%; height: 260px; background: #fff;
+}
+.compiler-output.md-preview {
+  background: #0a0d13; color: #E2E8F0; font-family: 'Inter', sans-serif;
+}
+.compiler-output.md-preview h1,
+.compiler-output.md-preview h2,
+.compiler-output.md-preview h3 { color: #a78bfa; margin: 10px 0 6px; }
+.compiler-output.md-preview code { background: rgba(124,58,237,0.15); color: #c4b5fd; padding: 1px 5px; border-radius: 3px; }
+.compiler-output.md-preview pre { background: #050810; padding: 8px; border-radius: 5px; }
+.compiler-output.md-preview a { color: #22d3ee; }
+.compiler-loading {
+  display: inline-block;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #fde047; margin-right: 8px;
+  animation: pulse 0.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+/* Read-only блоки кода (не-runnable языки) */
+.code-readonly {
+  position: relative;
+}
+.code-readonly .lang-tag {
+  position: absolute; top: 8px; right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: #64748b;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+/* Scrollbar */
+.compiler-editor::-webkit-scrollbar,
+.compiler-output::-webkit-scrollbar { width: 8px; height: 8px; }
+.compiler-editor::-webkit-scrollbar-thumb,
+.compiler-output::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 4px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+/* ===== ChildCode Runtime: compilers logic ===== */
+(function() {
+  function $(q, ctx) { return (ctx || document).querySelector(q); }
+  function $$(q, ctx) { return Array.from((ctx || document).querySelectorAll(q)); }
+
+  // === Python via Skulpt ===
+  function runPython(code, outEl, btnEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    if (typeof Sk === 'undefined') {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = '⚠ Skulpt ещё загружается... обнови страницу через секунду.';
+      return;
+    }
+    btnEl.disabled = true;
+    btnEl.textContent = '⏳ Выполняю...';
+    Sk.pre = null;
+    Sk.configure({
+      output: function(text) { outEl.textContent += text; },
+      read: function(file) {
+        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][file] === undefined) {
+          throw "Файл не найден: " + file;
+        }
+        return Sk.builtinFiles["files"][file];
+      },
+      inputfun: function(prompt) {
+        return new Promise(function(resolve) {
+          const ans = window.prompt(prompt || 'Введите:');
+          resolve(ans == null ? '' : ans);
+        });
+      },
+      inputfunTakesPrompt: true,
+      __future__: Sk.python3,
+      execLimit: 12000
+    });
+    try {
+      const p = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+      p.then(
+        function() {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          if (!outEl.textContent) outEl.textContent = '(код выполнен, вывода нет)';
+        },
+        function(err) {
+          btnEl.disabled = false;
+          btnEl.textContent = '▶ Запустить';
+          outEl.className = 'compiler-output show error';
+          outEl.textContent = err.toString ? err.toString() : String(err);
+        }
+      );
+    } catch (e) {
+      btnEl.disabled = false;
+      btnEl.textContent = '▶ Запустить';
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = e.toString();
+    }
+  }
+
+  // === JavaScript via sandboxed eval ===
+  function runJavaScript(code, outEl) {
+    outEl.textContent = '';
+    outEl.className = 'compiler-output show';
+    const logs = [];
+    const fakeConsole = {
+      log: function(...a)   { logs.push(a.map(formatArg).join(' ')); },
+      error: function(...a) { logs.push('Error: ' + a.map(formatArg).join(' ')); },
+      warn: function(...a)  { logs.push('Warn: ' + a.map(formatArg).join(' ')); },
+      info: function(...a)  { logs.push(a.map(formatArg).join(' ')); },
+    };
+    function formatArg(x) {
+      if (typeof x === 'object') {
+        try { return JSON.stringify(x); } catch(e) { return String(x); }
+      }
+      return String(x);
+    }
+    try {
+      const fn = new Function('console', '"use strict";\n' + code);
+      const result = fn(fakeConsole);
+      if (result !== undefined) logs.push('⇒ ' + formatArg(result));
+      outEl.textContent = logs.join('\n') || '(код выполнен, вывода нет)';
+    } catch (err) {
+      outEl.className = 'compiler-output show error';
+      outEl.textContent = (err && err.message ? err.message : String(err));
+    }
+  }
+
+  // === HTML preview via iframe ===
+  function runHtml(code, outEl) {
+    outEl.className = 'compiler-output show html-preview';
+    outEl.innerHTML = '';
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('sandbox', 'allow-scripts');
+    iframe.srcdoc = code;
+    outEl.appendChild(iframe);
+  }
+
+  // === Markdown preview via marked ===
+  function runMarkdown(code, outEl) {
+    outEl.className = 'compiler-output show md-preview';
+    if (typeof marked === 'undefined') {
+      outEl.textContent = '⚠ marked.js ещё не загрузился';
+      return;
+    }
+    outEl.innerHTML = marked.parse(code);
+  }
+
+  // === Wire up all compilers ===
+  function init() {
+    $$('.compiler').forEach(function(wrap) {
+      const lang = wrap.getAttribute('data-lang');
+      const editor = $('.compiler-editor', wrap);
+      const out = $('.compiler-output', wrap);
+      const runBtn = $('.compiler-btn.run', wrap);
+      const resetBtn = $('.compiler-btn.reset', wrap);
+      if (!editor || !runBtn || !out) return;
+      const originalCode = editor.textContent;
+      runBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const code = editor.textContent;
+        if (lang === 'python')          runPython(code, out, runBtn);
+        else if (lang === 'javascript') runJavaScript(code, out);
+        else if (lang === 'html')       runHtml(code, out);
+        else if (lang === 'markdown')   runMarkdown(code, out);
+      });
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          editor.textContent = originalCode;
+          out.className = 'compiler-output';
+          out.textContent = '';
+        });
+      }
+      // Prevent keyboard shortcuts of slides hijacking typing
+      editor.addEventListener('keydown', function(e) {
+        e.stopPropagation();
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+      // Не пролистывать слайд при клике в редактор
+      editor.addEventListener('click', function(e) { e.stopPropagation(); });
+      editor.addEventListener('mousedown', function(e) { e.stopPropagation(); });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</head>
+<body>
+
+<div class="progress"><div class="progress__fill" id="progress"></div></div>
+
+<div class="deck" id="deck">
+
+  <!-- SLIDE 1: Title -->
+  <section class="slide title-slide active" data-notes="Добро пожаловать в модуль 7 — отдел Классы. Сегодня мы впервые коснёмся самой «взрослой» концепции программирования — ООП. Это то, на чём написаны игры, сайты, приложения. Но не бойся сложных слов — мы пойдём через метафору «чертёж и дом». К концу урока ты напишешь свой первый класс Dog и будешь уметь различать класс и объект на слух. Это большой шаг — от функций к архитектуре.">
+    <div class="title-num">УРОК 29 · МОДУЛЬ 7 · 60 МИНУТ</div>
+    <div class="meta">
+      <div class="badge badge--purple"><span class="dot"></span>Отдел: Классы</div>
+      <div class="badge badge--pink"><span class="dot"></span>8–14 лет</div>
+      <div class="badge badge--yellow"><span class="dot"></span>Неделя 8 · старт ООП</div>
+    </div>
+    <h1>
+      <span class="grad">ООП, класс<br/>и объект</span>
+      <br/>— чертёж и дом
+    </h1>
+    <p class="subtitle">Самая «взрослая» концепция курса через детскую метафору. Пишем первый класс <code>Dog</code>, создаём объекты, разбираемся с <code>self</code> и <code>__init__</code>. Путь к Тамагочи начинается.</p>
+    <div class="foot">
+      <div><b>Python</b> 3.11+</div>
+      <div><b>GigaIDE</b> / Colab</div>
+      <div><b>YandexGPT</b> — объясняет <code>self</code></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: Зачем ООП -->
+  <section class="slide" data-notes="Провокация: «Зачем ООП, если есть функции?» Честный ответ: в маленькой программе — ни за чем. В игре из 1000 строк — всё. Объект хранит и данные и действия в одной коробке. Герой не отдельно 'здоровье' и отдельно 'функция ударить' — это один объект hero с атрибутами и методами. Это и есть главное открытие урока.">
+    <div class="badge badge--cyan"><span class="dot"></span>Зачем это всё</div>
+    <h2>Почему <span class="grad">ООП</span> — это следующий уровень</h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div class="card card--purple">
+        <div class="ico">📦</div>
+        <h3>Данные + действия в одной коробке</h3>
+        <p class="muted">Раньше: словарь <code>dog = {"name": "Рекс"}</code> — отдельно, функция <code>bark(dog)</code> — отдельно. Теперь: один объект <code>rex</code> хранит имя и умеет <code>rex.bark()</code>.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🏗️</div>
+        <h3>Архитектура вместо каши</h3>
+        <p class="muted">Без ООП программа из 1000 строк — каша. С ООП — аккуратный шкаф: у каждого объекта свой ящик со своими свойствами и кнопками.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">♻️</div>
+        <h3>Написал один раз — делай много</h3>
+        <p class="muted">Один класс <code>Dog</code> — хоть 100 собак. Каждая со своим именем, но все умеют одно и то же.</p>
+      </div>
+      <div class="card card--yellow">
+        <div class="ico">🎮</div>
+        <h3>Так устроены игры</h3>
+        <p class="muted">Minecraft, Roblox, любой шутер — каждый NPC, предмет, блок — это объект класса. Скоро напишешь свой Тамагочи.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: Метафора чертёж + дом -->
+  <section class="slide" data-notes="Главная метафора всего модуля. Обведи её трижды разными словами. Чертёж — один, домов — много. У всех домов один «скелет», но цвет разный, этажность разная, жильцы разные. Класс — чертёж. Объект — конкретный дом. Никакое другое объяснение на этом уроке не важнее этого. Если застрянет — возвращайся сюда.">
+    <div class="badge badge--purple"><span class="dot"></span>Главная метафора урока</div>
+    <h2>Класс — <span class="grad">чертёж</span>. Объект — <span class="grad">дом</span>.</h2>
+    <div class="grid mt-20" style="grid-template-columns: 1fr 80px 1.3fr; align-items: center; gap: 20px;">
+      <div class="blueprint">
+        <span class="big-icon">📐</span>
+        <div class="lbl">class</div>
+        <div style="font-size:26px; color:#E6E8EC; font-weight:700;">Dog</div>
+        <div class="muted" style="font-size:14px; margin-top:6px;">что у всех собак ЕСТЬ<br/>и что они УМЕЮТ</div>
+      </div>
+      <div class="big-arrow">→</div>
+      <div class="grid grid-3 gap-12">
+        <div class="house-card"><span class="big-icon">🐕</span><div class="lbl">object #1</div><b>Рекс, 3 года</b></div>
+        <div class="house-card"><span class="big-icon">🐶</span><div class="lbl">object #2</div><b>Бим, 1 год</b></div>
+        <div class="house-card"><span class="big-icon">🦮</span><div class="lbl">object #3</div><b>Лайка, 5 лет</b></div>
+      </div>
+    </div>
+    <p class="big mt-30 center">По <b class="kw">одному чертежу</b> можно построить <b class="kw--pink">много домов</b>. По <b class="kw">одному классу</b> — <b class="kw--pink">много объектов</b>.</p>
+  </section>
+
+  <!-- SLIDE 4: До и после -->
+  <section class="slide" data-notes="До ООП мы хранили героя в словаре — это ок, но когда появляются действия, словарь перестаёт хватать. Показываем рядом: слева словарь + отдельная функция, справа — класс, где всё вместе. Это «момент прозрения» для ребёнка. Дайте время сравнить.">
+    <div class="badge badge--cyan"><span class="dot"></span>До и после</div>
+    <h2>Словарь vs <span class="grad">класс</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <h3 class="muted" style="font-size:14px; letter-spacing:0.1em; font-family:'JetBrains Mono',monospace;">РАНЬШЕ · СЛОВАРЬ</h3>
+        <div class="code-window mt-20">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>hero_dict.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">hero = {
+    "name": "Рекс",
+    "age": 3
+}
+
+def bark(dog):
+    print(f"{dog['name']} говорит: Гав!")
+
+bark(hero)</div><div class="compiler-output"></div></div>
+        </div>
+        <p class="muted mt-20">Данные — в словаре. Действие — в функции. Надо передавать героя в каждую функцию руками.</p>
+      </div>
+      <div>
+        <h3 class="muted" style="font-size:14px; letter-spacing:0.1em; font-family:'JetBrains Mono',monospace; color:#A78BFA;">ТЕПЕРЬ · КЛАСС</h3>
+        <div class="code-window mt-20">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>hero_class.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Dog:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    def bark(self):
+        print(f"{self.name} говорит: Гав!")
+
+rex = Dog("Рекс", 3)
+rex.bark()</div><div class="compiler-output"></div></div>
+        </div>
+        <p class="muted mt-20">Данные и действие — <b style="color:#C4B5FD;">в одной коробке</b>. Герой сам знает, как лаять.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: Поминутный план -->
+  <section class="slide" data-notes="Карта урока на 60 минут. Сверяемся глазами — где мы сейчас. Важно держать темп: теория всего 10 минут, совместный код — 10, 20 минут — сам. Это самый «кодерский» урок модуля 7, много набивать руками.">
+    <div class="badge"><span class="dot"></span>План на 60 минут</div>
+    <h2>Как мы <span class="grad">проведём время</span></h2>
+    <div class="mt-20">
+      <div class="plan-row">
+        <div class="tm">0–5</div>
+        <div><div class="tl">Разбор ДЗ «Виселица» · демо <code>class Dog</code></div>
+        <div class="dc">Две собаки, у каждой своё имя и голос — интригуем.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">5–15</div>
+        <div><div class="tl">Метафора «чертёж и дом»</div>
+        <div class="dc">Класс — чертёж, объект — конкретный дом. Сравнение со словарём.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">15–25</div>
+        <div><div class="tl">Совместный кодинг · первый класс</div>
+        <div class="dc">Пишем <code>Dog</code>, объясняем <code>self</code> и <code>__init__</code>.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">25–45</div>
+        <div><div class="tl">Самостоятельная задача · класс <code>Student</code></div>
+        <div class="dc">Имя, класс, оценки. Методы <code>average()</code> и <code>introduce()</code>.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">45–55</div>
+        <div><div class="tl">Разбор · YandexGPT объясняет <code>self</code></div>
+        <div class="dc">Разница класс/объект повторяется трижды разными словами.</div></div>
+      </div>
+      <div class="plan-row">
+        <div class="tm">55–60</div>
+        <div><div class="tl">Итог + ДЗ «Книга в библиотеке»</div>
+        <div class="dc">3 пункта: чертёж · конкретная вещь · «я».</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: Результаты урока -->
+  <section class="slide" data-notes="Что ребёнок УВЕЗЁТ с урока. Левая колонка — что понял головой, правая — что сможет сделать руками. Эта слайд — ориентир для родителей, его можно скринить.">
+    <div class="badge badge--green"><span class="dot"></span>Результаты</div>
+    <h2>Что ты <span class="grad">унесёшь</span> с урока</h2>
+    <div class="two-col mt-20">
+      <div>
+        <h3>🧠 Ты понимаешь</h3>
+        <ul class="check-list mt-20">
+          <li>Что такое ООП и зачем оно нужно</li>
+          <li>Класс — шаблон для объектов</li>
+          <li>Объект — экземпляр класса</li>
+          <li>У объекта есть <b>свойства</b> и <b>действия</b></li>
+          <li>Разницу между классом и объектом</li>
+        </ul>
+      </div>
+      <div>
+        <h3>🛠️ Ты можешь</h3>
+        <ul class="check-list mt-20">
+          <li>Создать простой класс</li>
+          <li>Создать объект класса</li>
+          <li>Задать значения атрибутам</li>
+          <li>Вызвать методы объекта</li>
+          <li>Смоделировать персонажа или вещь</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: Синтаксис class -->
+  <section class="slide" data-notes="Разбираем скелет класса по косточкам. Обязательно проговорить: имя класса — с большой буквы (PascalCase). Это не каприз — так принято везде в мире. Функция внутри класса называется метод. Первый параметр всегда self. Двойные подчёркивания у __init__ обязательны, иначе это просто метод init, а не конструктор.">
+    <div class="badge badge--purple"><span class="dot"></span>Синтаксис</div>
+    <h2>Скелет класса · <span class="grad">разбираем на части</span></h2>
+    <div class="two-col two-col--code mt-20">
+      <div>
+        <ul class="num-list">
+          <li><b><code>class Dog:</code></b><br/><span class="muted">Создаём чертёж. Имя — <b>с большой буквы</b>, PascalCase.</span></li>
+          <li><b><code>def __init__(self, ...)</code></b><br/><span class="muted">Конструктор — «момент рождения» объекта. Двойные подчёркивания — обязательны.</span></li>
+          <li><b><code>self.name = name</code></b><br/><span class="muted">Сохраняем атрибут внутри объекта.</span></li>
+          <li><b><code>def bark(self):</code></b><br/><span class="muted">Метод — действие объекта. <code>self</code> — первый параметр всегда.</span></li>
+          <li><b><code>rex = Dog("Рекс", 3)</code></b><br/><span class="muted">Создаём объект — вызываем класс как функцию.</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>dog.py · первый класс</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Dog:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def bark(self):
+        print(f"{self.name} говорит: Гав!")
+
+
+# Создаём объекты — два дома по чертежу
+rex = Dog("Рекс", 3)
+bim = Dog("Бим", 1)
+
+rex.bark()   # Рекс говорит: Гав!
+bim.bark()   # Бим говорит: Гав!</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: self объясняем -->
+  <section class="slide" data-notes="Самое магическое слово в Python. Ребёнок ВСЕГДА спотыкается об self. Ключевая фраза: self — это слово «я» для объекта. Когда Рекс лает — self это Рекс. Когда Бим лает — self это Бим. Python сам подставляет, какой объект «я» прямо сейчас.">
+    <div class="badge badge--cyan"><span class="dot"></span>Самое важное слово</div>
+    <h2>Что такое <span class="grad">self</span>?</h2>
+    <div class="two-col mt-20">
+      <div>
+        <div class="quote">
+          «<b style="color:#C4B5FD;">self</b> — это слово <b>«я»</b> для объекта.<br/>
+          <code>self.name</code> — это <b>«моё имя»</b>.
+          <small>— ключевая фраза урока</small>
+        </div>
+        <p class="big mt-30">Когда <b class="kw--pink">Рекс</b> лает — <code>self</code> = Рекс.<br/>
+        Когда <b class="kw">Бим</b> лает — <code>self</code> = Бим.</p>
+        <p class="muted mt-20 big">Python сам подставляет, кто <b>«я»</b> прямо сейчас. Ты не пишешь <code>rex.bark(rex)</code> — достаточно <code>rex.bark()</code>.</p>
+      </div>
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>self_demo.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Dog:
+    def __init__(self, name):
+        self.name = name     # "моё имя"
+
+    def say(self):
+        # self — это эта собака
+        print(f"Я — {self.name}")
+
+
+rex = Dog("Рекс")
+bim = Dog("Бим")
+
+rex.say()   # Я — Рекс   (self = rex)
+bim.say()   # Я — Бим    (self = bim)</div><div class="compiler-output"></div></div>
+        </div>
+        <div class="warn mt-20">
+          <div class="i">⚠️</div>
+          <div><div class="t">Забыл self — получишь TypeError</div>
+          <div class="d">Python скажет: «в методе не хватает одного параметра». Это подсказка: <code>self</code>.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 9: __init__ конструктор -->
+  <section class="slide" data-notes="__init__ — второй по важности концепт после self. Это «момент рождения» объекта. Python вызывает __init__ автоматически, когда ты пишешь rex = Dog(...). Внутри мы сохраняем, каким будет новый объект. Двойные подчёркивания с каждой стороны — обязательны.">
+    <div class="badge badge--pink"><span class="dot"></span>Конструктор</div>
+    <h2><span class="grad">__init__</span> — момент рождения объекта</h2>
+    <div class="grid grid-3 mt-20 gap-20">
+      <div class="card card--purple">
+        <div class="ico">🥚</div>
+        <h3>Когда вызывается</h3>
+        <p class="muted">Автоматически, как только ты пишешь <code>rex = Dog("Рекс", 3)</code>. Ты не вызываешь его руками.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🎒</div>
+        <h3>Что делает</h3>
+        <p class="muted">Сохраняет в объект то, с чем он «родился»: имя, возраст, цвет. Это стартовое состояние.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">⚠️</div>
+        <h3>Частая ошибка</h3>
+        <p class="muted">Пишут <code>init</code> вместо <code>__init__</code>. Двойные подчёркивания с <b>двух сторон</b> — обязательны.</p>
+      </div>
+    </div>
+    <div class="code-window mt-30">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>init.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Dog:
+    def __init__(self, name, age):   # это вызовется АВТОМАТИЧЕСКИ
+        print(f"🥚 Родилась собака {name}!")
+        self.name = name
+        self.age = age
+
+rex = Dog("Рекс", 3)   # → 🥚 Родилась собака Рекс!
+bim = Dog("Бим", 1)    # → 🥚 Родилась собака Бим!</div><div class="compiler-output"></div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 10: Атрибут vs метод -->
+  <section class="slide" data-notes="Чётко разводим два понятия, которые дети путают. Атрибут — существительное (что ЕСТЬ). Метод — глагол (что УМЕЕТ). У собаки есть имя — атрибут. Собака умеет лаять — метод. На экзамене я обязательно спрошу: «bark — это что?» Ответ: метод.">
+    <div class="badge badge--yellow"><span class="dot"></span>Два понятия · не путай</div>
+    <h2>Атрибут vs <span class="grad">Метод</span></h2>
+    <div class="two-col mt-20">
+      <div class="card card--cyan">
+        <h3 style="color:#67E8F9;">🏷️ Атрибут — что у объекта ЕСТЬ</h3>
+        <p class="muted mt-20">Существительное. Свойство. Данные.</p>
+        <div class="mt-20">
+          <span class="tag">self.name</span>
+          <span class="tag">self.age</span>
+          <span class="tag">self.color</span>
+          <span class="tag">self.hp</span>
+        </div>
+        <p class="muted mt-20" style="font-size:15px;">Пример: у Рекса <b>есть</b> имя «Рекс». У Бима <b>есть</b> возраст 1.</p>
+      </div>
+      <div class="card card--purple">
+        <h3 style="color:#C4B5FD;">⚡ Метод — что объект УМЕЕТ</h3>
+        <p class="muted mt-20">Глагол. Действие. Функция внутри класса.</p>
+        <div class="mt-20">
+          <span class="tag tag--purple">bark()</span>
+          <span class="tag tag--purple">run()</span>
+          <span class="tag tag--purple">eat()</span>
+          <span class="tag tag--purple">birthday()</span>
+        </div>
+        <p class="muted mt-20" style="font-size:15px;">Пример: Рекс <b>умеет</b> лаять. Бим <b>умеет</b> бежать.</p>
+      </div>
+    </div>
+    <p class="big center mt-30 muted">Правило: <b class="kw">атрибут</b> — это <b>что</b>. <b class="kw--purple">Метод</b> — это <b>как</b>.</p>
+  </section>
+
+  <!-- SLIDE 11: Задача Student -->
+  <section class="slide" data-notes="Главная самостоятельная задача урока. Student с тремя атрибутами и двумя методами. Average возвращает среднее — можно сделать через sum()/len(). Introduce — просто print с f-строкой. 20 минут, ребёнок должен справиться.">
+    <div class="badge badge--green"><span class="dot"></span>Самостоятельная задача · 20 мин</div>
+    <h2>Задача · класс <span class="grad">Student</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <h3>🎯 Что нужно сделать</h3>
+        <ul class="check-list mt-20">
+          <li>Атрибуты: <code>name</code>, <code>grade</code>, <code>scores</code> (список)</li>
+          <li>Метод <code>average()</code> — возвращает среднюю оценку</li>
+          <li>Метод <code>introduce()</code> — «Меня зовут…, я учусь в … классе»</li>
+          <li>Создать <b>3 объекта</b> и вывести их</li>
+        </ul>
+        <div class="warn mt-20">
+          <div class="i">💡</div>
+          <div><div class="t">Подсказка</div>
+          <div class="d">Среднее = <code>sum(self.scores) / len(self.scores)</code>. Не забудь <code>self.</code> перед атрибутом.</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>student.py · заготовка</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Student:
+    def __init__(self, name, grade, scores):
+        self.name = name
+        self.grade = grade
+        self.scores = scores
+
+    def average(self):
+        return sum(self.scores) / len(self.scores)
+
+    def introduce(self):
+        print(f"Меня зовут {self.name},")
+        print(f"я учусь в {self.grade} классе.")
+
+
+misha = Student("Миша", 5, [5, 4, 5, 3])
+misha.introduce()
+print(f"Средний балл: {misha.average()}")</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 12: Много объектов -->
+  <section class="slide" data-notes="Сила ООП раскрывается, когда объектов несколько. Один класс — хоть сотня студентов. Каждый живёт своей жизнью, у каждого свои оценки, но все умеют одно и то же. Покажи, как удобно перебрать список объектов циклом. Это важная деталь: объекты можно складывать в списки, как любые значения.">
+    <div class="badge badge--cyan"><span class="dot"></span>Сила ООП</div>
+    <h2>Один класс — <span class="grad">много объектов</span></h2>
+    <div class="grid grid-4 mt-20 gap-12">
+      <div class="dog-card"><div class="emo">🧑‍🎓</div><div class="nm">Миша</div><div class="at">5 кл · avg 4.25</div></div>
+      <div class="dog-card"><div class="emo">👩‍🎓</div><div class="nm">Аня</div><div class="at">6 кл · avg 4.8</div></div>
+      <div class="dog-card"><div class="emo">🧑‍🎓</div><div class="nm">Петя</div><div class="at">5 кл · avg 3.75</div></div>
+      <div class="dog-card"><div class="emo">👩‍🎓</div><div class="nm">Катя</div><div class="at">7 кл · avg 5.0</div></div>
+    </div>
+    <div class="code-window mt-30">
+      <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>many_students.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">students = [
+    Student("Миша", 5, [5, 4, 5, 3]),
+    Student("Аня",  6, [5, 5, 4, 5]),
+    Student("Петя", 5, [3, 4, 4, 4]),
+    Student("Катя", 7, [5, 5, 5, 5]),
+]
+
+for s in students:
+    s.introduce()
+    print(f"  средний балл: {s.average():.2f}\n")</div><div class="compiler-output"></div></div>
+    </div>
+    <p class="big mt-20 center muted">Написал класс <b>один раз</b> — объектов можешь создать <b style="color:var(--cyan)">хоть 100</b>.</p>
+  </section>
+
+  <!-- SLIDE 13: Топ-5 ошибок -->
+  <section class="slide" data-notes="Пять типичных граблей. Проговариваем каждую — пусть ребёнок узнает их заранее, не на своих шишках. Особенно жирно: забыл self, забыл скобки при вызове, одно подчёркивание у init.">
+    <div class="badge badge--yellow"><span class="dot"></span>Грабли · избегай</div>
+    <h2>5 ошибок новичков <span class="grad">в классах</span></h2>
+    <div class="grid grid-2 mt-20 gap-20">
+      <div class="card card--pink">
+        <h3>1. Забыл <code>self</code></h3>
+        <p class="muted"><code>def bark():</code> → TypeError. Первый параметр в методе — <b>всегда</b> <code>self</code>.</p>
+      </div>
+      <div class="card card--pink">
+        <h3>2. Нет скобок при вызове</h3>
+        <p class="muted"><code>rex.bark</code> — это просто ссылка. Нужно <code>rex.bark()</code> — со скобками.</p>
+      </div>
+      <div class="card card--yellow">
+        <h3>3. Одно подчёркивание</h3>
+        <p class="muted"><code>_init_</code> или <code>init</code> — не работает. Только <code>__init__</code> с двойными.</p>
+      </div>
+      <div class="card card--yellow">
+        <h3>4. Маленькая буква в имени класса</h3>
+        <p class="muted"><code>class dog:</code> — так не принято. Пиши <code>class Dog:</code> — PascalCase.</p>
+      </div>
+      <div class="card card--purple" style="grid-column: 1 / -1;">
+        <h3>5. Атрибут без <code>self.</code></h3>
+        <p class="muted">Внутри метода пишешь <code>name = "Рекс"</code> — это просто локальная переменная, не атрибут объекта. Нужно <code>self.name = "Рекс"</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 14: Бонус birthday -->
+  <section class="slide" data-notes="Переходик к изменению состояния — метод меняет self.age. Это важный момент: до сих пор объекты были «статичными», теперь у них есть динамика. Именно так в Тамагочи мы будем менять self.hp, self.hunger. Идёт как бонусное задание к уроку.">
+    <div class="badge badge--green"><span class="dot"></span>Бонус-задание</div>
+    <h2>Метод, который <span class="grad">меняет объект</span></h2>
+    <div class="two-col two-col--code mt-20">
+      <div>
+        <p class="big">До сих пор методы только <b>читали</b> атрибуты и печатали.</p>
+        <p class="big mt-20">А теперь — <b class="kw--pink">изменим</b>. Добавим <code>birthday()</code>: прошёл год — возраст <b>+1</b>.</p>
+        <div class="quote mt-20">
+          Это первый шаг к Тамагочи: покормил — сытость вверх, прошёл час — счастье вниз.
+          <small>— спойлер урока 32</small>
+        </div>
+      </div>
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>birthday.py</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Dog:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def birthday(self):
+        self.age += 1
+        print(f"🎂 {self.name}, тебе теперь {self.age}!")
+
+
+rex = Dog("Рекс", 3)
+rex.birthday()   # 🎂 Рекс, тебе теперь 4!
+rex.birthday()   # 🎂 Рекс, тебе теперь 5!</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 15: YandexGPT про self -->
+  <section class="slide" data-notes="Зовём ИИ объяснить self своими словами — это работает как «вторая голова» в кабинете. Ребёнок копирует промпт, читает ответ, сравнивает с твоим объяснением. Главное — ИИ как помощник в понимании, а не генератор кода.">
+    <div class="badge badge--purple"><span class="dot"></span>Где подключаем ИИ</div>
+    <h2>YandexGPT объясняет <span class="grad">self</span> своими словами</h2>
+    <div class="two-col mt-20">
+      <div>
+        <h3>💬 Твой промпт</h3>
+        <div class="code-window mt-20">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>prompt</div>
+<pre style="padding:18px 22px; color:#CBD1DE; font-family:'JetBrains Mono',monospace; font-size:15px; line-height:1.6;">Объясни ребёнку 11 лет,
+что такое self в классе Python,
+через метафору.
+Коротко, 3 предложения.</pre>
+        </div>
+        <p class="muted mt-20">Ключ: указал возраст → метафору → ограничил объём. Это «рецепт хорошего промпта».</p>
+      </div>
+      <div>
+        <h3>🤖 Пример ответа</h3>
+        <div class="quote mt-20">
+          «Представь, что ты — собака по имени Рекс. Когда тебе говорят «гавкни!», ты лаешь — и знаешь, что ТЫ это ты, а не Бим. Вот <code>self</code> — это слово «я» для объекта: собака сама знает, как её зовут».
+          <small>— YandexGPT, пример ответа</small>
+        </div>
+        <div class="warn mt-20">
+          <div class="i">🎯</div>
+          <div><div class="t">Секретная сила</div>
+          <div class="d">Если не понял моё объяснение — спроси ИИ по-другому. Это нормально.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 16: Ключевые фразы -->
+  <section class="slide" data-notes="10 «мантр» урока. Это те фразы, которые преподаватель повторяет на повторе. Родители могут спросить дома: «помнишь, что метод — это…?» — ребёнок должен вспомнить. Слайд печатается на холодильник.">
+    <div class="badge"><span class="dot"></span>10 ключевых фраз</div>
+    <h2>Мантры <span class="grad">урока 29</span></h2>
+    <div class="grid grid-2 mt-20 gap-12">
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«Класс — это <b class="kw">чертёж</b>, объект — <b class="kw--pink">здание</b> по чертежу».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«По одному классу — <b class="kw--pink">много объектов</b>».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«<b class="kw">Атрибут</b> — что ЕСТЬ. <b class="kw--purple">Метод</b> — что УМЕЕТ».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«<code>self</code> — это слово «я» для объекта».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«<code>__init__</code> — <b class="kw--pink">момент рождения</b> объекта».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«Пишешь класс один раз — <b class="kw">объектов</b> хоть 100».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«Словари — хорошо, <b class="kw">классы</b> — ещё лучше, когда у вещи есть действия».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«Имя класса — с <b class="kw">большой буквы</b>: <code>Dog</code>, не <code>dog</code>».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«Метод — функция внутри класса, первый параметр — всегда <code>self</code>».</div>
+      <div class="quote" style="font-size:17px; padding:14px 18px;">«Скоро напишешь <b class="kw--pink">Тамагочи</b> — живого питомца в коде».</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 17: Критерии успеха -->
+  <section class="slide" data-notes="Мини-зачёт. По этим четырём пунктам я понимаю — урок усвоен или нет. Если хоть один минус — повторяем на следующем уроке до зелёного.">
+    <div class="badge badge--green"><span class="dot"></span>Критерии успеха</div>
+    <h2>Как я <span class="grad">пойму</span>, что урок зашёл</h2>
+    <ul class="check-list mt-20 big" style="font-size:20px;">
+      <li>Ты пишешь <code>class X:</code> с <code>__init__</code> и одним методом — <b>без подсказок</b></li>
+      <li>Создаёшь <b>2 разных объекта</b> одного класса</li>
+      <li>Вызываешь метод через <code>object.method()</code></li>
+      <li>Отличаешь <b class="kw">класс</b> от <b class="kw--pink">объекта</b> на слух</li>
+      <li>Объясняешь, зачем нужен <code>self</code> — своими словами</li>
+    </ul>
+    <div class="warn mt-30">
+      <div class="i">🎯</div>
+      <div><div class="t">Мини-проект урока</div>
+      <div class="d">Класс <code>Student</code> + 3 объекта + вывод среднего балла у каждого. Это твой «зачёт» сегодня.</div></div>
+    </div>
+  </section>
+
+  <!-- SLIDE 18: Итог урока -->
+  <section class="slide" data-notes="Финал на 3 пункта. Повторяем главное: класс — чертёж, объект — конкретная вещь, self — эта конкретная вещь. Если ребёнок сможет произнести эти три строчки — урок зашёл на 90%.">
+    <div class="badge badge--cyan"><span class="dot"></span>Итог · 3 пункта</div>
+    <h2>Три фразы, которые <span class="grad">остаются с тобой</span></h2>
+    <div class="grid grid-3 mt-20 gap-20">
+      <div class="card card--purple">
+        <div class="ico">📐</div>
+        <h3>Класс</h3>
+        <p class="big" style="color:#E6E8EC;">это <b>чертёж</b>.</p>
+        <p class="muted mt-20">Описание, как устроены все собаки / все студенты / все книги.</p>
+      </div>
+      <div class="card card--cyan">
+        <div class="ico">🏠</div>
+        <h3>Объект</h3>
+        <p class="big" style="color:#E6E8EC;">это <b>конкретная вещь</b>.</p>
+        <p class="muted mt-20">Рекс — собака. Миша — студент. «Три поросёнка» — книга.</p>
+      </div>
+      <div class="card card--pink">
+        <div class="ico">🙋</div>
+        <h3><code>self</code></h3>
+        <p class="big" style="color:#E6E8EC;">это <b>«эта конкретная вещь»</b>.</p>
+        <p class="muted mt-20">Когда Рекс лает — <code>self</code> это Рекс. Слово «я» для объекта.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 19: Домашнее задание -->
+  <section class="slide" data-notes="ДЗ на 20 минут. Book — простой класс, всё по образцу Dog. Три книги, метод info(). Бонус — ИИ подсказывает 5 классических книг. Это готовые данные для класса. Хорошая связка с модулем 6.">
+    <div class="badge badge--pink"><span class="dot"></span>Домашнее задание · ≤ 20 минут</div>
+    <h2>ДЗ · класс <span class="grad">Book</span></h2>
+    <div class="two-col mt-20">
+      <div>
+        <h3>📚 Что сделать</h3>
+        <ul class="num-list mt-20">
+          <li><b>Класс <code>Book</code></b><br/><span class="muted">Атрибуты: <code>title</code>, <code>author</code>, <code>pages</code>.</span></li>
+          <li><b>Метод <code>info()</code></b><br/><span class="muted">Печатает: «"Название", автор …, страниц …».</span></li>
+          <li><b>Создать 3 книги</b><br/><span class="muted">Три разные книги — три объекта.</span></li>
+          <li><b>Вывести все три</b><br/><span class="muted">Вызвать <code>info()</code> у каждой.</span></li>
+        </ul>
+        <div class="card card--yellow mt-20">
+          <h3>🎁 Бонус с ИИ</h3>
+          <p class="muted">Попроси YandexGPT: «Дай 5 классических книг с автором и количеством страниц — списком». Вставь в код — получится мини-библиотека.</p>
+        </div>
+      </div>
+      <div>
+        <div class="code-window">
+          <div class="code-window__bar"><div class="dots"><span></span><span></span><span></span></div>book.py · заготовка</div>
+<div class="compiler" data-lang="python"><div class="compiler-header"><span class="lang-badge">Python</span><div class="compiler-actions"><button class="compiler-btn reset" type="button">↻ Сбросить</button><button class="compiler-btn run" type="button">▶ Запустить</button></div></div><div class="compiler-editor" contenteditable="true" spellcheck="false">class Book:
+    def __init__(self, title, author, pages):
+        self.title = title
+        self.author = author
+        self.pages = pages
+
+    def info(self):
+        print(f'"{self.title}", '
+              f'автор {self.author}, '
+              f'страниц {self.pages}')
+
+
+b1 = Book("Гарри Поттер", "Дж. Роулинг", 332)
+b2 = Book("Три поросёнка", "народная", 24)
+b3 = Book("Хоббит", "Дж. Толкин", 310)
+
+for b in [b1, b2, b3]:
+    b.info()</div><div class="compiler-output"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 20: Что дальше -->
+  <section class="slide" data-notes="Карта модуля 7. Урок 29 — база. Урок 30 — три «страшных» слова ООП через метафоры. Урок 31 — репетиция перед большим проектом. Урок 32 — Тамагочи. Пусть ребёнок видит перспективу — куда мы идём.">
+    <div class="badge badge--cyan"><span class="dot"></span>Что дальше · модуль 7</div>
+    <h2>Куда <span class="grad">мы идём</span></h2>
+    <div class="flow mt-20">
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">🟣 Урок 29 · класс и объект</div>
+      <div class="arr">→</div>
+      <div class="step">Урок 30 · ООП-слова</div>
+      <div class="arr">→</div>
+      <div class="step">Урок 31 · репетиция</div>
+      <div class="arr">→</div>
+      <div class="step">Урок 32 · 🐱 Тамагочи</div>
+    </div>
+    <div class="grid grid-3 mt-30 gap-20">
+      <div class="card card--purple">
+        <h3>Урок 30</h3>
+        <p class="muted">Инкапсуляция, наследование, полиморфизм. Три «страшных» слова через метафоры родственников и личного дневника.</p>
+      </div>
+      <div class="card card--cyan">
+        <h3>Урок 31</h3>
+        <p class="muted">Собираем всё вместе: конструктор с параметрами, методы с возвратом, наследование. Репетиция перед проектом.</p>
+      </div>
+      <div class="card card--pink">
+        <h3>Урок 32 · Капстоун</h3>
+        <p class="muted">Виртуальный питомец Тамагочи. Класс <code>Pet</code>, наследники <code>Cat</code>/<code>Dog</code>, игровой цикл «тик времени».</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 21: Финал -->
+  <section class="slide final-center" data-notes="Финал урока. Архитектор — тот, кто чертит, прежде чем строить. Сегодня ты нарисовал свой первый чертёж класса и построил по нему объекты. Это огромный скачок — от процедурного мышления к архитектурному. Бейдж, хайфайв, конец урока.">
+    <div class="hero-eyebrow">УРОК 29 · ЗАВЕРШЁН · МОДУЛЬ 7 СТАРТУЕТ</div>
+    <h1 class="grad" style="font-size: 88px;">Первый<br/>чертёж</h1>
+    <p class="big muted" style="max-width: 720px;">Ты написал класс, создал объекты и понял, что такое <code>self</code>. Это фундамент любого большого проекта. Впереди — три кита ООП и Тамагочи.</p>
+    <div class="flow mt-30 gap-12">
+      <div class="step">📐 class Dog написан</div>
+      <div class="step" style="background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(6,182,212,0.3));">🐾 2 объекта созданы</div>
+      <div class="step">🚀 Дальше → инкапсуляция</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="counter"><b id="currentSlide">1</b> / <span id="totalSlides">21</span></div>
+<div class="hint"><kbd>←</kbd><kbd>→</kbd> слайды · <kbd>N</kbd> заметки · <kbd>F</kbd> fullscreen</div>
+
+<div class="notes-panel" id="notesPanel">
+  <h4>Speaker notes · нажми <kbd style="background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-size: 11px;">N</kbd> чтобы скрыть</h4>
+  <div id="notesContent"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script>
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const currentEl = document.getElementById('currentSlide');
+  const totalEl = document.getElementById('totalSlides');
+  const progressEl = document.getElementById('progress');
+  const notesPanel = document.getElementById('notesPanel');
+  const notesContent = document.getElementById('notesContent');
+
+  totalEl.textContent = total;
+
+  function show(n) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    currentEl.textContent = idx + 1;
+    progressEl.style.width = ((idx + 1) / total * 100) + '%';
+    const notes = slides[idx].getAttribute('data-notes') || '';
+    notesContent.textContent = notes;
+    slides[idx].scrollTop = 0;
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+    else if (e.key === 'n' || e.key === 'N' || e.key === 'т' || e.key === 'Т') {
+      e.preventDefault(); notesPanel.classList.toggle('open');
+    }
+    else if (e.key === 'f' || e.key === 'F' || e.key === 'а' || e.key === 'А') {
+      e.preventDefault();
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  let touchStartX = null;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) { show(idx + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  });
+
+  show(0);
+})();
+</script>
+</body>
+</html>
