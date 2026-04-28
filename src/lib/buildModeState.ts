@@ -67,10 +67,6 @@ export function setSelectedKind(kind: BuildPieceKind) {
   emit()
 }
 
-export function setBuildColor(c: string) {
-  state = { ...state, color: c }
-  emit()
-}
 
 export function harvestPiece(kind: BuildPieceKind) {
   state = {
