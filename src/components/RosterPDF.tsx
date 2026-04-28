@@ -1,5 +1,7 @@
 import type { Student } from '../lib/classRoster'
 
+const PRINT_CLOSE_DELAY_MS = 2000
+
 interface Props {
   className: string
   students: Student[]
@@ -43,7 +45,7 @@ function printRosterPDF({ className, students }: Props): void {
   </style>
   </head><body>
   <div class="page">${cards}</div>
-  <script>window.print(); setTimeout(() => window.close(), 2000);</script>
+  <script>window.print(); setTimeout(() => window.close(), ${PRINT_CLOSE_DELAY_MS});</script>
   </body></html>`
 
   const w = window.open('', '_blank', 'width=900,height=700')
