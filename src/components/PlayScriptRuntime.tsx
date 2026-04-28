@@ -1,9 +1,8 @@
 import { useEffect } from 'react'
-import { subscribeCommands, delay } from '../lib/commandBus'
+import { subscribeCommands, emitCommands, delay } from '../lib/commandBus'
 import { getWorldScript } from '../lib/worldScripts'
 import { wrapObjectPython } from '../lib/objectBlocks'
 import { runPython } from '../lib/pyodide-executor'
-import { emitCommands } from '../lib/commandBus'
 import { addCoin, setScore, playerSay } from '../lib/gameState'
 import type { WorldCommand } from '../lib/python-world-runtime'
 
