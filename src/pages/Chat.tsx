@@ -10,6 +10,8 @@ import { loadSession, CHILD_NAME_KEY } from '../lib/auth'
 import { getClassrooms } from '../lib/classRoster'
 import { getChatSocket } from '../lib/chatClient'
 
+const HIDDEN_GRACE_MS = 5000
+
 type TabKey = 'class' | 'dm-teacher' | 'parent-teacher'
 
 interface Tab {
@@ -72,7 +74,6 @@ export default function Chat() {
     // Actual disconnect/reconnect happens in ChatRoom.tsx — here we only
     // refresh the banner. Listeners must be removed on unmount.
     let hiddenAt = 0
-    const HIDDEN_GRACE_MS = 5000
     let graceTimer: ReturnType<typeof setTimeout> | null = null
 
     const onBg = () => {
