@@ -846,6 +846,7 @@ function CodeMode({ site }: { site: Site }) {
 /* ─────── Share modal ─────── */
 
 const SHARE_URL_LIMIT = 8000
+const COPY_FEEDBACK_MS = 1500
 
 function ShareModal({ site, onClose }: { site: Site; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null)
@@ -871,7 +872,7 @@ function ShareModal({ site, onClose }: { site: Site; onClose: () => void }) {
     try {
       await navigator.clipboard.writeText(shareUrl)
       setCopied(true)
-      setTimeout(() => setCopied(false), 1500)
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_MS)
     } catch {
       /* ignore */
     }

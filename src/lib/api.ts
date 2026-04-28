@@ -16,6 +16,7 @@ function isCapacitorNative(): boolean {
 
 // TODO: заменить на реальный prod-URL бэкенда когда он появится.
 const NATIVE_API_FALLBACK = 'https://api.edusonkids.com'
+const COOKIE_MIGRATION_DELAY_MS = 100
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
@@ -69,7 +70,7 @@ function scheduleCookieMigration(): void {
   if (typeof window === 'undefined') return
   setTimeout(() => {
     void probeCookieAuthAndMaybeClearLocal()
-  }, 100)
+  }, COOKIE_MIGRATION_DELAY_MS)
 }
 
 async function request<T>(

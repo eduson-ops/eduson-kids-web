@@ -4,6 +4,8 @@
 
 const MUTED_KEY = 'ek_audio_muted_v1'
 const SFX_VOL_KEY = 'ek_audio_sfx_vol_v1'
+const COIN_SECOND_NOTE_DELAY_MS = 55
+const WIN_NOTE_SPACING_MS = 120
 
 let ctx: AudioContext | null = null
 let masterGain: GainNode | null = null
@@ -82,7 +84,7 @@ export const SFX = {
     beep({ freq: 880, duration: 0.1, type: 'square', gain: 0.4, decay: 0.08 })
     setTimeout(
       () => beep({ freq: 1320, duration: 0.12, type: 'square', gain: 0.35, decay: 0.1 }),
-      55
+      COIN_SECOND_NOTE_DELAY_MS
     )
   },
   win: () => {
@@ -90,7 +92,7 @@ export const SFX = {
     notes.forEach((f, i) =>
       setTimeout(
         () => beep({ freq: f, duration: 0.25, type: 'triangle', gain: 0.45, decay: 0.22 }),
-        i * 120
+        i * WIN_NOTE_SPACING_MS
       )
     )
   },

@@ -1,5 +1,6 @@
 import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { MOUSE, TOUCH } from 'three'
@@ -200,8 +201,7 @@ interface Props {
 }
 
 export default function BuildScene({ state }: Props) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const controls = useRef<any>(null)
+  const controls = useRef<OrbitControlsImpl>(null!)
 
   const onPlace = (pos: [number, number, number]) => {
     const s = getState()

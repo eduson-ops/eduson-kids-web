@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { exchangeVkCode, verifyState } from '../lib/vkAuth'
 
+const VK_SUCCESS_FLASH_MS = 600 // show "Готово" briefly before redirect
+
 /**
  * VkCallback — обработчик redirect'а с id.vk.com.
  * URL: /auth/vk/callback?code=...&state=...&device_id=...
@@ -45,8 +47,7 @@ export default function VkCallback() {
         setStatus('done')
         const next = sessionStorage.getItem('ek_vk_next') || '/profile'
         sessionStorage.removeItem('ek_vk_next')
-        // Показ 600мс «Готово» чтобы ребёнок успел увидеть что вход прошёл
-        setTimeout(() => navigate(next, { replace: true }), 600)
+        setTimeout(() => navigate(next, { replace: true }), VK_SUCCESS_FLASH_MS)
          
         void user
       })

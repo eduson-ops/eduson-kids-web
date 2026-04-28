@@ -29,6 +29,7 @@ export interface ShareInput {
 }
 
 const isNative = (): boolean => Capacitor.isNativePlatform()
+const PUSH_REGISTER_TIMEOUT_MS = 10000
 
 // --- Haptics -----------------------------------------------------------------
 export async function haptic(kind: HapticKind): Promise<void> {
@@ -439,7 +440,7 @@ export async function registerPushToken(): Promise<string | null> {
       })
       void PushNotifications.register()
       // safety timeout
-      setTimeout(() => finish(null), 10000)
+      setTimeout(() => finish(null), PUSH_REGISTER_TIMEOUT_MS)
     })
   } catch {
     return null

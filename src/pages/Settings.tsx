@@ -15,6 +15,7 @@ import { DAILY_GOAL_KEY } from '../lib/progress'
 
 const AVATAR_COLOR_KEY = 'ek_avatar_color'
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
+const DELETE_CONFIRM_RESET_MS = 8000
 
 function getAvatarColor(): string {
   return localStorage.getItem(AVATAR_COLOR_KEY) ?? AVATAR_COLORS[0]!
@@ -339,7 +340,7 @@ export default function Settings() {
                   className="kb-btn"
                   onClick={() => {
                     setDeleteStep(1)
-                    deleteTimerRef.current = setTimeout(() => setDeleteStep(0), 8000)
+                    deleteTimerRef.current = setTimeout(() => setDeleteStep(0), DELETE_CONFIRM_RESET_MS)
                   }}
                   style={{ borderColor: '#e53', color: '#e53' }}
                 >
