@@ -1,7 +1,6 @@
 import { useKeyboardControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { CapsuleCollider, RigidBody, useRapier } from '@react-three/rapier'
-import type { RapierRigidBody } from '@react-three/rapier'
+import { CapsuleCollider, RigidBody, useRapier, type RapierRigidBody } from '@react-three/rapier'
 import { memo, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
