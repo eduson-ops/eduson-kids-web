@@ -37,7 +37,7 @@ function emitProgress(step: WarmupStep) {
  * If the warmup already emitted a step, the listener is invoked with
  * the latest step synchronously so late subscribers don't miss state.
  */
-export function onWarmupProgress(fn: (step: WarmupStep) => void): () => void {
+function onWarmupProgress(fn: (step: WarmupStep) => void): () => void {
   progressSubs.add(fn)
   if (lastStep !== null) {
     try { fn(lastStep) } catch { /* swallow */ }

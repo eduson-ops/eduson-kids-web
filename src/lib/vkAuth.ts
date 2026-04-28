@@ -227,13 +227,6 @@ export function getParentLink(): ParentChildLink | null {
   }
 }
 
-export function saveParentLink(link: ParentChildLink): void {
-  localStorage.setItem(PARENT_LINK_KEY, JSON.stringify(link))
-}
-
-export function clearParentLink(): void {
-  localStorage.removeItem(PARENT_LINK_KEY)
-}
 
 /** Валидация state-параметра в callback (защита от CSRF) */
 export function verifyState(returnedState: string): boolean {

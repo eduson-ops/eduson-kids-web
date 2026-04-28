@@ -92,7 +92,7 @@ export function onPlacePiece(_kind: BuildPieceKind) {
 }
 
 /** Снап координаты к сетке build-режима (по умолчанию 2 ед.) */
-export const BUILD_GRID = 2
+const BUILD_GRID = 2
 export function snapToGrid(v: number): number {
   return Math.round(v / BUILD_GRID) * BUILD_GRID
 }

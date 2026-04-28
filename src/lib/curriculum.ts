@@ -1034,10 +1034,3 @@ export function getCourse(slug: string): Course | undefined {
   return COURSES.find((c) => c.slug === slug)
 }
 
-/**
- * Получить все уроки курса плоским списком.
- * По умолчанию — Эдюсон Kids (для обратной совместимости со старыми страницами).
- */
-export function getAllLessonsOf(course: Course = KUBIK_COURSE): Lesson[] {
-  return course.modules.flatMap((m) => m.lessons)
-}
