@@ -11,7 +11,7 @@ import type { WorldCommand } from '../lib/python-world-runtime'
  * Реестр живых Scriptable-объектов — для маршрутизации broadcast-сообщений.
  * Регистрируют себя Scriptable.tsx через register/unregister.
  */
-export interface ScriptableEntry {
+interface ScriptableEntry {
   worldId: string
   objectId: string
 }
