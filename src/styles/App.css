@@ -58,23 +58,6 @@
 }
 .hud-pill.gold { color: var(--yellow); }
 
-.world-label {
-  background: rgba(0, 0, 0, 0.55);
-  color: #5bff78;
-  padding: 3px 12px;
-  border-radius: 999px;
-  font-size: 16px;
-  font-weight: 700;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-  user-select: none;
-  font-family: var(--f-ui);
-}
-.world-label-money {
-  display: inline-block;
-}
-
 .goal-overlay {
   position: absolute;
   inset: 0;
@@ -4956,7 +4939,6 @@
   padding: 16px;
   min-height: 0;
 }
-.tpl-sections,
 .tpl-props {
   background: #ffffff;
   border-radius: 16px;
@@ -4965,7 +4947,6 @@
   overflow: auto;
   box-shadow: 0 4px 14px rgba(21, 20, 27, 0.04);
 }
-.tpl-sections header,
 .tpl-props-form header {
   display: flex;
   align-items: baseline;
@@ -4974,33 +4955,8 @@
   border-bottom: 1px solid rgba(21, 20, 27, 0.06);
   margin-bottom: 12px;
 }
-.tpl-sections header strong,
 .tpl-props-form header strong { font-size: 15px; }
-.tpl-sections header small { color: rgba(21, 20, 27, 0.4); margin-left: auto; font-size: 12px; }
 
-.tpl-sections ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.tpl-section-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.12s;
-  border: 1px solid transparent;
-}
-.tpl-section-row:hover { background: rgba(107, 92, 231, 0.06); }
-.tpl-section-row.active {
-  background: rgba(107, 92, 231, 0.12);
-  border-color: rgba(107, 92, 231, 0.3);
-}
 .tpl-section-icon { font-size: 18px; }
 .tpl-section-name { flex: 1; font-size: 13.5px; font-weight: 600; }
 .tpl-section-actions {
@@ -5009,8 +4965,6 @@
   opacity: 0;
   transition: opacity 0.12s;
 }
-.tpl-section-row:hover .tpl-section-actions,
-.tpl-section-row.active .tpl-section-actions { opacity: 1; }
 .tpl-section-actions button {
   border: none;
   background: rgba(21, 20, 27, 0.06);
@@ -5080,13 +5034,6 @@
 }
 
 /* Props form */
-.tpl-props-empty {
-  color: rgba(21, 20, 27, 0.5);
-  font-size: 14px;
-  text-align: center;
-  padding: 40px 16px;
-  line-height: 1.5;
-}
 .tpl-field {
   display: flex;
   flex-direction: column;
