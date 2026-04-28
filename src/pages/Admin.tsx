@@ -85,7 +85,7 @@ export default function Admin() {
     const studentIdx = from.students.findIndex((s) => s.login === selectedLogin)
     if (studentIdx === -1) { show('Ученик не найден', 'error'); return }
 
-    const [student] = from.students.splice(studentIdx, 1)
+    const student = from.students.splice(studentIdx, 1)[0]!
     to.students.push(student)
 
     try { localStorage.setItem(CLASSROOMS_KEY, JSON.stringify(list)) } catch { /* quota */ }

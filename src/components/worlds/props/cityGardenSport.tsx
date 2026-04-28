@@ -343,7 +343,7 @@ export function FlowerBed({ pos, color, size }: { pos: [number, number, number];
         const xSigns = [-1, 1, 0, 0]
         const zSigns = [0, 0, -1, 1]
         return (
-          <mesh key={i} position={[xSigns[i] * size * 0.36, size * 0.02, zSigns[i] * size * 0.26]} castShadow>
+          <mesh key={i} position={[xSigns[i]! * size * 0.36, size * 0.02, zSigns[i]! * size * 0.26]} castShadow>
             <boxGeometry args={i < 2 ? [size * 0.06, size * 0.12, size * 0.54] : [size * 0.76, size * 0.12, size * 0.06]} />
             <meshStandardMaterial color="#9a9a9a" roughness={0.9} />
           </mesh>
@@ -687,7 +687,7 @@ export function BobaTea({ pos, color, size }: { pos: [number, number, number]; c
         <meshStandardMaterial color={liquidColor} roughness={0.1} transparent opacity={0.8} />
       </mesh>
       {/* boba pearls */}
-      {[[-0.06, -0.06], [0.06, -0.1], [-0.04, 0.08], [0.08, 0.04], [0, -0.04]].map(([x, z], i) => (
+      {[[-0.06, -0.06], [0.06, -0.1], [-0.04, 0.08], [0.08, 0.04], [0, -0.04]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.06, z * size]} castShadow>
           <sphereGeometry args={[size * 0.04, 8, 8]} />
           <meshStandardMaterial color="#2a1200" roughness={0.7} />
@@ -755,7 +755,7 @@ export function WatermelonSlice({ pos, color, size }: { pos: [number, number, nu
         <meshStandardMaterial color="#5ba55b" roughness={0.85} side={THREE.DoubleSide} />
       </mesh>
       {/* seeds */}
-      {[[-0.12, -0.08], [0.08, -0.14], [0.18, 0.04], [-0.06, 0.12], [0, 0]].map(([x, z], i) => (
+      {[[-0.12, -0.08], [0.08, -0.14], [0.18, 0.04], [-0.06, 0.12], [0, 0]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.13, z * size]} castShadow>
           <sphereGeometry args={[size * 0.028, 6, 4]} />
           <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
@@ -947,7 +947,7 @@ export function HotRod({ pos, color, size }: { pos: [number, number, number]; co
         </mesh>
       ))}
       {/* wheels */}
-      {[[-size*0.35, size*0.25], [size*0.38, size*0.25]].map(([x, y], i) => (
+      {[[-size*0.35, size*0.25], [size*0.38, size*0.25]].map(([x = 0, y = 0], i) => (
         [-1, 1].map((s, j) => (
           <mesh key={`${i}${j}`} position={[x, y, s * size * 0.28]} rotation={[Math.PI / 2, 0, 0]} castShadow>
             <torusGeometry args={[size * 0.16, size * 0.06, 8, 20]} />
@@ -986,7 +986,7 @@ export function Jeep({ pos, color, size }: { pos: [number, number, number]; colo
         </mesh>
       ))}
       {/* big wheels */}
-      {[[-size*0.3, size*0.22], [size*0.3, size*0.22]].map(([x, y], i) => (
+      {[[-size*0.3, size*0.22], [size*0.3, size*0.22]].map(([x = 0, y = 0], i) => (
         [-1, 1].map((s, j) => (
           <mesh key={`${i}${j}`} position={[x, y, s * size * 0.34]} rotation={[Math.PI / 2, 0, 0]} castShadow>
             <torusGeometry args={[size * 0.22, size * 0.09, 8, 18]} />
@@ -1022,21 +1022,21 @@ export function Sandcastle({ pos, color, size }: { pos: [number, number, number]
         <meshStandardMaterial color={c} roughness={0.95} />
       </mesh>
       {/* battlements */}
-      {[[-1,-1],[-1,1],[1,-1],[1,1]].map(([x,z],i)=>(
+      {[[-1,-1],[-1,1],[1,-1],[1,1]].map(([x = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size*0.2, size*0.7, z*size*0.2]} castShadow>
           <boxGeometry args={[size*0.12, size*0.14, size*0.12]} />
           <meshStandardMaterial color={c} roughness={0.95} />
         </mesh>
       ))}
       {/* corner towers */}
-      {[[-0.24,-0.24],[-0.24,0.24],[0.24,-0.24],[0.24,0.24]].map(([x,z],i)=>(
+      {[[-0.24,-0.24],[-0.24,0.24],[0.24,-0.24],[0.24,0.24]].map(([x = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, size*0.48, z*size]} castShadow>
           <cylinderGeometry args={[size*0.1, size*0.12, size*0.52, 8]} />
           <meshStandardMaterial color={c} roughness={0.95} />
         </mesh>
       ))}
       {/* cone tops on towers */}
-      {[[-0.24,-0.24],[-0.24,0.24],[0.24,-0.24],[0.24,0.24]].map(([x,z],i)=>(
+      {[[-0.24,-0.24],[-0.24,0.24],[0.24,-0.24],[0.24,0.24]].map(([x = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, size*0.82, z*size]} castShadow>
           <coneGeometry args={[size*0.12, size*0.18, 8]} />
           <meshStandardMaterial color="#c4a050" roughness={0.9} />
@@ -1065,7 +1065,7 @@ export function BeachUmbrella({ pos, color, size }: { pos: [number, number, numb
       {Array.from({ length: 8 }).map((_, i) => (
         <mesh key={i} position={[0, size * 1.14, 0]} rotation={[0, (i * Math.PI) / 4, 0]} castShadow>
           <cylinderGeometry args={[size * 0.06, size * 0.62, size * 0.06, 4, 1, false, 0, Math.PI / 4]} />
-          <meshStandardMaterial color={stripes[i % 2]} roughness={0.7} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={stripes[i % 2]!} roughness={0.7} side={THREE.DoubleSide} />
         </mesh>
       ))}
       {/* pole tip cap */}
@@ -1087,7 +1087,7 @@ export function LifeguardTower({ pos, color, size }: { pos: [number, number, num
   return (
     <group position={pos}>
       {/* 4 legs */}
-      {[[-1,-1],[-1,1],[1,-1],[1,1]].map(([x,z],i)=>(
+      {[[-1,-1],[-1,1],[1,-1],[1,1]].map(([x = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size*0.22, size*0.5, z*size*0.22]} castShadow>
           <boxGeometry args={[size*0.07, size*1.0, size*0.07]} />
           <meshStandardMaterial color="#c8a06a" roughness={0.8} />
@@ -1289,7 +1289,7 @@ export function BrokenColumn({ pos, color, size }: { pos: [number, number, numbe
         <meshStandardMaterial color={c} roughness={0.8} />
       </mesh>
       {/* rubble pieces */}
-      {[[0.28, 0.12, 0.2], [-0.22, 0.1, -0.18], [0.1, 0.08, -0.28]].map(([x,y,z],i)=>(
+      {[[0.28, 0.12, 0.2], [-0.22, 0.1, -0.18], [0.1, 0.08, -0.28]].map(([x = 0,y = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, y*size, z*size]} rotation={[Math.random()*1.2, Math.random()*2, 0]} castShadow>
           <boxGeometry args={[size*0.14, size*0.1, size*0.16]} />
           <meshStandardMaterial color={c} roughness={0.85} />
@@ -1329,14 +1329,14 @@ export function Altar({ pos, color, size }: { pos: [number, number, number]; col
         <meshStandardMaterial color="#7a6a5a" roughness={0.8} />
       </mesh>
       {/* rune carvings (decorative) */}
-      {[[-0.22, 0.38, 0.3], [0.22, 0.38, 0.3], [0, 0.38, 0.3]].map(([x,y,z],i)=>(
+      {[[-0.22, 0.38, 0.3], [0.22, 0.38, 0.3], [0, 0.38, 0.3]].map(([x = 0,y = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, y*size, z*size]} castShadow>
           <boxGeometry args={[size*0.06, size*0.12, size*0.02]} />
           <meshStandardMaterial color="#4a3a2a" roughness={0.9} />
         </mesh>
       ))}
       {/* side pillars */}
-      {[[-0.34,-0.34],[0.34,-0.34],[-0.34,0.34],[0.34,0.34]].map(([x,z],i)=>(
+      {[[-0.34,-0.34],[0.34,-0.34],[-0.34,0.34],[0.34,0.34]].map(([x = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, size*0.38, z*size]} castShadow>
           <boxGeometry args={[size*0.1, size*0.46, size*0.1]} />
           <meshStandardMaterial color="#5a4a3a" roughness={0.88} />
@@ -1470,7 +1470,7 @@ export function Shipwreck({ pos, color, size }: { pos: [number, number, number];
         </mesh>
       ))}
       {/* coral/algae on hull */}
-      {[[0.3, 0.18, 0.22], [-0.38, 0.14, -0.2], [0, 0.08, 0.22]].map(([x,y,z],i)=>(
+      {[[0.3, 0.18, 0.22], [-0.38, 0.14, -0.2], [0, 0.08, 0.22]].map(([x = 0,y = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, y*size, z*size]} castShadow>
           <sphereGeometry args={[size*0.08, 6, 5]} />
           <meshStandardMaterial color="#ff6b8a" roughness={0.8} />
@@ -1512,17 +1512,17 @@ export function TreasureChestOpen({ pos, color, size }: { pos: [number, number, 
         <meshStandardMaterial color="#c8a030" roughness={0.25} metalness={0.7} />
       </mesh>
       {/* gold coins spilling out */}
-      {[[-0.12, 0.48, 0.14], [0.14, 0.46, 0.16], [0, 0.44, 0.18], [0.22, 0.42, 0.12], [-0.08, 0.46, 0.2]].map(([x,y,z],i)=>(
+      {[[-0.12, 0.48, 0.14], [0.14, 0.46, 0.16], [0, 0.44, 0.18], [0.22, 0.42, 0.12], [-0.08, 0.46, 0.2]].map(([x = 0,y = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, y*size, z*size]} rotation={[Math.random()*0.8, Math.random()*Math.PI, 0]} castShadow>
           <cylinderGeometry args={[size*0.06, size*0.06, size*0.03, 10]} />
           <meshStandardMaterial color="#ffd43c" emissive="#cc8800" emissiveIntensity={0.2} roughness={0.2} metalness={0.7} />
         </mesh>
       ))}
       {/* gems inside */}
-      {[[0, 0.42, 0], [-0.18, 0.42, 0], [0.18, 0.42, 0]].map(([x,y,z],i)=>(
+      {[[0, 0.42, 0], [-0.18, 0.42, 0], [0.18, 0.42, 0]].map(([x = 0,y = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, y*size, z*size]} castShadow>
           <octahedronGeometry args={[size*0.07]} />
-          <meshStandardMaterial color={['#ff4444','#4488ff','#44cc44'][i]} roughness={0.05} metalness={0.3} />
+          <meshStandardMaterial color={['#ff4444','#4488ff','#44cc44'][i]!} roughness={0.05} metalness={0.3} />
         </mesh>
       ))}
     </group>
@@ -1598,7 +1598,7 @@ export function SeaTurtle({ pos, color, size }: { pos: [number, number, number];
           <meshStandardMaterial color={c} roughness={0.65} />
         </mesh>
         {/* shell pattern */}
-        {[[0,0],[0.18,0.12],[-0.18,0.12],[0.1,-0.18],[-0.1,-0.18]].map(([x,z],i)=>(
+        {[[0,0],[0.18,0.12],[-0.18,0.12],[0.1,-0.18],[-0.1,-0.18]].map(([x = 0,z = 0],i)=>(
           <mesh key={i} position={[x*size, size*0.44, z*size]} castShadow>
             <boxGeometry args={[size*0.12, size*0.04, size*0.12]} />
             <meshStandardMaterial color="#2d7a5a" roughness={0.7} />
@@ -1617,7 +1617,7 @@ export function SeaTurtle({ pos, color, size }: { pos: [number, number, number];
           </mesh>
         ))}
         {/* flippers */}
-        {[[-0.12, 0.2, 0.34], [-0.12, 0.2, -0.34], [0.12, 0.2, 0.3], [0.12, 0.2, -0.3]].map(([x,y,z],i)=>(
+        {[[-0.12, 0.2, 0.34], [-0.12, 0.2, -0.34], [0.12, 0.2, 0.3], [0.12, 0.2, -0.3]].map(([x = 0,y = 0,z = 0],i)=>(
           <mesh key={i} position={[x*size, y*size, z*size]} rotation={[0.3, 0, z>0 ? -0.4 : 0.4]} castShadow>
             <boxGeometry args={[size*0.26, size*0.06, size*0.16]} />
             <meshStandardMaterial color="#3a8060" roughness={0.7} />
@@ -1719,7 +1719,7 @@ export function PopcornStand({ pos, color, size }: { pos: [number, number, numbe
         <meshStandardMaterial color="#88ccff" roughness={0.05} transparent opacity={0.65} />
       </mesh>
       {/* popcorn pile inside */}
-      {[[-0.12,0.6,0.06],[0.12,0.62,0.04],[0,0.64,0.05],[-0.06,0.56,0.08],[0.16,0.58,0.06]].map(([x,y,z],i)=>(
+      {[[-0.12,0.6,0.06],[0.12,0.62,0.04],[0,0.64,0.05],[-0.06,0.56,0.08],[0.16,0.58,0.06]].map(([x = 0,y = 0,z = 0],i)=>(
         <mesh key={i} position={[x*size, y*size, z*size]} castShadow>
           <sphereGeometry args={[size*0.07, 5, 4]} />
           <meshStandardMaterial color="#ffe566" roughness={0.85} />
@@ -1790,7 +1790,7 @@ export function BumperCar({ pos, color, size }: { pos: [number, number, number];
           <meshStandardMaterial color="#aaa" roughness={0.3} metalness={0.6} />
         </mesh>
         {/* floor wheels (4) */}
-        {[[-0.26,-0.26],[0.26,-0.26],[-0.26,0.26],[0.26,0.26]].map(([x,z],i)=>(
+        {[[-0.26,-0.26],[0.26,-0.26],[-0.26,0.26],[0.26,0.26]].map(([x = 0,z = 0],i)=>(
           <mesh key={i} position={[x*size, size*0.07, z*size]} rotation={[Math.PI/2, 0, 0]} castShadow>
             <cylinderGeometry args={[size*0.07, size*0.07, size*0.06, 8]} />
             <meshStandardMaterial color="#111" roughness={0.9} />
@@ -1872,13 +1872,13 @@ export function BalloonArch({ pos, size }: { pos: [number, number, number]; colo
             {/* main balloon */}
             <mesh castShadow>
               <sphereGeometry args={[size * 0.13, 10, 8]} />
-              <meshStandardMaterial color={colors[i % colors.length]} roughness={0.45} />
+              <meshStandardMaterial color={colors[i % colors.length]!} roughness={0.45} />
             </mesh>
             {/* small accent balloon */}
             {i % 2 === 0 && (
               <mesh position={[0, -size * 0.2, 0]} castShadow>
                 <sphereGeometry args={[size * 0.09, 8, 6]} />
-                <meshStandardMaterial color={colors[(i + 2) % colors.length]} roughness={0.45} />
+                <meshStandardMaterial color={colors[(i + 2) % colors.length]!} roughness={0.45} />
               </mesh>
             )}
           </group>

@@ -364,7 +364,7 @@ export function Cottage({ pos, color, size }: P5) {
       {([-0.1, 0, 0.1] as number[]).map((dx, i) => (
         <mesh key={i} position={[size * (0.42 + dx), size * 0.48, size * 0.5]}>
           <sphereGeometry args={[size * 0.06, 5, 5]} />
-          <meshStandardMaterial color={(['#ff6b6b','#ffcc00','#ff69b4'] as string[])[i]} roughness={0.7} />
+          <meshStandardMaterial color={(['#ff6b6b','#ffcc00','#ff69b4'] as string[])[i]!} roughness={0.7} />
         </mesh>
       ))}
     </group>
@@ -883,7 +883,7 @@ export function MarketStall({ pos, color, size }: P5) {
       {([-0.3, 0, 0.3] as number[]).map((dx, i) => (
         <mesh key={i} position={[size * dx, size * 0.64, 0]}>
           <sphereGeometry args={[size * 0.1, 6, 6]} />
-          <meshStandardMaterial color={(['#e74c3c','#f39c12','#27ae60'] as string[])[i]} roughness={0.5} />
+          <meshStandardMaterial color={(['#e74c3c','#f39c12','#27ae60'] as string[])[i]!} roughness={0.5} />
         </mesh>
       ))}
     </group>

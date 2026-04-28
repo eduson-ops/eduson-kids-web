@@ -148,7 +148,7 @@ export function MeadHall({ pos, color, size }: { pos: [number, number, number]; 
         </mesh>
       ))}
       {/* corner logs */}
-      {[[-0.72, 0.46], [0.72, 0.46], [-0.72, -0.46], [0.72, -0.46]].map(([x, z], i) => (
+      {[[-0.72, 0.46], [0.72, 0.46], [-0.72, -0.46], [0.72, -0.46]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.4, z * size]} castShadow>
           <cylinderGeometry args={[size * 0.06, size * 0.06, size * 0.82, 6]} />
           <meshStandardMaterial color="#6b4020" roughness={0.9} />
@@ -264,7 +264,7 @@ export function GiantMushroom({ pos, color, size }: { pos: [number, number, numb
           <meshStandardMaterial color={c} roughness={0.6} />
         </mesh>
         {/* white spots */}
-        {[[0.2, 0.3, 0.35], [-0.3, 0.25, 0.3], [0.0, 0.15, -0.4], [-0.2, 0.4, -0.2]].map(([dx, dy, dz], i) => (
+        {[[0.2, 0.3, 0.35], [-0.3, 0.25, 0.3], [0.0, 0.15, -0.4], [-0.2, 0.4, -0.2]].map(([dx = 0, dy = 0, dz = 0], i) => (
           <mesh key={i} position={[dx * size, size * 1.18 + dy * size * 0.4, dz * size]} castShadow>
             <sphereGeometry args={[size * 0.07, 6, 6]} />
             <meshStandardMaterial color="#fff" roughness={0.5} />
@@ -290,7 +290,7 @@ export function CrystalTree({ pos, color, size }: { pos: [number, number, number
         [0.3, 0.88, 0.2, 0.18, 0.38],
         [-0.28, 0.85, -0.18, 0.16, 0.34],
         [0.18, 0.78, -0.25, 0.14, 0.3],
-      ].map(([x, y, z, r, h], i) => (
+      ].map(([x = 0, y = 0, z = 0, r = 0, h = 0], i) => (
         <mesh key={i} position={[x * size, y * size, z * size]} rotation={[Math.random() * 0.4, i * 1.1, Math.random() * 0.4]} castShadow>
           <cylinderGeometry args={[0, r * size, h * size, 5]} />
           <meshStandardMaterial color={c} emissive={c} emissiveIntensity={0.3} roughness={0.05} metalness={0.4} transparent opacity={0.85} />
@@ -353,7 +353,7 @@ export function PotionStand({ pos, color, size }: { pos: [number, number, number
         <meshStandardMaterial color="#8b5a2b" roughness={0.8} />
       </mesh>
       {/* table legs */}
-      {[[-0.38, -0.22], [0.38, -0.22], [-0.38, 0.22], [0.38, 0.22]].map(([x, z], i) => (
+      {[[-0.38, -0.22], [0.38, -0.22], [-0.38, 0.22], [0.38, 0.22]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.19, z * size]} castShadow>
           <boxGeometry args={[size * 0.07, size * 0.38, size * 0.07]} />
           <meshStandardMaterial color="#6b4020" roughness={0.9} />
@@ -661,7 +661,7 @@ export function ArcadeMachine({ pos, color, size }: { pos: [number, number, numb
       {[0.05, 0.14, 0.23].map((x, i) => (
         <mesh key={i} position={[x * size, size * 0.62, size * 0.26]}>
           <cylinderGeometry args={[size * 0.03, size * 0.03, size * 0.04, 8]} />
-          <meshStandardMaterial color={['#e74c3c', '#27ae60', '#2980b9'][i]} roughness={0.3} emissive={['#e74c3c', '#27ae60', '#2980b9'][i]} emissiveIntensity={0.3} />
+          <meshStandardMaterial color={['#e74c3c', '#27ae60', '#2980b9'][i]!} roughness={0.3} emissive={['#e74c3c', '#27ae60', '#2980b9'][i]!} emissiveIntensity={0.3} />
         </mesh>
       ))}
       {/* base */}
@@ -779,7 +779,7 @@ export function GameController({ pos, color, size }: { pos: [number, number, num
         </mesh>
       ))}
       {/* d-pad */}
-      {[[0, 0], [0.06, 0], [-0.06, 0], [0, 0.06], [0, -0.06]].map(([x, z], i) => (
+      {[[0, 0], [0.06, 0], [-0.06, 0], [0, 0.06], [0, -0.06]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[-size * 0.2 + x * size, size * 0.37, z * size]} castShadow>
           <boxGeometry args={[i === 0 ? size * 0.06 : size * 0.13, size * 0.02, i === 0 ? size * 0.13 : size * 0.06]} />
           <meshStandardMaterial color="#555" roughness={0.4} />
@@ -793,7 +793,7 @@ export function GameController({ pos, color, size }: { pos: [number, number, num
         </mesh>
       ))}
       {/* analog sticks */}
-      {[[-0.12, -0.04], [0.08, 0.04]].map(([x, z], i) => (
+      {[[-0.12, -0.04], [0.08, 0.04]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.37, z * size]} castShadow>
           <cylinderGeometry args={[size * 0.055, size * 0.055, size * 0.03, 10]} />
           <meshStandardMaterial color="#444" roughness={0.3} />

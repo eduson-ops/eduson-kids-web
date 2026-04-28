@@ -22,8 +22,8 @@ const KEYS: Record<string, string> = {
 
 function fakeKey(btn: string, type: 'keydown' | 'keyup') {
   const e = new KeyboardEvent(type, {
-    code: CODES[btn],
-    key: KEYS[btn],
+    ...(CODES[btn] ? { code: CODES[btn] } : {}),
+    ...(KEYS[btn] ? { key: KEYS[btn] } : {}),
     bubbles: true,
     cancelable: true,
   })

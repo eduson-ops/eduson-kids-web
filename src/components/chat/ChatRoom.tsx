@@ -43,7 +43,7 @@ const DEMO_MESSAGES: ChatMessage[] = [
 ]
 
 function roleColor(role: string): string {
-  return ROLE_COLORS[role] ?? ROLE_COLORS.child
+  return ROLE_COLORS[role] ?? '#6b7280'
 }
 
 function roleLabelRu(role: string): string {

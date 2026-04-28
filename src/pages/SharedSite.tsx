@@ -15,7 +15,7 @@ export default function SharedSite() {
       const hash = window.location.hash || ''
       const m = hash.match(/s=([^&]+)/)
       if (!m) throw new Error('Нет кода сайта в ссылке')
-      const decoded = decodeURIComponent(escape(atob(m[1])))
+      const decoded = decodeURIComponent(escape(atob(m[1]!)))
       const obj = JSON.parse(decoded) as { n?: string; h?: string; c?: string }
       if (typeof obj.h !== 'string' || typeof obj.c !== 'string') throw new Error('Некорректная ссылка')
       setData({ name: obj.n ?? 'Сайт', html: obj.h, css: obj.c })

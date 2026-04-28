@@ -913,7 +913,7 @@ export function CyberDroneB34({ pos, color, size }: P34) {
         <boxGeometry args={[size*0.35, size*0.1, size*0.35]} />
         <meshStandardMaterial color={color} roughness={0.3} metalness={0.7} />
       </mesh>
-      {([[-1,-1], [-1,1], [1,-1], [1,1]] as number[][]).map(([x,z], i) => (
+      {([[-1,-1], [-1,1], [1,-1], [1,1]] as number[][]).map(([x = 0,z = 0], i) => (
         <group key={i} position={[x*size*0.28, 0, z*size*0.28]}>
           <mesh>
             <cylinderGeometry args={[size*0.04, size*0.04, size*0.04, 6]} />

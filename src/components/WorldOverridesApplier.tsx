@@ -66,7 +66,7 @@ export default function WorldOverridesApplier({ worldId }: Props) {
         const h = hashPos([tmp.x, tmp.y, tmp.z])
         const hex = recolored[h]
         if (removed.has(h) || hex) {
-          candidates.push({ mesh, hash: h, hex })
+          candidates.push({ mesh, hash: h, ...(hex ? { hex } : {}) })
         }
       })
 

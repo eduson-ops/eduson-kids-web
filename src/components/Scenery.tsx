@@ -31,7 +31,7 @@ export function Tree({
   variant?: number
   rotY?: number
 }) {
-  const v = TREE_VARIANTS[variant % TREE_VARIANTS.length]
+  const v = TREE_VARIANTS[variant % TREE_VARIANTS.length]!
   return (
     <RigidBody type="fixed" colliders="cuboid" position={pos}>
       {/* Невидимая "коробка" под колижн — крону оставляем проходимой */}
@@ -64,7 +64,7 @@ export function Bush({
 }) {
   return (
     <group position={pos}>
-      <StaticModel url={BUSH_VARIANTS[variant % BUSH_VARIANTS.length]} scale={scale} rotY={rotY} />
+      <StaticModel url={BUSH_VARIANTS[variant % BUSH_VARIANTS.length]!} scale={scale} rotY={rotY} />
     </group>
   )
 }

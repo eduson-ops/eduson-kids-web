@@ -502,7 +502,7 @@ export function FairyMushroomB38({ pos, color, size }: P38) {
       {([
         [0.18, 0.25, 0.22], [-0.18, 0.3, 0.18], [0.0, 0.18, -0.25],
         [0.22, 0.22, -0.12], [-0.22, 0.22, -0.08]
-      ] as number[][]).map(([x,y,z], i) => (
+      ] as number[][]).map(([x = 0,y = 0,z = 0], i) => (
         <mesh key={i} position={[x*size, size*(0.22+y*0.3), z*size]}>
           <sphereGeometry args={[size*0.06, 5, 4]} />
           <meshStandardMaterial color="#ffffff" roughness={0.4} />
@@ -811,7 +811,7 @@ export function DinoEggB39({ pos, color, size }: P39) {
       {([
         [0.22, 0.28, 0.1], [-0.2, 0.15, 0.2], [0.0, 0.32, -0.1],
         [0.25, 0.0, -0.15], [-0.18, 0.05, -0.2]
-      ] as number[][]).map(([x,y,z], i) => (
+      ] as number[][]).map(([x = 0,y = 0,z = 0], i) => (
         <mesh key={i} position={[x*size, y*size, z*size]}>
           <sphereGeometry args={[size*0.05, 5, 4]} />
           <meshStandardMaterial color="#cc7722" roughness={0.5} />
@@ -909,7 +909,7 @@ export function DrumKitB39({ pos, color, size }: P39) {
         [-size*0.5, size*0.18, 0, size*0.22],
         [size*0.5, size*0.18, 0, size*0.22],
         [size*0.1, size*0.35, -size*0.3, size*0.16],
-      ] as number[][]).map(([x,y,z,r], i) => (
+      ] as number[][]).map(([x = 0,y = 0,z = 0,r = 0], i) => (
         <group key={i} position={[x,y,z]}>
           <mesh>
             <cylinderGeometry args={[r, r*0.9, size*0.25, 10]} />
@@ -1434,7 +1434,7 @@ export function ChristmasTreeB41({ pos, color, size }: P41) {
           Math.cos(i*0.898)*size*(0.2 + (i%3)*0.1)
         ]}>
           <sphereGeometry args={[size*0.05, 5, 4]} />
-          <meshStandardMaterial color={['#ff0000','#ffee00','#4444ff','#ff8800'][i%4]} emissive={['#ff0000','#ffee00','#4444ff','#ff8800'][i%4]} emissiveIntensity={0.8} roughness={0.2} />
+          <meshStandardMaterial color={['#ff0000','#ffee00','#4444ff','#ff8800'][i%4]!} emissive={['#ff0000','#ffee00','#4444ff','#ff8800'][i%4]!} emissiveIntensity={0.8} roughness={0.2} />
         </mesh>
       ))}
     </group>

@@ -561,7 +561,7 @@ export function IceCreamStand({ pos, color, size }: P6) {
       {([-0.22, 0, 0.22] as number[]).map((dx, i) => (
         <mesh key={i} position={[size * dx, size * 1.0, 0]} castShadow>
           <sphereGeometry args={[size * 0.14, 8, 8]} />
-          <meshStandardMaterial color={(['#ff69b4','#87ceeb','#90ee90'] as string[])[i]} roughness={0.4} />
+          <meshStandardMaterial color={(['#ff69b4','#87ceeb','#90ee90'] as string[])[i]!} roughness={0.4} />
         </mesh>
       ))}
       {/* wheels */}
@@ -718,10 +718,10 @@ export function Cupcake({ pos, color, size }: P6) {
         <meshStandardMaterial color={c} roughness={0.4} />
       </mesh>
       {/* sprinkles */}
-      {([[-0.1, 0.62, 0.12], [0.08, 0.68, -0.08], [0.14, 0.58, 0.1], [-0.05, 0.72, 0]] as [number,number,number][]).map(([dx,dy,dz], i) => (
+      {([[-0.1, 0.62, 0.12], [0.08, 0.68, -0.08], [0.14, 0.58, 0.1], [-0.05, 0.72, 0]] as [number,number,number][]).map(([dx = 0,dy = 0,dz = 0], i) => (
         <mesh key={i} position={[size * dx, size * dy, size * dz]} castShadow>
           <sphereGeometry args={[size * 0.04, 4, 4]} />
-          <meshStandardMaterial color={(['#f7dc6f','#3498db','#27ae60','#e74c3c'] as string[])[i]} roughness={0.4} />
+          <meshStandardMaterial color={(['#f7dc6f','#3498db','#27ae60','#e74c3c'] as string[])[i]!} roughness={0.4} />
         </mesh>
       ))}
       {/* cherry on top */}
@@ -1087,10 +1087,10 @@ export function ClimbingWall({ pos, color, size }: P7) {
         [-0.3, 1.2, 0.1], [0.45, 1.05, 0.1], [0, 1.85, 0.1],
         [-0.6, 0.8, 0.1], [0.3, 0.7, 0.1], [-0.15, 0.5, 0.1],
         [0.55, 0.35, 0.1], [-0.5, 0.25, 0.1], [0.1, 0.15, 0.1],
-      ].map(([dx, dy, dz], i) => (
+      ].map(([dx = 0, dy = 0, dz = 0], i) => (
         <mesh key={i} position={[size * dx, size * dy, size * dz]} castShadow>
           <sphereGeometry args={[size * 0.09, 6, 6]} />
-          <meshStandardMaterial color={(['#e74c3c','#27ae60','#f39c12','#3498db','#9b59b6','#1abc9c'] as string[])[i % 6]} roughness={0.5} />
+          <meshStandardMaterial color={(['#e74c3c','#27ae60','#f39c12','#3498db','#9b59b6','#1abc9c'] as string[])[i % 6]!} roughness={0.5} />
         </mesh>
       ))}
       {/* base platform */}
@@ -1406,7 +1406,7 @@ export function CryoPod({ pos, color, size }: P7) {
       {([-0.1, 0, 0.1] as number[]).map((dx, i) => (
         <mesh key={i} position={[size * dx, size * 0.18, size * 0.31]}>
           <sphereGeometry args={[size * 0.025, 5, 5]} />
-          <meshStandardMaterial color={(['#27ae60','#f39c12','#e74c3c'] as string[])[i]} emissive={(['#27ae60','#f39c12','#e74c3c'] as string[])[i]} emissiveIntensity={0.8} />
+          <meshStandardMaterial color={(['#27ae60','#f39c12','#e74c3c'] as string[])[i]!} emissive={(['#27ae60','#f39c12','#e74c3c'] as string[])[i]!} emissiveIntensity={0.8} />
         </mesh>
       ))}
       {/* base stand */}
@@ -1535,7 +1535,7 @@ export function RingPlanet({ pos, color, size }: P7) {
       {([1.1, 1.3, 1.5] as number[]).map((r, i) => (
         <mesh key={i} rotation={[Math.PI * 0.22, 0, 0]}>
           <torusGeometry args={[size * r, size * (0.06 - i * 0.01), 4, 32]} />
-          <meshStandardMaterial color={(['#d4a857','#c8a04a','#b89840'] as string[])[i]} roughness={0.5} transparent opacity={0.8} />
+          <meshStandardMaterial color={(['#d4a857','#c8a04a','#b89840'] as string[])[i]!} roughness={0.5} transparent opacity={0.8} />
         </mesh>
       ))}
     </group>

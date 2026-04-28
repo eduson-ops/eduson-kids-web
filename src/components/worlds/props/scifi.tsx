@@ -57,7 +57,7 @@ export function Robot({ pos, color, size }: { pos: [number, number, number]; col
       {CHEST_X.map((x, i) => (
         <mesh key={i} position={[size * x, size * 0.62, size * 0.26]}>
           <sphereGeometry args={[size * 0.04, 6, 4]} />
-          <meshStandardMaterial color={CHEST_COLORS[i]} emissive={CHEST_COLORS[i]} emissiveIntensity={0.6} />
+          <meshStandardMaterial color={CHEST_COLORS[i]!} emissive={CHEST_COLORS[i]!} emissiveIntensity={0.6} />
         </mesh>
       ))}
       {ARM_X.map((x, i) => (

@@ -43,7 +43,7 @@ export function Cow({ pos, color, size }: { pos: [number, number, number]; color
         </mesh>
       ))}
       {/* legs */}
-      {[[-0.28, -0.18], [-0.28, 0.18], [0.28, -0.18], [0.28, 0.18]].map(([x, z], i) => (
+      {[[-0.28, -0.18], [-0.28, 0.18], [0.28, -0.18], [0.28, 0.18]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, -size * 0.1, z * size]} castShadow>
           <cylinderGeometry args={[size * 0.06, size * 0.05, size * 0.3, 8]} />
           <meshStandardMaterial color={bodyColor} roughness={0.9} />
@@ -465,7 +465,7 @@ export function Bamboo({ pos, color, size }: { pos: [number, number, number]; co
   ]
   return (
     <group position={pos}>
-      {stalks.map(([x, , z], si) =>
+      {stalks.map(([x = 0, , z = 0], si) =>
         [0, 1, 2, 3, 4].map((i) => (
           <mesh key={`${si}-${i}`} position={[x, size * (i * 0.22 + 0.12), z]} castShadow>
             <cylinderGeometry args={[size * 0.055, size * 0.06, size * 0.2, 8]} />
@@ -474,7 +474,7 @@ export function Bamboo({ pos, color, size }: { pos: [number, number, number]; co
         ))
       )}
       {/* nodes */}
-      {stalks.map(([x, , z], si) =>
+      {stalks.map(([x = 0, , z = 0], si) =>
         [1, 2, 3, 4].map((i) => (
           <mesh key={`n${si}-${i}`} position={[x, size * (i * 0.22 + 0.01), z]} castShadow>
             <torusGeometry args={[size * 0.06, size * 0.018, 6, 12]} />
@@ -483,7 +483,7 @@ export function Bamboo({ pos, color, size }: { pos: [number, number, number]; co
         ))
       )}
       {/* leaves at top */}
-      {stalks.map(([x, , z], si) =>
+      {stalks.map(([x = 0, , z = 0], si) =>
         [-1, 1].map((s, i) => (
           <mesh key={`l${si}-${i}`} position={[x + s * size * 0.18, size * 1.05, z]} rotation={[0, 0, s * 0.55]} castShadow>
             <boxGeometry args={[size * 0.28, size * 0.02, size * 0.06]} />

@@ -40,7 +40,7 @@ export function BuildingBlockTower({ pos, color, size }: P25) {
       {[0,1,2,3,4,5].map((i) => (
         <mesh key={i} position={[(i%2===0?0:size*0.05), size*(0.12+i*0.22), (i%2===0?size*0.05:0)]} castShadow>
           <boxGeometry args={[size*(0.32-i*0.02), size*0.2, size*(0.32-i*0.02)]} />
-          <meshStandardMaterial color={colors[i]} roughness={0.4} />
+          <meshStandardMaterial color={colors[i]!} roughness={0.4} />
         </mesh>
       ))}
     </group>
@@ -139,8 +139,8 @@ export function KaleidoscopeTower({ pos, color, size }: P25) {
       {[0,1,2,3,4].map((i) => (
         <mesh key={i} position={[Math.cos(i*1.26)*size*0.22, size*(0.12+i*0.16), Math.sin(i*1.26)*size*0.22]}>
           <sphereGeometry args={[size*0.08, 6, 5]} />
-          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa"][i]}
-            emissive={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa"][i]} emissiveIntensity={0.4} />
+          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa"][i]!}
+            emissive={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa"][i]!} emissiveIntensity={0.4} />
         </mesh>
       ))}
     </group>
@@ -282,8 +282,8 @@ export function MarbleMachine({ pos, color: _color, size }: P25) {
       {[0,1,2,3].map((i) => (
         <mesh key={i} position={[(i-1.5)*size*0.15, size*0.5, 0]}>
           <sphereGeometry args={[size*0.07, 7, 6]} />
-          <meshStandardMaterial color={["#ff4444","#4488ff","#44cc44","#ffcc00"][i]}
-            emissive={["#ff4444","#4488ff","#44cc44","#ffcc00"][i]} emissiveIntensity={0.3} transparent opacity={0.85} />
+          <meshStandardMaterial color={["#ff4444","#4488ff","#44cc44","#ffcc00"][i]!}
+            emissive={["#ff4444","#4488ff","#44cc44","#ffcc00"][i]!} emissiveIntensity={0.3} transparent opacity={0.85} />
         </mesh>
       ))}
     </group>
@@ -294,7 +294,7 @@ export function MarbleMachine({ pos, color: _color, size }: P25) {
 export function GardenPavilion({ pos, color, size }: P25) {
   return (
     <group position={pos}>
-      {[[-0.4,-0.3],[0.4,-0.3],[-0.4,0.3],[0.4,0.3]].map(([x,z],i) => (
+      {[[-0.4,-0.3],[0.4,-0.3],[-0.4,0.3],[0.4,0.3]].map(([x = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, size*0.5, z*size]} castShadow>
           <cylinderGeometry args={[size*0.07, size*0.08, size*1.0, 7]} />
           <meshStandardMaterial color="#8B4513" roughness={0.8} />
@@ -344,7 +344,7 @@ export function RoseArbor({ pos, color, size }: P25) {
 export function GardenBench({ pos, color, size }: P25) {
   return (
     <group position={pos}>
-      {[[-0.3,-0.18],[0.3,-0.18],[-0.3,0.18],[0.3,0.18]].map(([x,z],i) => (
+      {[[-0.3,-0.18],[0.3,-0.18],[-0.3,0.18],[0.3,0.18]].map(([x = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, size*0.2, z*size]}>
           <boxGeometry args={[size*0.06, size*0.4, size*0.06]} />
           <meshStandardMaterial color="#8B4513" roughness={0.8} />
@@ -400,7 +400,7 @@ export function PartyBalloons({ pos, color: _color, size }: P25) {
     <group position={pos} ref={ref}>
       {[0,1,2,3,4].map((i) => {
         const a = (i/5)*Math.PI*2
-        const c = ["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa"][i]
+        const c = ["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa"][i]!
         return (
           <group key={i} position={[Math.cos(a)*size*0.22, size*0.6, Math.sin(a)*size*0.22]}>
             <mesh castShadow>
@@ -448,8 +448,8 @@ export function CakeTower({ pos, color, size }: P25) {
       {[0,1,2,3,4,5].map((i) => (
         <mesh key={i} position={[Math.cos(i*1.047)*size*0.3, size*0.26, Math.sin(i*1.047)*size*0.3]}>
           <cylinderGeometry args={[size*0.015, size*0.015, size*0.22, 5]} />
-          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa","#cc44ff"][i]}
-            emissive={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa","#cc44ff"][i]} emissiveIntensity={0.6} />
+          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa","#cc44ff"][i]!}
+            emissive={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa","#cc44ff"][i]!} emissiveIntensity={0.6} />
         </mesh>
       ))}
     </group>
@@ -634,7 +634,7 @@ export function JugglingBalls({ pos, color: _color, size }: P26) {
       {[0,1,2,3,4,5].map((i) => (
         <mesh key={i} position={[0, size*0.5, 0]}>
           <sphereGeometry args={[size*0.08, 7, 6]} />
-          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa","#cc44ff"][i]}
+          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44","#4488ff","#ff44aa","#cc44ff"][i]!}
             roughness={0.3} />
         </mesh>
       ))}
@@ -739,8 +739,8 @@ export function MagicHatCircus({ pos, color, size }: P26) {
       {[0,1,2].map((i) => (
         <mesh key={i} position={[Math.cos(i*2.09)*size*0.1, size*(0.7+i*0.12), Math.sin(i*2.09)*size*0.1]}>
           <sphereGeometry args={[size*0.04, 5, 5]} />
-          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44"][i]}
-            emissive={["#ff4444","#ffcc00","#44cc44"][i]} emissiveIntensity={0.6} />
+          <meshStandardMaterial color={["#ff4444","#ffcc00","#44cc44"][i]!}
+            emissive={["#ff4444","#ffcc00","#44cc44"][i]!} emissiveIntensity={0.6} />
         </mesh>
       ))}
     </group>

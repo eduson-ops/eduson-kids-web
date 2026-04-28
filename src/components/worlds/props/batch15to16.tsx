@@ -89,7 +89,7 @@ export function JollyRogerFlag({ pos, color, size }: P15) {
         <meshStandardMaterial color="#f5f0e0" />
       </mesh>
       {[[-0.08, 1.22, 0.05], [0.08, 1.22, 0.05]].map((p, i) => (
-        <mesh key={i} position={[p[0] * size, p[1] * size, p[2] * size]}>
+        <mesh key={i} position={[p[0]! * size, p[1]! * size, p[2]! * size]}>
           <boxGeometry args={[size * 0.06, size * 0.02, size * 0.04]} />
           <meshStandardMaterial color="#f5f0e0" />
         </mesh>
@@ -179,7 +179,7 @@ export function SeaMine({ pos, color, size }: P15) {
         <meshStandardMaterial color={color} metalness={0.4} roughness={0.5} />
       </mesh>
       {[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1],[0.7,0.7,0],[-0.7,0.7,0]].map((d, i) => (
-        <mesh key={i} position={[d[0]*size*0.38, size*0.35+d[1]*size*0.38, d[2]*size*0.38]} castShadow>
+        <mesh key={i} position={[d[0]!*size*0.38, size*0.35+d[1]!*size*0.38, d[2]!*size*0.38]} castShadow>
           <sphereGeometry args={[size * 0.06, 5, 4]} />
           <meshStandardMaterial color="#cc2200" emissive="#aa0000" emissiveIntensity={0.4} />
         </mesh>
@@ -260,7 +260,7 @@ export function CandyTree({ pos, color, size }: P15) {
         <meshStandardMaterial color="#cc6688" />
       </mesh>
       {[[0, 1.0, 0], [size*0.25, 0.8, 0], [-size*0.2, 0.85, size*0.15]].map((p, i) => (
-        <mesh key={i} position={[p[0], p[1] * size, p[2]]} castShadow>
+        <mesh key={i} position={[p[0]!, p[1]! * size, p[2]!]} castShadow>
           <sphereGeometry args={[size * (0.32 - i * 0.06), 8, 6]} />
           <meshStandardMaterial color={i === 0 ? color : i === 1 ? '#ff88bb' : '#ee44aa'} />
         </mesh>
@@ -268,7 +268,7 @@ export function CandyTree({ pos, color, size }: P15) {
       {[0,1,2,3,4,5].map((i) => (
         <mesh key={i} position={[Math.cos(i*Math.PI/3)*size*0.28, size*1.02, Math.sin(i*Math.PI/3)*size*0.28]} castShadow>
           <sphereGeometry args={[size * 0.07, 5, 4]} />
-          <meshStandardMaterial color={['#ffdd00','#ff4444','#44aaff','#44ff88','#ffaa00','#ff44ff'][i]} emissive={['#ffdd00','#ff4444','#44aaff','#44ff88','#ffaa00','#ff44ff'][i]} emissiveIntensity={0.4} />
+          <meshStandardMaterial color={['#ffdd00','#ff4444','#44aaff','#44ff88','#ffaa00','#ff44ff'][i]!} emissive={['#ffdd00','#ff4444','#44aaff','#44ff88','#ffaa00','#ff44ff'][i]!} emissiveIntensity={0.4} />
         </mesh>
       ))}
     </group>
@@ -324,7 +324,7 @@ export function GingerbreadHouse({ pos, color, size }: P15) {
       {[-0.38, 0, 0.38].map((x, i) => (
         <mesh key={i} position={[x * size, size * 0.7, size * 0.37]}>
           <sphereGeometry args={[size * 0.06, 5, 4]} />
-          <meshStandardMaterial color={['#ff4444','#ffffff','#ff4444'][i]} />
+          <meshStandardMaterial color={['#ff4444','#ffffff','#ff4444'][i]!} />
         </mesh>
       ))}
     </group>
@@ -370,7 +370,7 @@ export function CupcakeThrone({ pos, color, size }: P15) {
       {[0,1,2,3,4,5,6].map((i) => (
         <mesh key={i} position={[Math.cos(i*Math.PI*2/7)*size*0.44, size*0.58, Math.sin(i*Math.PI*2/7)*size*0.44]} castShadow>
           <sphereGeometry args={[size * 0.08, 5, 4]} />
-          <meshStandardMaterial color={['#ff4444','#ffdd00','#44aaff','#ff88bb','#44ff88','#ffaa00','#aa44ff'][i]} />
+          <meshStandardMaterial color={['#ff4444','#ffdd00','#44aaff','#ff88bb','#44ff88','#ffaa00','#aa44ff'][i]!} />
         </mesh>
       ))}
       <mesh position={[0, size * 0.72, 0]} castShadow>
@@ -394,7 +394,7 @@ export function CupcakeThrone({ pos, color, size }: P15) {
 export function CottonCandyCloud({ pos, color, size }: P15) {
   return (
     <group position={pos}>
-      {[[0,0],[0.35,0.08],[-0.3,0.05],[0.15,0.2],[-0.18,0.18],[0.4,-0.05],[-0.38,-0.04]].map(([x,y], i) => (
+      {[[0,0],[0.35,0.08],[-0.3,0.05],[0.15,0.2],[-0.18,0.18],[0.4,-0.05],[-0.38,-0.04]].map(([x = 0,y = 0], i) => (
         <mesh key={i} position={[x*size, size*0.35 + y*size, 0]} castShadow>
           <sphereGeometry args={[size * (0.32 - i * 0.02), 7, 5]} />
           <meshStandardMaterial color={i % 2 === 0 ? color : '#ffbbdd'} transparent opacity={0.88} />
@@ -437,7 +437,7 @@ export function DonutArch({ pos, color, size }: P15) {
       {[0,1,2,3,4,5,6,7,8].map((i) => (
         <mesh key={i} position={[Math.cos(i*Math.PI/8 + Math.PI)*size*0.62, size*0.65+Math.sin(i*Math.PI/8+Math.PI)*size*0.62, 0]} castShadow>
           <sphereGeometry args={[size * 0.07, 5, 4]} />
-          <meshStandardMaterial color={['#ff4444','#ffdd00','#88ddff','#ff88aa','#44ff88'][i%5]} />
+          <meshStandardMaterial color={['#ff4444','#ffdd00','#88ddff','#ff88aa','#44ff88'][i%5]!} />
         </mesh>
       ))}
       <mesh position={[0, size * 0.12, 0]}>
@@ -455,7 +455,7 @@ export function JellybeanPath({ pos, color, size }: P15) {
         [-1,0,1].map((zi) => (
           <mesh key={`${xi}_${zi}`} position={[xi * size * 0.32, size * 0.05, zi * size * 0.32]} castShadow>
             <sphereGeometry args={[size * 0.1, 6, 5]} />
-            <meshStandardMaterial color={['#ff4444','#44cc44','#4444ff','#ffdd00','#ff88aa','#44ccff','#ffaa44'][(Math.abs(xi)+Math.abs(zi))%7]} />
+            <meshStandardMaterial color={['#ff4444','#44cc44','#4444ff','#ffdd00','#ff88aa','#44ccff','#ffaa44'][(Math.abs(xi)+Math.abs(zi))%7]!} />
           </mesh>
         ))
       ))}
@@ -475,7 +475,7 @@ export function SugarCastle({ pos, color, size }: P15) {
         <meshStandardMaterial color={color} roughness={0.2} />
       </mesh>
       {[[-0.45,0.9,-0.35],[0.45,0.9,-0.35],[-0.45,0.9,0.35],[0.45,0.9,0.35]].map((p, i) => (
-        <group key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <group key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <mesh castShadow>
             <cylinderGeometry args={[size*0.14, size*0.14, size*0.5, 8]} />
             <meshStandardMaterial color={color} roughness={0.2} />
@@ -497,7 +497,7 @@ export function SugarCastle({ pos, color, size }: P15) {
       {[0,1,2,3,4,5,6,7].map((i) => (
         <mesh key={i} position={[Math.cos(i*Math.PI/4)*size*0.62, size*0.82, Math.sin(i*Math.PI/4)*size*0.52]}>
           <sphereGeometry args={[size*0.06, 5, 4]} />
-          <meshStandardMaterial color={['#ff4444','#ffdd00','#44aaff','#ff88bb','#44ff88','#ffaa00','#aa44ff','#ffffff'][i]} emissive={['#ff4444','#ffdd00','#44aaff','#ff88bb','#44ff88','#ffaa00','#aa44ff','#ffffff'][i]} emissiveIntensity={0.3} />
+          <meshStandardMaterial color={['#ff4444','#ffdd00','#44aaff','#ff88bb','#44ff88','#ffaa00','#aa44ff','#ffffff'][i]!} emissive={['#ff4444','#ffdd00','#44aaff','#ff88bb','#44ff88','#ffaa00','#aa44ff','#ffffff'][i]!} emissiveIntensity={0.3} />
         </mesh>
       ))}
     </group>
@@ -732,13 +732,13 @@ export function LavaGolem({ pos, color, size }: P16) {
         <meshStandardMaterial color={color} roughness={0.8} />
       </mesh>
       {[[-0.4,0.6,0],[0.4,0.6,0]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, 0]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, 0]} castShadow>
           <boxGeometry args={[size*0.18, size*0.42, size*0.18]} />
           <meshStandardMaterial color={color} roughness={0.8} />
         </mesh>
       ))}
       {[[-0.18,0.84,0.2],[0.18,0.84,0.2]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <sphereGeometry args={[size*0.07, 5,4]} />
           <meshStandardMaterial color="#ff4400" emissive="#ff2200" emissiveIntensity={0.9} />
         </mesh>
@@ -942,7 +942,7 @@ export function GlitchBox({ pos, color, size }: P16) {
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} roughness={0.1} metalness={0.3} />
       </mesh>
       {[[-0.32,0.3,0],[0.32,0.3,0],[0,0.3,-0.32],[0,0.3,0.32]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <boxGeometry args={[size*0.02, size*0.58, size*0.58]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} />
         </mesh>

@@ -85,14 +85,14 @@ export function Triceratops({ pos, color, size }: { pos: [number, number, number
         <meshStandardMaterial color={c} roughness={0.8} />
       </mesh>
       {/* horns */}
-      {[[-0.14, 0.7, 0.64], [0.14, 0.7, 0.64], [0, 0.6, 0.72]].map(([x, y, z], i) => (
+      {[[-0.14, 0.7, 0.64], [0.14, 0.7, 0.64], [0, 0.6, 0.72]].map(([x = 0, y = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, y * size, z * size]} rotation={[-0.3, 0, 0]} castShadow>
           <coneGeometry args={[size * 0.05, size * (i === 2 ? 0.18 : 0.3), 6]} />
           <meshStandardMaterial color="#f5f0e0" roughness={0.5} />
         </mesh>
       ))}
       {/* legs */}
-      {[[-0.22, 0, 0.28], [0.22, 0, 0.28], [-0.22, 0, -0.28], [0.22, 0, -0.28]].map(([x, _y, z], i) => (
+      {[[-0.22, 0, 0.28], [0.22, 0, 0.28], [-0.22, 0, -0.28], [0.22, 0, -0.28]].map(([x = 0, _y = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.13, z * size]} castShadow>
           <boxGeometry args={[size * 0.16, size * 0.26, size * 0.18]} />
           <meshStandardMaterial color={c} roughness={0.8} />
@@ -129,7 +129,7 @@ export function Stegosaurus({ pos, color, size }: { pos: [number, number, number
         <meshStandardMaterial color={c} roughness={0.8} />
       </mesh>
       {/* legs */}
-      {[[-0.18, 0.26], [0.18, 0.26], [-0.18, -0.26], [0.18, -0.26]].map(([x, z], i) => (
+      {[[-0.18, 0.26], [0.18, 0.26], [-0.18, -0.26], [0.18, -0.26]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.13, z * size]} castShadow>
           <boxGeometry args={[size * 0.14, size * 0.26, size * 0.16]} />
           <meshStandardMaterial color={c} roughness={0.8} />
@@ -151,8 +151,8 @@ export function Pterodactyl({ pos, color, size }: { pos: [number, number, number
   useFrame(() => {
     const t = Math.sin(Date.now() * 0.004)
     if (wingRef.current) {
-      wingRef.current.children[0].rotation.z = t * 0.35
-      wingRef.current.children[1].rotation.z = -t * 0.35
+      wingRef.current.children[0]!.rotation.z = t * 0.35
+      wingRef.current.children[1]!.rotation.z = -t * 0.35
     }
   })
   const c = color || '#7a5a3a'
@@ -220,7 +220,7 @@ export function DinoEgg({ pos, color, size }: { pos: [number, number, number]; c
         <meshStandardMaterial color={c} roughness={0.6} />
       </mesh>
       {/* spots */}
-      {[[0.18, 0.38, 0.16], [-0.14, 0.28, 0.2], [0.08, 0.42, -0.18]].map(([x, y, z], i) => (
+      {[[0.18, 0.38, 0.16], [-0.14, 0.28, 0.2], [0.08, 0.42, -0.18]].map(([x = 0, y = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, y * size, z * size]}>
           <sphereGeometry args={[size * 0.06, 6, 6]} />
           <meshStandardMaterial color="#8a6838" roughness={0.5} />
@@ -424,7 +424,7 @@ export function IceCastle({ pos, color, size }: { pos: [number, number, number];
         <meshStandardMaterial color={c} roughness={0.1} metalness={0.1} transparent opacity={0.85} />
       </mesh>
       {/* towers */}
-      {[[-0.45, 0.45], [0.45, 0.45], [-0.45, -0.45], [0.45, -0.45]].map(([x, z], i) => (
+      {[[-0.45, 0.45], [0.45, 0.45], [-0.45, -0.45], [0.45, -0.45]].map(([x = 0, z = 0], i) => (
         <group key={i} position={[x * size, 0, z * size]}>
           <mesh position={[0, size * 0.6, 0]} castShadow>
             <cylinderGeometry args={[size * 0.18, size * 0.2, size * 1.2, 8]} />
@@ -438,7 +438,7 @@ export function IceCastle({ pos, color, size }: { pos: [number, number, number];
       ))}
       {/* battlements */}
       {[-0.28, 0, 0.28].map((x, i) =>
-        [[-0.41], [0.41]].map(([z]) => (
+        [[-0.41], [0.41]].map(([z = 0]) => (
           <mesh key={`${i}-${z}`} position={[x * size, size * 1.14, z * size]} castShadow>
             <boxGeometry args={[size * 0.1, size * 0.16, size * 0.1]} />
             <meshStandardMaterial color="#c0e8ff" roughness={0.1} transparent opacity={0.9} />
@@ -532,7 +532,7 @@ export function Snowfort({ pos, size }: { pos: [number, number, number]; color: 
         )
       })}
       {/* snowballs inside */}
-      {[[-0.2, 0, 0.1], [0.2, 0, -0.15], [0, 0, 0.25]].map(([x, y, z], i) => (
+      {[[-0.2, 0, 0.1], [0.2, 0, -0.15], [0, 0, 0.25]].map(([x = 0, y = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, (y as number) * size + size * 0.08, z * size]}>
           <sphereGeometry args={[size * 0.1, 6, 6]} />
           <meshStandardMaterial color="#fff" roughness={0.5} />
@@ -585,7 +585,7 @@ export function PolarBear({ pos, color, size }: { pos: [number, number, number];
         ))}
       </group>
       {/* legs */}
-      {[[-0.24, 0, 0.18], [0.24, 0, 0.18], [-0.24, 0, -0.18], [0.24, 0, -0.18]].map(([x, _y, z], i) => (
+      {[[-0.24, 0, 0.18], [0.24, 0, 0.18], [-0.24, 0, -0.18], [0.24, 0, -0.18]].map(([x = 0, _y = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.12, z * size]} castShadow>
           <sphereGeometry args={[size * 0.14, 7, 6]} />
           <meshStandardMaterial color={c} roughness={0.7} />
@@ -709,7 +709,7 @@ export function SakuraTree({ pos, color, size }: { pos: [number, number, number]
         </mesh>
       ))}
       {/* blossom clusters */}
-      {[[0, 0.95, 0, 0.32], [0.3, 0.85, 0.2, 0.24], [-0.28, 0.88, -0.2, 0.22], [0.16, 0.78, -0.28, 0.2], [-0.2, 0.82, 0.24, 0.2]].map(([x, y, z, r], i) => (
+      {[[0, 0.95, 0, 0.32], [0.3, 0.85, 0.2, 0.24], [-0.28, 0.88, -0.2, 0.22], [0.16, 0.78, -0.28, 0.2], [-0.2, 0.82, 0.24, 0.2]].map(([x = 0, y = 0, z = 0, r = 0], i) => (
         <mesh key={i} position={[x * size, y * size, z * size]} castShadow>
           <sphereGeometry args={[r * size, 8, 6]} />
           <meshStandardMaterial color={c} roughness={0.6} />
@@ -850,8 +850,8 @@ export function NebulaCloud({ pos, color, size }: { pos: [number, number, number
             <mesh key={i} position={[Math.cos(a) * r, y, Math.sin(a) * r]}>
               <sphereGeometry args={[size * (0.18 + (i % 3) * 0.08), 5, 5]} />
               <meshStandardMaterial
-                color={colors[i % colors.length]}
-                emissive={colors[i % colors.length]}
+                color={colors[i % colors.length]!}
+                emissive={colors[i % colors.length]!}
                 emissiveIntensity={0.4}
                 roughness={0.3}
                 transparent
@@ -878,7 +878,7 @@ export function SpaceDebris({ pos, color, size }: { pos: [number, number, number
           <meshStandardMaterial color={c} roughness={0.7} metalness={0.3} />
         </mesh>
         {/* fragments */}
-        {[[0.3, 0.2, 0.1], [-0.28, 0.18, -0.12], [0.1, -0.22, 0.24], [-0.15, 0.2, 0.28]].map(([x, y, z], i) => (
+        {[[0.3, 0.2, 0.1], [-0.28, 0.18, -0.12], [0.1, -0.22, 0.24], [-0.15, 0.2, 0.28]].map(([x = 0, y = 0, z = 0], i) => (
           <mesh key={i} position={[x * size, y * size, z * size]} castShadow>
             <boxGeometry args={[size * 0.16, size * 0.12, size * 0.14]} />
             <meshStandardMaterial color={c} roughness={0.7} metalness={0.3} />
@@ -1132,7 +1132,7 @@ export function RainbowJet({ pos, size }: { pos: [number, number, number]; color
         {Array.from({ length: 24 }).map((_, i) => (
           <mesh key={i}>
             <sphereGeometry args={[size * 0.05, 4, 4]} />
-            <meshStandardMaterial color={rainbow[i % rainbow.length]} emissive={rainbow[i % rainbow.length]} emissiveIntensity={0.8} roughness={0.1} />
+            <meshStandardMaterial color={rainbow[i % rainbow.length]!} emissive={rainbow[i % rainbow.length]!} emissiveIntensity={0.8} roughness={0.1} />
           </mesh>
         ))}
       </group>

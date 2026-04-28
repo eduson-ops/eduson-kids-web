@@ -818,7 +818,7 @@ export function HabitatModule({ pos, color, size }: P24) {
           <meshStandardMaterial color="#225577" metalness={0.3} roughness={0.2} />
         </mesh>
       ))}
-      {[[-0.12,0.22],[0.12,0.22],[-0.12,-0.18],[0.12,-0.18]].map(([x,z],i) => (
+      {[[-0.12,0.22],[0.12,0.22],[-0.12,-0.18],[0.12,-0.18]].map(([x = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, size*0.62, z*size]}>
           <boxGeometry args={[size*0.1, size*0.06, size*0.1]} />
           <meshStandardMaterial color="#aabbcc" emissive="#aabbcc" emissiveIntensity={0.3} metalness={0.5} />
@@ -932,7 +932,7 @@ export function SpaceToolRack({ pos, color, size }: P24) {
 export function MeteorFragment({ pos, color, size }: P24) {
   return (
     <group position={pos}>
-      {[[-0.1,0.06,-0.08],[0.08,0.14,0.06],[-0.05,0.22,0.1],[0.12,0.05,0.15],[-0.08,0.18,-0.06]].map(([x,y,z],i) => (
+      {[[-0.1,0.06,-0.08],[0.08,0.14,0.06],[-0.05,0.22,0.1],[0.12,0.05,0.15],[-0.08,0.18,-0.06]].map(([x = 0,y = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, y*size, z*size]} rotation={[i*0.8, i*0.5, i*0.3]} castShadow>
           <dodecahedronGeometry args={[size*(0.08+i*0.025)]} />
           <meshStandardMaterial color={color} metalness={0.3} roughness={0.8} />

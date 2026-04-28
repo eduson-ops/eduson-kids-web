@@ -29,7 +29,7 @@ export default function ScriptGhosts({ worldId, knownIds }: Props) {
         if (m) {
           pending.push({
             id: objectId,
-            pos: [parseFloat(m[1]), parseFloat(m[2]), parseFloat(m[3])],
+            pos: [parseFloat(m[1]!), parseFloat(m[2]!), parseFloat(m[3]!)],
           })
         }
       }

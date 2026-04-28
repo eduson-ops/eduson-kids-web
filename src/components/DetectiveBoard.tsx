@@ -50,29 +50,16 @@ const STATUS_LABEL: Record<SuspectStatus, string> = {
 function computeBoard(progress: number): { suspects: Suspect[]; clues: Clue[] } {
   const s = SUSPECTS_BASE.map<Suspect>((b) => ({ ...b, status: 'unknown' }))
 
+  const set = (idx: number, status: Suspect['status']) => { if (s[idx]) s[idx]!.status = status }
+
   if (progress >= 2) {
-    // После задачи 2 (алиби): Хакс и Логик сняты
-    s[0].status = 'cleared'
-    s[3].status = 'cleared'
-    s[1].status = 'suspect'
-    s[2].status = 'suspect'
-    s[4].status = 'suspect'
+    set(0, 'cleared'); set(3, 'cleared')
+    set(1, 'suspect'); set(2, 'suspect'); set(4, 'suspect')
   }
-  if (progress >= 4) {
-    // После задачи 4 (следы): у Байт размер 37, не 44
-    s[1].status = 'cleared'
-  }
-  if (progress >= 7) {
-    // После задачи 7 (имя ВИКТОР): Нуль — главный
-    s[4].status = 'prime'
-  }
-  if (progress >= 9) {
-    // После задачи 9 (три условия): Баг тоже снят (вошёл в 23:00, не 22)
-    s[2].status = 'cleared'
-  }
-  if (progress >= 10) {
-    s[4].status = 'criminal'
-  }
+  if (progress >= 4) set(1, 'cleared')
+  if (progress >= 7) set(4, 'prime')
+  if (progress >= 9) set(2, 'cleared')
+  if (progress >= 10) set(4, 'criminal')
 
   return { suspects: s, clues: ALL_CLUES.slice(0, progress) }
 }
@@ -90,7 +77,7 @@ export default function DetectiveBoard({ n, solvedCount }: Props) {
   const progress = Math.max(n - 1, solvedCount)
   const { suspects, clues } = useMemo(() => computeBoard(progress), [progress])
 
-  const isCaseSolved = suspects[4].status === 'criminal'
+  const isCaseSolved = suspects[4]?.status === 'criminal'
 
   return (
     <div className="det-board">

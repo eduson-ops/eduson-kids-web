@@ -129,7 +129,7 @@ export function loadAvatar(): Avatar {
   } catch {
     /* fallthrough */
   }
-  return PRESET_AVATARS[0]
+  return PRESET_AVATARS[0]!
 }
 
 export function saveAvatar(a: Avatar) {

@@ -37,7 +37,7 @@ export function SphinxHead({ pos, color, size }: P17) {
         <meshStandardMaterial color={color} roughness={0.8} />
       </mesh>
       {[[-0.12,0.74,0.26],[0.12,0.74,0.26]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <sphereGeometry args={[size*0.07, 6,5]} />
           <meshStandardMaterial color="#333311" />
         </mesh>
@@ -143,7 +143,7 @@ export function CanopicJar({ pos, color, size }: P17) {
         <meshStandardMaterial color="#cc9040" roughness={0.5} />
       </mesh>
       {[[-0.18,0.3,0.18],[0.18,0.3,0.18],[-0.18,0.3,-0.18],[0.18,0.3,-0.18]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <boxGeometry args={[size*0.03, size*0.5, size*0.03]} />
           <meshStandardMaterial color="#7a5a20" roughness={0.8} />
         </mesh>
@@ -305,7 +305,7 @@ export function DewdropFlower({ pos, color, size }: P17) {
         <meshStandardMaterial color="#ffdd44" />
       </mesh>
       {[[-0.15,0.62,0.18],[0.12,0.58,0.2]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <sphereGeometry args={[size*0.04, 4,3]} />
           <meshStandardMaterial color="#aaddff" transparent opacity={0.8} roughness={0.05} />
         </mesh>
@@ -442,7 +442,7 @@ export function PebblePath({ pos, color, size }: P17) {
     <group position={pos}>
       {[[-0.45,0.05,0.1],[-0.2,0.04,-0.12],[0.05,0.05,0.15],[0.28,0.04,-0.08],[0.5,0.05,0.1],
         [-0.35,0.04,-0.05],[-0.1,0.05,0.02],[0.15,0.04,-0.15],[0.4,0.05,0.05]].map((p, i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} castShadow>
           <sphereGeometry args={[size*(0.06+i%3*0.02), 5, 4]} />
           <meshStandardMaterial color={i%3===0 ? color : i%3===1 ? '#aaaaaa' : '#888888'} roughness={0.9} />
         </mesh>
@@ -711,7 +711,7 @@ export function GoldNugget({ pos, color, size }: P18) {
         <meshStandardMaterial color={color} metalness={0.8} roughness={0.2} />
       </mesh>
       {[[-0.2,0.14,0.12],[0.18,0.18,-0.1],[-0.12,0.22,0.18]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} castShadow>
           <dodecahedronGeometry args={[size*0.12, 0]} />
           <meshStandardMaterial color={color} metalness={0.8} roughness={0.15} />
         </mesh>
@@ -821,13 +821,13 @@ export function HauntedTree({ pos, color, size }: P18) {
         <meshStandardMaterial color={color} roughness={0.9} />
       </mesh>
       {[[-0.35, 0.9, -0.1],[-0.5, 0.75, 0.12],[0.4, 0.85, 0],[0.3, 1.05, -0.1]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} rotation={[0, 0, p[0]*0.6]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} rotation={[0, 0, p[0]!*0.6]} castShadow>
           <cylinderGeometry args={[size*0.04, size*0.07, size*(0.38-i*0.04), 5]} />
           <meshStandardMaterial color={color} roughness={0.9} />
         </mesh>
       ))}
       {[[-0.48, 0.8, -0.05],[0.55, 0.78, 0.08]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} rotation={[0, 0, p[0]*1.2]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} rotation={[0, 0, p[0]!*1.2]}>
           <cylinderGeometry args={[size*0.025, size*0.035, size*0.22, 4]} />
           <meshStandardMaterial color={color} roughness={0.9} />
         </mesh>
@@ -856,7 +856,7 @@ export function CauldronBubble({ pos, color, size }: P18) {
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} transparent opacity={0.7} roughness={0.3} />
       </mesh>
       {[[-0.12,0.48,0.1],[0.1,0.5,-0.08],[0.0,0.54,0.05]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <sphereGeometry args={[size*(0.06-i*0.01), 5,4]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} transparent opacity={0.6} />
         </mesh>
@@ -964,13 +964,13 @@ export function PotionShelf({ pos, color, size }: P18) {
       {[-0.28,-0.1,0.1,0.28].map((x,i) => (
         <mesh key={i} position={[x*size, size*0.2, 0]} castShadow>
           <cylinderGeometry args={[size*0.06, size*0.07, size*0.28, 7]} />
-          <meshStandardMaterial color={[color,'#ff4444','#ffdd00','#aa44ff'][i]} roughness={0.4} transparent opacity={0.75} />
+          <meshStandardMaterial color={[color,'#ff4444','#ffdd00','#aa44ff'][i]!} roughness={0.4} transparent opacity={0.75} />
         </mesh>
       ))}
       {[-0.2,0,0.2].map((x,i) => (
         <mesh key={i} position={[x*size, size*0.62, 0]} castShadow>
           <cylinderGeometry args={[size*0.055, size*0.06, size*0.24, 7]} />
-          <meshStandardMaterial color={['#44ff88','#ff88aa','#44aaff'][i]} roughness={0.4} transparent opacity={0.75} />
+          <meshStandardMaterial color={['#44ff88','#ff88aa','#44aaff'][i]!} roughness={0.4} transparent opacity={0.75} />
         </mesh>
       ))}
     </group>

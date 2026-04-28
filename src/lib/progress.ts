@@ -158,7 +158,7 @@ export function countDoneInModule(_moduleN: number, lessonNumbers: number[]): nu
 }
 export function getCurrentLesson(all: number[]): number {
   for (const n of all) if (!completed.has(n)) return n
-  return all[all.length - 1]
+  return all[all.length - 1]!
 }
 
 // ─── Quiz API ────────────────────────────────────────

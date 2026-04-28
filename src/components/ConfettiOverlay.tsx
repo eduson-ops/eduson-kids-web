@@ -53,7 +53,7 @@ export default function ConfettiOverlay({ onDone }: Props) {
       vrot: (Math.random() - 0.5) * 0.3,
       w: 8 + Math.random() * 8,
       h: 4 + Math.random() * 4,
-      color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)],
+      color: BRAND_COLORS[Math.floor(Math.random() * BRAND_COLORS.length)]!,
     }))
 
     const start = performance.now()

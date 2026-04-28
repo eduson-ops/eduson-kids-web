@@ -777,7 +777,7 @@ function generateFallbackQuiz(lesson: Lesson): QuizQuestion[] {
 
   // Q1: term comprehension (если есть термины)
   if (lesson.terms.length > 0) {
-    const primary = lesson.terms[0]
+    const primary = lesson.terms[0]!
     const distractors = lesson.terms.slice(1, 4)
     // Если дистракторов мало — добавляем «обманки» из универсального пула
     const pool = ['функция', 'цикл', 'переменная', 'событие', 'массив', 'сравнение', 'условие']
@@ -797,7 +797,7 @@ function generateFallbackQuiz(lesson: Lesson): QuizQuestion[] {
 
   // Q2: block introduction (если вводились новые блоки)
   if (lesson.newBlocks.length > 0) {
-    const block = lesson.newBlocks[0]
+    const block = lesson.newBlocks[0]!
     out.push({
       text: `Какой новый блок появился на уроке ${lesson.n}?`,
       options: [
@@ -834,7 +834,7 @@ function fisherYates<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
+    ;[a[i], a[j]] = [a[j]!, a[i]!]
   }
   return a
 }

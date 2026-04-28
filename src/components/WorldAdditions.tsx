@@ -374,7 +374,7 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
       }
       return (
         <PlatformerProp
-          file={fileMap[kind]}
+          file={fileMap[kind] ?? ''}
           pos={pos}
           scale={size * (scaleMap[kind] ?? 1.5)}
         />
@@ -412,7 +412,7 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
         'npc-birb': 'birb',
         'npc-bluedemon': 'blueDemon',
       }
-      return <GltfMonster which={map[kind]} pos={pos} scale={size} animation="Yes" />
+      return <GltfMonster which={map[kind] as MonsterId} pos={pos} scale={size} animation="Yes" />
     }
 
     // ─── Свет ───

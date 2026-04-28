@@ -61,7 +61,7 @@ export function FactoryConveyorBelt({ pos, color, size }: P19) {
       {[-0.4, 0, 0.4].map((x,i) => (
         <mesh key={i} position={[x*size, size*0.26, 0]} castShadow>
           <boxGeometry args={[size*0.2, size*0.14, size*0.18]} />
-          <meshStandardMaterial color={['#ff4444','#ffdd00','#4488ff'][i]} roughness={0.6} />
+          <meshStandardMaterial color={['#ff4444','#ffdd00','#4488ff'][i]!} roughness={0.6} />
         </mesh>
       ))}
     </group>
@@ -83,7 +83,7 @@ export function RobotDrone({ pos, color, size }: P19) {
         <meshStandardMaterial color={color} metalness={0.6} roughness={0.3} />
       </mesh>
       {[[-0.3,0.6,-0.3],[0.3,0.6,-0.3],[-0.3,0.6,0.3],[0.3,0.6,0.3]].map((p,i) => (
-        <group key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <group key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <mesh castShadow>
             <cylinderGeometry args={[size*0.06, size*0.06, size*0.04, 6]} />
             <meshStandardMaterial color="#222222" metalness={0.6} />
@@ -182,7 +182,7 @@ export function CircuitPanel({ pos, color, size }: P19) {
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.35} roughness={0.2} />
       </mesh>
       {[[-0.22,0.38],[0,0.38],[0.22,0.38],[-0.22,0.55],[0,0.55],[0.22,0.55]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, size*0.07]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, size*0.07]}>
           <sphereGeometry args={[size*0.05, 5,4]} />
           <meshStandardMaterial color={i%3===0 ? '#ff4444' : i%3===1 ? '#44ff44' : '#ffdd00'} emissive={i%3===0 ? '#ff2222' : i%3===1 ? '#22ff22' : '#ffcc00'} emissiveIntensity={0.7} />
         </mesh>
@@ -266,7 +266,7 @@ export function CargoClaw({ pos, color, size }: P19) {
         <meshStandardMaterial color="#555555" metalness={0.7} />
       </mesh>
       {[[-0.15,0.42,0],[0.15,0.42,0],[0,0.42,-0.12],[0,0.42,0.12]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} rotation={[p[2]*3, 0, p[0]*3]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} rotation={[p[2]!*3, 0, p[0]!*3]} castShadow>
           <boxGeometry args={[size*0.06, size*0.3, size*0.05]} />
           <meshStandardMaterial color={color} metalness={0.6} />
         </mesh>
@@ -287,7 +287,7 @@ export function BotChassis({ pos, color, size }: P19) {
         <meshStandardMaterial color={color} metalness={0.5} />
       </mesh>
       {[[-0.12,0.88,0.12],[0.12,0.88,0.12]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <sphereGeometry args={[size*0.07, 6,5]} />
           <meshStandardMaterial color="#ffdd00" emissive="#ffaa00" emissiveIntensity={0.5} />
         </mesh>
@@ -368,9 +368,9 @@ export function SeaArch({ pos, color, size }: P19) {
         <meshStandardMaterial color={color} roughness={0.6} />
       </mesh>
       {[[-0.4,0.3,0.12],[0.3,0.55,-0.1],[-0.2,0.85,0.08],[0.45,1.05,0.05]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} castShadow>
           <sphereGeometry args={[size*0.08, 5,4]} />
-          <meshStandardMaterial color={['#ff8899','#ff6688','#ffaacc','#ff4477'][i]} roughness={0.5} />
+          <meshStandardMaterial color={['#ff8899','#ff6688','#ffaacc','#ff4477'][i]!} roughness={0.5} />
         </mesh>
       ))}
     </group>
@@ -476,7 +476,7 @@ export function SunkenStatue({ pos, color, size }: P19) {
         </mesh>
       ))}
       {[[-0.15,0.82,0.16],[0.15,0.82,0.16]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]}>
           <sphereGeometry args={[size*0.06, 5,4]} />
           <meshStandardMaterial color="#224422" roughness={0.6} />
         </mesh>
@@ -536,7 +536,7 @@ export function AnglerfishLamp({ pos, color, size }: P19) {
         <meshStandardMaterial color="#88ffcc" emissive="#44ffaa" emissiveIntensity={0.7} />
       </mesh>
       {[[-0.2,0.32,0.2],[0.2,0.28,-0.15],[-0.1,0.24,0.22],[0.15,0.22,0.1]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} rotation={[p[2]*5, 0, p[0]*4]}>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} rotation={[p[2]!*5, 0, p[0]!*4]}>
           <boxGeometry args={[size*0.1, size*0.02, size*0.04]} />
           <meshStandardMaterial color="#dddddd" roughness={0.3} transparent opacity={0.6} />
         </mesh>
@@ -579,7 +579,7 @@ export function CloudCastle({ pos, color, size }: P20) {
   return (
     <group position={pos}>
       {[[-0.4,0,0],[0.4,0,0],[0,0,0]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, size*(0.3+i*0.08), 0]} castShadow>
+        <mesh key={i} position={[p[0]!*size, size*(0.3+i*0.08), 0]} castShadow>
           <sphereGeometry args={[size*(0.32-i*0.02), 7,5]} />
           <meshStandardMaterial color={color} roughness={0.3} />
         </mesh>
@@ -589,13 +589,13 @@ export function CloudCastle({ pos, color, size }: P20) {
         <meshStandardMaterial color={color} roughness={0.25} />
       </mesh>
       {[[-0.2,0.92,-0.1],[0.2,0.88,0.1],[0,1.02,0]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} castShadow>
           <cylinderGeometry args={[size*0.07, size*0.09, size*0.35, 7]} />
           <meshStandardMaterial color={color} roughness={0.25} />
         </mesh>
       ))}
       {[[-0.2,1.1,-0.1],[0.2,1.06,0.1],[0,1.22,0]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} castShadow>
           <coneGeometry args={[size*0.1, size*0.18, 7]} />
           <meshStandardMaterial color="#ffccee" roughness={0.3} />
         </mesh>
@@ -918,7 +918,7 @@ export function MineralVein({ pos, color, size }: P20) {
         <meshStandardMaterial color="#554433" roughness={0.9} />
       </mesh>
       {[[-0.05,0.15,-0.2],[-0.07,0.32,0.1],[-0.06,0.48,-0.15],[-0.04,0.22,0.28]].map((p,i) => (
-        <mesh key={i} position={[p[0]*size, p[1]*size, p[2]*size]} rotation={[0.2, i*0.4, 0.1]} castShadow>
+        <mesh key={i} position={[p[0]!*size, p[1]!*size, p[2]!*size]} rotation={[0.2, i*0.4, 0.1]} castShadow>
           <boxGeometry args={[size*0.14, size*0.08, size*0.18]} />
           <meshStandardMaterial color={color} metalness={0.6} roughness={0.3} />
         </mesh>

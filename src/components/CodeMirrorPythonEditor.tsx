@@ -146,7 +146,7 @@ function eksonCompletions(context: CompletionContext): CompletionResult | null {
 
   const options = [
     ...PYTHON_API_REFERENCE.map((item) => {
-      const name = item.fn.split('(')[0]
+      const name = item.fn.split('(')[0]!
       const argsPart = item.fn.substring(name.length)
       const snippet = name + argsPart.replace(/\(([^)]*)\)/, (_m, inside: string) => {
         const args = inside.split(',').map((a) => a.trim()).filter(Boolean)

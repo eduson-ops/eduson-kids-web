@@ -33,7 +33,7 @@ export default function VoxelClouds() {
     const t = state.clock.elapsedTime
     root.current.children.forEach((child, i) => {
       const def = CLOUDS[i]
-      // плавно дрейф по X + sway по Y
+      if (!def) return
       child.position.x = def.x + Math.sin(t * 0.05 + i) * 6 * def.drift
       child.position.y = def.y + Math.sin(t * 0.15 + i * 0.8) * 0.4
     })

@@ -81,7 +81,7 @@ export async function enqueue(projectId: string, payload: unknown): Promise<void
       if (existing.length >= MAX_PER_PROJECT) {
         const overflow = existing.length - MAX_PER_PROJECT + 1
         for (let i = 0; i < overflow; i++) {
-          store.delete(existing[i])
+          store.delete(existing[i]!)
         }
       }
 

@@ -84,7 +84,7 @@ export default function WorldContextMenu({ worldId }: Props) {
       obj.getWorldPosition(wp)
       const ph = hashPos([wp.x, wp.y, wp.z])
       const prevHex = getRecoloredForWorld(worldId)[ph]
-      pushUndo({ kind: 'recolor', worldId, posHash: ph, prevHex })
+      pushUndo({ kind: 'recolor', worldId, posHash: ph, ...(prevHex ? { prevHex } : {}) })
       setRecolor(worldId, ph, hex)
     }
     SFX.click()

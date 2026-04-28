@@ -98,7 +98,7 @@ export function FlowerPot({ pos, color, size }: { pos: [number, number, number];
         <meshStandardMaterial color="#5a3a1a" roughness={0.95} />
       </mesh>
       {/* Flowers */}
-      {[[0, 0], [0.25, 0.2], [-0.25, -0.15], [0.1, -0.3]].map(([x, z], i) => (
+      {[[0, 0], [0.25, 0.2], [-0.25, -0.15], [0.1, -0.3]].map(([x = 0, z = 0], i) => (
         <group key={i} position={[x * size, size * 0.85, z * size]}>
           <mesh position={[0, size * 0.2, 0]} castShadow>
             <cylinderGeometry args={[size * 0.04, size * 0.04, size * 0.4, 6]} />
@@ -184,7 +184,7 @@ export function Snowman({ pos, size }: { pos: [number, number, number]; size: nu
         <coneGeometry args={[size * 0.06, size * 0.25, 6]} />
         <meshStandardMaterial color="#ff7700" roughness={0.5} />
       </mesh>
-      {[[-0.13, 0.12], [0.13, 0.12]].map(([x, z], i) => (
+      {[[-0.13, 0.12], [0.13, 0.12]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 1.48, z * size]} castShadow>
           <sphereGeometry args={[size * 0.05, 6, 4]} />
           <meshStandardMaterial color="#222" roughness={0.8} />

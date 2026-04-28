@@ -62,7 +62,7 @@ export default function UniversalClickCatcher({ worldId, children }: Props) {
     else applyOne(mat)
     const prevHex = getRecoloredForWorld(worldId)[ph]
     setRecolor(worldId, ph, hex)
-    pushUndo({ kind: 'recolor', worldId, posHash: ph, prevHex })
+    pushUndo({ kind: 'recolor', worldId, posHash: ph, ...(prevHex ? { prevHex } : {}) })
   }
 
   const applyRemove = (obj: THREE.Object3D) => {

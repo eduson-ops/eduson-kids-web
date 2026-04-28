@@ -134,7 +134,7 @@ export default function AdaptiveQuiz() {
     return <TopicPicker onPick={setTopicId} />
   }
 
-  const topic = TOPICS.find((t) => t.id === topicId) ?? TOPICS[0]
+  const topic = TOPICS.find((t) => t.id === topicId) ?? TOPICS[0]!
   return <QuizRunner topic={topic} onExit={() => setTopicId(null)} />
 }
 
@@ -222,9 +222,9 @@ function QuizRunner({ topic, onExit }: { topic: Topic; onExit: () => void }) {
       if (pool.length === 0) {
         // Fallback: любой вопрос с ближайшего уровня
         const anyUnasked = topic.bank.filter((q) => !askedIds.has(topic.bank.indexOf(q)))
-        return anyUnasked[0] ?? topic.bank[0]
+        return anyUnasked[0] ?? topic.bank[0] ?? null
       }
-      return pool[Math.floor(Math.random() * pool.length)]
+      return pool[Math.floor(Math.random() * pool.length)] ?? null
     }
   }, [topic, history, askedIds])
 

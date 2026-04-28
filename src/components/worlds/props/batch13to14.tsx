@@ -813,13 +813,13 @@ export function TreeFrog({ pos, color, size }: P14) {
         <meshStandardMaterial color={color} />
       </mesh>
       {[[-0.18, 0.35, 0.12], [0.18, 0.35, 0.12]].map((p, i) => (
-        <mesh key={i} position={[p[0] * size, p[1] * size, p[2] * size]}>
+        <mesh key={i} position={[p[0]! * size, p[1]! * size, p[2]! * size]}>
           <sphereGeometry args={[size * 0.07, 6, 5]} />
           <meshStandardMaterial color="#ffdd00" emissive="#ffaa00" emissiveIntensity={0.4} />
         </mesh>
       ))}
       {[[-0.22, 0.1, 0.1], [0.22, 0.1, 0.1], [-0.15, 0.1, -0.15], [0.15, 0.1, -0.15]].map((p, i) => (
-        <mesh key={i} position={[p[0] * size, p[1] * size, p[2] * size]} rotation={[0, 0, i < 2 ? 0.5 : -0.5]}>
+        <mesh key={i} position={[p[0]! * size, p[1]! * size, p[2]! * size]} rotation={[0, 0, i < 2 ? 0.5 : -0.5]}>
           <cylinderGeometry args={[size * 0.03, size * 0.02, size * 0.22, 5]} />
           <meshStandardMaterial color={color} />
         </mesh>
@@ -913,7 +913,7 @@ export function JaguarStatue({ pos, color, size }: P14) {
         <meshStandardMaterial color={color} roughness={0.7} />
       </mesh>
       {[[-0.12, 0.58, 0.5], [0.12, 0.58, 0.5]].map((p, i) => (
-        <mesh key={i} position={[p[0] * size, p[1] * size, p[2] * size]} castShadow>
+        <mesh key={i} position={[p[0]! * size, p[1]! * size, p[2]! * size]} castShadow>
           <coneGeometry args={[size * 0.05, size * 0.12, 5]} />
           <meshStandardMaterial color={color} />
         </mesh>
@@ -1196,7 +1196,7 @@ export function PenguinProp({ pos, color, size }: P14) {
         <meshStandardMaterial color={color} />
       </mesh>
       {[[-0.12, 0.58, 0.08], [0.12, 0.58, 0.08]].map((p, i) => (
-        <mesh key={i} position={[p[0] * size, p[1] * size, p[2] * size]} castShadow>
+        <mesh key={i} position={[p[0]! * size, p[1]! * size, p[2]! * size]} castShadow>
           <sphereGeometry args={[size * 0.07, 6, 5]} />
           <meshStandardMaterial color="#ffffff" />
         </mesh>
@@ -1268,7 +1268,7 @@ export function ArcticTent({ pos, color, size }: P14) {
         <meshStandardMaterial color="#cc2200" />
       </mesh>
       {[[-0.38, 0.44, 0.44], [0.38, 0.44, 0.44], [-0.38, 0.44, -0.44], [0.38, 0.44, -0.44]].map((p, i) => (
-        <mesh key={i} position={[p[0] * size, 0, p[2] * size]} castShadow>
+        <mesh key={i} position={[p[0]! * size, 0, p[2]! * size]} castShadow>
           <cylinderGeometry args={[size * 0.02, size * 0.02, size * 0.44, 4]} />
           <meshStandardMaterial color="#dddddd" />
         </mesh>

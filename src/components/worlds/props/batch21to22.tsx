@@ -366,7 +366,7 @@ export function AtlantisGate({ pos, color, size }: P21) {
 export function OceanFloorRuin({ pos, color, size }: P21) {
   return (
     <group position={pos}>
-      {[[-0.4,0.2,0],[0,0.05,-0.3],[0.4,0.15,0.2]].map(([x,h,z],i) => (
+      {[[-0.4,0.2,0],[0,0.05,-0.3],[0.4,0.15,0.2]].map(([x = 0,h = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, h*size, z*size]} rotation={[0,i*0.6,i*0.2]} castShadow>
           <cylinderGeometry args={[size*0.1, size*0.13, size*(0.3+i*0.1), 7]} />
           <meshStandardMaterial color={color} roughness={0.9} />
@@ -506,7 +506,7 @@ export function WizardDesk({ pos, color, size }: P22) {
         <boxGeometry args={[size*0.9, size*0.08, size*0.55]} />
         <meshStandardMaterial color="#8B4513" roughness={0.8} />
       </mesh>
-      {[[-0.38,0],[0.38,0],[-0.38,0.45],[0.38,0.45]].map(([x,z],i) => (
+      {[[-0.38,0],[0.38,0],[-0.38,0.45],[0.38,0.45]].map(([x = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, size*0.17, z*size-size*0.22]}>
           <boxGeometry args={[size*0.06, size*0.35, size*0.06]} />
           <meshStandardMaterial color="#5C3317" roughness={0.9} />
@@ -566,7 +566,7 @@ export function AstroLabTable({ pos, color, size }: P22) {
         <boxGeometry args={[size*0.8, size*0.06, size*0.55]} />
         <meshStandardMaterial color="#7a6040" roughness={0.7} />
       </mesh>
-      {[[-0.35,-0.2],[0.35,-0.2],[-0.35,0.2],[0.35,0.2]].map(([x,z],i) => (
+      {[[-0.35,-0.2],[0.35,-0.2],[-0.35,0.2],[0.35,0.2]].map(([x = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, size*0.14, z*size]}>
           <cylinderGeometry args={[size*0.04, size*0.04, size*0.28, 6]} />
           <meshStandardMaterial color="#5a4030" roughness={0.9} />
@@ -610,7 +610,7 @@ export function MagicMirrorSchool({ pos, color, size }: P22) {
         <boxGeometry args={[size*0.48, size*0.62, size*0.02]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.2} transparent opacity={0.7} metalness={0.8} roughness={0.1} />
       </mesh>
-      {[[-0.22,1.16],[0.22,1.16],[-0.22,0.44],[0.22,0.44]].map(([x,y],i) => (
+      {[[-0.22,1.16],[0.22,1.16],[-0.22,0.44],[0.22,0.44]].map(([x = 0,y = 0],i) => (
         <mesh key={i} position={[x*size, y*size, size*0.1]}>
           <sphereGeometry args={[size*0.04, 5, 5]} />
           <meshStandardMaterial color="#cc8822" metalness={0.6} />
@@ -629,7 +629,7 @@ export function GraduationPodium({ pos, color, size }: P22) {
           <meshStandardMaterial color={i===1?color:"#ccaa66"} roughness={0.5} />
         </mesh>
       ))}
-      {[[-0.35,0.2],[0,0.37],[0.35,0.2]].map(([x,h],i) => (
+      {[[-0.35,0.2],[0,0.37],[0.35,0.2]].map(([x = 0,h = 0],i) => (
         <mesh key={i} position={[x*size, h*size, 0]}>
           <cylinderGeometry args={[size*0.06, size*0.06, size*0.06, 7]} />
           <meshStandardMaterial color="#ffdd44" emissive="#ffdd44" emissiveIntensity={0.4} metalness={0.8} />
@@ -650,7 +650,7 @@ export function WandRack({ pos, color, size }: P22) {
         <group key={i}>
           <mesh position={[x*size, size*0.55, 0]} castShadow>
             <cylinderGeometry args={[size*0.025, size*0.02, size*0.44, 5]} />
-            <meshStandardMaterial color={["#8B4513","#2d4a2d","#1a1a4a","#4a2d1a","#3a1a3a"][i]} roughness={0.7} />
+            <meshStandardMaterial color={["#8B4513","#2d4a2d","#1a1a4a","#4a2d1a","#3a1a3a"][i]!} roughness={0.7} />
           </mesh>
           <mesh position={[x*size, size*0.78, 0]}>
             <sphereGeometry args={[size*0.04, 5, 5]} />
@@ -696,7 +696,7 @@ export function StarMap({ pos, color, size }: P22) {
         <boxGeometry args={[size*0.75, size*0.55, size*0.04]} />
         <meshStandardMaterial color="#0a0a2a" roughness={0.5} />
       </mesh>
-      {[[-0.25,0.1],[0.15,0.18],[-0.1,-0.12],[0.28,-0.05],[0,0.06],[-0.3,-0.08]].map(([x,y],i) => (
+      {[[-0.25,0.1],[0.15,0.18],[-0.1,-0.12],[0.28,-0.05],[0,0.06],[-0.3,-0.08]].map(([x = 0,y = 0],i) => (
         <mesh key={i} position={[x*size, y*size+size*0.35, size*0.02]}>
           <sphereGeometry args={[size*(0.015+i*0.008), 4, 4]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
@@ -938,7 +938,7 @@ export function HiddenTrapDoor({ pos, color, size }: P22) {
         <boxGeometry args={[size*0.72, size*0.02, size*0.57]} />
         <meshStandardMaterial color="#2a2a2a" roughness={1} />
       </mesh>
-      {[[-0.28,-0.2],[0.28,-0.2],[-0.28,0.2],[0.28,0.2]].map(([x,z],i) => (
+      {[[-0.28,-0.2],[0.28,-0.2],[-0.28,0.2],[0.28,0.2]].map(([x = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, size*0.05, z*size]}>
           <sphereGeometry args={[size*0.035, 5, 5]} />
           <meshStandardMaterial color="#886644" metalness={0.5} />
@@ -984,7 +984,7 @@ export function JungleShrine({ pos, color, size }: P22) {
         <boxGeometry args={[size*0.7, size*0.4, size*0.6]} />
         <meshStandardMaterial color={color} roughness={0.9} />
       </mesh>
-      {[[-0.25,0,0],[0.25,0,0]].map(([x,_y,z],i) => (
+      {[[-0.25,0,0],[0.25,0,0]].map(([x = 0,_y = 0,z = 0],i) => (
         <mesh key={i} position={[x*size, size*0.6, z*size]} castShadow>
           <cylinderGeometry args={[size*0.07, size*0.09, size*0.6, 7]} />
           <meshStandardMaterial color={color} roughness={0.85} />

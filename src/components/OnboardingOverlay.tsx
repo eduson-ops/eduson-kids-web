@@ -95,6 +95,8 @@ export default function OnboardingOverlay() {
   const current = STEPS[step]
   const isLast = step === STEPS.length - 1
 
+  if (!current) return null
+
   return (
     <div className="onboarding-overlay">
       <div

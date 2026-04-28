@@ -219,8 +219,8 @@ export default function TycoonWorld() {
     const a = (i / 5) * Math.PI * 2 - Math.PI / 2
     return {
       pos: [Math.cos(a) * 8, 0, Math.sin(a) * 8] as [number, number, number],
-      color: COLORS[i],
-      label: LABELS[i],
+      color: COLORS[i] ?? '#6b5ce7',
+      label: LABELS[i] ?? '',
     }
   })
   const [levels, setLevels] = useState<number[]>([1, 1, 1, 1, 1])

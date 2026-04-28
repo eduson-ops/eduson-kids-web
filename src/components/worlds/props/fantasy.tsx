@@ -255,7 +255,7 @@ export function SoccerBall({ pos, color, size }: { pos: [number, number, number]
       {/* Pentagon patches */}
       {[
         [0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1],
-      ].map(([x, y, z], i) => (
+      ].map(([x = 0, y = 0, z = 0], i) => (
         <mesh key={i} position={[x * size * 0.33, y * size * 0.33 + size * 0.38, z * size * 0.33]}>
           <dodecahedronGeometry args={[size * 0.1, 0]} />
           <meshStandardMaterial color="#1a1a1a" roughness={0.8} />
@@ -472,7 +472,7 @@ export function Table({ pos, color, size }: { pos: [number, number, number]; col
         <meshStandardMaterial color={color} roughness={0.5} />
       </mesh>
       {/* Legs */}
-      {[[-0.6, -0.32], [-0.6, 0.32], [0.6, -0.32], [0.6, 0.32]].map(([x, z], i) => (
+      {[[-0.6, -0.32], [-0.6, 0.32], [0.6, -0.32], [0.6, 0.32]].map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.38, z * size]} castShadow>
           <boxGeometry args={[size * 0.08, size * 0.76, size * 0.08]} />
           <meshStandardMaterial color={color} roughness={0.6} />
@@ -903,7 +903,7 @@ export function BookStack({ pos, color, size }: { pos: [number, number, number];
         return (
           <mesh key={i} position={[0, cy, 0]} rotation={[0, tilt, 0]} castShadow>
             <boxGeometry args={[size * 0.7, h, size * 0.5]} />
-            <meshStandardMaterial color={COLORS[i]} roughness={0.7} />
+            <meshStandardMaterial color={COLORS[i]!} roughness={0.7} />
           </mesh>
         )
       })}
@@ -1083,14 +1083,14 @@ export function Coral({ pos, color, size }: { pos: [number, number, number]; col
         <meshStandardMaterial color={color} roughness={0.8} />
       </mesh>
       {/* Main branches */}
-      {[[-0.1, 0.35, 0.08, -0.2], [0.12, 0.42, -0.06, 0.25], [0, 0.48, 0, 0]].map(([x, y, z, rot], i) => (
+      {[[-0.1, 0.35, 0.08, -0.2], [0.12, 0.42, -0.06, 0.25], [0, 0.48, 0, 0]].map(([x = 0, y = 0, z = 0, rot = 0], i) => (
         <mesh key={i} position={[size * x, size * y, size * z]} rotation={[0, 0, rot]} castShadow>
           <cylinderGeometry args={[size * 0.04, size * 0.07, size * (0.4 + i * 0.05), 6]} />
           <meshStandardMaterial color={color} roughness={0.7} />
         </mesh>
       ))}
       {/* Tips */}
-      {[[-0.1, 0.6, 0.08], [0.12, 0.7, -0.06], [0, 0.75, 0]].map(([x, y, z], i) => (
+      {[[-0.1, 0.6, 0.08], [0.12, 0.7, -0.06], [0, 0.75, 0]].map(([x = 0, y = 0, z = 0], i) => (
         <mesh key={i} position={[size * x, size * y, size * z]} castShadow>
           <sphereGeometry args={[size * 0.06, 8, 8]} />
           <meshStandardMaterial color={color} roughness={0.5} emissive={color} emissiveIntensity={0.15} />
@@ -1362,7 +1362,7 @@ export function HotAirBalloon({ pos, color, size }: { pos: [number, number, numb
         </mesh>
       ))}
       {/* Ropes */}
-      {[[-0.14, 0.14], [0.14, 0.14], [-0.14, -0.14], [0.14, -0.14]].map(([rx, rz], i) => (
+      {[[-0.14, 0.14], [0.14, 0.14], [-0.14, -0.14], [0.14, -0.14]].map(([rx = 0, rz = 0], i) => (
         <mesh key={i} position={[size * rx, size * 0.16, size * rz]} castShadow>
           <cylinderGeometry args={[size * 0.008, size * 0.008, size * 0.42, 4]} />
           <meshStandardMaterial color="#8b5a2b" roughness={0.7} />

@@ -64,8 +64,8 @@ function buildSections(seed: number): SectionDef[] {
   for (let i = 0; i < SECTION_COUNT; i++) {
     const y = BASE_Y + i * SECTION_HEIGHT
     // Первая секция всегда straight — честный старт
-    const kind: PrefabKind = i === 0 ? 'straight' : PREFAB_POOL[Math.floor(rand() * PREFAB_POOL.length)]
-    const color = PAL.platform[Math.floor(rand() * PAL.platform.length)]
+    const kind: PrefabKind = i === 0 ? 'straight' : (PREFAB_POOL[Math.floor(rand() * PREFAB_POOL.length)] ?? 'straight')
+    const color = PAL.platform[Math.floor(rand() * PAL.platform.length)] ?? '#6b5ce7'
     out.push({ y, kind, color, seedForThis: Math.floor(rand() * 1e9) })
   }
   return out

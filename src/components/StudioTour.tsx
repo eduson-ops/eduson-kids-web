@@ -126,6 +126,7 @@ export default function StudioTour() {
   if (!active) return null
 
   const step = STEPS[stepIdx]
+  if (!step) return null
   const tooltipPos = computeTooltipPos(box, step.side)
   const pct = ((stepIdx + 1) / STEPS.length) * 100
 

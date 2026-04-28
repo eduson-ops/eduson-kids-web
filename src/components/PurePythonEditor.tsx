@@ -95,7 +95,7 @@ export default function PurePythonEditor({ code, onChange, onRun, isRunning, err
           range: typeof range
         }
         const suggestions: Suggestion[] = PYTHON_API_REFERENCE.map((item) => {
-          const name = item.fn.split('(')[0]
+          const name = item.fn.split('(')[0]!
           const argsPart = item.fn.substring(name.length)
           const snippet = name + argsPart.replace(/\(([^)]*)\)/, (_m, inside: string) => {
             const args = inside.split(',').map((a) => a.trim()).filter(Boolean)

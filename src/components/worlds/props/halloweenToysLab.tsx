@@ -152,7 +152,7 @@ export function LegoBrick({ pos, color, size }: { pos: [number, number, number];
         <meshStandardMaterial color={color} roughness={0.4} />
       </mesh>
       {/* Studs on top */}
-      {studs.map(([x, z], i) => (
+      {studs.map(([x = 0, z = 0], i) => (
         <mesh key={i} position={[x * size, size * 0.25, z * size]} castShadow>
           <cylinderGeometry args={[size * 0.1, size * 0.1, size * 0.1, 12]} />
           <meshStandardMaterial color={color} roughness={0.4} />

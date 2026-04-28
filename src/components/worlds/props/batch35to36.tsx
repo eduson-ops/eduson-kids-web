@@ -43,7 +43,7 @@ export function PolarBearB35({ pos, color, size }: P35) {
         <sphereGeometry args={[size*0.1, 6, 6]} />
         <meshStandardMaterial color="#222" roughness={0.5} />
       </mesh>
-      {([[-0.22, -0.28, 0.16], [0.22, -0.28, 0.16], [-0.22, -0.28, -0.16], [0.22, -0.28, -0.16]] as number[][]).map(([x,y,z], i) => (
+      {([[-0.22, -0.28, 0.16], [0.22, -0.28, 0.16], [-0.22, -0.28, -0.16], [0.22, -0.28, -0.16]] as number[][]).map(([x = 0,y = 0,z = 0], i) => (
         <mesh key={i} position={[x*size, y*size, z*size]}>
           <sphereGeometry args={[size*0.1, 6, 5]} />
           <meshStandardMaterial color={color} roughness={0.9} />
@@ -87,7 +87,7 @@ export function SnowDriftB35({ pos, color, size }: P35) {
         [0, 0, 0, size*0.65, size*0.22, size*0.55],
         [size*0.3, 0, size*0.15, size*0.45, size*0.16, size*0.38],
         [-size*0.25, 0, -size*0.1, size*0.4, size*0.14, size*0.35],
-      ] as number[][]).map(([x,y,z,_sx,_sy,_sz], i) => (
+      ] as number[][]).map(([x = 0,y = 0,z = 0,_sx,_sy,_sz], i) => (
         <mesh key={i} position={[x, y, z]}>
           <sphereGeometry args={[1, 8, 5, 0, Math.PI*2, 0, Math.PI*0.55]} />
           <meshStandardMaterial color={color} roughness={0.5} />
@@ -548,7 +548,7 @@ export function JaguarB36({ pos, color, size }: P36) {
         <cylinderGeometry args={[size*0.04, size*0.02, size*0.48, 6]} />
         <meshStandardMaterial color={color} roughness={0.7} />
       </mesh>
-      {([[-0.2, -0.22, 0.1], [0.2, -0.22, 0.1], [-0.2, -0.22, -0.1], [0.2, -0.22, -0.1]] as number[][]).map(([x,y,z], i) => (
+      {([[-0.2, -0.22, 0.1], [0.2, -0.22, 0.1], [-0.2, -0.22, -0.1], [0.2, -0.22, -0.1]] as number[][]).map(([x = 0,y = 0,z = 0], i) => (
         <mesh key={i} position={[x*size, y*size, z*size]}>
           <cylinderGeometry args={[size*0.04, size*0.03, size*0.28, 5]} />
           <meshStandardMaterial color={color} roughness={0.7} />
@@ -639,7 +639,7 @@ export function LunarLanderB36({ pos, color, size }: P36) {
         <cylinderGeometry args={[size*0.25, size*0.3, size*0.3, 8]} />
         <meshStandardMaterial color={color} roughness={0.3} metalness={0.5} />
       </mesh>
-      {([[-1,-1], [-1,1], [1,-1], [1,1]] as number[][]).map(([x,z], i) => (
+      {([[-1,-1], [-1,1], [1,-1], [1,1]] as number[][]).map(([x = 0,z = 0], i) => (
         <group key={i} position={[x*size*0.55, -size*0.25, z*size*0.55]}>
           <mesh rotation={[0.4*x, 0, 0.4*z]}>
             <cylinderGeometry args={[size*0.03, size*0.03, size*0.55, 5]} />

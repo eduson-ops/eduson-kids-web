@@ -59,21 +59,21 @@ function tokenize(line: string): Token[] {
     if (c === '@' && /[A-Za-z_]/.test(line[i + 1] ?? '')) {
       const start = i
       i++
-      while (i < n && /[A-Za-z0-9_]/.test(line[i])) i++
+      while (i < n && /[A-Za-z0-9_]/.test(line[i]!)) i++
       tokens.push({ kind: 'dec', text: line.slice(start, i) })
       continue
     }
     // Number
     if (/[0-9]/.test(c)) {
       const start = i
-      while (i < n && /[0-9.]/.test(line[i])) i++
+      while (i < n && /[0-9.]/.test(line[i]!)) i++
       tokens.push({ kind: 'num', text: line.slice(start, i) })
       continue
     }
     // Identifier / keyword / builtin / api fn
     if (/[A-Za-z_]/.test(c)) {
       const start = i
-      while (i < n && /[A-Za-z0-9_]/.test(line[i])) i++
+      while (i < n && /[A-Za-z0-9_]/.test(line[i]!)) i++
       const word = line.slice(start, i)
       let kind: TokenKind = 'name'
       if (PY_KEYWORDS.has(word)) kind = 'kw'
@@ -85,7 +85,7 @@ function tokenize(line: string): Token[] {
     // Whitespace / punctuation — collect runs as plain text (kind 'ws')
     const start = i
     while (i < n) {
-      const ch = line[i]
+      const ch = line[i]!
       if (ch === '#' || ch === '"' || ch === "'" || ch === '@') break
       if (/[A-Za-z0-9_]/.test(ch)) break
       i++

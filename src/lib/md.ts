@@ -57,7 +57,7 @@ export function renderMd(text: string): React.ReactNode {
     const line = rawLine.trim()
     if (line === '') { flushPara(); flushList(); continue }
     const bullet = /^[-*]\s+(.*)$/.exec(line)
-    if (bullet) { flushPara(); listBuf.push(bullet[1]); continue }
+    if (bullet) { flushPara(); listBuf.push(bullet[1]!); continue }
     flushList()
     paraBuf.push(line)
   }
