@@ -229,7 +229,7 @@ export default function PythonIDE() {
           <div className="python-ide-toolbar-spacer" />
           <div className="python-ide-history" title="Последние запуски">
             {history.length > 0
-              ? `↻ Последний запуск: ${new Date(history[0].at).toLocaleTimeString()}`
+              ? `↻ Последний запуск: ${new Date(history[0]!.at).toLocaleTimeString()}`
               : '↻ Ещё не запускалось'}
           </div>
         </div>

@@ -72,7 +72,7 @@ function QrPlaceholder({ url, size = 140 }: { url: string; size?: number }) {
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         hash = (hash * 1103515245 + 12345) & 0x7fffffff
-        cells[r][c] = (hash & 1) === 1
+        cells[r]![c] = (hash & 1) === 1
       }
     }
     // Position detection patterns (три квадрата по углам — признак QR)
@@ -81,7 +81,7 @@ function QrPlaceholder({ url, size = 140 }: { url: string; size?: number }) {
         for (let c = 0; c < 7; c++) {
           const onBorder = r === 0 || r === 6 || c === 0 || c === 6
           const innerCore = r >= 2 && r <= 4 && c >= 2 && c <= 4
-          cells[rr + r][cc + c] = onBorder || innerCore
+          cells[rr + r]![cc + c] = onBorder || innerCore
         }
       }
     }

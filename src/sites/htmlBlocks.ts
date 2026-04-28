@@ -336,7 +336,7 @@ FB['ek_site_footer'] = (block) => {
 
 // ─── Базовый CSS, построенный из темы ───
 export function buildSiteCss(theme: keyof typeof THEME_CSS = 'violet'): string {
-  const t = THEME_CSS[theme] ?? THEME_CSS.violet
+  const t = (THEME_CSS[theme] ?? THEME_CSS.violet)!
   return `:root {
   --accent: ${t.accent};
   --accent-soft: ${t.soft};
@@ -472,9 +472,9 @@ export const SITE_TOOLBOX: Blockly.utils.toolbox.ToolboxDefinition = {
 // ─── Helpers ─────────────────────────────────────────────
 function extractYouTubeId(url: string): string | null {
   const m1 = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/)
-  if (m1) return m1[1]
+  if (m1) return m1[1] ?? null
   const m2 = url.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{6,})/)
-  if (m2) return m2[1]
+  if (m2) return m2[1] ?? null
   return null
 }
 

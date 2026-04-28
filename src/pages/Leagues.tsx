@@ -37,7 +37,7 @@ const LEAGUES: LeagueInfo[] = [
 ]
 
 function leagueForXp(xp: number): LeagueInfo {
-  return [...LEAGUES].reverse().find((l) => xp >= l.minXp) ?? LEAGUES[0]
+  return ([...LEAGUES].reverse().find((l) => xp >= l.minXp) ?? LEAGUES[0])!
 }
 
 // ─── Mock leaderboard ─────────────────────────────
@@ -61,9 +61,9 @@ function genMockEntry(seed: number, leagueMinXp: number, leagueMaxXp: number) {
   const avatarColors = ['#6B5CE7', '#FFD43C', '#FF5464', '#48C774', '#4C97FF', '#C879FF', '#FF8C1A', '#FF5AB1']
   return {
     id: `mock-${seed}`,
-    name: PSEUDONYMS[seed % PSEUDONYMS.length],
+    name: PSEUDONYMS[seed % PSEUDONYMS.length]!,
     xp,
-    avatarColor: avatarColors[seed % avatarColors.length],
+    avatarColor: avatarColors[seed % avatarColors.length]!,
   }
 }
 
@@ -221,7 +221,7 @@ export default function Leagues() {
                     }}
                     aria-hidden
                   >
-                    {e.name[0]}
+                    {e.name[0]!}
                   </div>
                   <span style={{ flex: 1, fontWeight: isMe ? 800 : 600, fontSize: 14 }}>
                     {e.name}

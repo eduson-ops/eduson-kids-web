@@ -96,8 +96,8 @@ const MOCK_CLASSES: Classroom[] = [
 export default function Teacher() {
   const isTeacher = isTeacherRole()
   const [tab, setTab] = useState<Tab>('classes')
-  const [activeClassId, setActiveClassId] = useState<string>(MOCK_CLASSES[0].id)
-  const active = MOCK_CLASSES.find((c) => c.id === activeClassId) ?? MOCK_CLASSES[0]
+  const [activeClassId, setActiveClassId] = useState<string>(MOCK_CLASSES[0]!.id)
+  const active = (MOCK_CLASSES.find((c) => c.id === activeClassId) ?? MOCK_CLASSES[0])!
 
   if (!isTeacher) {
     return (

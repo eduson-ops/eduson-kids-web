@@ -106,7 +106,7 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                   <span>{axis.toUpperCase()}</span>
                   <NumberField
                     step={0.5}
-                    value={selected.position[i]}
+                    value={selected.position[i]!}
                     onCommit={(n) => {
                       const pos = [...selected.position] as [number, number, number]
                       pos[i] = n
@@ -127,7 +127,7 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                   <NumberField
                     step={0.5}
                     min={0.1}
-                    value={selected.scale[i]}
+                    value={selected.scale[i]!}
                     onCommit={(n) => {
                       const s = [...selected.scale] as [number, number, number]
                       s[i] = Math.max(0.1, n)
@@ -147,7 +147,7 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                   <span>{axis.toUpperCase()}</span>
                   <NumberField
                     step={15}
-                    value={Math.round(selected.rotation[i] / DEG_TO_RAD)}
+                    value={Math.round(selected.rotation[i]! / DEG_TO_RAD)}
                     onCommit={(deg) => {
                       const rot = [...selected.rotation] as [number, number, number]
                       rot[i] = deg * DEG_TO_RAD

@@ -234,7 +234,7 @@ export default function Hub() {
         </div>
         <div className="kb-grid-4">
           {MODULES.map((m) => {
-            const a = ACCENT_MAP[m.accent]
+            const a = ACCENT_MAP[m.accent]!
             const unlocked = m.n <= unlockedModuleN
             const isActive = m.n === currentModuleN
             const moduleLessonsStart = (m.n - 1) * m.lessons + 1

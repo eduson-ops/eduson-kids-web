@@ -34,7 +34,7 @@ function tokenize(line: string): Token[] {
   let i = 0
   const n = line.length
   while (i < n) {
-    const c = line[i]
+    const c = line[i]!
     // Comment: rest of line
     if (c === '#') {
       tokens.push({ kind: 'cmt', text: line.slice(i) })

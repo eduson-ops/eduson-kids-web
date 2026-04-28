@@ -4938,14 +4938,6 @@
   padding: 16px;
   min-height: 0;
 }
-.tpl-props {
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid rgba(21, 20, 27, 0.08);
-  padding: 14px;
-  overflow: auto;
-  box-shadow: 0 4px 14px rgba(21, 20, 27, 0.04);
-}
 .tpl-props-form header {
   display: flex;
   align-items: baseline;
@@ -4976,16 +4968,6 @@
 }
 .tpl-section-actions button:hover { background: rgba(107, 92, 231, 0.2); color: #15141b; }
 
-.tpl-theme {
-  padding-top: 14px;
-  border-top: 1px solid rgba(21, 20, 27, 0.06);
-}
-.tpl-theme strong {
-  display: block;
-  font-size: 13px;
-  margin-bottom: 10px;
-  color: rgba(21, 20, 27, 0.7);
-}
 .tpl-theme-swatches {
   display: flex;
   flex-wrap: wrap;
@@ -6476,19 +6458,6 @@
   text-align: center;
 }
 
-/* Legacy top nav (keep in case) */
-.kb-shell-nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--paper);
-  border-bottom: 1px solid rgba(21,20,27,.08);
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
 .kb-shell-brand {
   display: inline-flex;
   align-items: center;

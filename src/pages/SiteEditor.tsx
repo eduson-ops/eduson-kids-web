@@ -165,7 +165,7 @@ function TemplateMode({ site }: { site: Site }) {
     const next = [...site.sections]
     const target = idx + dir
     if (target < 0 || target >= next.length) return
-    ;[next[idx], next[target]] = [next[target], next[idx]]
+    ;[next[idx], next[target]] = [next[target]!, next[idx]!]
     updateSite(site.id, { sections: next })
   }
   const addSection = (type: SectionType) => {
@@ -718,7 +718,7 @@ function RepeaterField<T>({
     const next = [...items]
     const target = idx + dir
     if (target < 0 || target >= next.length) return
-    ;[next[idx], next[target]] = [next[target], next[idx]]
+    ;[next[idx], next[target]] = [next[target]!, next[idx]!]
     onChange(next)
   }
   return (

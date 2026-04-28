@@ -201,7 +201,7 @@ function defaultScene(): EditorState {
     scene: SCENE_PRESETS.day,
     tool: 'select',
     placingType: 'cube',
-    placingColor: PALETTE_COLORS[4],
+    placingColor: PALETTE_COLORS[4]!,
     scriptMode: 'blocks',
     blocklyXml: `<xml xmlns="https://developers.google.com/blockly/xml">
   <block type="ek_on_start" x="40" y="40"></block>

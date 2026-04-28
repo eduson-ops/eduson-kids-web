@@ -390,7 +390,7 @@ function ActivityChart({ data }: { data: Activity[] }) {
       const barW = w / data.length
       const padX = 2
       for (let i = 0; i < data.length; i++) {
-        const v = data[i].minutes
+        const v = data[i]!.minutes
         const bh = (v / max) * (h - 28)
         const x = i * barW + padX
         const y = h - bh - 18

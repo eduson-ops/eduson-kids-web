@@ -334,7 +334,7 @@ export const SITES_KEY = 'ek_sites_v1'
 const STORAGE_KEY = SITES_KEY
 
 function defaultSite(templateId = 'about-me'): Site {
-  const tpl = TEMPLATES.find((t) => t.id === templateId) ?? TEMPLATES[0]
+  const tpl = (TEMPLATES.find((t) => t.id === templateId) ?? TEMPLATES[0])!
   return {
     id: nanoid(8),
     name: tpl.title,

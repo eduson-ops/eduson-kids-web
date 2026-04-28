@@ -17,7 +17,7 @@ const AVATAR_COLOR_KEY = 'ek_avatar_color'
 const AVATAR_COLORS = ['#7c6be8', '#3ab97a', '#f5a623', '#e84040', '#4c97ff', '#c879ff', '#ff9f43', '#00bcd4']
 
 function getAvatarColor(): string {
-  return localStorage.getItem(AVATAR_COLOR_KEY) ?? AVATAR_COLORS[0]
+  return localStorage.getItem(AVATAR_COLOR_KEY) ?? AVATAR_COLORS[0]!
 }
 function setAvatarColor(c: string) {
   localStorage.setItem(AVATAR_COLOR_KEY, c)
@@ -140,7 +140,7 @@ export default function Settings() {
               boxShadow: `0 0 0 3px ${avatarColor}44`,
               flexShrink: 0,
             }}>
-              {name ? name[0].toUpperCase() : '?'}
+              {name ? name[0]!.toUpperCase() : '?'}
             </div>
             <div style={{ flex: 1, minWidth: 160 }}>
               {editingName ? (

@@ -101,7 +101,7 @@ export default function StudioTour() {
   useEffect(() => {
     if (!active) return
     const find = () => {
-      const step = STEPS[stepIdx]
+      const step = STEPS[stepIdx]!
       const el = document.querySelector(step.selector)
       if (el instanceof HTMLElement) {
         setBox(el.getBoundingClientRect())

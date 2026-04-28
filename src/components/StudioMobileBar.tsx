@@ -87,9 +87,9 @@ export default function StudioMobileBar({ tab, onTabChange }: Props) {
       >
         {/* Mode switcher */}
         <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 999, padding: 3 }}>
-          <PillBtn active={tab === 'build'} onClick={() => onTabChange('build')}>🧱</PillBtn>
-          <PillBtn active={tab === 'script'} onClick={() => onTabChange('script')}>🧩</PillBtn>
-          <PillBtn active={tab === 'test'} onClick={() => onTabChange('test')}>▶</PillBtn>
+          <PillBtn active={tab === 'build'} onClick={() => onTabChange('build')} aria-label="Строить">🧱</PillBtn>
+          <PillBtn active={tab === 'script'} onClick={() => onTabChange('script')} aria-label="Код">🧩</PillBtn>
+          <PillBtn active={tab === 'test'} onClick={() => onTabChange('test')} aria-label="Тест">▶</PillBtn>
         </div>
 
         <div style={{ width: 1, background: 'rgba(255,255,255,0.12)', margin: '4px 2px' }} />
@@ -129,18 +129,21 @@ function PillBtn({
   active,
   disabled,
   title,
+  'aria-label': ariaLabel,
 }: {
   children: ReactNode
   onClick: () => void
   active?: boolean
   disabled?: boolean
   title?: string
+  'aria-label'?: string
 }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       title={title}
+      aria-label={ariaLabel ?? title}
       style={{
         minWidth: 42,
         height: 38,

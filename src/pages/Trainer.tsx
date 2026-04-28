@@ -157,6 +157,7 @@ export default function Trainer() {
           <button
             className="kb-btn kb-btn--ghost kb-btn--sm"
             type="button"
+            aria-label="Предыдущая задача"
             onClick={() => navigate(`/trainers/${trainer.id}/${Math.max(1, n - 1)}`)}
             disabled={n <= 1}
           >
@@ -165,6 +166,7 @@ export default function Trainer() {
           <button
             className="kb-btn kb-btn--ghost kb-btn--sm"
             type="button"
+            aria-label="Следующая задача"
             onClick={() => navigate(`/trainers/${trainer.id}/${Math.min(10, n + 1)}`)}
             disabled={n >= 10}
           >

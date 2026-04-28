@@ -128,7 +128,7 @@ function EdusonConference({ roomId, onLeave }: { roomId: string; onLeave: () => 
             </div>
           ) : hasScreenShare ? (
             <div className={`ek-room-focus ${showCameras ? 'ek-room-focus--with-cams' : 'ek-room-focus--solo'}`}>
-              <FocusLayout trackRef={screenShareTracks[0]} />
+              {screenShareTracks[0] && <FocusLayout trackRef={screenShareTracks[0]} />}
               {showCameras && cameraTracks.length > 0 && (
                 <CarouselLayout tracks={cameraTracks}>
                   <ParticipantTile />

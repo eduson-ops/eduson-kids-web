@@ -454,7 +454,7 @@ export default function LessonPresentation() {
         <div className="lp-header-info">
           <span>Модуль {module_.n} · Урок {n} из 48</span>
           {!onQuizSlide && idx < SLIDES.length && (
-            <span>· {SLIDES[idx].emoji} {SLIDES[idx].badge}</span>
+            <span>· {SLIDES[idx]!.emoji} {SLIDES[idx]!.badge}</span>
           )}
           {onQuizSlide && <span>· 🧠 Квиз</span>}
         </div>
@@ -477,7 +477,7 @@ export default function LessonPresentation() {
             allAnswered={allAnswered}
           />
         ) : (
-          SLIDES[idx].render(lesson, module_, nextLesson)
+          SLIDES[idx]!.render(lesson, module_, nextLesson)
         )}
       </main>
 
