@@ -67,7 +67,7 @@ export function getShadowMapSize(): 256 | 512 | 1024 | 2048 {
 }
 
 /** true, если можно запускать postprocessing (EffectComposer, Bloom и т.п.). */
-export function canPostfx(): boolean {
+function canPostfx(): boolean {
   return detectDeviceTier() !== 'low'
 }
 
