@@ -1,4 +1,7 @@
 import { useEffect } from 'react'
+
+const INIT_APPLY_DELAY_MS = 250  // wait for scene to mount before applying overrides
+const EDIT_APPLY_DELAY_MS = 50   // debounce-like gap after edit events
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import {
@@ -98,8 +101,8 @@ export default function WorldOverridesApplier({ worldId }: Props) {
       }
     }
 
-    const t = setTimeout(apply, 250)
-    const unsub = subscribeEdits(() => { setTimeout(apply, 50) })
+    const t = setTimeout(apply, INIT_APPLY_DELAY_MS)
+    const unsub = subscribeEdits(() => { setTimeout(apply, EDIT_APPLY_DELAY_MS) })
     return () => {
       clearTimeout(t)
       unsub()

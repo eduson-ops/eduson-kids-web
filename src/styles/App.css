@@ -7070,10 +7070,6 @@
   0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
   50%      { transform: translateY(-4px) rotate(-2deg); opacity: 0.95; }
 }
-@keyframes nk-wave {
-  0%, 100% { transform: rotate(-8deg); }
-  50%      { transform: rotate(18deg); }
-}
 /* Звёздочки в celebrate — twinkle */
 .nk-star {
   animation: nk-twinkle 1.4s ease-in-out infinite;

@@ -1,5 +1,7 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+
+const SAVE_REDIRECT_DELAY_MS = 700 // let the toast show before navigating away
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
@@ -33,7 +35,7 @@ export default function Profile() {
     const { apiPutAvatar } = await import('../lib/api')
     void apiPutAvatar(avatar)
     showToast('✓ Аватар сохранён', 'success')
-    setTimeout(() => navigate('/'), 700)
+    setTimeout(() => navigate('/'), SAVE_REDIRECT_DELAY_MS)
   }
 
   return (

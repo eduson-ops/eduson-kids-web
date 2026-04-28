@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const STORAGE_KEY = 'ek_onboarded_studio_v2'
+const INTRO_SHOW_DELAY_MS = 300
 
 interface Step {
   emoji: string
@@ -39,14 +40,19 @@ const STEPS: Step[] = [
 export default function StudioIntroOverlay() {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const done = localStorage.getItem(STORAGE_KEY)
     if (!done) {
-      const t = setTimeout(() => setShow(true), 300)
+      const t = setTimeout(() => setShow(true), INTRO_SHOW_DELAY_MS)
       return () => clearTimeout(t)
     }
   }, [])
+
+  useEffect(() => {
+    if (show) dialogRef.current?.focus()
+  }, [show])
 
   const finish = () => {
     localStorage.setItem(STORAGE_KEY, '1')
@@ -63,9 +69,11 @@ export default function StudioIntroOverlay() {
   return (
     <div className="onboarding-overlay" role="presentation">
       <div
+        ref={dialogRef}
         className="onboarding-card"
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         aria-label={`Знакомство со студией, шаг ${step + 1} из ${STEPS.length}: ${current.title}`}
       >
         <div className="ob-emoji" aria-hidden>{current.emoji}</div>

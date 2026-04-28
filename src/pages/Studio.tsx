@@ -1,4 +1,8 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+const PUBLISH_FALLBACK_TOAST_MS = 3000
+const LOADING_BLOCKLY_TIMEOUT_MS = 1200  // fallback if ek:studio-blockly-ready never fires
+const LOADING_EDITOR_TIMEOUT_MS = 1800   // fallback if ek:studio-editor-ready never fires
 import { Link, useNavigate } from 'react-router-dom'
 import BuildTab from '../studio/BuildTab'
 const ScriptTab = lazy(() => import('../studio/ScriptTab'))
@@ -94,7 +98,7 @@ export default function Studio() {
     } catch {
       // Ultimate fallback
       setPublishToast(true)
-      setTimeout(() => setPublishToast(false), 3000)
+      setTimeout(() => setPublishToast(false), PUBLISH_FALLBACK_TOAST_MS)
     } finally {
       setPublishing(false)
     }
@@ -158,8 +162,8 @@ export default function Studio() {
     window.addEventListener('ek:studio-editor-ready', onEditor)
 
     // Fallback: chunks обычно подгружаются < 1.5s; даём 1200ms / 1800ms на staged advance
-    const t1 = window.setTimeout(onBlockly, 1200)
-    const t2 = window.setTimeout(onEditor, 1800)
+    const t1 = window.setTimeout(onBlockly, LOADING_BLOCKLY_TIMEOUT_MS)
+    const t2 = window.setTimeout(onEditor, LOADING_EDITOR_TIMEOUT_MS)
 
     return () => {
       window.removeEventListener('ek:studio-blockly-ready', onBlockly)

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 const STORAGE_KEY = 'ek_onboarded_play_v1'
+const ONBOARDING_SHOW_DELAY_MS = 800 // wait for scene to settle before showing
 
 interface Step {
   title: string
@@ -57,7 +58,7 @@ export default function OnboardingOverlay() {
   useEffect(() => {
     const done = localStorage.getItem(STORAGE_KEY)
     if (!done) {
-      const t = setTimeout(() => setShow(true), 800)
+      const t = setTimeout(() => setShow(true), ONBOARDING_SHOW_DELAY_MS)
       return () => clearTimeout(t)
     }
   }, [])

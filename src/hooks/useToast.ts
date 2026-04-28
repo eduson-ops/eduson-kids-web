@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 export type ToastKind = 'default' | 'success' | 'error' | 'info'
 
+const TOAST_DURATION_MS = 2500
+
 interface ToastState {
   msg: string
   kind: ToastKind
@@ -15,7 +17,7 @@ export function useToast() {
   const show = useCallback((msg: string, kind: ToastKind = 'default') => {
     if (timerRef.current) clearTimeout(timerRef.current)
     setToast({ msg, kind, key: Date.now() })
-    timerRef.current = setTimeout(() => setToast(null), 2500)
+    timerRef.current = setTimeout(() => setToast(null), TOAST_DURATION_MS)
   }, [])
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])

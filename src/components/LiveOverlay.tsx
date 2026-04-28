@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+
+const FLASH_DURATION_MS = 600 // visible flash frame on each run
 import { getState, setAutoRun, setPythonCode, setScriptMode, subscribe } from '../studio/editorState'
 import { subscribeCommands } from '../lib/commandBus'
 import type { WorldCommand } from '../lib/python-world-runtime'
@@ -41,7 +43,7 @@ export default function LiveOverlay() {
       if (last) setLastCmd(formatCmd(last))
       setFlash(true)
       if (flashTimer.current) window.clearTimeout(flashTimer.current)
-      flashTimer.current = window.setTimeout(() => setFlash(false), 600)
+      flashTimer.current = window.setTimeout(() => setFlash(false), FLASH_DURATION_MS)
     })
   }, [])
 

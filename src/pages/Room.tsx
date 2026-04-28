@@ -6,6 +6,8 @@
 
 import '@livekit/components-styles'
 import { useState, useCallback, useEffect, useRef } from 'react'
+
+const LINK_COPIED_RESET_MS = 2500
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   LiveKitRoom,
@@ -88,7 +90,7 @@ function EdusonConference({ roomId, onLeave }: { roomId: string; onLeave: () => 
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href).catch(() => {})
     setLinkCopied(true)
-    setTimeout(() => setLinkCopied(false), 2500)
+    setTimeout(() => setLinkCopied(false), LINK_COPIED_RESET_MS)
   }
 
   const remoteCount = participants.filter((p) => p.identity !== localParticipant?.identity).length
@@ -270,7 +272,7 @@ export default function Room() {
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href).catch(() => {})
     setLinkCopied(true)
-    setTimeout(() => setLinkCopied(false), 2500)
+    setTimeout(() => setLinkCopied(false), LINK_COPIED_RESET_MS)
   }
 
   if (!token) {

@@ -12,6 +12,8 @@
  * так что меняется вместе с темой.
  */
 import { useEffect, useState } from 'react'
+
+const FADE_OUT_DELAY_MS = 360 // matches CSS transition duration
 import Niksel from '../design/mascot/Niksel'
 
 interface Props {
@@ -34,7 +36,7 @@ export default function StudioLoadingOverlay({ step }: Props) {
     if (step >= 4) {
       // fade-out 320ms → unmount
       setFading(true)
-      const t = setTimeout(() => setHidden(true), 360)
+      const t = setTimeout(() => setHidden(true), FADE_OUT_DELAY_MS)
       return () => clearTimeout(t)
     }
   }, [step])
