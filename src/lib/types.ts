@@ -6,8 +6,7 @@
  * their original location.
  *
  * Strategy:
- *   - Source-of-truth types defined here (Question, Topic,
- *     HintLevel, PuzzleStatus) are NEW canonical shapes.
+ *   - Source-of-truth types defined here (Question, Topic) are NEW canonical shapes.
  *   - Types that already had a canonical home (RawCommand,
  *     CheckResult, DeviceTier) are re-exported here so callers
  *     can `import { ... } from 'lib/types'` without breaking
@@ -97,20 +96,3 @@ export interface Topic {
   questions: Question[]
 }
 
-/**
- * Hint disclosure level for the puzzle hint-ladder UX.
- *   - 0 → no hint shown yet
- *   - 1 → first nudge ("did you try X?")
- *   - 2 → concrete pointer
- *   - 3 → near-spoiler / answer
- */
-export type HintLevel = 0 | 1 | 2 | 3
-
-/**
- * Status of a puzzle attempt at any moment of the lifecycle.
- *   - 'idle'    — task loaded, learner has not run yet
- *   - 'running' — Pyodide is executing the solution
- *   - 'passed'  — last run succeeded against task.check
- *   - 'failed'  — last run failed against task.check
- */
-export type PuzzleStatus = 'idle' | 'running' | 'passed' | 'failed'
