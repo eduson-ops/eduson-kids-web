@@ -191,11 +191,6 @@ export type WorldCommand =
   | { op: 'obj_flash'; target: string; color: string; seconds: number }
   | { op: 'stop_all' }
 
-export interface PythonRunResult {
-  commands: WorldCommand[]
-  error: string | null
-}
-
 /**
  * Список функций → показываются в autocomplete editor + лекциях.
  * Каждая имеет русскую подсказку.
@@ -224,26 +219,3 @@ export const PYTHON_API_REFERENCE = [
   { fn: 'set_timer(seconds)', desc: 'установить таймер уровня (по умолчанию 480)' },
 ] as const
 
-/**
- * Пример-стартер для нового Python-проекта.
- */
-export const PYTHON_STARTER_CODE = `# Привет! Это твоя первая программа на Python.
-# Python умеет управлять игровым миром — двигать персонажа,
-# ставить блоки, менять цвет неба.
-#
-# Попробуй изменить этот код и нажать «Запустить»!
-
-say("Привет, мир!")
-
-# Построим башню из 5 красных блоков
-tower(5, x=0, z=-3, color="red")
-
-# Построим квадратную платформу
-square(3, x=-5, z=-3, color="blue")
-
-# Двигаем персонажа
-move_forward(3)
-turn_right()
-move_forward(2)
-jump()
-`
