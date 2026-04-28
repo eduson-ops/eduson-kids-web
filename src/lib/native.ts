@@ -13,16 +13,16 @@
 import { Capacitor } from '@capacitor/core'
 
 // --- Тип-хелперы -------------------------------------------------------------
-export type HapticKind = 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'warning' | 'error'
+type HapticKind = 'light' | 'medium' | 'heavy' | 'selection' | 'success' | 'warning' | 'error'
 
-export interface DeviceInfo {
+interface DeviceInfo {
   platform: 'ios' | 'android' | 'web'
   osVersion: string
   model: string
   isTablet: boolean
 }
 
-export interface ShareInput {
+interface ShareInput {
   title?: string
   text?: string
   url?: string
@@ -138,7 +138,7 @@ export async function share(payload: ShareInput): Promise<boolean> {
 }
 
 // --- Camera / takePhoto ------------------------------------------------------
-export interface PhotoResult {
+interface PhotoResult {
   dataUrl?: string
   blob?: Blob
   base64?: string
