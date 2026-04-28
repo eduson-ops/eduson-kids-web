@@ -43,7 +43,7 @@ export interface PuzzleTask {
   beforeSlide?: StorySlide
 }
 
-export type TrainerId = 'path' | 'tower' | 'loop' | 'if' | 'function' | 'detective'
+type TrainerId = 'path' | 'tower' | 'loop' | 'if' | 'function' | 'detective'
 
 export interface Trainer {
   id: TrainerId
