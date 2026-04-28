@@ -148,7 +148,6 @@ export const PLAN_INFO: Record<Exclude<SubscriptionPlan, 'none'>, {
 // ─── Purchases ─────────────────────────────────────────
 export const PRICE_INSTALLMENT_48 = 71244
 export const PRICE_PACK_10 = 9900
-export const MONTHLY_PRICE = PLAN_INFO.monthly.pricePerMonth
 
 /** Рассрочка 48 уроков за 71 244 ₽ (через банк, разовое зачисление). */
 export function buyInstallment48(): Purchase {

@@ -1673,7 +1673,7 @@ export const CATALOG: CatalogCategory[] = [
   },
 ]
 
-export const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
+const ALL_ITEMS: CatalogItem[] = CATALOG.flatMap((c) => c.items)
 
 export function findItem(kind: PropKind): CatalogItem | undefined {
   return ALL_ITEMS.find((i) => i.kind === kind)
