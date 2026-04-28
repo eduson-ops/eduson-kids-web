@@ -17,7 +17,7 @@ const STATE_KEY = 'ek_vk_state'
 
 type UserRole = 'child' | 'parent'
 
-export interface VkUser {
+interface VkUser {
   id: number                  // VK user id
   firstName: string
   lastName: string
@@ -204,7 +204,7 @@ export function getVkUser(): VkUser | null {
   }
 }
 
-export function saveVkUser(u: VkUser): void {
+function saveVkUser(u: VkUser): void {
   // Security: strip accessToken before persisting — VK tokens must never land
   // in localStorage where XSS can steal them. accessToken is in-memory only.
   const { accessToken: _stripped, ...safeUser } = u
