@@ -36,6 +36,12 @@ import { getAllScriptsForWorld, subscribeWorldScripts } from '../lib/worldScript
 import { getWorldTargets, getTargetLabel, type WorldTarget } from '../components/worlds/scriptableTargets'
 import { getRemovedForWorld, getRecoloredForWorld, resetWorldEdits, subscribeEdits } from '../lib/worldEdits'
 
+/** Задержка после монтирования до отображения сцены (прогрев WebGL). */
+const SCENE_READY_DELAY_MS = 250
+/** Амплитуда и длительность тряски камеры при победе. */
+const WIN_SHAKE_AMPLITUDE = 0.2
+const WIN_SHAKE_DURATION = 0.4
+
 export default function Play() {
   const { gameId } = useParams<{ gameId: string }>()
   const navigate = useNavigate()
@@ -129,10 +135,10 @@ export default function Play() {
       if (s.goal && !syncedGoal && gameId) {
         syncedGoal = true
         void apiPutProgress(gameId, s.coins, s.timeMs, s.goal.kind === 'win')
-        if (s.goal.kind === 'win') shakeCamera(0.2, 0.4)
+        if (s.goal.kind === 'win') shakeCamera(WIN_SHAKE_AMPLITUDE, WIN_SHAKE_DURATION)
       }
     })
-    const t = setTimeout(() => setReady(true), 250)
+    const t = setTimeout(() => setReady(true), SCENE_READY_DELAY_MS)
     return () => {
       clearTimeout(t)
       unsub()

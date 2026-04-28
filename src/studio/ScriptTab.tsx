@@ -31,6 +31,10 @@ import { SFX } from '../lib/audio'
  * Подсказки вынесены в выдвижной help-drawer (по клику на ? справа сверху) —
  * это освобождает место и Blockly получает полную ширину.
  */
+const BLOCKLY_SYNC_DEBOUNCE_MS = 300
+const COPY_TOAST_DURATION_MS = 2200
+const RUN_RESULT_DURATION_MS = 6000
+
 export default function ScriptTab() {
   const [state, setState] = useState<EditorState>(getState())
   const [helpOpen, setHelpOpen] = useState(false)
@@ -57,7 +61,7 @@ export default function ScriptTab() {
 
   // D-14: debounce 300ms — обновляем preview Python из блоков без шквала ререндеров
   useEffect(() => {
-    const id = window.setTimeout(() => setDebouncedBlocklyPython(state.blocklyPython), 300)
+    const id = window.setTimeout(() => setDebouncedBlocklyPython(state.blocklyPython), BLOCKLY_SYNC_DEBOUNCE_MS)
     return () => window.clearTimeout(id)
   }, [state.blocklyPython])
 
@@ -82,7 +86,7 @@ export default function ScriptTab() {
 
   const showCopyToast = (msg: string) => {
     setCopyToast(msg)
-    window.setTimeout(() => setCopyToast(null), 2200)
+    window.setTimeout(() => setCopyToast(null), COPY_TOAST_DURATION_MS)
   }
 
   const copyGeneratedToPythonTab = useCallback(() => {
@@ -122,7 +126,7 @@ export default function ScriptTab() {
         setRunResult(`Готово: ${cmds.length} ${pluralizeCmd(cmds.length)}. Переключись на «▶ Тест» чтобы увидеть.`)
         SFX.coin()
         if (resultTimer.current) window.clearTimeout(resultTimer.current)
-        resultTimer.current = window.setTimeout(() => setRunResult(null), 6000)
+        resultTimer.current = window.setTimeout(() => setRunResult(null), RUN_RESULT_DURATION_MS)
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
