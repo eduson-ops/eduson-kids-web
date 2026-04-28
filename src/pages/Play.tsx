@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import GameScene from '../components/GameScene'
 import { findGame } from '../lib/games'
@@ -18,7 +18,7 @@ import EscapeMenu from '../components/EscapeMenu'
 import Leaderboard from '../components/Leaderboard'
 import OnboardingOverlay from '../components/OnboardingOverlay'
 import ConfettiOverlay from '../components/ConfettiOverlay'
-import ObjectScriptEditor from '../components/ObjectScriptEditor'
+const ObjectScriptEditor = lazy(() => import('../components/ObjectScriptEditor'))
 import PlayScriptRuntime from '../components/PlayScriptRuntime'
 import WorldContextMenu from '../components/WorldContextMenu'
 import SpawnMenu from '../components/SpawnMenu'
@@ -298,31 +298,33 @@ export default function Play() {
 
       {state.goal?.kind === 'win' && <ConfettiOverlay />}
 
-      {focusedTarget && gameId && (
-        <ObjectScriptEditor
-          target={{
-            scope: 'world',
-            worldId: gameId,
-            objectId: focusedTarget.id,
-            label: getTargetLabel(focusedTarget),
-          }}
-          onClose={() => setFocusedObject(null)}
-        />
-      )}
+      <Suspense>
+        {focusedTarget && gameId && (
+          <ObjectScriptEditor
+            target={{
+              scope: 'world',
+              worldId: gameId,
+              objectId: focusedTarget.id,
+              label: getTargetLabel(focusedTarget),
+            }}
+            onClose={() => setFocusedObject(null)}
+          />
+        )}
 
-      {/* Universal edit: если ребёнок кликнул по случайному мешу (не на Scriptable),
-          focused будет иметь id вида "at_x_y_z" — отобразим редактор для такой точки. */}
-      {focused && !focusedTarget && gameId && focused.startsWith('at_') && (
-        <ObjectScriptEditor
-          target={{
-            scope: 'world',
-            worldId: gameId,
-            objectId: focused,
-            label: 'Объект на карте',
-          }}
-          onClose={() => setFocusedObject(null)}
-        />
-      )}
+        {/* Universal edit: если ребёнок кликнул по случайному мешу (не на Scriptable),
+            focused будет иметь id вида "at_x_y_z" — отобразим редактор для такой точки. */}
+        {focused && !focusedTarget && gameId && focused.startsWith('at_') && (
+          <ObjectScriptEditor
+            target={{
+              scope: 'world',
+              worldId: gameId,
+              objectId: focused,
+              label: 'Объект на карте',
+            }}
+            onClose={() => setFocusedObject(null)}
+          />
+        )}
+      </Suspense>
 
       {/* Контекстное меню — появляется при клике по ЛЮБОМУ мешу в edit-режиме */}
       {gameId && <WorldContextMenu worldId={gameId} />}
