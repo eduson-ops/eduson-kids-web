@@ -60,8 +60,11 @@ function headerTitle(target: Target): { title: string; meta: string } {
 export default function ObjectScriptEditor({ target, onClose }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const wsRef = useRef<Blockly.WorkspaceSvg | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const [preview, setPreview] = useState<string>('')
   const [confirmClear, setConfirmClear] = useState(false)
+
+  useEffect(() => { dialogRef.current?.focus() }, [])
 
   const { title, meta } = headerTitle(target)
 
@@ -122,7 +125,7 @@ export default function ObjectScriptEditor({ target, onClose }: Props) {
 
   return (
     <div className="obj-script-backdrop" onClick={onClose} role="presentation">
-      <div className="obj-script-modal" role="dialog" aria-modal="true" aria-label="Скрипт объекта" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className="obj-script-modal" role="dialog" aria-modal="true" aria-label="Скрипт объекта" tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         <header className="obj-script-header">
           <div>
             <strong>📜 Скрипт объекта</strong>
