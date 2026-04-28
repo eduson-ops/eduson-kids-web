@@ -1,6 +1,6 @@
 import type { Command } from './blocks'
 
-export type WarmupStep = 'fetching' | 'instantiating' | 'ready'
+type WarmupStep = 'fetching' | 'instantiating' | 'ready'
 
 type InMsg =
   | { id: number; type: 'run'; code: string }
