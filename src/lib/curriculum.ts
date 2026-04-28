@@ -962,7 +962,7 @@ const Y2_MODULES: Module[] = [
 ]
 
 /** Второй год обучения — алгоритмический стек (M9-M16, L49-96) */
-export const KUBIK_Y2_COURSE: Course = {
+const KUBIK_Y2_COURSE: Course = {
   slug: 'kubik-y2',
   title: 'Эдюсон Kids · Алгоритмы и структуры данных',
   subtitle: '48 уроков: алгоритмы, структуры данных, рекурсия, библиотеки — Year 2',
