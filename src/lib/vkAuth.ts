@@ -68,7 +68,10 @@ function base64urlEncode(bytes: Uint8Array): string {
     .replace(/=+$/, '')
 }
 
-function randomString(len = 64): string {
+const PKCE_VERIFIER_LEN = 64
+const PKCE_STATE_LEN = 24
+
+function randomString(len = PKCE_VERIFIER_LEN): string {
   const arr = new Uint8Array(len)
   crypto.getRandomValues(arr)
   return base64urlEncode(arr)
@@ -89,9 +92,9 @@ export async function startVkLogin(role: UserRole = 'child'): Promise<void> {
   if (!appId) {
     throw new Error('VITE_VK_APP_ID не задан — настрой .env.local')
   }
-  const verifier = randomString(64)
+  const verifier = randomString(PKCE_VERIFIER_LEN)
   const challenge = base64urlEncode(await sha256(verifier))
-  const state = randomString(24)
+  const state = randomString(PKCE_STATE_LEN)
 
   sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier)
   sessionStorage.setItem(STATE_KEY, state)
