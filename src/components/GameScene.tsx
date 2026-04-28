@@ -53,6 +53,8 @@ interface Props {
 
 // Позиция солнца: высоко-слева-сбоку — даёт драматичные тени, но не выгорает.
 const SUN_POS: [number, number, number] = [50, 45, 20]
+// Контровая подсветка с противоположной стороны — тень не чернеет.
+const FILL_LIGHT_POS: [number, number, number] = [-30, 20, -20]
 
 export default function GameScene({ game, avatar }: Props) {
   const { world: W, spawn } = pickWorld(game.category)
@@ -100,7 +102,7 @@ export default function GameScene({ game, avatar }: Props) {
           shadow-normalBias={0.02}
         />
         {/* Контровая подсветка с противоположной стороны — тень не чернеет */}
-        <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
+        <directionalLight position={FILL_LIGHT_POS} intensity={0.45} color="#b0d8ff" />
 
         <Physics gravity={[0, -25, 0]} timeStep={PHYSICS_TIMESTEP}>
           <UniversalClickCatcher worldId={game.id}>

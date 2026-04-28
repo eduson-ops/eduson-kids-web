@@ -28,6 +28,20 @@ const PREVIEW_OFFSCREEN_Y = -100
 const GRID_Y_LIFT = 0.05
 /** Опускаем земляную плоскость, чтобы пропсы не утопали. */
 const GROUND_Y_DROP = -0.02
+/** Позиция солнца: высоко-слева-сбоку — драматичные тени без выгорания. */
+const SUN_POS: [number, number, number] = [50, 45, 20]
+/** Контровая подсветка с противоположной стороны — тень не чернеет. */
+const FILL_LIGHT_POS: [number, number, number] = [-30, 20, -20]
+/** Начальная позиция камеры редактора. */
+const BUILD_CAM_POS: [number, number, number] = [8, 9, 12]
+/** Размер сетки (количество делений). */
+const GRID_DIVISIONS = 40
+/** Размер земляной плоскости (единицы Three.js). */
+const GROUND_PLANE_SIZE = 200
+/** Радиус и высота маркера точки старта. */
+const SPAWN_MARKER_RADIUS = 0.35
+const SPAWN_MARKER_HEIGHT = 0.08
+const SPAWN_MARKER_SEGMENTS = 16
 import {
   addPart,
   getState,
@@ -51,7 +65,7 @@ function EditGrid({ onPlace }: { onPlace: (pos: [number, number, number]) => voi
   return (
     <>
       <gridHelper
-        args={[40, 40, '#88a0c0', '#5a7291']}
+        args={[GRID_DIVISIONS, GRID_DIVISIONS, '#88a0c0', '#5a7291']}
         position={[0, GRID_Y_LIFT, 0]}
         onUpdate={(self) => {
           const mat = self.material as THREE.Material
@@ -66,7 +80,7 @@ function EditGrid({ onPlace }: { onPlace: (pos: [number, number, number]) => voi
         onClick={handleClick}
         receiveShadow
       >
-        <planeGeometry args={[200, 200]} />
+        <planeGeometry args={[GROUND_PLANE_SIZE, GROUND_PLANE_SIZE]} />
         <meshStandardMaterial
           color="#6a9a55"
           roughness={0.95}
@@ -127,7 +141,7 @@ function PartMesh({
         }}
       >
         {part.type === 'coin' ? (
-          <cylinderGeometry args={[0.35, 0.35, 0.08, 16]} />
+          <cylinderGeometry args={[SPAWN_MARKER_RADIUS, SPAWN_MARKER_RADIUS, SPAWN_MARKER_HEIGHT, SPAWN_MARKER_SEGMENTS]} />
         ) : part.type === 'ramp' || part.type === 'roof' ? (
           <PieceGeometry kind={part.type as BuildPieceKind} />
         ) : (
@@ -214,7 +228,7 @@ export default function BuildScene({ state }: Props) {
   return (
     <Canvas
       shadows="soft"
-      camera={{ position: [8, 9, 12], fov: 45, near: 0.1, far: 600 }}
+      camera={{ position: BUILD_CAM_POS, fov: 45, near: 0.1, far: 600 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 2]}
       onPointerMissed={() => selectPart(null)}
@@ -225,12 +239,12 @@ export default function BuildScene({ state }: Props) {
     >
       <color attach="background" args={[state.scene.skyBottom]} />
       <GradientSky top={state.scene.skyTop} bottom={state.scene.skyBottom} />
-      <Sun position={[50, 45, 20]} />
+      <Sun position={SUN_POS} />
 
       <ambientLight intensity={0.9} />
       <hemisphereLight args={['#bfe4ff', '#5bc87d', 0.55]} />
       <directionalLight
-        position={[50, 45, 20]}
+        position={SUN_POS}
         intensity={1.3}
         color="#fff3d8"
         castShadow
@@ -244,7 +258,7 @@ export default function BuildScene({ state }: Props) {
         shadow-camera-bottom={-40}
         shadow-bias={-0.0001}
       />
-      <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
+      <directionalLight position={FILL_LIGHT_POS} intensity={0.45} color="#b0d8ff" />
 
       <EditGrid onPlace={onPlace} />
 
