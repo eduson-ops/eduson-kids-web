@@ -46,17 +46,6 @@ function decodeCertId(id: string): CertData | null {
   }
 }
 
-/** Encode данные в id. Используется из /me при выдаче. */
-export function encodeCertId(data: Partial<CertData>): string {
-  const parts: string[] = []
-  if (data.name) parts.push(`name:${encodeURIComponent(data.name)}`)
-  if (data.courseName) parts.push(`course:${encodeURIComponent(data.courseName)}`)
-  if (data.moduleN) parts.push(`module:${data.moduleN}`)
-  if (data.date) parts.push(`date:${encodeURIComponent(data.date)}`)
-  if (data.fgosCode) parts.push(`fgos:${encodeURIComponent(data.fgosCode)}`)
-  return btoa(parts.join('|')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
 /** Минимальный QR-кодер через простую pixel-grid свёртку.
  *  Для production заменить на `qrcode` lib. Тут inline SVG для демо.
  */
