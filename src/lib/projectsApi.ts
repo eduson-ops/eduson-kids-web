@@ -13,11 +13,11 @@ import { getAccessToken } from './authStorage'
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || '/api/v1'
 
-export type ProjectType = 'game' | 'site' | 'python' | 'capstone' | 'ege'
+type ProjectType = 'game' | 'site' | 'python' | 'capstone' | 'ege'
 type ProjectVisibility = 'private' | 'unlisted' | 'public' | 'classroom'
 type VersionSource = 'autosave' | 'manual' | 'rollback' | 'import' | 'template'
 
-export interface Project {
+interface Project {
   id: string
   tenantId: string
   ownerId: string
@@ -33,12 +33,12 @@ export interface Project {
   updatedAt: string
 }
 
-export interface ProjectWithContent extends Project {
+interface ProjectWithContent extends Project {
   content: Record<string, unknown> | null
   currentSequence: number | null
 }
 
-export interface ProjectVersion {
+interface ProjectVersion {
   id: string
   sequence: number
   source: VersionSource
