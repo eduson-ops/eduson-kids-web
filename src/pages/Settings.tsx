@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { type ChangeEvent, useEffect, useRef, useState, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import { useToast } from '../hooks/useToast'
@@ -82,7 +82,7 @@ export default function Settings() {
     setMutedState(next)
   }
 
-  function handleVolume(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleVolume(e: ChangeEvent<HTMLInputElement>) {
     const v = parseInt(e.target.value, 10) / 100
     setVolume(v)
     setVol(v)
@@ -269,7 +269,7 @@ export default function Settings() {
               ['Ctrl+Z', 'Отменить последнее действие (в редактировании)'],
               ['⚡ Ред.', 'Включить режим редактирования мира'],
             ].map(([key, desc]) => (
-              <React.Fragment key={key}>
+              <Fragment key={key}>
                 <kbd style={{
                   background: 'var(--paper-2)', border: '1px solid var(--border)',
                   borderRadius: 6, padding: '3px 8px', fontSize: 13, fontFamily: 'monospace',
@@ -278,7 +278,7 @@ export default function Settings() {
                   {key}
                 </kbd>
                 <span style={{ fontSize: 14, color: 'var(--ink-soft)' }}>{desc}</span>
-              </React.Fragment>
+              </Fragment>
             ))}
           </div>
         </div>
