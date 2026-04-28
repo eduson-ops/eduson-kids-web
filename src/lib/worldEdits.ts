@@ -466,7 +466,7 @@ export function resetWorldEdits(worldId: string) {
 // ─── Undo stack (паттерн GMod undo) ───────────────────────
 // Простой in-memory стек последних операций. На reload сбрасывается —
 // это не полноценная история, а защита от случайных кликов в Edit-режиме.
-export type UndoOp =
+type UndoOp =
   | { kind: 'add'; worldId: string; partId: string }
   | { kind: 'remove'; worldId: string; posHash: string }
   | { kind: 'recolor'; worldId: string; posHash: string; prevHex?: string }
@@ -481,7 +481,7 @@ export function pushUndo(op: UndoOp) {
 
 export function canUndo(): boolean { return undoStack.length > 0 }
 
-export function popUndo(): UndoOp | null {
+function popUndo(): UndoOp | null {
   return undoStack.pop() ?? null
 }
 
