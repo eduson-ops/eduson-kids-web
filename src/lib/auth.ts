@@ -29,8 +29,3 @@ export function saveSession(s: Session): void {
 export function clearSession(): void {
   localStorage.removeItem(SESSION_KEY)
 }
-
-/** Quick role check without loading the full session. */
-export function getRole(): Role | null {
-  return loadSession()?.role ?? null
-}
