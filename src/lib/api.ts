@@ -106,7 +106,7 @@ async function request<T>(
   }
 }
 
-export async function apiHealth(): Promise<boolean> {
+async function apiHealth(): Promise<boolean> {
   const r = await request<{ ok: boolean }>('/health', { timeout: 1500 })
   return !!r?.ok
 }
@@ -185,27 +185,6 @@ export async function apiPutProgress(
     body: JSON.stringify({ gameId, coins, timeMs, completed }),
   })
   return !!r?.ok
-}
-
-export async function apiLeaderboard(gameId: string) {
-  return request<{ gameId: string; top: Array<{ name: string; bestTimeMs: number; coins: number }> }>(
-    `/api/v1/leaderboard/${encodeURIComponent(gameId)}`
-  )
-}
-
-
-export async function apiGetClassroom(id: string): Promise<{ id: string; name: string; teacherId: string; students: Array<{ firstName: string; lastName: string; login: string }> } | null> {
-  if (!getToken()) return null
-  return request(`/api/v1/classrooms/${encodeURIComponent(id)}`)
-}
-
-export async function apiCreateRoom(classroomId?: string): Promise<{ id: string; meetLink: string } | null> {
-  if (!getToken()) return null
-  return request('/api/v1/rooms', { method: 'POST', body: JSON.stringify({ classroomId }) })
-}
-
-export async function apiGetRoom(id: string): Promise<{ id: string; status: string; meetLink: string } | null> {
-  return request(`/api/v1/rooms/${encodeURIComponent(id)}`)
 }
 
 export async function apiGetMe(): Promise<{ id: string; role: string; name: string; login?: string; email?: string } | null> {
