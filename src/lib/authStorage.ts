@@ -76,18 +76,3 @@ export function clearAccessToken(): void {
   }
 }
 
-
-/**
- * F-12: returns the access token from localStorage when available.
- *
- * After the HttpOnly cookie migration, fresh logins do NOT keep a token in
- * localStorage — the browser sends the `access_token` cookie automatically
- * on every fetch with `credentials: 'include'`. JS code (this function)
- * cannot read HttpOnly cookies by design (XSS hardening).
- *
- * Callers should:
- *   1. always send `credentials: 'include'` on API fetches,
- *   2. add `Authorization: Bearer <token>` only when this function returns
- *      a non-null value (legacy session bridging),
- *   3. treat a `null` result as "let the cookie do the work".
- */
