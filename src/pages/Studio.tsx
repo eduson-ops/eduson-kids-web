@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import BuildTab from '../studio/BuildTab'
-import ScriptTab from '../studio/ScriptTab'
-import TestTab from '../studio/TestTab'
+const ScriptTab = lazy(() => import('../studio/ScriptTab'))
+const TestTab = lazy(() => import('../studio/TestTab'))
 import StudioIntroOverlay from '../components/StudioIntroOverlay'
 import StudioLoadingOverlay from '../components/StudioLoadingOverlay'
 import StudioTour, { replayTour } from '../components/StudioTour'
@@ -376,8 +376,10 @@ export default function Studio() {
         style={isMobile ? { paddingBottom: 'calc(58px + env(safe-area-inset-bottom))' } : undefined}
       >
         {tab === 'build' && <BuildTab isMobile={isMobile} />}
-        {tab === 'script' && <ScriptTab />}
-        {tab === 'test' && <TestTab state={state} />}
+        <Suspense>
+          {tab === 'script' && <ScriptTab />}
+          {tab === 'test' && <TestTab state={state} />}
+        </Suspense>
       </main>
 
       {isMobile && <StudioMobileBar tab={tab} onTabChange={setTab} />}
