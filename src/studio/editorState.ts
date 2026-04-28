@@ -75,6 +75,7 @@ export interface EditorState {
   autoRun: boolean
 }
 
+const SAVE_DEBOUNCE_MS = 300
 const PALETTE_COLORS = [
   '#ff5ab1', '#ff5464', '#ff8c1a', '#ffd644',
   '#5ba55b', '#48c774', '#4c97ff', '#c879ff',
@@ -258,7 +259,7 @@ function persist() {
     } catch {
       /* quota exceeded */
     }
-  }, 300)
+  }, SAVE_DEBOUNCE_MS)
 }
 
 function emit() {

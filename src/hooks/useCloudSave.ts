@@ -34,6 +34,8 @@ export interface UseCloudSaveResult {
   scheduleAutosave: () => void
 }
 
+const QUEUE_FLUSH_INTERVAL_MS = 60_000
+
 export function useCloudSave(
   projectId: string | null,
   getContent: () => Record<string, unknown>,
@@ -160,7 +162,7 @@ export function useCloudSave(
       if (typeof navigator !== 'undefined' && navigator.onLine) {
         void flushQueue()
       }
-    }, 60_000)
+    }, QUEUE_FLUSH_INTERVAL_MS)
     return () => clearInterval(id)
   }, [flushQueue])
 
