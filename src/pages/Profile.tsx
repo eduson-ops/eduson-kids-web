@@ -287,7 +287,7 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (c: string)
           aria-label={c}
         />
       ))}
-      <label className="color-custom">
+      <label className="color-custom" aria-label="Свой цвет">
         <input
           type="color"
           value={value}

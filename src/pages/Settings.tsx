@@ -150,6 +150,7 @@ export default function Settings() {
                     autoFocus
                     className="text-input"
                     value={nameInput}
+                    aria-label="Имя пользователя"
                     onChange={(e) => setNameInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(false) }}
                     style={{ padding: '8px 12px', borderRadius: 10, border: '2px solid var(--violet)', fontFamily: 'var(--f-ui)', fontSize: 16 }}
@@ -219,6 +220,7 @@ export default function Settings() {
                 max={100}
                 value={Math.round(vol * 100)}
                 onChange={handleVolume}
+                aria-label="Громкость звука"
                 style={{ flex: 1, maxWidth: 220, accentColor: 'var(--violet)' }}
               />
               <span style={{ fontSize: 13, color: 'var(--ink-soft)', minWidth: 32, textAlign: 'right' }}>
