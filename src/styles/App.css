@@ -67,9 +67,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fade-in 0.25s ease-out;
+  animation: fadeIn 0.25s ease-out;
 }
-@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 .goal-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -228,7 +227,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fade-in 0.2s;
+  animation: fadeIn 0.2s;
 }
 .escape-menu {
   background: #1a2030;
@@ -383,7 +382,7 @@
   overflow: hidden;
   z-index: 10;
   color: #fff;
-  animation: fade-in 0.15s;
+  animation: fadeIn 0.15s;
 }
 .lb-header {
   display: flex;
@@ -439,7 +438,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  animation: fade-in 0.3s;
+  animation: fadeIn 0.3s;
 }
 .onboarding-card {
   background: linear-gradient(135deg, #1a2030 0%, #2a2040 100%);
