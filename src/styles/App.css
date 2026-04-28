@@ -597,10 +597,6 @@
 }
 .home-btn:active { transform: translateX(-2px); }
 .home-btn svg { display: block; }
-.studio-brand {
-  font-size: 18px;
-  white-space: nowrap;
-}
 .studio-tabs {
   display: flex;
   gap: 4px;

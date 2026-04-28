@@ -239,6 +239,7 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
                   type="text"
                   className="spawn-menu-search"
                   placeholder="🔍 Поиск: дерево, npc, монета…"
+                  aria-label="Поиск объектов"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   autoFocus

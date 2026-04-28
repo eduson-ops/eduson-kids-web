@@ -332,7 +332,7 @@ export default function Play() {
       {gameId && <SpawnMenu worldId={gameId} />}
 
       {state.goal && (
-        <div className="goal-overlay">
+        <div className="goal-overlay" role="dialog" aria-modal="true" aria-label={state.goal.label}>
           <div className="goal-card">
             <div className={`goal-badge ${state.goal.kind}`}>
               {state.goal.kind === 'win' ? '🏆' : '💀'}
