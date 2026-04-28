@@ -21,7 +21,7 @@ import { WORLD_SCRIPTS_KEY } from './worldScripts'
  * условия и разблокирует новые.
  */
 
-export interface Achievement {
+interface Achievement {
   id: string
   title: string
   description: string
