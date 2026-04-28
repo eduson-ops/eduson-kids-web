@@ -10,7 +10,7 @@ import {
 } from './editorState'
 import ObjectScriptEditor from '../components/ObjectScriptEditor'
 import { pluralize } from '../lib/plural'
-import { DEG_TO_RAD } from '../lib/constants'
+import { DEG_TO_RAD, SCALE_MIN } from '../lib/constants'
 
 interface Props {
   state: EditorState
@@ -34,7 +34,6 @@ const QUICK_COLORS = [
 ]
 
 const PROP_STEP = 0.5
-const MIN_SCALE = 0.1
 const ROTATION_STEP_DEG = 15
 
 export default function PropertiesPanel({ state, variant = 'desktop', onClose }: Props) {
@@ -130,11 +129,11 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                   <span>{axis.toUpperCase()}</span>
                   <NumberField
                     step={PROP_STEP}
-                    min={MIN_SCALE}
+                    min={SCALE_MIN}
                     value={selected.scale[i]!}
                     onCommit={(n) => {
                       const s = [...selected.scale] as [number, number, number]
-                      s[i] = Math.max(MIN_SCALE, n)
+                      s[i] = Math.max(SCALE_MIN, n)
                       updatePart(selected.id, { scale: s })
                     }}
                   />
