@@ -1,6 +1,6 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
-import { Group } from 'three'
+import type { Group } from 'three'
 
 interface CloudDef {
   x: number

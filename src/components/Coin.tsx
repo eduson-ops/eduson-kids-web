@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { memo, useRef, useState } from 'react'
-import { Group } from 'three'
+import type { Group } from 'three'
 import { addCoin } from '../lib/gameState'
 import { SFX } from '../lib/audio'
 import SparkleBurst from './SparkleBurst'

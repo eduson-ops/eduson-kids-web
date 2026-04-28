@@ -1,7 +1,7 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 import { memo, useRef } from 'react'
-import { Group } from 'three'
+import type { Group } from 'three'
 import { useFrame } from '@react-three/fiber'
 
 interface Props {
