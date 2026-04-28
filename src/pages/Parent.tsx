@@ -24,6 +24,8 @@ import {
  * Данные сейчас mock из localStorage; в v1.0 — через GET /api/v1/progress.
  */
 
+const PRINT_DELAY_MS = 300
+
 interface Activity {
   day: number          // 0..27, 0 — 4 недели назад
   minutes: number
@@ -290,7 +292,7 @@ function WeeklyDigest({ activity, childName }: { activity: Activity[]; childName
       <h2>Что дальше</h2>
       <p class="muted">Зайди на eduson-ops.github.io/eduson-kids-web/parent чтобы посмотреть полный отчёт с графиком за 28 дней и достижениями.</p>
       <p class="muted" style="margin-top: 32px; font-size: 11px;">Отчёт сгенерирован ${new Date().toLocaleString('ru-RU')}. Эдюсон Kids v1.0.</p>
-      <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300))</script>
+      <script>window.addEventListener('load', () => setTimeout(() => window.print(), ${PRINT_DELAY_MS}))</script>
     </body></html>`
     const w = window.open('', '_blank', 'width=720,height=900')
     if (!w) {

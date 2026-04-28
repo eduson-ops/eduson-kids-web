@@ -19,6 +19,12 @@ function isMobile(): boolean {
   return /Android|iPhone|iPod|Mobile/i.test(navigator.userAgent)
 }
 
+const FPS_SAMPLE_SIZE = 60
+const FPS_LOW_THRESHOLD = 45
+const FPS_HIGH_THRESHOLD = 58
+const DOWNSCALE_HYSTERESIS_MS = 1000
+const UPSCALE_HYSTERESIS_MS = 3000
+
 /**
  * Adaptive DPR controller — мониторит средний FPS (60-frame rolling window)
  * и меняет pixel ratio рендерера:
@@ -90,25 +96,25 @@ export default function AdaptiveDPR() {
     lastT.current = now
     const fps = 1000 / dtMs
     fpsBuf.current.push(fps)
-    if (fpsBuf.current.length > 60) fpsBuf.current.shift()
-    if (fpsBuf.current.length < 60) return
+    if (fpsBuf.current.length > FPS_SAMPLE_SIZE) fpsBuf.current.shift()
+    if (fpsBuf.current.length < FPS_SAMPLE_SIZE) return
 
     const avg = fpsBuf.current.reduce((a, b) => a + b, 0) / fpsBuf.current.length
 
-    if (avg < 45) {
+    if (avg < FPS_LOW_THRESHOLD) {
       highSince.current = null
       if (!lowSince.current) lowSince.current = now
-      if (now - lowSince.current > 1000 && curDpr.current > 1.0) {
+      if (now - lowSince.current > DOWNSCALE_HYSTERESIS_MS && curDpr.current > 1.0) {
         curDpr.current = 1.0
         gl.setPixelRatio(1.0)
         lowSince.current = null
       }
-    } else if (avg > 58) {
+    } else if (avg > FPS_HIGH_THRESHOLD) {
       lowSince.current = null
       if (!highSince.current) highSince.current = now
       // iPad и low-tier — никогда не поднимаем выше 1, даже при высоком FPS
       const cap = isIPad() || detectDeviceTier() === 'low' ? 1.0 : 1.5
-      if (now - highSince.current > 3000 && curDpr.current < cap) {
+      if (now - highSince.current > UPSCALE_HYSTERESIS_MS && curDpr.current < cap) {
         curDpr.current = cap
         gl.setPixelRatio(cap)
         highSince.current = null
