@@ -51,8 +51,8 @@ const NotFound = lazy(() => import('./pages/NotFound'))
 
 function RouteLoader({ label }: { label: string }) {
   return (
-    <div className="route-loader">
-      <div className="spinner" />
+    <div className="route-loader" role="status" aria-live="polite" aria-label={label}>
+      <div className="spinner" aria-hidden />
       <p>{label}</p>
     </div>
   )

@@ -282,7 +282,7 @@ export default function ScriptTab() {
                 </button>
               </div>
             )}
-            <Suspense fallback={<div className="py-editor-loading">Загружаем редактор…</div>}>
+            <Suspense fallback={<div className="py-editor-loading" role="status">Загружаем редактор…</div>}>
               <SmartPythonEditor
                 code={state.pythonCode}
                 onChange={setPythonCode}

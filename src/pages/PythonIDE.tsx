@@ -236,7 +236,7 @@ export default function PythonIDE() {
 
         <div className="python-ide-split">
           <div className="python-ide-editor">
-            <Suspense fallback={<div className="py-editor-loading">Загружаем редактор…</div>}>
+            <Suspense fallback={<div className="py-editor-loading" role="status">Загружаем редактор…</div>}>
               <SmartPythonEditor
                 code={code}
                 onChange={setCode}

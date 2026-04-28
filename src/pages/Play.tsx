@@ -370,8 +370,8 @@ function HotbarKey({ k, label }: { k: string; label: string }) {
 
 function LoaderHud() {
   return (
-    <div className="play-loader">
-      <div className="spinner" />
+    <div className="play-loader" role="status" aria-live="polite" aria-label="Загружаем 3D-мир">
+      <div className="spinner" aria-hidden />
       <p>Загружаем 3D-мир…</p>
     </div>
   )

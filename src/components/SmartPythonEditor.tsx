@@ -25,7 +25,7 @@ export default function SmartPythonEditor(props: Props) {
   const isMobile = useIsMobile()
 
   return (
-    <Suspense fallback={<div className="py-editor-loading">Загружаем редактор…</div>}>
+    <Suspense fallback={<div className="py-editor-loading" role="status">Загружаем редактор…</div>}>
       {isMobile ? <CodeMirrorPythonEditor {...props} /> : <PurePythonEditor {...props} />}
     </Suspense>
   )

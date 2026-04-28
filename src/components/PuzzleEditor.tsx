@@ -90,7 +90,7 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
 
         <div className={`puzzle-editor-zone puzzle-editor-zone--${mode}`}>
           {mode === 'blocks' ? (
-            <Suspense fallback={<div className="puzzle-editor-loading">Готовим блоки…</div>}>
+            <Suspense fallback={<div className="puzzle-editor-loading" role="status">Готовим блоки…</div>}>
               <BlocklyWorkspace
                 key={task.id + ':blocks'}
                 initialXml={blocklyXml}
@@ -98,7 +98,7 @@ export default function PuzzleEditor({ task, onSolved, onNext, initialMode = 'bl
               />
             </Suspense>
           ) : (
-            <Suspense fallback={<div className="puzzle-editor-loading">Загружаем Python…</div>}>
+            <Suspense fallback={<div className="puzzle-editor-loading" role="status">Загружаем Python…</div>}>
               <SmartPythonEditor
                 code={pythonCode}
                 onChange={setPythonCode}
