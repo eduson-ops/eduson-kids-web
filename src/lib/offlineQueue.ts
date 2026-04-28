@@ -102,7 +102,7 @@ export async function enqueue(projectId: string, payload: unknown): Promise<void
   })
 }
 
-export async function listPending(projectId?: string): Promise<PendingSave[]> {
+async function listPending(projectId?: string): Promise<PendingSave[]> {
   const db = await openDb()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readonly')
@@ -120,7 +120,7 @@ export async function pendingCount(projectId?: string): Promise<number> {
   return items.length
 }
 
-export async function dequeue(key: string): Promise<void> {
+async function dequeue(key: string): Promise<void> {
   const db = await openDb()
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite')
