@@ -331,7 +331,6 @@ export const TEMPLATES: SiteTemplate[] = [
 ]
 
 export const SITES_KEY = 'ek_sites_v1'
-const STORAGE_KEY = SITES_KEY
 
 function defaultSite(templateId = 'about-me'): Site {
   const tpl = (TEMPLATES.find((t) => t.id === templateId) ?? TEMPLATES[0])!
@@ -356,7 +355,7 @@ const listeners = new Set<(s: SitesState) => void>()
 
 function loadState(): SitesState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(SITES_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as SitesState
       if (Array.isArray(parsed.sites)) return parsed
@@ -371,7 +370,7 @@ let state: SitesState = loadState()
 
 function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(SITES_KEY, JSON.stringify(state))
   } catch {
     /* quota */
   }
