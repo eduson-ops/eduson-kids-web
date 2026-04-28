@@ -39,6 +39,9 @@ const TOTAL_LESSONS = 48
 const COINS_PER_LESSON = 15
 const LESSONS_PER_MODULE = 6
 const TOTAL_MODULES = 8
+const PYODIDE_REVEAL_DELAY_MS = 2000  // show warmup indicator only if takes > 2s
+const PYODIDE_FADE_DELAY_MS = 600     // fade-out duration after warmup completes
+const PYODIDE_IDLE_TIMEOUT_MS = 4000  // requestIdleCallback timeout fallback
 
 const ACCENT_MAP: Record<string, { color: string; soft: string; ink: string }> = {
   violet: { color: '#6B5CE7', soft: '#E4E0FC', ink: '#2A1F8C' },
@@ -78,7 +81,7 @@ export default function Hub() {
       // Reveal indicator only if warmup takes >2s
       revealTimer = window.setTimeout(() => {
         if (!cancelled && !isReady) setPyWarmup('visible')
-      }, 2000)
+      }, PYODIDE_REVEAL_DELAY_MS)
       import('../lib/pyodide-executor')
         .then((mod) =>
           mod.warmPyodide((step) => {
@@ -92,7 +95,7 @@ export default function Hub() {
               setPyWarmup((prev) => (prev === 'visible' ? 'fading' : 'idle'))
               fadeTimer = window.setTimeout(() => {
                 if (!cancelled) setPyWarmup('idle')
-              }, 600)
+              }, PYODIDE_FADE_DELAY_MS)
             }
           }),
         )
@@ -106,9 +109,9 @@ export default function Hub() {
     let idleHandle: number | null = null
     let timeoutHandle: number | null = null
     if (typeof w.requestIdleCallback === 'function') {
-      idleHandle = w.requestIdleCallback(run, { timeout: 4000 })
+      idleHandle = w.requestIdleCallback(run, { timeout: PYODIDE_IDLE_TIMEOUT_MS })
     } else {
-      timeoutHandle = window.setTimeout(run, 2000)
+      timeoutHandle = window.setTimeout(run, PYODIDE_REVEAL_DELAY_MS)
     }
     return () => {
       cancelled = true
