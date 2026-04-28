@@ -786,7 +786,7 @@ function BlocksMode({ site }: { site: Site }) {
   return (
     <div className="blocks-mode">
       <section className="blocks-mode-canvas">
-        <HtmlBlocklyWorkspace initialXml={site.blocksXml} onChange={onBlocksChange} />
+        <HtmlBlocklyWorkspace {...(site.blocksXml ? { initialXml: site.blocksXml } : {})} onChange={onBlocksChange} />
       </section>
       <section className="blocks-mode-preview">
         <div className="blocks-mode-preview-header">Превью</div>

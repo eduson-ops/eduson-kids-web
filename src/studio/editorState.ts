@@ -3,7 +3,7 @@
 
 import { nanoid } from 'nanoid'
 
-export const STUDIO_KEY = STUDIO_KEY
+export const STUDIO_KEY = 'ek_studio_state_v1'
 
 export type PartType = 'cube' | 'coin' | 'spawn' | 'finish' | 'wall' | 'floor' | 'ramp' | 'roof'
 export type MaterialType = 'plastic' | 'metal' | 'wood' | 'grass' | 'stone' | 'neon'
@@ -396,9 +396,13 @@ export function setScriptMode(mode: ScriptMode) {
 export function setObjectScript(id: string, scripts: ObjectScript | null) {
   state = {
     ...state,
-    parts: state.parts.map((p) =>
-      p.id === id ? { ...p, scripts: scripts ?? undefined } : p
-    ),
+    parts: state.parts.map((p) => {
+      if (p.id !== id) return p
+      const { scripts: _s, ...rest } = p
+      void _s
+      if (scripts) return { ...rest, scripts }
+      return rest as typeof p
+    }),
   }
   persist()
   emit()

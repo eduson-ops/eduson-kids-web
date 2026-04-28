@@ -110,10 +110,9 @@ export async function share(payload: ShareInput): Promise<boolean> {
     try {
       const { Share } = await import('@capacitor/share')
       await Share.share({
-        title: payload.title,
-        text: payload.text,
-        url: payload.url,
-        dialogTitle: payload.title,
+        ...(payload.title ? { title: payload.title, dialogTitle: payload.title } : {}),
+        ...(payload.text ? { text: payload.text } : {}),
+        ...(payload.url ? { url: payload.url } : {}),
       })
       return true
     } catch {
@@ -163,11 +162,12 @@ export async function takePhoto(): Promise<PhotoResult | null> {
         source: CameraSource.Prompt,
       })
       const mime = `image/${photo.format || 'jpeg'}`
-      return {
-        base64: photo.base64String,
-        dataUrl: photo.base64String ? `data:${mime};base64,${photo.base64String}` : undefined,
-        mime,
+      const result: PhotoResult = { mime }
+      if (photo.base64String) {
+        result.base64 = photo.base64String
+        result.dataUrl = `data:${mime};base64,${photo.base64String}`
       }
+      return result
     } catch {
       return null
     }

@@ -372,7 +372,6 @@ export default function ChatRoom({ room, senderLogin, height = 480 }: Props) {
             maxHeight: 100,
             overflow: 'auto',
           }}
-          aria-label="Введите сообщение"
         />
         <button
           onClick={handleSend}

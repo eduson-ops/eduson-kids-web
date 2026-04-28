@@ -95,12 +95,13 @@ export default function App() {
         if (!me) return
         const existing = loadSession()
         if (!existing || existing.name !== me.name) {
-          saveSession({
+          const s: Parameters<typeof saveSession>[0] = {
             role: me.role as 'child' | 'parent' | 'teacher',
             name: me.name,
-            login: me.login,
-            email: me.email,
-          })
+          }
+          if (me.login) s.login = me.login
+          if (me.email) s.email = me.email
+          saveSession(s)
         }
       }).catch(() => { /* backend offline — stay local */ })
     }

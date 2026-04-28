@@ -94,7 +94,7 @@ export default function NikselChat() {
     const newUserMsg: ChatMessage = {
       role: 'user',
       text,
-      image: pendingImage ?? undefined,
+      ...(pendingImage ? { image: pendingImage } : {}),
     }
     const nextHistory = [...history, newUserMsg]
     setHistory(nextHistory)

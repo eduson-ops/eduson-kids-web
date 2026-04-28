@@ -599,7 +599,7 @@ export function GlowingTreeB32({ pos, color, size }: P32) {
       </mesh>
       {/* canopy layers */}
       {([0.9, 1.3, 1.65] as number[]).map((y, i) => (
-        <mesh ref={i===1?ref:undefined} key={i} position={[0, y*size, 0]}>
+        <mesh {...(i===1 && ref ? {ref} : {})} key={i} position={[0, y*size, 0]}>
           <sphereGeometry args={[size*(0.42-i*0.08), 8, 7]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.35} roughness={0.7} />
         </mesh>

@@ -68,7 +68,7 @@ async function http<T>(method: string, path: string, body?: unknown): Promise<T>
       'Content-Type': 'application/json',
       ...authHeader(),
     },
-    body: body ? JSON.stringify(body) : undefined,
+    ...(body ? { body: JSON.stringify(body) } : {}),
     credentials: 'include',
   })
   if (!res.ok) {

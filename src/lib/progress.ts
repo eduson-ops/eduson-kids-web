@@ -297,12 +297,3 @@ export function unlockAchievement(id: string): boolean {
 export function getUnlockedAchievements(): Set<string> { return achievements }
 export function countAchievements(): number { return achievements.size }
 
-// ─── Reset ───────────────────────────────────────────
-function resetAllProgress() {
-  completed = new Set()
-  quizResults = {}
-  achievements = new Set()
-  streak = { current: 0, longest: 0, lastDay: '', freezes: 0, freezeGrantedWeek: '' }
-  persistCompleted(); persistQuiz(); persistAchievements(); persistStreak()
-  emit()
-}

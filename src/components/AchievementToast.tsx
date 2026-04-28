@@ -31,7 +31,7 @@ export default function AchievementToast() {
   useEffect(() => {
     if (current || queue.length === 0) return
     const [next, ...rest] = queue
-    setCurrent(next)
+    setCurrent(next ?? null)
     setQueue(rest)
     const t = setTimeout(() => setCurrent(null), TOAST_DURATION)
     return () => clearTimeout(t)

@@ -445,7 +445,7 @@ export function CoalConveyor({ pos, color, size }: P33) {
       </mesh>
       {/* rollers */}
       {([-0.5, 0.5] as number[]).map((x, i) => (
-        <mesh key={i} ref={i===0?ref:undefined} position={[(x*size*0.6), size*0.35 + x*size*0.21, 0]} rotation={[Math.PI/2, 0, 0]}>
+        <mesh key={i} {...(i===0 && ref ? {ref} : {})} position={[(x*size*0.6), size*0.35 + x*size*0.21, 0]} rotation={[Math.PI/2, 0, 0]}>
           <cylinderGeometry args={[size*0.08, size*0.08, size*0.45, 8]} />
           <meshStandardMaterial color="#888" metalness={0.7} roughness={0.3} />
         </mesh>

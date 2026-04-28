@@ -12,7 +12,7 @@ import StreakWidget from './StreakWidget'
  * Child / Parent / Teacher / Designbook nav group sets.
  */
 
-const SIDENAV_KEY = SIDENAV_KEY
+const SIDENAV_KEY = 'ek_sidenav_collapsed_v1'
 
 interface Props {
   children: ReactNode

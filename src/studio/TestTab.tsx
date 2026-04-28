@@ -122,14 +122,7 @@ const DynamicPart = memo(function DynamicPart({
         scale={p.scale}
         castShadow
         receiveShadow
-        onClick={
-          onClick
-            ? (e) => {
-                e.stopPropagation()
-                onClick(p.id)
-              }
-            : undefined
-        }
+        {...(onClick ? { onClick: (e: import('@react-three/fiber').ThreeEvent<MouseEvent>) => { e.stopPropagation(); onClick(p.id) } } : {})}
       >
         <PartGeometry type={p.type} />
         <meshStandardMaterial

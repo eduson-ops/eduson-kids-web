@@ -394,10 +394,7 @@ export async function checkSolution(
     }
   }
 
-  return {
-    ...result,
-    commands: rawCommands,
-    stdout,
-    error: stderr.length > 0 ? stderr.join('\n') : undefined,
-  }
+  const ret: CheckResult = { ...result, commands: rawCommands, stdout }
+  if (stderr.length > 0) ret.error = stderr.join('\n')
+  return ret
 }

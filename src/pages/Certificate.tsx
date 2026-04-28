@@ -32,14 +32,15 @@ function decodeCertId(id: string): CertData | null {
       if (k && v) acc[k] = decodeURIComponent(v)
       return acc
     }, {})
-    return {
+    const cert: CertData = {
       name: parts.name ?? 'Ученик',
       courseName: parts.course ?? 'Эдюсон Kids',
-      moduleN: parts.module ? parseInt(parts.module, 10) : undefined,
       date: parts.date ?? new Date().toLocaleDateString('ru-RU'),
       fgosCode: parts.fgos ?? 'ФГОС ОО · 9–15 лет',
       verified: true,
     }
+    if (parts.module) cert.moduleN = parseInt(parts.module, 10)
+    return cert
   } catch {
     return null
   }

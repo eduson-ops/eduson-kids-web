@@ -2,8 +2,8 @@
 // Звуки генерируются on-the-fly через oscillator + envelope.
 // Для ambient music и сложных звуков потом подключим Howler.js + ассеты.
 
-const MUTED_KEY = MUTED_KEY
-const SFX_VOL_KEY = SFX_VOL_KEY
+const MUTED_KEY = 'ek_audio_muted_v1'
+const SFX_VOL_KEY = 'ek_audio_sfx_vol_v1'
 
 let ctx: AudioContext | null = null
 let masterGain: GainNode | null = null

@@ -1007,18 +1007,25 @@ function prefixPublicPath(p: string | undefined): string | undefined {
   return p
 }
 
-const INGESTED_COURSES: Course[] = RAW_INGESTED_COURSES.map((c) => ({
-  ...c,
-  programFile: prefixPublicPath(c.programFile),
-  modules: c.modules.map((m) => ({
-    ...m,
-    lessons: m.lessons.map((l) => ({
-      ...l,
-      htmlFile: prefixPublicPath(l.htmlFile),
-      guideFile: prefixPublicPath(l.guideFile),
-    })),
-  })),
-}))
+const INGESTED_COURSES: Course[] = RAW_INGESTED_COURSES.map((c) => {
+  const course = { ...c }
+  const pf = prefixPublicPath(c.programFile)
+  if (pf !== undefined) course.programFile = pf
+  course.modules = c.modules.map((m) => {
+    return {
+      ...m,
+      lessons: m.lessons.map((l) => {
+        const lesson = { ...l }
+        const hf = prefixPublicPath(l.htmlFile)
+        const gf = prefixPublicPath(l.guideFile)
+        if (hf !== undefined) lesson.htmlFile = hf
+        if (gf !== undefined) lesson.guideFile = gf
+        return lesson
+      }),
+    }
+  })
+  return course
+})
 
 /** Все курсы платформы — builtin + ingested из products/ */
 export const COURSES: Course[] = [KUBIK_COURSE, KUBIK_Y2_COURSE, ...INGESTED_COURSES]
