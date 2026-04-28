@@ -15,7 +15,7 @@ const PARENT_LINK_KEY = 'ek_parent_link_v1'
 const PKCE_VERIFIER_KEY = 'ek_vk_pkce_verifier'
 const STATE_KEY = 'ek_vk_state'
 
-export type UserRole = 'child' | 'parent'
+type UserRole = 'child' | 'parent'
 
 export interface VkUser {
   id: number                  // VK user id
@@ -34,7 +34,7 @@ export interface VkUser {
   role: UserRole
 }
 
-export interface ParentChildLink {
+interface ParentChildLink {
   /** VK id родителя */
   parentVkId: number
   /** child_code ребёнка (6 цифр) к которому привязан родитель */
