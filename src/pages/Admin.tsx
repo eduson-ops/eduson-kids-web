@@ -6,8 +6,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
-import { getClassrooms, createClassroom, deleteClassroom, CLASSROOMS_KEY } from '../lib/classRoster'
-import type { Classroom, Student } from '../lib/classRoster'
+import { getClassrooms, createClassroom, deleteClassroom, CLASSROOMS_KEY, type Classroom, type Student } from '../lib/classRoster'
 import { useToast } from '../hooks/useToast'
 
 interface ConfirmState {

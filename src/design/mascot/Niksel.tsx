@@ -15,8 +15,7 @@
  *   - role="img" + описательный aria-label (полное предложение)
  *   - respects prefers-reduced-motion (через CSS в App.css)
  */
-import { memo } from 'react'
-import type { CSSProperties } from 'react'
+import { memo, type CSSProperties } from 'react'
 
 type Pose = 'idle' | 'wave' | 'think' | 'celebrate' | 'code' | 'confused'
 

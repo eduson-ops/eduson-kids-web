@@ -5,9 +5,8 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import GoalTrigger from '../GoalTrigger'
 import { Tree, Bush } from '../Scenery'
-import { addCoin } from '../../lib/gameState'
+import { addCoin, shakeCamera } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
-import { shakeCamera } from '../../lib/gameState'
 
 /**
  * AbilityBuilderWorld — educational remake of «Blox Fruits» (без grind).

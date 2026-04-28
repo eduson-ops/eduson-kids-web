@@ -3,7 +3,6 @@ import { OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { MOUSE, TOUCH } from 'three'
 import GradientSky from '../components/GradientSky'
 import Sun from '../components/Sun'
 import { PieceGeometry } from '../components/BuildModeController'
@@ -285,8 +284,8 @@ export default function BuildScene({ state }: Props) {
         enableDamping
         dampingFactor={0.15}
         makeDefault
-        touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
-        mouseButtons={{ LEFT: MOUSE.ROTATE, MIDDLE: MOUSE.DOLLY, RIGHT: MOUSE.PAN }}
+        touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
+        mouseButtons={{ LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN }}
         maxPolarAngle={Math.PI / 2 - 0.05}
         minDistance={3}
         maxDistance={80}

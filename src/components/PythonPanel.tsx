@@ -1,5 +1,4 @@
-import { Fragment, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import { Fragment, useMemo, useState, type ReactNode } from 'react'
 import { PYTHON_API_REFERENCE } from '../lib/python-world-runtime'
 
 interface Props {

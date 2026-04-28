@@ -7,8 +7,7 @@ import { simulatePlayer } from '../lib/checkSolution'
 import type { RawCommand } from '../lib/types'
 import HintLadder from './HintLadder'
 import Niksel from '../design/mascot/Niksel'
-import { usePuzzleEditor } from '../hooks/usePuzzleEditor'
-import type { PuzzleSolvedEvent } from '../hooks/usePuzzleEditor'
+import { usePuzzleEditor, type PuzzleSolvedEvent } from '../hooks/usePuzzleEditor'
 
 const SmartPythonEditor = lazy(() => import('./SmartPythonEditor'))
 const BlocklyWorkspace = lazy(() => import('./BlocklyWorkspace'))

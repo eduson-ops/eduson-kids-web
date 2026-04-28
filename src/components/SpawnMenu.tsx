@@ -18,7 +18,6 @@ import {
   findItem,
   type CatalogItem,
 } from '../lib/spawnCatalog'
-import type { PropKind } from '../lib/worldEdits'
 import {
   getPrefs,
   subscribePrefs,
@@ -26,7 +25,7 @@ import {
   markRecent,
   isFavorite,
 } from '../lib/spawnPrefs'
-import { doUndo, canUndo, resetWorldEdits, subscribeEdits } from '../lib/worldEdits'
+import { doUndo, canUndo, resetWorldEdits, subscribeEdits, type PropKind } from '../lib/worldEdits'
 import { SFX } from '../lib/audio'
 
 function highlight(text: string, q: string): ReactNode {

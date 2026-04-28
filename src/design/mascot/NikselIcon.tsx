@@ -23,8 +23,7 @@
  *   - star    (⭐) — звезда
  */
 
-import { memo } from 'react'
-import type { CSSProperties } from 'react'
+import { memo, type CSSProperties } from 'react'
 
 export type NikselIconKind =
   | 'build' | 'game' | 'coin' | 'loop' | 'logic' | 'python'

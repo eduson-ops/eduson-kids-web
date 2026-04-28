@@ -1,8 +1,7 @@
 import { memo } from 'react'
 import { RigidBody } from '@react-three/rapier'
-import { setGoal, getState } from '../lib/gameState'
+import { setGoal, getState, type GoalResult } from '../lib/gameState'
 import { SFX } from '../lib/audio'
-import type { GoalResult } from '../lib/gameState'
 
 interface Props {
   pos: [number, number, number]

@@ -1,7 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
-import { useRef } from 'react'
 import * as THREE from 'three'
 import { PUBLIC_BASE } from '../../../lib/publicPath'
 export function Torch({ pos }: { pos: [number, number, number] }) {

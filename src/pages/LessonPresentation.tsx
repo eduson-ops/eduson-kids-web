@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getLesson, getModuleByLesson, getLesson as getL, KIND_LABEL, getLessonQuiz } from '../lib/curriculum'
-import type { Lesson, Module, QuizQuestion } from '../lib/curriculum'
+import { getLesson, getModuleByLesson, getLesson as getL, KIND_LABEL, getLessonQuiz, type Lesson, type Module, type QuizQuestion } from '../lib/curriculum'
 import { markLessonDone, recordQuizResult } from '../lib/progress'
 import { ensureAchievementsWatcher } from '../lib/achievements'
 import { pluralize } from '../lib/plural'
