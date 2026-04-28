@@ -606,7 +606,7 @@ function SectionProps({
           newItem={() => ({ kind: 'tg', href: '' })}
           render={(it, update) => (
             <>
-              <select className="rep-input" style={{ maxWidth: 100 }} value={it.kind || 'tg'} onChange={(e) => update({ kind: e.target.value })}>
+              <select className="rep-input" style={{ maxWidth: 100 }} aria-label="Тип соцсети" value={it.kind || 'tg'} onChange={(e) => update({ kind: e.target.value })}>
                 <option value="tg">Telegram</option>
                 <option value="vk">ВКонтакте</option>
                 <option value="yt">YouTube</option>
