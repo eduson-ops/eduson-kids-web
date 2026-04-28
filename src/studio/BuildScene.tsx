@@ -43,6 +43,13 @@ const GROUND_PLANE_SIZE = 200
 const SPAWN_MARKER_RADIUS = 0.35
 const SPAWN_MARKER_HEIGHT = 0.08
 const SPAWN_MARKER_SEGMENTS = 16
+/** Y-координата при расстановке блоков — половина высоты ячейки. */
+const PLACE_Y = 0.5
+/** FOV камеры редактора и дальняя граница отсечения. */
+const CAMERA_FOV = 45
+const CAMERA_FAR = 600
+/** Граница shadow-camera (единицы мира, ±). */
+const SHADOW_CAM_BOUND = 40
 import {
   addPart,
   getState,
@@ -61,7 +68,7 @@ function EditGrid({ onPlace }: { onPlace: (pos: [number, number, number]) => voi
     // Snap to integer grid
     const x = Math.round(e.point.x)
     const z = Math.round(e.point.z)
-    onPlace([x, 0.5, z])
+    onPlace([x, PLACE_Y, z])
   }
   return (
     <>
@@ -183,7 +190,7 @@ function PlacingPreview() {
     const hit = new THREE.Vector3()
     raycaster.ray.intersectPlane(ground, hit)
     if (hit) {
-      ref.current.position.set(Math.round(hit.x), 0.5, Math.round(hit.z))
+      ref.current.position.set(Math.round(hit.x), PLACE_Y, Math.round(hit.z))
       ref.current.visible = true
     }
   })
@@ -228,7 +235,7 @@ export default function BuildScene({ state }: Props) {
   return (
     <Canvas
       shadows="soft"
-      camera={{ position: BUILD_CAM_POS, fov: 45, near: 0.1, far: 600 }}
+      camera={{ position: BUILD_CAM_POS, fov: CAMERA_FOV, near: 0.1, far: CAMERA_FAR }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 2]}
       onPointerMissed={() => selectPart(null)}
@@ -252,10 +259,10 @@ export default function BuildScene({ state }: Props) {
         shadow-mapSize-height={SHADOW_MAP_SIZE}
         shadow-camera-near={0.5}
         shadow-camera-far={150}
-        shadow-camera-left={-40}
-        shadow-camera-right={40}
-        shadow-camera-top={40}
-        shadow-camera-bottom={-40}
+        shadow-camera-left={-SHADOW_CAM_BOUND}
+        shadow-camera-right={SHADOW_CAM_BOUND}
+        shadow-camera-top={SHADOW_CAM_BOUND}
+        shadow-camera-bottom={-SHADOW_CAM_BOUND}
         shadow-bias={-0.0001}
       />
       <directionalLight position={FILL_LIGHT_POS} intensity={0.45} color="#b0d8ff" />
