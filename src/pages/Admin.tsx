@@ -3,7 +3,7 @@
  * Wrapped in PlatformShell activeKey="admin".
  */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import { getClassrooms, createClassroom, deleteClassroom, CLASSROOMS_KEY } from '../lib/classRoster'
@@ -20,6 +20,7 @@ interface ConfirmState {
 export default function Admin() {
   const navigate = useNavigate()
   const { toast, show } = useToast()
+  const confirmDialogRef = useRef<HTMLDivElement>(null)
 
   const [classrooms, setClassrooms] = useState<Classroom[]>(() => getClassrooms())
   const [showNewClassForm, setShowNewClassForm] = useState(false)
@@ -37,6 +38,7 @@ export default function Admin() {
 
   // Branded confirm dialog (replaces window.confirm)
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null)
+  useEffect(() => { if (confirmState) confirmDialogRef.current?.focus() }, [confirmState])
 
   const refresh = () => setClassrooms(getClassrooms())
 
@@ -132,9 +134,11 @@ export default function Admin() {
       {/* Branded Confirm dialog (replaces window.confirm) */}
       {confirmState && (
         <div
+          ref={confirmDialogRef}
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-title"
+          tabIndex={-1}
           style={{
             position: 'fixed',
             inset: 0,
