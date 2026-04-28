@@ -14,7 +14,7 @@ const NATURE = `${PUBLIC_BASE}/models/kenney-nature/Models/glb`
 
 // ─── Деревья (Stylized Nature) ─────────────────────────────
 
-export const TREE_VARIANTS = [
+const TREE_VARIANTS = [
   { url: `${STYLIZED}/CommonTree_1.gltf`, scale: 1.1, collider: [0.3, 2.5, 0.3] as [number, number, number] },
   { url: `${STYLIZED}/CommonTree_2.gltf`, scale: 1.0, collider: [0.3, 2.5, 0.3] as [number, number, number] },
   { url: `${STYLIZED}/CommonTree_3.gltf`, scale: 1.2, collider: [0.3, 2.5, 0.3] as [number, number, number] },
@@ -46,7 +46,7 @@ export function Tree({
 
 // ─── Кусты / цветы / трава (Stylized Nature, декор без коллайдера) ──
 
-export const BUSH_VARIANTS = [
+const BUSH_VARIANTS = [
   `${STYLIZED}/Bush_Common.gltf`,
   `${STYLIZED}/Bush_Common_Flowers.gltf`,
 ] as const

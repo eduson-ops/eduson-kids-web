@@ -9,7 +9,7 @@ interface Props {
  * Карточки для печати — 4×6 на A4, каждая: имя + логин + PIN.
  * Открываем в новом окне через window.print().
  */
-export function printRosterPDF({ className, students }: Props): void {
+function printRosterPDF({ className, students }: Props): void {
   const cards = students
     .map(
       (s) => `
