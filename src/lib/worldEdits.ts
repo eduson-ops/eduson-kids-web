@@ -364,12 +364,11 @@ interface StoreShape {
 }
 
 export const WORLD_EDITS_KEY = 'ek_world_edits_v2'
-const STORAGE_KEY = WORLD_EDITS_KEY
 const listeners = new Set<() => void>()
 
 function load(): StoreShape {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(WORLD_EDITS_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<StoreShape>
       return {
@@ -388,7 +387,7 @@ let state: StoreShape = load()
 
 function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(WORLD_EDITS_KEY, JSON.stringify(state))
   } catch { /* quota */ }
 }
 function emit() { for (const l of listeners) l() }

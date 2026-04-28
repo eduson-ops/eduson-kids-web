@@ -11,12 +11,11 @@ import type { ObjectScript } from '../studio/editorState'
 type ScriptsMap = Record<string, ObjectScript>   // key = "worldId:objectId"
 
 export const WORLD_SCRIPTS_KEY = 'ek_world_scripts_v1'
-const STORAGE_KEY = WORLD_SCRIPTS_KEY
 const listeners = new Set<() => void>()
 
 function load(): ScriptsMap {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(WORLD_SCRIPTS_KEY)
     return raw ? (JSON.parse(raw) as ScriptsMap) : {}
   } catch {
     return {}
@@ -27,7 +26,7 @@ let state: ScriptsMap = load()
 
 function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(WORLD_SCRIPTS_KEY, JSON.stringify(state))
   } catch { /* quota */ }
 }
 function emit() { for (const l of listeners) l() }

@@ -6,8 +6,7 @@
  * PIN: 6 цифр
  */
 
-export const CLASSROOMS_KEY = 'ek_classrooms'
-const KEY = CLASSROOMS_KEY
+export const CLASSROOMS_CLASSROOMS_KEY = 'ek_classrooms'
 
 export interface Student {
   firstName: string
@@ -26,12 +25,12 @@ export interface Classroom {
 
 function load(): Classroom[] {
   try {
-    const raw = localStorage.getItem(KEY)
+    const raw = localStorage.getItem(CLASSROOMS_KEY)
     return raw ? (JSON.parse(raw) as Classroom[]) : []
   } catch { return [] }
 }
 function save(list: Classroom[]) {
-  try { localStorage.setItem(KEY, JSON.stringify(list)) } catch { /* quota */ }
+  try { localStorage.setItem(CLASSROOMS_KEY, JSON.stringify(list)) } catch { /* quota */ }
 }
 
 /** Транслитерация: кириллица → латиница */
