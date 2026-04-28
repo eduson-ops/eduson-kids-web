@@ -11,7 +11,7 @@ import {
   getCurrentLesson,
 } from '../lib/progress'
 
-export interface ProgressSnapshot {
+interface ProgressSnapshot {
   currentLesson: number
   completedLessons: number
   streak: number
