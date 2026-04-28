@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import PuzzleEditor, { type PuzzleSolvedEvent } from '../components/PuzzleEditor'
@@ -28,6 +28,10 @@ function bumpPuzzleStreak(): number {
 }
 
 function StorySlideOverlay({ slide, onClose }: { slide: StorySlide; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => { dialogRef.current?.focus() }, [])
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
@@ -35,7 +39,7 @@ function StorySlideOverlay({ slide, onClose }: { slide: StorySlide; onClose: () 
   }, [onClose])
 
   return (
-    <div className="story-slide" role="dialog" aria-modal="true" aria-label={slide.title} onClick={onClose}>
+    <div ref={dialogRef} className="story-slide" role="dialog" aria-modal="true" tabIndex={-1} aria-label={slide.title} onClick={onClose}>
       <div className="story-slide-card" onClick={(e) => e.stopPropagation()}>
         <div className="story-slide-emoji" aria-hidden>{slide.emoji}</div>
         <div className="story-slide-chapter">{slide.chapter}</div>
