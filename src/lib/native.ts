@@ -302,7 +302,7 @@ export async function isOnline(): Promise<boolean> {
   return true
 }
 
-export type NetworkUnsubscribe = () => void
+type NetworkUnsubscribe = () => void
 
 export function onNetworkChange(cb: (online: boolean) => void): NetworkUnsubscribe {
   if (isNative()) {
@@ -376,8 +376,8 @@ export async function setPreference(key: string, value: string): Promise<void> {
 }
 
 // --- Back button -------------------------------------------------------------
-export type BackButtonHandler = (ev: { canGoBack: boolean }) => void
-export type BackButtonUnsubscribe = () => void
+type BackButtonHandler = (ev: { canGoBack: boolean }) => void
+type BackButtonUnsubscribe = () => void
 
 export function subscribeBackButton(handler: BackButtonHandler): BackButtonUnsubscribe {
   if (!isNative()) return () => {}
@@ -448,7 +448,7 @@ export async function registerPushToken(): Promise<string | null> {
 }
 
 // --- Keyboard (показ/скрытие для --kb-height) --------------------------------
-export type KeyboardUnsubscribe = () => void
+type KeyboardUnsubscribe = () => void
 
 export function subscribeKeyboard(
   onShow: (height: number) => void,
@@ -483,7 +483,7 @@ export function subscribeKeyboard(
 }
 
 // --- App state (foreground/background) ---------------------------------------
-export type AppStateUnsubscribe = () => void
+type AppStateUnsubscribe = () => void
 
 export function subscribeAppState(cb: (isActive: boolean) => void): AppStateUnsubscribe {
   if (!isNative()) {
