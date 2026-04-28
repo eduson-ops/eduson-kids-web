@@ -24,7 +24,7 @@ interface TenantBranding {
   [key: string]: unknown
 }
 
-export interface ActiveTenant {
+interface ActiveTenant {
   id: string
   slug: string
   name: string

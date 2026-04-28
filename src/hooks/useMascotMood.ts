@@ -3,7 +3,7 @@ import { useProgress } from './useProgress'
 import { getQuizResult } from '../lib/progress'
 
 export type MascotMood = 'idle' | 'wave' | 'celebrate' | 'think' | 'confused' | 'code'
-export type MascotContext = 'hub' | 'studio' | 'learn' | 'parent' | 'portfolio'
+type MascotContext = 'hub' | 'studio' | 'learn' | 'parent' | 'portfolio'
 
 /**
  * Возвращает позу маскота, зависящую от состояния прогресса и контекста страницы.

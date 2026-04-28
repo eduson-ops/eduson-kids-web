@@ -19,12 +19,12 @@ import { enqueue, onQueueChange, pendingCount, replay } from '../lib/offlineQueu
 
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'queued' | 'error'
 
-export interface UseCloudSaveOptions {
+interface UseCloudSaveOptions {
   intervalMs?: number
   enabled?: boolean
 }
 
-export interface UseCloudSaveResult {
+interface UseCloudSaveResult {
   status: SaveStatus
   lastSavedAt: number | null
   lastError: string | null
