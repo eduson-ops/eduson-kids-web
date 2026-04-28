@@ -13,11 +13,9 @@
  *   - `ek_streak_v1`           ({ current, longest, lastDay, ... })
  */
 
-import { KEY_COMPLETED } from './progress'
+import { KEY_COMPLETED, KEY_STREAK, KEY_ACHIEVEMENTS } from './progress'
 
 const SEED_FLAG_KEY = 'kubik-demo-seeded'
-const KEY_ACHIEVEMENTS = 'ek_achievements_v1'
-const KEY_STREAK = 'ek_streak_v1'
 
 // L1-L6 game-track + L1-L6 web-track. Curriculum lessons are numbered
 // sequentially; game-track is 1-6, web-track is 101-106 (matches courses
