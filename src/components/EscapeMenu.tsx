@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMuted, setMuted, getVolume, setVolume, SFX } from '../lib/audio'
 import { QUALITY_KEY } from '../lib/deviceTier'
@@ -18,6 +18,7 @@ export default function EscapeMenu({ gameTitle }: Props) {
   const [muted, setMutedState] = useState(getMuted())
   const [sfxVol, setSfxVol] = useState(Math.round(getVolume() * 100))
   const [quality, setQuality] = useState(() => localStorage.getItem(QUALITY_KEY) ?? 'auto')
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -32,11 +33,15 @@ export default function EscapeMenu({ gameTitle }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  useEffect(() => {
+    if (open) dialogRef.current?.focus()
+  }, [open])
+
   if (!open) return null
 
   return (
     <div className="escape-overlay" onClick={() => setOpen(false)} role="presentation">
-      <div className="escape-menu" role="dialog" aria-modal="true" aria-label="Меню паузы" onClick={(e) => e.stopPropagation()}>
+      <div className="escape-menu" ref={dialogRef} role="dialog" aria-modal="true" aria-label="Меню паузы" tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         <header className="escape-header">
           <h2>Пауза</h2>
           <button className="escape-close" onClick={() => setOpen(false)} aria-label="Закрыть">
