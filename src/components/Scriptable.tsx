@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+
+const ON_TICK_INTERVAL_MS = 1000
 import { RigidBody } from '@react-three/rapier'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -82,7 +84,7 @@ export default function Scriptable({ worldId, objectId, pos, label, radius = 1.2
       const curr = getWorldScript(worldId, objectId)
       if (!curr?.python) return
       void runHandler(`${worldId}:${objectId}`, curr.python, 'on_tick')
-    }, 1000)
+    }, ON_TICK_INTERVAL_MS)
     return () => window.clearInterval(id)
   }, [worldId, objectId, hasScript])
 
