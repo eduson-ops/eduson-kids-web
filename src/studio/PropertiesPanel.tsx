@@ -33,6 +33,10 @@ const QUICK_COLORS = [
   '#6B5CE7', '#FFD43C', '#9FE8C7', '#FFB4C8', '#A9D8FF',
 ]
 
+const PROP_STEP = 0.5
+const MIN_SCALE = 0.1
+const ROTATION_STEP_DEG = 15
+
 export default function PropertiesPanel({ state, variant = 'desktop', onClose }: Props) {
   const selected = state.parts.find((p) => p.id === state.selectedId) ?? null
   const [editingScriptFor, setEditingScriptFor] = useState<string | null>(null)
@@ -105,7 +109,7 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                 <label key={axis}>
                   <span>{axis.toUpperCase()}</span>
                   <NumberField
-                    step={0.5}
+                    step={PROP_STEP}
                     value={selected.position[i]!}
                     onCommit={(n) => {
                       const pos = [...selected.position] as [number, number, number]
@@ -125,12 +129,12 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                 <label key={axis}>
                   <span>{axis.toUpperCase()}</span>
                   <NumberField
-                    step={0.5}
-                    min={0.1}
+                    step={PROP_STEP}
+                    min={MIN_SCALE}
                     value={selected.scale[i]!}
                     onCommit={(n) => {
                       const s = [...selected.scale] as [number, number, number]
-                      s[i] = Math.max(0.1, n)
+                      s[i] = Math.max(MIN_SCALE, n)
                       updatePart(selected.id, { scale: s })
                     }}
                   />
@@ -146,7 +150,7 @@ export default function PropertiesPanel({ state, variant = 'desktop', onClose }:
                 <label key={axis}>
                   <span>{axis.toUpperCase()}</span>
                   <NumberField
-                    step={15}
+                    step={ROTATION_STEP_DEG}
                     value={Math.round(selected.rotation[i]! / DEG_TO_RAD)}
                     onCommit={(deg) => {
                       const rot = [...selected.rotation] as [number, number, number]

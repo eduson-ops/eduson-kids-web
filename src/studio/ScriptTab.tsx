@@ -34,6 +34,7 @@ import { SFX } from '../lib/audio'
 const BLOCKLY_SYNC_DEBOUNCE_MS = 300
 const COPY_TOAST_DURATION_MS = 2200
 const RUN_RESULT_DURATION_MS = 6000
+const MAX_ERROR_DISPLAY_LEN = 240
 
 export default function ScriptTab() {
   const [state, setState] = useState<EditorState>(getState())
@@ -500,5 +501,5 @@ function pluralizeCmd(n: number): string {
 function cleanPyError(msg: string): string {
   const lines = msg.split('\n').filter(Boolean)
   const last = lines[lines.length - 1] || msg
-  return last.length > 240 ? last.slice(0, 240) + '…' : last
+  return last.length > MAX_ERROR_DISPLAY_LEN ? last.slice(0, MAX_ERROR_DISPLAY_LEN) + '…' : last
 }
