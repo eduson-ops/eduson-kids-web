@@ -57,13 +57,6 @@ export function detectDeviceTier(): DeviceTier {
   return cached
 }
 
-export function isLowEnd(): boolean {
-  return detectDeviceTier() === 'low'
-}
-
-export function isHighEnd(): boolean {
-  return detectDeviceTier() === 'high'
-}
 
 /** Размер теневой текстуры для directionalLight.shadow-mapSize. */
 export function getShadowMapSize(): 256 | 512 | 1024 | 2048 {
