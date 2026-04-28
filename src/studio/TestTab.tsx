@@ -30,6 +30,14 @@ import type { WorldCommand } from '../lib/python-world-runtime'
 import { runPython } from '../lib/pyodide-executor'
 import { wrapObjectPython } from '../lib/objectBlocks'
 import { DEG_TO_RAD, ANIM_FPS, TICK_INTERVAL_MS, SCALE_MIN, SCALE_MAX, LIVE_STEP_MS } from '../lib/constants'
+import { getShadowMapSize } from '../lib/deviceTier'
+
+const SHADOW_MAP_SIZE = getShadowMapSize()
+const SUN_POS: [number, number, number] = [50, 45, 20]
+const FILL_LIGHT_POS: [number, number, number] = [-30, 20, -20]
+const SUN_INTENSITY = 1.3
+const FILL_INTENSITY = 0.45
+const SHADOW_CAM_BOUND = 40
 
 /** PartGeometry — рендер корректной геометрии по type (coin/wall/floor/ramp/roof/cube). */
 function PartGeometry({ type }: { type: PartObject['type'] }) {
@@ -347,24 +355,24 @@ export default function TestTab({ state }: { state: EditorState }) {
           <color attach="background" args={[state.scene.skyBottom]} />
           <GradientSky top={state.scene.skyTop} bottom={state.scene.skyBottom} />
           <VoxelClouds />
-          <Sun position={[50, 45, 20]} />
+          <Sun position={SUN_POS} />
 
           <ambientLight intensity={0.9} />
           <hemisphereLight args={['#bfe4ff', '#5bc87d', 0.55]} />
           <directionalLight
-            position={[50, 45, 20]}
-            intensity={1.3}
+            position={SUN_POS}
+            intensity={SUN_INTENSITY}
             color="#fff3d8"
             castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
+            shadow-mapSize-width={SHADOW_MAP_SIZE}
+            shadow-mapSize-height={SHADOW_MAP_SIZE}
             shadow-camera-far={150}
-            shadow-camera-left={-40}
-            shadow-camera-right={40}
-            shadow-camera-top={40}
-            shadow-camera-bottom={-40}
+            shadow-camera-left={-SHADOW_CAM_BOUND}
+            shadow-camera-right={SHADOW_CAM_BOUND}
+            shadow-camera-top={SHADOW_CAM_BOUND}
+            shadow-camera-bottom={-SHADOW_CAM_BOUND}
           />
-          <directionalLight position={[-30, 20, -20]} intensity={0.45} color="#b0d8ff" />
+          <directionalLight position={FILL_LIGHT_POS} intensity={FILL_INTENSITY} color="#b0d8ff" />
 
           <Physics gravity={[0, -25, 0]}>
             {/*
