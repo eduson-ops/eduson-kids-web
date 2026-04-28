@@ -6167,34 +6167,6 @@
    Эдюсон Kids corporate brand enhancements (global)
    ═══════════════════════════════════════════════════════════════ */
 
-/* Эдюсон Kids brand gradient text utility */
-.kubik-gradient-text {
-  background: linear-gradient(135deg, var(--violet), #ff5ab1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Pulse animation for live indicators */
-@keyframes kubik-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-.kubik-live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #51cf66;
-  display: inline-block;
-  animation: kubik-pulse 2s ease-in-out infinite;
-}
-
-/* Focus ring using brand color */
-.kubik-focus:focus-visible {
-  outline: 2px solid var(--violet);
-  outline-offset: 2px;
-}
 
 /* Studio save indicator */
 .save-indicator {
@@ -6410,7 +6382,6 @@
 /* States */
 .kb-state { padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
 .kb-state--success { background: var(--mint-soft);   color: var(--mint-ink);   border-left: 4px solid var(--mint-deep); }
-.kb-state--warning { background: var(--yellow-soft); color: var(--yellow-ink); border-left: 4px solid var(--yellow-deep); }
 .kb-state--error   { background: var(--pink-soft);   color: var(--pink-ink);   border-left: 4px solid var(--pink-deep); }
 .kb-state--info    { background: var(--sky-soft);    color: var(--sky-ink);    border-left: 4px solid var(--sky-deep); }
 
@@ -6583,20 +6554,6 @@
   text-decoration: none;
   letter-spacing: -0.02em;
 }
-.kb-shell-brand-block {
-  width: 32px;
-  height: 32px;
-  position: relative;
-  flex-shrink: 0;
-}
-.kb-shell-brand-block::before,
-.kb-shell-brand-block::after {
-  content: '';
-  position: absolute;
-  border-radius: 6px;
-}
-.kb-shell-brand-block::before { left: 0; top: 4px; width: 14px; height: 14px; background: var(--yellow); }
-.kb-shell-brand-block::after  { right: 0; top: 0; width: 14px; height: 20px; background: var(--violet); }
 .kb-shell-brand-kids {
   background: var(--yellow);
   color: var(--yellow-ink);
@@ -6609,51 +6566,6 @@
   box-shadow: 0 2px 0 var(--yellow-deep);
   margin-left: 2px;
 }
-.kb-shell-nav-links { display: flex; gap: 6px; align-items: center; flex: 1; justify-content: center; }
-.kb-shell-user {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--paper-2);
-  padding: 4px 6px 4px 4px;
-  border-radius: 999px;
-  border: 1px solid rgba(21,20,27,.08);
-}
-.kb-shell-user-avatar {
-  width: 32px;
-  height: 32px;
-  background: var(--violet);
-  color: var(--paper);
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--f-display);
-  font-weight: 800;
-  font-size: 14px;
-  box-shadow: 0 2px 0 var(--violet-deep);
-}
-.kb-shell-user-name {
-  font-weight: 700;
-  font-size: 13.5px;
-  color: var(--ink);
-  max-width: 140px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.kb-shell-user-out {
-  border: none;
-  background: transparent;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: var(--ink-soft);
-  font-size: 14px;
-  padding: 0;
-}
-.kb-shell-user-out:hover { background: rgba(21,20,27,.06); color: var(--ink); }
 .kb-shell-nav-link {
   padding: 8px 14px;
   border-radius: 10px;
