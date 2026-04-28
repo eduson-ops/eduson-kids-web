@@ -16,7 +16,7 @@ export interface CatalogItem {
   tags: string[]
 }
 
-export interface CatalogCategory {
+interface CatalogCategory {
   id: string
   name: string
   icon: string
