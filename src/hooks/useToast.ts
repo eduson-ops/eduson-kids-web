@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-export type ToastKind = 'default' | 'success' | 'error' | 'info'
+type ToastKind = 'default' | 'success' | 'error' | 'info'
 
 const TOAST_DURATION_MS = 2500
 

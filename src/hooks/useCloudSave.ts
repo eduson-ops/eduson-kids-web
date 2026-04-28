@@ -17,7 +17,7 @@ import { enqueue, onQueueChange, pendingCount, replay } from '../lib/offlineQueu
  * block UI on save failures.
  */
 
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'queued' | 'error'
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'queued' | 'error'
 
 interface UseCloudSaveOptions {
   intervalMs?: number
