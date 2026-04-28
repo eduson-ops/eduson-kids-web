@@ -232,7 +232,7 @@ export function installHtmlBlocks() {
 }
 
 // ─── Генератор HTML+CSS ─────────────────────────────────────
-export const htmlGenerator = new Blockly.CodeGenerator('EK_HTML')
+const htmlGenerator = new Blockly.CodeGenerator('EK_HTML')
 
 // Scrub: stitch sibling blocks with newline
 ;(htmlGenerator as unknown as { scrub_: (b: Blockly.Block, c: string, t?: boolean) => string }).scrub_ = function (
@@ -335,7 +335,7 @@ FB['ek_site_footer'] = (block) => {
 }
 
 // ─── Базовый CSS, построенный из темы ───
-export function buildSiteCss(theme: keyof typeof THEME_CSS = 'violet'): string {
+function buildSiteCss(theme: keyof typeof THEME_CSS = 'violet'): string {
   const t = (THEME_CSS[theme] ?? THEME_CSS.violet)!
   return `:root {
   --accent: ${t.accent};
