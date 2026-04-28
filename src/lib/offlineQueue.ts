@@ -29,7 +29,7 @@ const DB_VERSION = 1
 const STORE = 'pending-saves'
 const MAX_PER_PROJECT = 100
 
-export interface PendingSave {
+interface PendingSave {
   key: string
   projectId: string
   payload: unknown

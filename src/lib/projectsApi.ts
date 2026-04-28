@@ -14,8 +14,8 @@ import { getAccessToken } from './authStorage'
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || '/api/v1'
 
 export type ProjectType = 'game' | 'site' | 'python' | 'capstone' | 'ege'
-export type ProjectVisibility = 'private' | 'unlisted' | 'public' | 'classroom'
-export type VersionSource = 'autosave' | 'manual' | 'rollback' | 'import' | 'template'
+type ProjectVisibility = 'private' | 'unlisted' | 'public' | 'classroom'
+type VersionSource = 'autosave' | 'manual' | 'rollback' | 'import' | 'template'
 
 export interface Project {
   id: string
