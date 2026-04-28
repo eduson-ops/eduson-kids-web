@@ -91,6 +91,3 @@ export function clearAccessToken(): void {
  *      a non-null value (legacy session bridging),
  *   3. treat a `null` result as "let the cookie do the work".
  */
-export function getAccessTokenFromAnywhere(): string | null {
-  return getAccessToken()
-}

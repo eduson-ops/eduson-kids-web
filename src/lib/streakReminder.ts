@@ -84,7 +84,7 @@ function getMessage(streakDays: number): { title: string; body: string } {
  * Проверить и показать уведомление если пора. Вызывается один раз при монтировании
  * приложения (в App.tsx). Безопасно вызывать многократно — сам себя троттлит.
  */
-export function checkAndRemindIfDue(): void {
+function checkAndRemindIfDue(): void {
   if (typeof window === 'undefined' || typeof Notification === 'undefined') return
   if (!isStreakReminderEnabled()) return
   if (Notification.permission !== 'granted') return

@@ -34,19 +34,3 @@ export function clearSession(): void {
 export function getRole(): Role | null {
   return loadSession()?.role ?? null
 }
-
-/**
- * Back-compat: derive a Session from the legacy localStorage keys
- * (ek_child_name, ek_child_code) if no new session exists.
- */
-export function ensureSession(): Session | null {
-  const existing = loadSession()
-  if (existing) return existing
-  const childName = localStorage.getItem(CHILD_NAME_KEY)
-  if (childName) {
-    const s: Session = { role: 'child', name: childName }
-    saveSession(s)
-    return s
-  }
-  return null
-}
