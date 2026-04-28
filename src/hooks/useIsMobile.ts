@@ -49,4 +49,3 @@ function detectCoarse(): boolean {
   return coarse || touchPoints
 }
 
-export default useIsMobile

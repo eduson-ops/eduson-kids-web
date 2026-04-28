@@ -114,6 +114,7 @@ export default function Palette({ state, variant = 'desktop', onClose }: Props) 
                   type="color"
                   value={activeColor}
                   onChange={(e) => setColor(e.target.value)}
+                  aria-label="Произвольный цвет"
                 />
               </label>
             </div>

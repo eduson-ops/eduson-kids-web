@@ -6,7 +6,7 @@
  * ставится как sibling рядом с gameplay-компонентом (Coin/Enemy/NPC/GltfMonster).
  *
  * Добавление нового целевого мира:
- *   1. Экспортируй `<WORLD>_TARGETS` список здесь
+ *   1. Добавь `<WORLD>_TARGETS` список здесь
  *   2. Зарегистрируй в `WORLDS` ниже
  *   3. В компоненте мира импортируй список и отрендерь через <Scriptable>
  *
@@ -22,7 +22,7 @@ export interface WorldTarget {
   radius?: number
 }
 
-export const OBBY_TARGETS: WorldTarget[] = [
+const OBBY_TARGETS: WorldTarget[] = [
   // Монетки на платформах (первые четыре — на платформах 0..3)
   { id: 'coin-0', pos: [0, 1.7, -4], label: 'Монета #1', kind: 'coin', radius: 0.8 },
   { id: 'coin-1', pos: [3, 2.0, -7], label: 'Монета #2', kind: 'coin', radius: 0.8 },
@@ -37,33 +37,33 @@ export const OBBY_TARGETS: WorldTarget[] = [
   { id: 'goal', pos: [0, 4, -26], label: 'Финиш', kind: 'goal', radius: 2 },
 ]
 
-export const GARDEN_TARGETS: WorldTarget[] = [
+const GARDEN_TARGETS: WorldTarget[] = [
   { id: 'farmer', pos: [0, 1.5, 13], label: 'Фермер', kind: 'npc', radius: 1.5 },
   { id: 'bee-1', pos: [-4, 2.2, -4], label: 'Пчела №1', kind: 'enemy', radius: 1 },
   { id: 'bee-2', pos: [4, 2.2, 4], label: 'Пчела №2', kind: 'enemy', radius: 1 },
   { id: 'barn', pos: [0, 1.8, -14], label: 'Сарай-финиш', kind: 'goal', radius: 2 },
 ]
 
-export const TOWER_TARGETS: WorldTarget[] = [
+const TOWER_TARGETS: WorldTarget[] = [
   { id: 'base', pos: [0, 0.3, 0], label: 'Основание башни', kind: 'prop', radius: 2 },
   { id: 'top', pos: [0, 48, 0], label: 'Вершина', kind: 'goal', radius: 2 },
 ]
 
-export const PETSIM_TARGETS: WorldTarget[] = [
+const PETSIM_TARGETS: WorldTarget[] = [
   { id: 'start', pos: [0, 1, 5], label: 'Стартовый портал', kind: 'prop', radius: 2 },
   { id: 'bunny', pos: [-7, 1.5, -8], label: 'Питомец-кролик', kind: 'npc', radius: 1.4 },
   { id: 'cactoro', pos: [7, 1.5, -10], label: 'Кактор', kind: 'npc', radius: 1.4 },
   { id: 'throne', pos: [0, 2.5, -62], label: 'Трон-финиш', kind: 'goal', radius: 2 },
 ]
 
-export const BOTTOWN_TARGETS: WorldTarget[] = [
+const BOTTOWN_TARGETS: WorldTarget[] = [
   { id: 'bank', pos: [-10, 1.5, -10], label: 'Банк', kind: 'npc', radius: 1.5 },
   { id: 'cafe', pos: [10, 1.5, -10], label: 'Кафе', kind: 'npc', radius: 1.5 },
   { id: 'library', pos: [0, 1.5, 20], label: 'Библиотека', kind: 'npc', radius: 1.5 },
   { id: 'fountain', pos: [0, 2, 0], label: 'Фонтан-финиш', kind: 'goal', radius: 2 },
 ]
 
-export const FASHION_TARGETS: WorldTarget[] = [
+const FASHION_TARGETS: WorldTarget[] = [
   { id: 'man-1', pos: [-5, 1.5, -5], label: 'Манекен L1', kind: 'prop', radius: 1.3 },
   { id: 'man-2', pos: [5, 1.5, -5], label: 'Манекен L2', kind: 'prop', radius: 1.3 },
   { id: 'man-3', pos: [-5, 1.5, -25], label: 'Манекен L3', kind: 'prop', radius: 1.3 },
@@ -74,7 +74,7 @@ export const FASHION_TARGETS: WorldTarget[] = [
   { id: 'stage', pos: [0, 2, -43], label: 'Подиум-финиш', kind: 'goal', radius: 2.5 },
 ]
 
-export const MYSTERY_TARGETS: WorldTarget[] = [
+const MYSTERY_TARGETS: WorldTarget[] = [
   { id: 'guest', pos: [-8, 1.5, -14], label: 'Гость', kind: 'npc', radius: 1.3 },
   { id: 'cook', pos: [8, 1.5, -14], label: 'Повар', kind: 'npc', radius: 1.3 },
   { id: 'gardener', pos: [-8, 1.5, 14], label: 'Садовник', kind: 'npc', radius: 1.3 },
@@ -85,14 +85,14 @@ export const MYSTERY_TARGETS: WorldTarget[] = [
   { id: 'evidence-4', pos: [9, 1.2, 8], label: 'Улика 4', kind: 'prop', radius: 0.8 },
 ]
 
-export const NIGHTS_TARGETS: WorldTarget[] = [
+const NIGHTS_TARGETS: WorldTarget[] = [
   { id: 'campfire', pos: [0, 1, 0], label: 'Костёр', kind: 'prop', radius: 1.5 },
   { id: 'cabin', pos: [0, 2, -8], label: 'Хижина', kind: 'goal', radius: 2 },
   { id: 'monster-1', pos: [-14, 1.5, -8], label: 'Синий демон', kind: 'enemy', radius: 1.5 },
   { id: 'monster-2', pos: [14, 1.5, 8], label: 'Пришелец', kind: 'enemy', radius: 1.3 },
 ]
 
-export const TYCOON_TARGETS: WorldTarget[] = [
+const TYCOON_TARGETS: WorldTarget[] = [
   { id: 'plinth-0', pos: [0, 1, -8], label: 'Плинт БАНК', kind: 'prop', radius: 1.5 },
   { id: 'plinth-1', pos: [7.6, 1, -2.5], label: 'Плинт ФАСТФУД', kind: 'prop', radius: 1.5 },
   { id: 'plinth-2', pos: [4.7, 1, 6.5], label: 'Плинт АРКАДА', kind: 'prop', radius: 1.5 },
@@ -101,7 +101,7 @@ export const TYCOON_TARGETS: WorldTarget[] = [
   { id: 'treasury', pos: [0, 1.5, 0], label: 'Казна', kind: 'goal', radius: 2 },
 ]
 
-export const ABILITY_TARGETS: WorldTarget[] = [
+const ABILITY_TARGETS: WorldTarget[] = [
   { id: 'dummy-0', pos: [-10, 1.5, -10], label: 'Манекен ЛВ', kind: 'enemy', radius: 1.3 },
   { id: 'dummy-1', pos: [0, 1.5, -14], label: 'Манекен Ц', kind: 'enemy', radius: 1.3 },
   { id: 'dummy-2', pos: [10, 1.5, -10], label: 'Манекен ПВ', kind: 'enemy', radius: 1.3 },
@@ -110,7 +110,7 @@ export const ABILITY_TARGETS: WorldTarget[] = [
   { id: 'dummy-5', pos: [10, 1.5, 10], label: 'Манекен ПЗ', kind: 'enemy', radius: 1.3 },
 ]
 
-export const PETBRAIN_TARGETS: WorldTarget[] = [
+const PETBRAIN_TARGETS: WorldTarget[] = [
   { id: 'pet', pos: [0, 1, 4], label: 'Питомец', kind: 'npc', radius: 1.2 },
   { id: 'food', pos: [-10, 1, -6], label: 'Миска еды', kind: 'prop', radius: 1 },
   { id: 'bed', pos: [10, 1, -6], label: 'Лежанка', kind: 'prop', radius: 1 },

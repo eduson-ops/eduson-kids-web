@@ -9,6 +9,7 @@ import { SFX } from '../lib/audio'
  */
 
 const KEY = 'ek_studio_tour_v1'
+const TOUR_START_DELAY_MS = 600
 
 interface Step {
   /** CSS-селектор таргета */
@@ -85,7 +86,7 @@ export default function StudioTour() {
   useEffect(() => {
     const seen = localStorage.getItem(KEY)
     if (!seen) {
-      const t = setTimeout(() => setActive(true), 600)
+      const t = setTimeout(() => setActive(true), TOUR_START_DELAY_MS)
       return () => clearTimeout(t)
     }
     const onReplay = () => setActive(true)

@@ -3,6 +3,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 const PUBLISH_FALLBACK_TOAST_MS = 3000
 const LOADING_BLOCKLY_TIMEOUT_MS = 1200  // fallback if ek:studio-blockly-ready never fires
 const LOADING_EDITOR_TIMEOUT_MS = 1800   // fallback if ek:studio-editor-ready never fires
+const TIMESTAMP_TICK_MS = 5_000
 import { Link, useNavigate } from 'react-router-dom'
 import BuildTab from '../studio/BuildTab'
 const ScriptTab = lazy(() => import('../studio/ScriptTab'))
@@ -61,7 +62,7 @@ export default function Studio() {
   // every editor change.
   const [now, setNow] = useState<number>(() => Date.now())
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 5_000)
+    const id = window.setInterval(() => setNow(Date.now()), TIMESTAMP_TICK_MS)
     return () => clearInterval(id)
   }, [])
 

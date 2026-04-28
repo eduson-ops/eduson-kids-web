@@ -62,11 +62,11 @@ export default function VkCallback() {
     <main className="vk-callback">
       <div className="vk-callback-card">
         {status === 'exchanging' && (
-          <>
+          <div role="status" aria-live="polite" aria-label="Входим через VK">
             <div className="vk-callback-spinner" aria-hidden />
             <h2>Входим через VK…</h2>
             <p>Секунду, проверяем твой вход.</p>
-          </>
+          </div>
         )}
         {status === 'done' && (
           <>
