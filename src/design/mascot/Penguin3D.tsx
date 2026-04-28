@@ -11,7 +11,7 @@ const MAT_ORANGE = new THREE.MeshStandardMaterial({ color: '#FF9454', roughness:
 const MAT_EYE   = new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.3, metalness: 0.1 })
 const MAT_SHINE = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.0, metalness: 0.0, transparent: true, opacity: 0.7 })
 
-export type PenguinAnimation = 'idle' | 'walk' | 'jump' | 'cheer'
+type PenguinAnimation = 'idle' | 'walk' | 'jump' | 'cheer'
 
 interface Props {
   animation?: PenguinAnimation

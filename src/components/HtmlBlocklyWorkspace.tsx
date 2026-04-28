@@ -31,7 +31,7 @@ export default function HtmlBlocklyWorkspace({ initialXml, onChange }: Props) {
     if (!containerRef.current) return
     installHtmlBlocks()
 
-    const theme = (Blockly as unknown as { Themes: { Classic: Blockly.Theme } }).Themes.Classic
+    const theme = Blockly.Themes.Classic
     const ws = Blockly.inject(containerRef.current, {
       toolbox: SITE_TOOLBOX,
       trashcan: true,

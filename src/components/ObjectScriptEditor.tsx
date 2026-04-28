@@ -76,7 +76,7 @@ export default function ObjectScriptEditor({ target, onClose }: Props) {
       toolbox: OBJECT_TOOLBOX,
       trashcan: true,
       renderer: 'zelos',
-      theme: (Blockly as unknown as { Themes: { Classic: Blockly.Theme } }).Themes.Classic,
+      theme: Blockly.Themes.Classic,
       grid: { spacing: 28, length: 3, colour: 'rgba(107,92,231,0.18)', snap: true },
       zoom: { controls: true, wheel: true, startScale: 0.9, maxScale: 2, minScale: 0.4, scaleSpeed: 1.1, pinch: true },
       move: { scrollbars: true, drag: true, wheel: false },
