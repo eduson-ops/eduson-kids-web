@@ -48,6 +48,11 @@ export default function NikselChat() {
   const [confirmReset, setConfirmReset] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (open) panelRef.current?.focus()
+  }, [open])
 
   useEffect(() => {
     saveHistory(history)
@@ -138,7 +143,7 @@ export default function NikselChat() {
       </button>
 
       {open && (
-        <aside className="nk-chat-panel" role="dialog" aria-modal="true" aria-label="Чат с Никселем">
+        <aside ref={panelRef} className="nk-chat-panel" role="dialog" aria-modal="true" tabIndex={-1} aria-label="Чат с Никселем">
           <header className="nk-chat-head">
             <div className="nk-chat-head-l">
               <div className="nk-chat-avatar">

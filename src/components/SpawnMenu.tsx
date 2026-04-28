@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   isEditMode,
   subscribeEditMode,
@@ -94,12 +94,17 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
   const [prefs, setPrefs] = useState(getPrefs())
   const [undoAvail, setUndoAvail] = useState(canUndo())
   const [confirmReset, setConfirmReset] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => subscribeEditMode(setEdit), [])
   useEffect(() => subscribePlacement(setPlacementLocal), [])
   useEffect(() => subscribeActiveTool(setTool), [])
   useEffect(() => subscribePrefs(() => setPrefs(getPrefs())), [])
   useEffect(() => subscribeEdits(() => setUndoAvail(canUndo())), [])
+
+  useEffect(() => {
+    if (open) menuRef.current?.focus()
+  }, [open])
 
   // Q / Esc hotkey
   useEffect(() => {
@@ -213,7 +218,7 @@ export default function SpawnMenu({ worldId }: SpawnMenuProps) {
       {open && (
         <>
           <div className="spawn-menu-backdrop" onClick={() => setOpen(false)} role="presentation" />
-          <div className="spawn-menu" role="dialog" aria-modal="true" aria-label="Добавить объект в сцену" onClick={(e) => e.stopPropagation()}>
+          <div ref={menuRef} className="spawn-menu" role="dialog" aria-modal="true" tabIndex={-1} aria-label="Добавить объект в сцену" onClick={(e) => e.stopPropagation()}>
             <header className="spawn-menu-head">
               <nav className="spawn-menu-tabs">
                 <button

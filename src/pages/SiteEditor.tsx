@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   compileSite,
@@ -271,6 +271,8 @@ function previewHint(s: Section): string {
 
 /** Модалка выбора нового блока с категориями. */
 function AddBlockModal({ onPick, onClose }: { onPick: (type: SectionType) => void; onClose: () => void }) {
+  const modalRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { modalRef.current?.focus() }, [])
   type Cat = { key: string; label: string; emoji: string }
   const CATEGORIES: Cat[] = [
     { key: 'base',   label: 'Базовые',  emoji: '🧱' },
@@ -285,7 +287,7 @@ function AddBlockModal({ onPick, onClose }: { onPick: (type: SectionType) => voi
 
   return (
     <div className="add-block-backdrop" onClick={onClose} role="presentation">
-      <div className="add-block-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Добавить блок">
+      <div ref={modalRef} className="add-block-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabIndex={-1} aria-label="Добавить блок">
         <header>
           <strong>＋ Добавить блок</strong>
           <button className="ghost" onClick={onClose} aria-label="Закрыть">×</button>
@@ -846,6 +848,8 @@ function CodeMode({ site }: { site: Site }) {
 const SHARE_URL_LIMIT = 8000
 
 function ShareModal({ site, onClose }: { site: Site; onClose: () => void }) {
+  const modalRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { modalRef.current?.focus() }, [])
   const { encoded, tooLarge } = useMemo(() => {
     try {
       const snap = { n: site.name, t: site.theme, h: site.html, c: site.css }
@@ -875,7 +879,7 @@ function ShareModal({ site, onClose }: { site: Site; onClose: () => void }) {
 
   return (
     <div className="share-modal-backdrop" onClick={onClose} role="presentation">
-      <div className="share-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Поделиться сайтом">
+      <div ref={modalRef} className="share-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabIndex={-1} aria-label="Поделиться сайтом">
         <header>
           <strong>🔗 Поделиться сайтом</strong>
           <button className="ghost" onClick={onClose} aria-label="Закрыть">×</button>

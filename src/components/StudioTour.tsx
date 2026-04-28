@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SFX } from '../lib/audio'
 
 /**
@@ -79,6 +79,7 @@ export default function StudioTour() {
   const [active, setActive] = useState(false)
   const [stepIdx, setStepIdx] = useState(0)
   const [box, setBox] = useState<DOMRect | null>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
 
   // Запуск тура: при первом входе или при replayTour()
   useEffect(() => {
@@ -91,6 +92,10 @@ export default function StudioTour() {
     window.addEventListener('ek:studio-tour-replay', onReplay)
     return () => window.removeEventListener('ek:studio-tour-replay', onReplay)
   }, [])
+
+  useEffect(() => {
+    if (active) tooltipRef.current?.focus()
+  }, [active, stepIdx])
 
   // Находим целевой DOM-элемент и измеряем его bounding-box
   useEffect(() => {
@@ -149,11 +154,13 @@ export default function StudioTour() {
 
       {/* Tooltip */}
       <div
+        ref={tooltipRef}
         className="tour-tip"
         style={tooltipPos}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
+        tabIndex={-1}
         aria-label={`Тур по студии, шаг ${stepIdx + 1} из ${STEPS.length}: ${step.title}`}
       >
         <div className="tour-tip-head">
