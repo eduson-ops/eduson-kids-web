@@ -50,7 +50,7 @@ function transliterate(str: string): string {
 }
 
 /** Генерация логина: masha-ivanova-3a */
-export function generateLogin(firstName: string, lastName: string, classSuffix: string): string {
+function generateLogin(firstName: string, lastName: string, classSuffix: string): string {
   const base = transliterate(firstName) + '-' + transliterate(lastName)
   const suffix = transliterate(classSuffix.toLowerCase())
   return (base + (suffix ? '-' + suffix : '')).replace(/--+/g, '-')
