@@ -6,7 +6,7 @@
  * PIN: 6 цифр
  */
 
-export const CLASSROOMS_CLASSROOMS_KEY = 'ek_classrooms'
+export const CLASSROOMS_KEY = 'ek_classrooms'
 
 export interface Student {
   firstName: string

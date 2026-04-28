@@ -66,10 +66,6 @@ export function getShadowMapSize(): 256 | 512 | 1024 | 2048 {
   return 1024
 }
 
-/** true, если можно запускать postprocessing (EffectComposer, Bloom и т.п.). */
-function canPostfx(): boolean {
-  return detectDeviceTier() !== 'low'
-}
 
 /** Физический timestep для @react-three/rapier: 1/30 на слабых, иначе 1/60. */
 export function getPhysicsTimestep(): number {

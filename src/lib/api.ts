@@ -106,11 +106,6 @@ async function request<T>(
   }
 }
 
-async function apiHealth(): Promise<boolean> {
-  const r = await request<{ ok: boolean }>('/health', { timeout: 1500 })
-  return !!r?.ok
-}
-
 interface AuthResponse {
   token: string
   user: { id: string; name: string }

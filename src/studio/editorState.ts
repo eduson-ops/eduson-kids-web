@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 
 export const STUDIO_KEY = 'ek_studio_state_v1'
 
-export type PartType = 'cube' | 'coin' | 'spawn' | 'finish' | 'wall' | 'floor' | 'ramp' | 'roof'
+type PartType = 'cube' | 'coin' | 'spawn' | 'finish' | 'wall' | 'floor' | 'ramp' | 'roof'
 export type MaterialType = 'plastic' | 'metal' | 'wood' | 'grass' | 'stone' | 'neon'
 
 /**

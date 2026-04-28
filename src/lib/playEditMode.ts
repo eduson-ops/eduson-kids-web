@@ -64,7 +64,6 @@ export interface ClickContext {
 let clickContext: ClickContext | null = null
 const ctxListeners = new Set<(c: ClickContext | null) => void>()
 
-function getClickContext() { return clickContext }
 export function setClickContext(c: ClickContext | null) {
   clickContext = c
   for (const l of ctxListeners) l(clickContext)
