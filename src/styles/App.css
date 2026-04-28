@@ -1248,95 +1248,6 @@
   .obj-script-preview { max-height: 40vh; }
 }
 
-/* ─────── Script tab: help | blockly | code ─────── */
-.studio-script {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 260px 1fr 320px;
-  min-height: 0;
-}
-.script-help, .script-preview {
-  background: #1a2030;
-  padding: 16px;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.script-help { border-right: 1px solid rgba(255, 255, 255, 0.05); }
-.script-preview { border-left: 1px solid rgba(255, 255, 255, 0.05); }
-.script-help header, .script-preview header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.script-help h3 { margin: 0; font-size: 16px; }
-.script-preview strong { font-size: 14px; }
-.script-preview small { color: #7a8099; font-size: 11px; }
-.script-icon, .py-icon { font-size: 18px; }
-.script-intro {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #a4a9bc;
-  margin: 0;
-}
-.script-help details {
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 10px;
-}
-.script-help summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: #e8eaf2;
-  margin-bottom: 6px;
-}
-.script-help details p {
-  margin: 6px 0 0;
-  font-size: 12.5px;
-  color: #a4a9bc;
-  line-height: 1.5;
-}
-
-.script-blockly {
-  background: #0b0f18;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.script-blockly .blockly-container {
-  flex: 1;
-  min-height: 0;
-  min-width: 0;
-}
-
-.script-code {
-  margin: 0;
-  padding: 12px;
-  flex: 1;
-  min-height: 200px;
-  max-height: 50vh;
-  overflow: auto;
-  background: #0e131e;
-  color: #dce0f1;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: 12.5px;
-  line-height: 1.55;
-  white-space: pre;
-}
-.script-note {
-  font-size: 11.5px;
-  color: #7a8099;
-  line-height: 1.5;
-  padding: 10px;
-  background: rgba(124, 92, 255, 0.08);
-  border: 1px solid rgba(124, 92, 255, 0.2);
-  border-radius: 6px;
-}
-.script-note strong { color: #c879ff; }
-
 /* ─── Live Overlay (поверх Test canvas) ─── */
 .live-frame {
   position: absolute;
@@ -1789,7 +1700,6 @@
 
 @media (max-width: 1000px) {
   .studio-build { grid-template-columns: 200px 1fr 260px; }
-  .studio-script { grid-template-columns: 220px 1fr 280px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -3722,13 +3632,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    StudentPortfolio
    ═══════════════════════════════════════════════════════════════════ */
-.portfolio-hero {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 40px;
-  margin-bottom: 32px;
-}
 .portfolio-progress-ring {
   flex-shrink: 0;
 }
@@ -3960,7 +3863,6 @@
 }
 
 @media (max-width: 900px) {
-  .portfolio-hero { grid-template-columns: 1fr; }
   .portfolio-kpis { grid-template-columns: 1fr 1fr; }
   .portfolio-journey { grid-template-columns: repeat(4, 1fr); }
 }
@@ -4717,9 +4619,7 @@
 .curric-module-hero h1,
 .curric-module-hero h2,
 .curric-lesson-md h1,
-.curric-lesson-md h2,
-.lesson-hero h1,
-.lesson-hero h2 {
+.curric-lesson-md h2 {
   font-family: var(--f-display, 'Nunito'), system-ui, -apple-system, sans-serif;
   font-weight: 900;
   letter-spacing: -0.02em;
@@ -7252,9 +7152,7 @@
 .lp-title,
 .curric-lesson-title,
 .curric-lesson-md h1,
-.curric-lesson-md h2,
-.lesson-hero h1,
-.lesson-hero h2 {
+.curric-lesson-md h2 {
   font-family: var(--f-display, 'Nunito'), system-ui, -apple-system, sans-serif;
   font-weight: 900;
   letter-spacing: -0.02em;
