@@ -5,8 +5,8 @@ import type { PlayerVisualHandle } from './PlayerCharacter'
 
 // Переиспользуем единый интерфейс, чтобы Player мог переключаться между
 // процедурным (этим) и GLTF (PlayerCharacter) визуалом.
-export type AvatarModelHandle = PlayerVisualHandle
-export type AnimState = Parameters<PlayerVisualHandle['update']>[0]
+type AvatarModelHandle = PlayerVisualHandle
+type AnimState = Parameters<PlayerVisualHandle['update']>[0]
 
 interface Props {
   avatar: Avatar
