@@ -82,7 +82,7 @@ function loadStreak(): StreakState {
 function persistStreak() {
   try { localStorage.setItem(KEY_STREAK, JSON.stringify(streak)) } catch { /* quota */ }
 }
-export function localDayKey(d: Date = new Date()): string {
+function localDayKey(d: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
