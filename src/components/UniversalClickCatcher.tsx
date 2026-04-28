@@ -131,5 +131,3 @@ export default function UniversalClickCatcher({ worldId, children }: Props) {
   return <group onPointerDown={handle}>{children}</group>
 }
 
-// tool переменная используется только в handle — подавляем TS «unused» если включено
-void (null as unknown as ActiveTool)

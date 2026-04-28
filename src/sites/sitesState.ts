@@ -76,7 +76,7 @@ export const THEMES: Record<ThemeKey, { name: string; color: string; soft: strin
 
 /* ─────────── Каталог блоков (для меню «+ Добавить блок») ─────────── */
 
-export interface BlockSpec {
+interface BlockSpec {
   type: SectionType
   emoji: string
   label: string
@@ -195,7 +195,7 @@ export function findBlockSpec(type: SectionType): BlockSpec | undefined {
   return BLOCK_CATALOG.find((b) => b.type === type)
 }
 
-export interface SiteTemplate {
+interface SiteTemplate {
   id: string
   title: string
   emoji: string
