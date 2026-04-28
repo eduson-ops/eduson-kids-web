@@ -34,7 +34,7 @@ function persistCompleted() {
 }
 
 // ─── Quiz results ────────────────────────────────────
-export interface QuizResult {
+interface QuizResult {
   correct: number
   total: number
   attempts: number         // сколько раз проходил
