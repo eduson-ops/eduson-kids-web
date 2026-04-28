@@ -6,6 +6,7 @@
  *
  * Хранится в памяти (не persist) — режим сбрасывается при перезагрузке.
  */
+import type { Object3D } from 'three'
 
 type Listener = (v: boolean) => void
 
@@ -57,8 +58,7 @@ export interface ClickContext {
   /** UUID кликнутого three.js-объекта. Стабилен в пределах одной сессии. */
   objectUuid: string
   /** Прямая ссылка — для session-only мутаций (visible / color) */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  objectRef: any
+  objectRef: Object3D
 }
 
 let clickContext: ClickContext | null = null
@@ -93,8 +93,7 @@ export interface HoverTarget {
   uuid: string
   pos: [number, number, number]
   label: string | null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ref: any
+  ref: Object3D
 }
 
 let hoverTarget: HoverTarget | null = null
