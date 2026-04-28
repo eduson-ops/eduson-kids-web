@@ -13,6 +13,8 @@ import {
   type ChatMessage,
 } from '../../lib/chatClient'
 
+const HIDDEN_GRACE_MS = 5000
+
 interface Props {
   room: string
   senderLogin: string
@@ -96,7 +98,6 @@ export default function ChatRoom({ room, senderLogin, height = 480 }: Props) {
     // dispatched by MobileAppShell via Capacitor + visibilitychange.
     let needsReconnect = false
     let hiddenAt = 0
-    const HIDDEN_GRACE_MS = 5000
 
     const handleBackground = () => {
       if (socket.connected) {
