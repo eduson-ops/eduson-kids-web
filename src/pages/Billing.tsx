@@ -251,6 +251,7 @@ export default function Billing() {
             value={promoInput}
             onChange={(e) => setPromoInput(e.target.value)}
             placeholder="PROMO-CODE"
+            aria-label="Промокод"
             style={{
               padding: '10px 14px',
               borderRadius: 10,
