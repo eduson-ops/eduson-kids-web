@@ -23,9 +23,11 @@ import {
  * иначе — отдать клавишу старому SpawnMenu.
  */
 
-const FOCUS_RADIUS = 3.0          // юниты — насколько близко
-const RAYCAST_THROTTLE_MS = 100   // 10 Hz — достаточно для UX, не насилует CPU
+const FOCUS_RADIUS = 3.0
+const RAYCAST_THROTTLE_MS = 100
 const RAY_DIRECTION = new THREE.Vector3(0, 0, -1)
+const HIGHLIGHT_COLOR = '#ffd43c'
+const HIGHLIGHT_EMISSIVE_INTENSITY = 0.7
 
 export default function FocusedObjectIndicator() {
   const { camera, scene } = useThree()
@@ -63,8 +65,8 @@ export default function FocusedObjectIndicator() {
       color: mat.emissive.clone(),
       intensity: mat.emissiveIntensity ?? 1,
     }
-    mat.emissive.set('#ffd43c')
-    mat.emissiveIntensity = 0.7
+    mat.emissive.set(HIGHLIGHT_COLOR)
+    mat.emissiveIntensity = HIGHLIGHT_EMISSIVE_INTENSITY
   }
 
   useFrame((state) => {
