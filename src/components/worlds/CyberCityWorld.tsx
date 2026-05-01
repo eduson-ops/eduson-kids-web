@@ -811,8 +811,6 @@ function HoverTraffic() {
             <meshStandardMaterial color="#ff2200" emissive="#ff0000" emissiveIntensity={2.5} />
           </mesh>
 
-          {/* Car point light */}
-          <pointLight color={c.color} intensity={2.5} distance={10} />
         </group>
       ))}
     </>
@@ -1113,8 +1111,6 @@ function StreetVendors() {
               opacity={0.8}
             />
           </mesh>
-          {/* Kiosk point light */}
-          <pointLight color="#00ccff" intensity={3} distance={8} position={[0, 1.8, 0.5]} />
         </group>
       ))}
     </>

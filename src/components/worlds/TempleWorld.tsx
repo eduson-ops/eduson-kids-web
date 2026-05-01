@@ -1114,7 +1114,6 @@ function AltarFirePillars() {
               />
             </mesh>
           </group>
-          <pointLight color="#ff5500" intensity={5} distance={10} decay={2} position={[0, 2, 0]} />
         </group>
       ))}
     </>
