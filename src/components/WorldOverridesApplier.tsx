@@ -62,8 +62,8 @@ export default function WorldOverridesApplier({ worldId }: Props) {
         const mat = mesh.material as THREE.Material | THREE.Material[] | undefined
         if (!mat) return
         const isStandardLike = Array.isArray(mat)
-          ? mat.some((m) => m.type === 'MeshStandardMaterial' || m.type === 'MeshPhysicalMaterial')
-          : mat.type === 'MeshStandardMaterial' || mat.type === 'MeshPhysicalMaterial'
+          ? mat.some((m) => m.type === 'MeshStandardMaterial' || m.type === 'MeshPhysicalMaterial' || m.type === 'MeshToonMaterial')
+          : mat.type === 'MeshStandardMaterial' || mat.type === 'MeshPhysicalMaterial' || mat.type === 'MeshToonMaterial'
         if (!isStandardLike) return
         mesh.getWorldPosition(tmp)
         const h = hashPos([tmp.x, tmp.y, tmp.z])
@@ -87,12 +87,13 @@ export default function WorldOverridesApplier({ worldId }: Props) {
           c.mesh.visible = false
           hiddenMeshes.add(c.mesh)
         } else if (c.hex) {
-          const mat = c.mesh.material as THREE.MeshStandardMaterial | THREE.MeshStandardMaterial[]
+          type Colorable = THREE.MeshStandardMaterial | THREE.MeshToonMaterial
+          const mat = c.mesh.material as Colorable | Colorable[]
           const firstMat = Array.isArray(mat) ? mat[0] : mat
           if (firstMat?.color) {
             recoloredMeshes.set(c.mesh, firstMat.color.clone())
           }
-          const applyColor = (m: THREE.MeshStandardMaterial) => {
+          const applyColor = (m: Colorable) => {
             try { m.color = new THREE.Color(c.hex!) } catch { /* skip */ }
           }
           if (Array.isArray(mat)) mat.forEach(applyColor)

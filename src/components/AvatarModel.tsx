@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useRef } from 'react'
 import * as THREE from 'three'
 import type { Avatar, BodyShape } from '../lib/avatars'
 import type { PlayerVisualHandle } from './PlayerCharacter'
+import { getToonGradientMap } from '../lib/toonGradient'
 
 // Переиспользуем единый интерфейс, чтобы Player мог переключаться между
 // процедурным (этим) и GLTF (PlayerCharacter) визуалом.
@@ -26,6 +27,7 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
   { avatar, preview = false },
   ref
 ) {
+  const gradientMap = getToonGradientMap()
   const rootRef = useRef<THREE.Group>(null!)
   const bodyRef = useRef<THREE.Mesh>(null!)
   const headGroupRef = useRef<THREE.Group>(null!)

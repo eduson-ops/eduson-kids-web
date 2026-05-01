@@ -1,5 +1,5 @@
 import { RigidBody } from '@react-three/rapier'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, extend } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import Coin from '../Coin'
@@ -7,6 +7,7 @@ import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import NPC from '../NPC'
+import GradientSky from '../GradientSky'
 
 // ─── Palette ─────────────────────────────────────────────────────
 const ASPHALT = '#111118'
@@ -19,6 +20,127 @@ const NEON_YELLOW = '#ffd644'
 const NEON_CYAN = '#48e0ff'
 const NEON_RED = '#ff5464'
 const GLASS = '#88d4ff'
+
+// ─── HoloGrid shader ─────────────────────────────────────────────
+class HoloGridMaterial extends THREE.ShaderMaterial {
+  constructor() {
+    super({
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      uniforms: {
+        iTime: { value: 0 },
+        gridSize: { value: 8.0 },
+        lineColor: { value: new THREE.Color('#00ffff') },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float iTime;
+        uniform float gridSize;
+        uniform vec3 lineColor;
+        varying vec2 vUv;
+        void main() {
+          vec2 cell = fract(vUv * gridSize);
+          float lineW = 0.04;
+          float lx = step(cell.x, lineW) + step(1.0 - lineW, cell.x);
+          float ly = step(cell.y, lineW) + step(1.0 - lineW, cell.y);
+          float line = clamp(lx + ly, 0.0, 1.0);
+          float pulse = 0.55 + 0.45 * sin(iTime * 1.8);
+          float alpha = line * 0.35 * pulse;
+          gl_FragColor = vec4(lineColor, alpha);
+        }
+      `,
+    })
+  }
+}
+extend({ HoloGridMaterial })
+
+// ─── TypeScript JSX declaration for custom material ───────────────
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    holoGridMaterial: React.JSX.IntrinsicElements['shaderMaterial'] & {
+      iTime?: number
+      gridSize?: number
+      lineColor?: THREE.Color
+    }
+  }
+}
+
+// ─── HoloGrid component ───────────────────────────────────────────
+function HoloGrid() {
+  const matRef = useRef<HoloGridMaterial>(null!)
+  useFrame(({ clock }) => {
+    if (matRef.current) {
+      matRef.current.uniforms.iTime.value = clock.getElapsedTime()
+    }
+  })
+  return (
+    <mesh position={[0, 0.02, -55]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[140, 130, 1, 1]} />
+      <holoGridMaterial ref={matRef} />
+    </mesh>
+  )
+}
+
+// ─── Rain system ──────────────────────────────────────────────────
+const RAIN_COUNT = 400
+const RAIN_AREA_X = 140
+const RAIN_AREA_Z = 130
+const RAIN_TOP = 40
+const RAIN_BOTTOM = -1
+
+function Rain() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+
+  // Each drop: [x, y, z, speed]
+  const drops = useMemo(() => {
+    const arr: Float32Array = new Float32Array(RAIN_COUNT * 4)
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      const b = i * 4
+      arr[b]     = (Math.random() - 0.5) * RAIN_AREA_X
+      arr[b + 1] = Math.random() * (RAIN_TOP - RAIN_BOTTOM) + RAIN_BOTTOM
+      arr[b + 2] = (Math.random() - 0.5) * RAIN_AREA_Z - 55
+      arr[b + 3] = 6 + Math.random() * 8
+    }
+    return arr
+  }, [])
+
+  useFrame((_, dt) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    for (let i = 0; i < RAIN_COUNT; i++) {
+      const b = i * 4
+      drops[b + 1] -= drops[b + 3] * dt
+      // slight drift
+      drops[b]     += (Math.random() - 0.5) * 0.02
+      drops[b + 2] += (Math.random() - 0.5) * 0.02
+      if (drops[b + 1] < RAIN_BOTTOM) {
+        drops[b + 1] = RAIN_TOP
+        drops[b]     = (Math.random() - 0.5) * RAIN_AREA_X
+        drops[b + 2] = (Math.random() - 0.5) * RAIN_AREA_Z - 55
+      }
+      dummy.position.set(drops[b], drops[b + 1], drops[b + 2])
+      dummy.scale.set(1, 1, 1)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
+    }
+    mesh.instanceMatrix.needsUpdate = true
+  })
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, RAIN_COUNT]} frustumCulled={false}>
+      <boxGeometry args={[0.04, 0.6, 0.04]} />
+      <meshBasicMaterial color="#aaddff" opacity={0.4} transparent />
+    </instancedMesh>
+  )
+}
 
 // ─── CyberBuilding ────────────────────────────────────────────────
 // Solid building block with neon horizontal strips on faces.
@@ -51,7 +173,7 @@ function CyberBuilding({ pos, w, d, h, neon, stripes = 4 }: BuildingProps) {
         return (
           <mesh key={i} position={[bx, y, bz]}>
             <boxGeometry args={[w + 0.12, 0.22, d + 0.12]} />
-            <meshStandardMaterial color={neon} emissive={neon} emissiveIntensity={1.2} roughness={0.2} />
+            <meshStandardMaterial color={neon} emissive={neon} emissiveIntensity={1.8} roughness={0.2} />
           </mesh>
         )
       })}
@@ -59,7 +181,7 @@ function CyberBuilding({ pos, w, d, h, neon, stripes = 4 }: BuildingProps) {
       {/* Rooftop edge strip */}
       <mesh position={[bx, topY + 0.12, bz]}>
         <boxGeometry args={[w + 0.1, 0.25, d + 0.1]} />
-        <meshStandardMaterial color={neon} emissive={neon} emissiveIntensity={1.8} roughness={0.2} />
+        <meshStandardMaterial color={neon} emissive={neon} emissiveIntensity={2.0} roughness={0.2} />
       </mesh>
 
       {/* Window grid on south face (purely decorative) */}
@@ -186,22 +308,33 @@ function SkyscraperSpiral() {
 }
 
 // ─── Animated billboard / sign ────────────────────────────────────
+// Varied pulse frequencies for different sign "personalities"
+const PULSE_FREQS = [0.8, 1.3, 2.1, 0.5]
+
 function NeonSign({
   pos,
   size,
   color,
   rotY = 0,
+  freqIdx = 0,
 }: {
   pos: [number, number, number]
   size: [number, number]
   color: string
   rotY?: number
+  freqIdx?: number
 }) {
   const mat = useRef<THREE.MeshStandardMaterial>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
+  const freq = PULSE_FREQS[freqIdx % PULSE_FREQS.length]
   useFrame((_, dt) => {
-    phase.current += dt * 1.5
-    if (mat.current) mat.current.emissiveIntensity = 1.0 + Math.sin(phase.current) * 0.6
+    phase.current += dt * freq
+    if (mat.current) {
+      const base = 1.5 + Math.sin(phase.current) * 0.6
+      // rare flicker: ~0.2% chance per frame to drop to 0
+      const intensity = Math.random() < 0.002 ? 0 : base
+      mat.current.emissiveIntensity = intensity
+    }
   })
   return (
     <group position={pos} rotation={[0, rotY, 0]}>
@@ -211,7 +344,7 @@ function NeonSign({
       </mesh>
       <mesh position={[0, 0, 0.08]}>
         <boxGeometry args={[size[0] - 0.3, size[1] - 0.3, 0.08]} />
-        <meshStandardMaterial ref={mat} color={color} emissive={color} emissiveIntensity={1.5} transparent opacity={0.92} />
+        <meshStandardMaterial ref={mat} color={color} emissive={color} emissiveIntensity={1.8} transparent opacity={0.92} />
       </mesh>
     </group>
   )

@@ -72,6 +72,11 @@ export function getPhysicsTimestep(): number {
   return detectDeviceTier() === 'low' ? 1 / 30 : 1 / 60
 }
 
+/** Можно ли включать EffectComposer / постобработку (Bloom, Outline, SSAO). */
+export function canPostfx(): boolean {
+  return detectDeviceTier() !== 'low'
+}
+
 export const QUALITY_KEY = 'ek_quality'
 
 /**

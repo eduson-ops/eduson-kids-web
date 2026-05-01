@@ -28,6 +28,8 @@ import UniversalClickCatcher from './UniversalClickCatcher'
 import FocusedObjectIndicator from './FocusedObjectIndicator'
 import WorldAdditions from './WorldAdditions'
 import WorldOverridesApplier from './WorldOverridesApplier'
+import ToonOverride from './ToonOverride'
+import PostFX from './PostFX'
 import ScriptGhosts from './ScriptGhosts'
 import { getWorldTargets } from './worlds/scriptableTargets'
 import type { GameMeta } from '../lib/games'
@@ -131,6 +133,9 @@ export default function GameScene({ game, avatar }: Props) {
         </Physics>
         {/* Applier живёт ВНЕ Physics — ему нужен доступ к scene через useThree */}
         <WorldOverridesApplier worldId={game.id} />
+        {/* Cel / toon shading — заменяет MeshStandardMaterial на MeshToonMaterial */}
+        <ToonOverride />
+        <PostFX />
         <CameraController />
         <FocusedObjectIndicator />
         <AdaptiveDPR />

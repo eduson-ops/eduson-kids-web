@@ -9,6 +9,7 @@ import GltfMonster from '../GltfMonster'
 import { Tree, Bush, Flowers, Mushroom, GrassTuft } from '../Scenery'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
+import WaterSurface from '../WaterSurface'
 
 /**
  * GardenWorld — educational remake of «Grow a Garden» (Roblox top-4, 2025 breakout).
@@ -224,6 +225,9 @@ export default function GardenWorld() {
       <Mushroom pos={[8, 0, -8]} red={false} scale={1.2} />
       <GrassTuft pos={[-3, 0, 11]} tall />
       <GrassTuft pos={[3, 0, -11]} tall={false} />
+
+      {/* Декоративный пруд за забором, между деревьями и краем мира */}
+      <WaterSurface position={[0, 0.02, 22]} width={16} depth={12} />
 
       {/* Сарай-финиш: собрал урожай — вернись */}
       <RigidBody type="fixed" colliders="cuboid" position={[0, 1, -14]}>
