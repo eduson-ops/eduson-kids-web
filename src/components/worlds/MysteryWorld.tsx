@@ -7,7 +7,7 @@ import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
-import { Tree, Bush, Mushroom } from '../Scenery'
+import { Tree, Bush, Mushroom, Cauldron, Torch } from '../Scenery'
 import { PUBLIC_BASE } from '../../lib/publicPath'
 import GradientSky from '../GradientSky'
 
@@ -400,6 +400,11 @@ export default function MysteryWorld() {
         </group>
       ))}
       <Coin pos={[0, 1.2, 0]} value={5} />
+
+      {/* Котёл в оранжерее и факелы у входа */}
+      <Cauldron pos={[-8, 0, 8]} scale={1.5} />
+      <Torch pos={[-22, 0, 0]} scale={1.3} rotY={Math.PI / 2} />
+      <Torch pos={[22, 0, 0]} scale={1.3} rotY={-Math.PI / 2} />
 
       {/* 3 подозреваемых NPC */}
       <NPC pos={[-8, 0, -14]} label="ГОСТЬ"   bodyColor="#ffb4b4" />

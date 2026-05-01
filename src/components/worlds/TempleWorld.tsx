@@ -6,7 +6,7 @@ import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
-import { Tree, Bush, Flowers, GrassTuft } from '../Scenery'
+import { Tree, Bush, Flowers, GrassTuft, Torch, Pillar } from '../Scenery'
 import GradientSky from '../GradientSky'
 
 // ─── Palette ─────────────────────────────────────────────────────
@@ -641,6 +641,20 @@ export default function TempleWorld() {
       <Coin pos={[3, 30, 7]} />
       {/* Apex */}
       <Coin pos={[0, 37.5, 2]} value={5} />
+
+      {/* ── Temple torch pillars flanking entrance ── */}
+      <Torch pos={[-5, 0, 33]} scale={1.6} />
+      <Torch pos={[5, 0, 33]} scale={1.6} />
+      <Pillar pos={[-8, 0, 33]} scale={1.4} />
+      <Pillar pos={[8, 0, 33]} scale={1.4} />
+      {/* Tier 1 corners */}
+      <Torch pos={[-30, 7, 29]} scale={1.2} />
+      <Torch pos={[30, 7, 29]} scale={1.2} />
+      <Torch pos={[-30, 7, -31]} scale={1.2} rotY={Math.PI} />
+      <Torch pos={[30, 7, -31]} scale={1.2} rotY={Math.PI} />
+      {/* Tier 2 corners */}
+      <Torch pos={[-23, 14, 22]} scale={1.0} />
+      <Torch pos={[23, 14, 22]} scale={1.0} />
 
       {/* ── Jungle ── */}
       <Jungle />

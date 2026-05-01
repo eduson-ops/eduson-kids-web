@@ -275,6 +275,26 @@ export function Bench({ pos, scale = 1, rotY = 0 }: { pos: [number, number, numb
   )
 }
 
+export function Torch({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/torch.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Pillar({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/pillar.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Cauldron({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/cauldron.glb`} scale={scale} />
+    </RigidBody>
+  )
+}
+
 // Прелоад самых частых моделей — убирает pop-in при первой игре
 useGLTF.preload(TREE_VARIANTS[0].url)
 useGLTF.preload(TREE_VARIANTS[1].url)
@@ -287,3 +307,7 @@ useGLTF.preload(`${GEN}/chest.glb`)
 useGLTF.preload(`${GEN}/lantern.glb`)
 useGLTF.preload(`${GEN}/tree_pine.glb`)
 useGLTF.preload(`${GEN}/tree_round.glb`)
+useGLTF.preload(`${GEN}/torch.glb`)
+useGLTF.preload(`${GEN}/pillar.glb`)
+useGLTF.preload(`${GEN}/cauldron.glb`)
+useGLTF.preload(`${PUBLIC_BASE}/models/generated/penguin_hero.glb`)
