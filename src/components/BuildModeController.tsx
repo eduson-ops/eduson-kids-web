@@ -39,6 +39,11 @@ export default function BuildModeController() {
   const raycaster = useRef(new THREE.Raycaster())
   const ghostPos = useRef(new THREE.Vector3())
   const validRef = useRef(false)
+  // Pre-allocated per-frame temporaries — avoids 3 GC allocs/frame in useFrame
+  const _dir = useRef(new THREE.Vector3())
+  const _groundNormal = useRef(new THREE.Vector3(0, 1, 0))
+  const _groundPlane = useRef(new THREE.Plane(_groundNormal.current, 0))
+  const _hitPoint = useRef(new THREE.Vector3())
 
   // P-08: Кэшированный список build-targets — обходим scene лишь по запросу
   // и собираем объекты с пользовательским data.buildTarget=true либо name начинается
@@ -164,28 +169,25 @@ export default function BuildModeController() {
     // P-08: используем pointer NDC из R3F вместо хардкода (0,0)
     raycaster.current.setFromCamera(pointer, camera)
     const origin = camera.position
-    const dir = new THREE.Vector3()
-    camera.getWorldDirection(dir)
+    camera.getWorldDirection(_dir.current)
 
     // Пересечение с гор. плоскостью Y=0 (база для пола/рампы/крыши)
-    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
-    const hitPoint = new THREE.Vector3()
-    raycaster.current.ray.intersectPlane(groundPlane, hitPoint)
+    raycaster.current.ray.intersectPlane(_groundPlane.current, _hitPoint.current)
 
-    if (!hitPoint || !isFinite(hitPoint.x)) {
+    if (!isFinite(_hitPoint.current.x)) {
       // fallback — спроецировать вперёд на 10 ед.
-      hitPoint.copy(origin).addScaledVector(dir, 10)
+      _hitPoint.current.copy(origin).addScaledVector(_dir.current, 10)
     }
 
     // Ограничить расстояние от игрока (чтобы не строили на другом конце карты)
     const maxDist = 18
-    if (origin.distanceTo(hitPoint) > maxDist) {
-      hitPoint.copy(origin).addScaledVector(dir.normalize(), maxDist)
+    if (origin.distanceTo(_hitPoint.current) > maxDist) {
+      _hitPoint.current.copy(origin).addScaledVector(_dir.current.normalize(), maxDist)
     }
 
     const size = pieceSize(bs.selectedKind)
-    const sx = snapToGrid(hitPoint.x)
-    const sz = snapToGrid(hitPoint.z)
+    const sx = snapToGrid(_hitPoint.current.x)
+    const sz = snapToGrid(_hitPoint.current.z)
     // Y — зависит от типа: floor лежит на Y=0, wall от Y=size.y/2, ramp/roof чуть выше
     let sy = 0
     switch (bs.selectedKind) {

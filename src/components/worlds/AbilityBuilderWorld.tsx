@@ -442,10 +442,12 @@ function TargetDummy({ pos }: { pos: [number, number, number] }) {
   )
 }
 
-// ─── ENERGY MOTES (80) ───────────────────────────────────────────────────────
+// ─── ENERGY MOTES (80) — InstancedMesh, was 80 individual meshes ─────────────
 function EnergyMotes() {
-  const count = 80
-  const moterData = useMemo(() => Array.from({ length: count }, (_, i) => ({
+  const COUNT = 80
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const data = useMemo(() => Array.from({ length: COUNT }, (_, i) => ({
     x: (Math.random() - 0.5) * 180,
     y: 0.5 + Math.random() * 14,
     z: (Math.random() - 0.5) * 180,
@@ -453,40 +455,33 @@ function EnergyMotes() {
     phase: Math.random() * Math.PI * 2,
     color: RAINBOW[i % RAINBOW.length]!,
   })), [])
-
-  const groupRef = useRef<THREE.Group>(null!)
-  const meshRefs = useRef<THREE.Mesh[]>([])
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(COUNT * 3)
+    const col = new THREE.Color()
+    data.forEach((m, i) => { col.set(m.color); arr[i*3]=col.r; arr[i*3+1]=col.g; arr[i*3+2]=col.b })
+    return arr
+  }, [data])
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
-    moterData.forEach((m, i) => {
-      const mesh = meshRefs.current[i]
-      if (!mesh) return
-      mesh.position.y = m.y + Math.sin(t * m.speedY + m.phase) * 1.5
-      mesh.position.x = m.x + Math.sin(t * 0.4 + m.phase) * 2
-      mesh.position.z = m.z + Math.cos(t * 0.35 + m.phase) * 2
+    data.forEach((m, i) => {
+      dummy.position.set(
+        m.x + Math.sin(t * 0.4 + m.phase) * 2,
+        m.y + Math.sin(t * m.speedY + m.phase) * 1.5,
+        m.z + Math.cos(t * 0.35 + m.phase) * 2,
+      )
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
-    void groupRef
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <group>
-      {moterData.map((m, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { if (el) meshRefs.current[i] = el }}
-          position={[m.x, m.y, m.z]}
-        >
-          <sphereGeometry args={[0.08, 6, 6]} />
-          <meshStandardMaterial
-            color={m.color}
-            emissive={m.color}
-            emissiveIntensity={3}
-            roughness={0}
-          />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.08, 6, 6]} />
+      <meshBasicMaterial vertexColors toneMapped={false} />
+      <instancedBufferAttribute attach="geometry-attributes-color" args={[colorArray, 3]} />
+    </instancedMesh>
   )
 }
 
@@ -795,17 +790,16 @@ const PLATFORM_POSITIONS: [number, number, number][] = [
 
 function PowerPlatforms() {
   const discRefs = useRef<(THREE.Mesh | null)[]>([])
+  const _col = useRef(new THREE.Color())
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
     discRefs.current.forEach((disc, i) => {
       if (!disc) return
       disc.rotation.y = t * (0.6 + i * 0.15)
-      // Cycle emissive color via HSL
-      const hue = ((t * 0.15 + i * 0.25) % 1)
-      const col = new THREE.Color().setHSL(hue, 1, 0.55)
-      ;(disc.material as THREE.MeshStandardMaterial).emissive.copy(col)
-      ;(disc.material as THREE.MeshStandardMaterial).color.copy(col)
+      _col.current.setHSL((t * 0.15 + i * 0.25) % 1, 1, 0.55)
+      ;(disc.material as THREE.MeshStandardMaterial).emissive.copy(_col.current)
+      ;(disc.material as THREE.MeshStandardMaterial).color.copy(_col.current)
     })
   })
 
@@ -1096,15 +1090,14 @@ const RING_LIGHT_ANGLES = Array.from({ length: 12 }, (_, i) => (i / 12) * Math.P
 
 function ArenaLights() {
   const ringLightRefs = useRef<THREE.PointLight[]>([])
+  const _col = useRef(new THREE.Color())
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
     ringLightRefs.current.forEach((light, i) => {
       if (!light) return
-      // Cycle hue over time per light
-      const hue = ((t * 0.08 + i / 12) % 1.0)
-      const col = new THREE.Color().setHSL(hue, 1.0, 0.6)
-      light.color.copy(col)
+      _col.current.setHSL((t * 0.08 + i / 12) % 1.0, 1.0, 0.6)
+      light.color.copy(_col.current)
     })
   })
 
