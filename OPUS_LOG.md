@@ -110,6 +110,22 @@ Improvements:
 
 ---
 
+## ✅ Session 3 — Deep quality audit (2026-05-01)
+
+Critical bug fixes:
+
+- **`pdf-roster.service.ts`**: broken two-pass PDF rendering for >6 students. The original code ran a placeholder loop to create blank pages, then tried to draw cards in a `.then()` callback — but PDFKit pages are already flushed and can't be re-entered. Fixed to pre-generate all QR code buffers via `Promise.all` BEFORE creating the PDF document, then do a single synchronous rendering pass. PDF now works correctly for any class size.
+- **`classroom.service.ts` `generatePin()`**: was generating 6-digit numeric PINs (100000–999999, only 900K combinations) while `StudentRosterService.generatePin()` uses the 29-char `PIN_ALPHABET` (427M combinations). Inconsistency meant the legacy `addStudents` endpoint issued weaker PINs. Fixed to use the same alphanumeric alphabet.
+- **`auth.service.ts`**: replaced `require('crypto').randomBytes()` in `loginGuest()` and `issueTokens()` with a top-level `import { randomBytes } from 'node:crypto'`. Using CommonJS `require()` inside an ESM/TypeScript file is fragile (breaks tree-shaking, bypasses module resolution).
+
+UX improvements:
+
+- **`Teacher.tsx` UnlockTab**: header was showing `classroomId.slice(0, 8)…` (raw UUID) instead of the classroom name. Added `classroomName` prop and pass it from parent.
+
+All TypeScript checks pass (frontend + backend), Vite build clean (3.66s).
+
+---
+
 ## Skipped / Deferred
 
 - VideoPlayer integration into LessonPage (no video URLs in curriculum yet)
