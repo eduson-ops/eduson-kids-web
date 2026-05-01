@@ -89,6 +89,27 @@ Supports:
 
 ---
 
+## ✅ Session 2 — Post-plan gap audit (2026-05-01)
+
+Bug fixes found and resolved:
+
+- **`api/client.ts`**: was using relative `/api/v1` → hit Vite dev server port instead of backend:3001. Fixed to use same `VITE_API_URL || hostname:3001` detection as `api.ts`.
+- **`backend/src/modules/auth/dto/child-login.dto.ts`**: `pin` validation was `^\d{6}$` (digits only) but `student-roster.service.ts` generates 6-char alphanumeric PINs from `PIN_ALPHABET`. Fixed to `^[a-z0-9]{6}$`.
+- **`login` validation**: was `/^[a-z0-9-]+$/` rejecting `kub_school_0001` format (underscores). Fixed to `/^[a-z0-9_-]+$/`.
+- **`src/pages/Login.tsx`** PIN input: `\D` regex stripped alpha chars from new PINs. Fixed to allow full 6-char alphanumeric input.
+- **Child PIN login order**: was checking localStorage before API. Fixed to API-first (catches students who only exist in backend), localStorage as offline fallback.
+- **`backend/src/seed.ts`**: missing `tenant_id` in INSERT. Fixed to include `00000000-0000-0000-0000-000000000001`.
+- **`Learn.tsx`**: used raw `localStorage.getItem('kubik_access_token')` bypassing legacy key migration. Fixed to `getAccessToken()`.
+
+Improvements:
+
+- **`Teacher.tsx` cover header**: was hardcoded to `MOCK_CLASSES.length` / `MOCK_CLASSES.students`. Now shows real API classroom + student counts.
+- **`AssignmentsTab`**: removed dependency on mock `Classroom` object. Now takes `classroomName` + `studentCount` from real API.
+- **`RosterPDF.tsx`**: deleted (dead code — not imported anywhere after TeacherClasses migration).
+- **3D rendering**: PostFX (bloom + SMAA), ToonOverride, WaterSurface, CyberCity GradientSky, Garden improvements.
+
+---
+
 ## Skipped / Deferred
 
 - VideoPlayer integration into LessonPage (no video URLs in curriculum yet)
@@ -98,9 +119,19 @@ Supports:
 
 ---
 
+## Demo Credentials (after `npm run seed`)
+
+- Teacher: `teacher@eduson.school` / `Teacher2024!` (school code: `DEMO-2024`)
+- Parent: `parent@eduson.school` / `Parent2024!`
+- Child demo: login `panda42` / PIN `123456`
+- Child demo: login `tiger99` / PIN `654321`
+
+---
+
 ## Next Steps
 
 1. Push to `main` → GH Pages CI auto-deploys frontend
 2. Deploy backend to YC Serverless Container (see `OPUS_FULLDAY_PLAN.md` Block 0)
-3. Create first real classroom + students via Admin UI
-4. Teacher unlocks lessons 1–6 (M1) → verify student sees them in Learn.tsx
+3. Run `npm run seed` to create demo teacher + child accounts
+4. Teacher logs in with DEMO-2024 → creates classroom → bulk creates students → downloads PIN sheet
+5. Teacher unlocks lessons 1–6 (M1) → student logs in → sees unlocked lessons in Learn.tsx
