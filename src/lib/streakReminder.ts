@@ -104,13 +104,13 @@ function checkAndRemindIfDue(): void {
   try {
     const n = new Notification(title, {
       body,
-      icon: `${location.origin}${location.pathname}favicon.svg`,
+      icon: `${location.origin}/favicon.svg`,
       tag: 'ek-streak-reminder',
       silent: false,
     })
     n.onclick = () => {
       window.focus()
-      location.href = `${location.origin}${location.pathname}#/learn`
+      location.href = `${location.origin}/`
       n.close()
     }
     localStorage.setItem(KEY_SHOWN, today)
