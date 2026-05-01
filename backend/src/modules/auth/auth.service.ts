@@ -79,18 +79,15 @@ export class AuthService {
     return { accessToken };
   }
 
-  async loginChildByCode(code: string, displayName?: string): Promise<{ accessToken: string }> {
-    // code format: login:pin (e.g. "panda42:123456")
+  async loginChildByCode(code: string, ip: string, displayName?: string): Promise<{ accessToken: string; refreshToken: string }> {
+    // code format: login:pin (e.g. "panda42:abc123")
     const [login, pin] = (code ?? '').split(':')
     if (!login || !pin) throw new UnauthorizedException('Invalid code format')
-    const dto: ChildLoginDto = { login, pin }
-    const ip = 'internal'
     await this.checkIpBlock(ip)
-    const user = await this.findByLogin(dto.login, UserRole.CHILD)
-    await this.verifyPassword(user, dto.pin, ip)
+    const user = await this.findByLogin(login, UserRole.CHILD)
+    await this.verifyPassword(user, pin, ip)
     await this.updateLastLogin(user.id)
-    const tokens = this.issueTokens(user)
-    return { accessToken: tokens.accessToken }
+    return this.issueTokens(user)
   }
 
   async updateAvatar(userId: string, avatar: AvatarData): Promise<void> {

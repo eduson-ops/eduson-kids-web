@@ -170,9 +170,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Child login via invite code (format: login:pin)' })
   async childCodeLogin(
     @Body() dto: ChildCodeDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const tokens = await this.authService.loginChildByCode(dto.code, dto.name);
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.ip ?? '';
+    const tokens = await this.authService.loginChildByCode(dto.code, ip, dto.name);
+    res.cookie(REFRESH_COOKIE, tokens.refreshToken, COOKIE_OPTIONS);
     setAccessCookie(res, tokens.accessToken);
     return tokens;
   }

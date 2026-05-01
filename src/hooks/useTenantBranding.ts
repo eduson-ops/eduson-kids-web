@@ -68,7 +68,20 @@ function saveToCache(tenant: ActiveTenant): void {
   }
 }
 
-const API_BASE = (import.meta.env.VITE_API_BASE as string) || '/api/v1'
+function isCapacitorNative(): boolean {
+  if (typeof window === 'undefined') return false
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+  return !!cap?.isNativePlatform?.()
+}
+
+const _apiOrigin =
+  (import.meta.env.VITE_API_URL as string | undefined) ||
+  (isCapacitorNative()
+    ? 'https://api.edusonkids.com'
+    : typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.hostname}:3001`
+      : '')
+const API_BASE = _apiOrigin ? `${_apiOrigin}/api/v1` : '/api/v1'
 
 export function useTenantBranding(): ActiveTenant {
   const [tenant, setTenant] = useState<ActiveTenant>(() => {

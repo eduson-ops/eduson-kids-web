@@ -127,8 +127,8 @@ export class ClassroomService {
       this.findById(fromClassroomId),
       this.findById(toClassroomId),
     ]);
-    if (from.teacherId !== teacherId && to.teacherId !== teacherId) {
-      throw new ForbiddenException('Must own at least one of the classrooms');
+    if (from.teacherId !== teacherId) {
+      throw new ForbiddenException('Must own the source classroom to transfer students out of it');
     }
     const student = await this.userRepo.findOne({
       where: { id: studentId, classroomId: fromClassroomId, tenantId: ctx.tenantId },
