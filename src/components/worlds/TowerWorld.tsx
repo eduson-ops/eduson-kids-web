@@ -390,13 +390,6 @@ function FloatingPinnacles() {
               roughness={0.9}
             />
           </mesh>
-          {/* Dim ambient light at midpoint */}
-          <pointLight
-            color="#4466ff"
-            intensity={1.5}
-            distance={12}
-            position={[0, height / 2, 0]}
-          />
         </group>
       ))}
     </>

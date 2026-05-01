@@ -933,8 +933,6 @@ function SeaAnemones() {
                 </group>
               )
             })}
-            {/* Per-anemone point light */}
-            <pointLight color={color} intensity={0.8} distance={5} />
           </group>
         )
       })}
