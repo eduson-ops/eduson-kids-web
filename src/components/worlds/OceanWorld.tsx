@@ -2,6 +2,7 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { canPostfx } from '../../lib/deviceTier'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -63,7 +64,7 @@ function BioPlankton() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, BIO_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, BIO_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[0.06, 5, 5]} />
       <meshBasicMaterial vertexColors toneMapped={false} />
       <instancedBufferAttribute
@@ -105,10 +106,12 @@ void main() {
 `
 
 function CausticFloor() {
+  const enabled = canPostfx()
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   useFrame(({ clock }) => {
-    if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
+    if (enabled && matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
+  if (!enabled) return null
   return (
     <mesh position={[0, -0.5, -50]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[200, 200, 1, 1]} />
@@ -143,43 +146,26 @@ function makeBubbleColData(): BubbleColParticle[] {
 }
 
 function BubbleColumn({ position }: { position: [number, number, number] }) {
+  const ref = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() => makeBubbleColData(), [])
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     data.forEach((b, i) => {
-      const m = meshRefs.current[i]
-      if (!m) return
       const y = (b.baseY + t * b.speed) % 12
-      const wobbleX = Math.sin(t * 1.2 + b.phase) * 0.15
-      m.position.set(
-        position[0] + b.offsetX + wobbleX,
-        y,
-        position[2] + b.offsetZ,
-      )
+      dummy.position.set(position[0] + b.offsetX + Math.sin(t * 1.2 + b.phase) * 0.15, y, position[2] + b.offsetZ)
+      dummy.updateMatrix()
+      ref.current.setMatrixAt(i, dummy.matrix)
     })
+    ref.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((_, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={[position[0], 0, position[2]]}
-        >
-          <sphereGeometry args={[0.08, 6, 6]} />
-          <meshBasicMaterial
-            color="#aaeeff"
-            transparent
-            opacity={0.5}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={ref} args={[undefined, undefined, BUBBLE_COL_COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.08, 6, 6]} />
+      <meshBasicMaterial color="#aaeeff" transparent opacity={0.5} depthWrite={false} toneMapped={false} />
+    </instancedMesh>
   )
 }
 
@@ -216,9 +202,11 @@ const CAUSTICS_FRAG = `
 `
 
 function CausticsFloor() {
+  const enabled = canPostfx()
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
   const matRef = useRef<THREE.ShaderMaterial>(null!)
-  useFrame((_, dt) => { matRef.current.uniforms.iTime!.value += dt })
+  useFrame((_, dt) => { if (enabled && matRef.current) matRef.current.uniforms.iTime!.value += dt })
+  if (!enabled) return null
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} renderOrder={1}>
       <planeGeometry args={[120, 120, 1, 1]} />

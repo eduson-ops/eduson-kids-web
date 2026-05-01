@@ -210,21 +210,21 @@ function ChimneySmoke() {
     }), [])
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const matRef = useRef<THREE.MeshBasicMaterial>(null!)
+  const _col = useRef(new THREE.Color())
   useFrame((_, dt) => {
     if (!meshRef.current) return
     states.forEach((s, i) => {
       s.y += s.speed * dt
-      const progress = Math.min((s.y - 8) / 17, 1)   // 0→1 as it rises from y=8 to y=25
+      const progress = Math.min((s.y - 8) / 17, 1)
       const sc = s.baseScale + progress * 0.6
-      const opacity = 0.15 + progress * 0.15           // 0.15→0.30
+      const opacity = 0.15 + progress * 0.15
       dummy.position.set(s.x, s.y, s.z)
       dummy.scale.setScalar(sc)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
-      // encode opacity in color brightness (MeshBasicMaterial is shared)
-      // We approximate per-instance opacity via color grey level
       const grey = 0.2 + (1 - opacity) * 0.5
-      meshRef.current.setColorAt(i, new THREE.Color(grey, grey, grey))
+      _col.current.setRGB(grey, grey, grey)
+      meshRef.current.setColorAt(i, _col.current)
       if (s.y > 25) {
         s.y = 8
         s.x = s.ox + (Math.random() - 0.5) * 1.2
@@ -235,7 +235,7 @@ function ChimneySmoke() {
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, CHIMNEY_SMOKE_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, CHIMNEY_SMOKE_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
       <meshBasicMaterial ref={matRef} color="#444444" transparent opacity={0.22} depthWrite={false} />
     </instancedMesh>
@@ -288,7 +288,7 @@ function SmokeStacks() {
           <meshStandardMaterial color="#666666" roughness={0.9} />
         </mesh>
       ))}
-      <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]}>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
         <sphereGeometry args={[1, 6, 6]} />
         <meshBasicMaterial color="#aaaaaa" transparent opacity={0.3} depthWrite={false} />
       </instancedMesh>

@@ -2,6 +2,7 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame, extend } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { canPostfx } from '../../lib/deviceTier'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -138,6 +139,7 @@ function HoloGrid() {
 const NEON_RAIN_COUNT = 150
 
 function NeonRain() {
+  const enabled = canPostfx()
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
@@ -172,6 +174,7 @@ function NeonRain() {
   const colorsApplied = useRef(false)
 
   useFrame((_, dt) => {
+    if (!enabled) return
     const mesh = meshRef.current
     if (!mesh) return
 
@@ -202,6 +205,7 @@ function NeonRain() {
     mesh.instanceMatrix.needsUpdate = true
   })
 
+  if (!enabled) return null
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, NEON_RAIN_COUNT]} frustumCulled={false}>
       <cylinderGeometry args={[0.015, 0.015, 0.8, 4]} />

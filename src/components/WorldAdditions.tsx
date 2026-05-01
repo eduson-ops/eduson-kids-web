@@ -260,8 +260,8 @@ function SpawnedMesh({ part }: { part: SpawnedPart }) {
       )
     case 'ramp':
       return (
-        <RigidBody type="fixed" colliders="trimesh" position={pos}>
-          <mesh castShadow receiveShadow scale={[size, size, size]} rotation={[0, 0, Math.PI / 6]}>
+        <RigidBody type="fixed" colliders="cuboid" position={pos} rotation={[0, 0, Math.PI / 6]}>
+          <mesh castShadow receiveShadow scale={[size, size, size]}>
             <boxGeometry args={[2, 0.3, 1.2]} />
             <meshStandardMaterial color={color} roughness={0.7} />
           </mesh>

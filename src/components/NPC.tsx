@@ -16,9 +16,9 @@ interface Props {
 function NPCImpl({ pos, modelUrl, label, bodyColor = '#ffd1e8' }: Props) {
   const bob = useRef<Group>(null!)
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     if (bob.current) {
-      bob.current.position.y = pos[1] + Math.sin(Date.now() * 0.0018) * 0.06
+      bob.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 1.8) * 0.06
     }
   })
 

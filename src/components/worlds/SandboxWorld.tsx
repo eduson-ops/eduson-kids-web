@@ -240,42 +240,48 @@ function Fountain() {
   )
 }
 
-// ─── Park sparkles (NW) ──────────────────────────────────────────
+// ─── Park sparkles (NW) — InstancedMesh, was 40 individual meshes ───
+const SPARKLE_COLORS = ['#ffdd44', '#44ffcc', '#ff88cc', '#88ff88', '#aaccff']
 function ParkSparkles() {
-  const refs = useRef<(THREE.Mesh | null)[]>([])
-  const data = useMemo(() => Array.from({ length: 40 }).map((_, i) => ({
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const data = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
     x: -80 + Math.random() * 80,
     z: -80 + Math.random() * 80,
     speed: 0.3 + Math.random() * 0.7,
     phase: Math.random() * Math.PI * 2,
-    color: ['#ffdd44','#44ffcc','#ff88cc','#88ff88','#aaccff'][i % 5],
+    color: SPARKLE_COLORS[i % 5]!,
   })), [])
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(40 * 3)
+    const col = new THREE.Color()
+    data.forEach((d, i) => { col.set(d.color); arr[i*3]=col.r; arr[i*3+1]=col.g; arr[i*3+2]=col.b })
+    return arr
+  }, [data])
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     data.forEach((d, i) => {
-      const m = refs.current[i]
-      if (!m) return
-      m.position.y = 1.5 + Math.sin(t * d.speed + d.phase) * 0.4
-      const s = 0.6 + Math.sin(t * d.speed * 1.3 + d.phase) * 0.4
-      m.scale.setScalar(s)
+      dummy.position.set(d.x, 1.5 + Math.sin(t * d.speed + d.phase) * 0.4, d.z)
+      dummy.scale.setScalar(0.6 + Math.sin(t * d.speed * 1.3 + d.phase) * 0.4)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, 1.5, d.z]}>
-          <sphereGeometry args={[0.07, 5, 5]} />
-          <meshBasicMaterial color={d.color} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 40]} frustumCulled={false}>
+      <sphereGeometry args={[0.07, 5, 5]} />
+      <meshBasicMaterial vertexColors toneMapped={false} />
+      <instancedBufferAttribute attach="geometry-attributes-color" args={[colorArray, 3]} />
+    </instancedMesh>
   )
 }
 
-// ─── Park Pollen / Butterflies (NW quadrant) ─────────────────────
+// ─── Park Pollen (NW) — InstancedMesh, was 50 individual meshes ───
 function ParkPollen() {
-  const refs = useRef<(THREE.Mesh | null)[]>([])
-  const data = useMemo(() => Array.from({ length: 50 }).map(() => ({
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const data = useMemo(() => Array.from({ length: 50 }, () => ({
     x: -10 - Math.random() * 70,
     z: -10 - Math.random() * 70,
     baseY: 1 + Math.random() * 3,
@@ -287,25 +293,31 @@ function ParkPollen() {
     driftPhase: Math.random() * Math.PI * 2,
     color: Math.random() > 0.5 ? '#ffee88' : '#ffffff',
   })), [])
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(50 * 3)
+    const col = new THREE.Color()
+    data.forEach((d, i) => { col.set(d.color); arr[i*3]=col.r; arr[i*3+1]=col.g; arr[i*3+2]=col.b })
+    return arr
+  }, [data])
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     data.forEach((d, i) => {
-      const m = refs.current[i]
-      if (!m) return
-      m.position.x = d.x + Math.sin(t * d.driftSpeed + d.driftPhase) * d.driftAmp
-      m.position.y = d.baseY + Math.sin(t * d.bobSpeed + d.phase) * d.bobAmp
-      m.position.z = d.z + Math.cos(t * d.driftSpeed * 0.7 + d.driftPhase) * d.driftAmp * 0.6
+      dummy.position.set(
+        d.x + Math.sin(t * d.driftSpeed + d.driftPhase) * d.driftAmp,
+        d.baseY + Math.sin(t * d.bobSpeed + d.phase) * d.bobAmp,
+        d.z + Math.cos(t * d.driftSpeed * 0.7 + d.driftPhase) * d.driftAmp * 0.6,
+      )
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.baseY, d.z]}>
-          <sphereGeometry args={[0.04, 5, 5]} />
-          <meshBasicMaterial color={d.color} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 50]} frustumCulled={false}>
+      <sphereGeometry args={[0.04, 5, 5]} />
+      <meshBasicMaterial vertexColors toneMapped={false} />
+      <instancedBufferAttribute attach="geometry-attributes-color" args={[colorArray, 3]} />
+    </instancedMesh>
   )
 }
 
