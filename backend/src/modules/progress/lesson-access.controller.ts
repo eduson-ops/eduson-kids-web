@@ -25,6 +25,29 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtPayload } from '../auth/strategies/jwt.strategy';
 import { LessonAccessService } from './lesson-access.service';
+import { LessonAccess } from '../progress/progress.entity';
+
+interface LessonAccessRow {
+  lessonN: number;
+  unlocked: boolean;
+  completed: boolean;
+  score: number | null;
+  unlockedAt: string;
+  completedAt: string | null;
+}
+
+function toRow(a: LessonAccess): LessonAccessRow {
+  return {
+    lessonN: a.lessonN,
+    unlocked: true,
+    completed: a.completed,
+    score: a.score ?? null,
+    unlockedAt: a.unlockedAt instanceof Date ? a.unlockedAt.toISOString() : String(a.unlockedAt),
+    completedAt: a.completedAt
+      ? (a.completedAt instanceof Date ? a.completedAt.toISOString() : String(a.completedAt))
+      : null,
+  };
+}
 
 class UnlockLessonDto {
   @IsUUID()
@@ -80,8 +103,9 @@ export class LessonAccessController {
   @Roles('teacher', 'curator', 'school_admin', 'platform_admin')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unlock a single lesson for one student' })
-  unlock(@Body() dto: UnlockLessonDto, @CurrentUser() user: JwtPayload) {
-    return this.service.unlockLesson(user.sub, dto.studentId, dto.lessonN, dto.classroomId);
+  async unlock(@Body() dto: UnlockLessonDto, @CurrentUser() user: JwtPayload) {
+    const a = await this.service.unlockLesson(user.sub, dto.studentId, dto.lessonN, dto.classroomId);
+    return toRow(a);
   }
 
   @Post('unlock-batch')
@@ -96,8 +120,9 @@ export class LessonAccessController {
   @Roles('child')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Student marks a lesson as completed' })
-  complete(@Body() dto: CompleteLessonDto, @CurrentUser() user: JwtPayload) {
-    return this.service.completeLesson(user.sub, dto.lessonN, dto.score);
+  async complete(@Body() dto: CompleteLessonDto, @CurrentUser() user: JwtPayload) {
+    const a = await this.service.completeLesson(user.sub, dto.lessonN, dto.score);
+    return toRow(a);
   }
 
   @Get('me')
