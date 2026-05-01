@@ -206,6 +206,7 @@ function VictoryFireworks() {
   const MORTAR_X = [-9, -3, 3, 9]
   // 6 burst clusters, each mapped to a mortar (cycling) with staggered timing
   const burstCount = 6
+  const _fw_dummy = useRef(new THREE.Object3D())
 
   const burstStates = useRef<BurstState[]>(
     Array.from({ length: burstCount }, (_, i) => ({
@@ -241,7 +242,7 @@ function VictoryFireworks() {
   const BURST_Z_OFFSETS = [0, 2, -2, 1, -1, 0]
 
   useFrame((_s, delta) => {
-    const dummy = new THREE.Object3D()
+    const dummy = _fw_dummy.current
     for (let b = 0; b < burstCount; b++) {
       const state = burstStates.current[b]!
       state.elapsed += delta
@@ -1328,6 +1329,7 @@ type RainParticle = {
 
 function RainSystem() {
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const _rain_dummy = useRef(new THREE.Object3D())
 
   const particles = useMemo<RainParticle[]>(() =>
     Array.from({ length: RAIN_COUNT }, () => ({
@@ -1341,7 +1343,7 @@ function RainSystem() {
   useFrame(() => {
     const mesh = meshRef.current
     if (!mesh) return
-    const dummy = new THREE.Object3D()
+    const dummy = _rain_dummy.current
     for (let i = 0; i < RAIN_COUNT; i++) {
       const p = particles[i]!
       p.y -= p.speed

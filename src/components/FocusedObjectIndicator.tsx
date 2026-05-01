@@ -35,6 +35,8 @@ export default function FocusedObjectIndicator() {
   const [target, setTarget] = useState<HoverTarget | null>(getHoverTarget())
   const raycaster = useRef(new THREE.Raycaster())
   const lastCheck = useRef(0)
+  const _dir = useRef(new THREE.Vector3())
+  const _wp = useRef(new THREE.Vector3())
   const prevEmissive = useRef<{ mesh: THREE.Mesh; color: THREE.Color; intensity: number } | null>(null)
 
   useEffect(() => subscribeEditMode(setEdit), [])
@@ -80,7 +82,7 @@ export default function FocusedObjectIndicator() {
 
     // Луч идёт из позиции камеры в направлении её взгляда.
     // PointerLock-камера хранит -Z как "вперёд".
-    const dir = RAY_DIRECTION.clone().applyQuaternion(camera.quaternion).normalize()
+    const dir = _dir.current.copy(RAY_DIRECTION).applyQuaternion(camera.quaternion).normalize()
     raycaster.current.set(camera.position, dir)
     raycaster.current.far = FOCUS_RADIUS
 
@@ -92,7 +94,7 @@ export default function FocusedObjectIndicator() {
       if (!obj.visible) continue
       const tag = findEditableTag(obj)
       if (tag) {
-        const wp = new THREE.Vector3()
+        const wp = _wp.current
         obj.getWorldPosition(wp)
         next = {
           uuid: tag.uuid,

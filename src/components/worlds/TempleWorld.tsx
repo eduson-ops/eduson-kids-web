@@ -356,44 +356,38 @@ const DUST_COUNT = 100
 const DUST_CEILING = 12
 
 function DustMotes() {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const particles = useMemo(() => {
-    return Array.from({ length: DUST_COUNT }, (_, i) => ({
+    return Array.from({ length: DUST_COUNT }, () => ({
       x: (Math.random() - 0.5) * 30,
       y: Math.random() * DUST_CEILING,
       z: (Math.random() - 0.5) * 30,
       phase: Math.random() * Math.PI * 2,
       speed: 0.003 + Math.random() * 0.002,
-      index: i,
     }))
   }, [])
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
+    if (!meshRef.current) return
     particles.forEach((p, i) => {
-      const mesh = meshRefs.current[i]
-      if (!mesh) return
-      mesh.position.y += p.speed + Math.sin(t * 0.5 + p.phase) * 0.002
-      if (mesh.position.y > DUST_CEILING) {
-        mesh.position.y = 0
-      }
+      p.y += p.speed + Math.sin(t * 0.5 + p.phase) * 0.002
+      if (p.y > DUST_CEILING) p.y = 0
+      dummy.position.set(p.x, p.y, p.z)
+      dummy.scale.setScalar(1)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {particles.map((p, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={[p.x, p.y, p.z]}
-        >
-          <sphereGeometry args={[0.04, 4, 4]} />
-          <meshBasicMaterial color="#d4a870" transparent opacity={0.6} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, DUST_COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.04, 4, 4]} />
+      <meshBasicMaterial color="#d4a870" transparent opacity={0.6} />
+    </instancedMesh>
   )
 }
 
@@ -735,90 +729,96 @@ const MIST_CONFIGS = [
   { pos: [35, 0.4, 70] as [number, number, number], sx: 7.0, sy: 0.6, sz: 2.4, phase: 5.0 },
   { pos: [-32, 1.3, -66] as [number, number, number], sx: 5.8, sy: 0.48, sz: 1.9, phase: 0.5 },
 ]
+const MIST_COUNT = MIST_CONFIGS.length
 
 function JungleMist() {
-  const groupRef = useRef<THREE.Group>(null!)
-  const childRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
-    childRefs.current.forEach((mesh, i) => {
-      if (!mesh) return
-      const cfg = MIST_CONFIGS[i]
-      // Slow lateral drift via sin wave
-      mesh.position.x = cfg.pos[0] + Math.sin(t * 0.18 + cfg.phase) * 2.5
-      mesh.position.y = cfg.pos[1] + Math.sin(t * 0.12 + cfg.phase * 0.7) * 0.25
+    if (!meshRef.current) return
+    MIST_CONFIGS.forEach((cfg, i) => {
+      const x = cfg.pos[0] + Math.sin(t * 0.18 + cfg.phase) * 2.5
+      const y = cfg.pos[1] + Math.sin(t * 0.12 + cfg.phase * 0.7) * 0.25
+      dummy.position.set(x, y, cfg.pos[2])
+      dummy.scale.set(cfg.sx, cfg.sy, cfg.sz)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <group ref={groupRef}>
-      {MIST_CONFIGS.map((cfg, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { childRefs.current[i] = el }}
-          position={cfg.pos}
-          scale={[cfg.sx, cfg.sy, cfg.sz]}
-        >
-          <sphereGeometry args={[1, 8, 6]} />
-          <meshBasicMaterial
-            color="#114422"
-            transparent
-            opacity={0.12}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, MIST_COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[1, 8, 6]} />
+      <meshBasicMaterial
+        color="#114422"
+        transparent
+        opacity={0.12}
+        depthWrite={false}
+      />
+    </instancedMesh>
   )
 }
 
 // ─── Jungle fireflies ─────────────────────────────────────────────
 const FIREFLY_COLORS = ['#88ff44', '#ffff44', '#44ff88'] as const
 const FIREFLY_COUNT = 50
+// Split 50 fireflies evenly across 3 color groups (indices 0,1,2 cycle per firefly)
+const FIREFLY_PER_COLOR = Math.ceil(FIREFLY_COUNT / FIREFLY_COLORS.length) // 17
 
 function JungleFireflies() {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef0 = useRef<THREE.InstancedMesh>(null!)
+  const meshRef1 = useRef<THREE.InstancedMesh>(null!)
+  const meshRef2 = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const fireflies = useMemo(() =>
     Array.from({ length: FIREFLY_COUNT }, (_, i) => {
-      // Scatter in jungle ring: 40–75 units from centre
       const angle = Math.random() * Math.PI * 2
       const r = 40 + Math.random() * 35
       return {
         x: Math.cos(angle) * r,
         y: 1 + Math.random() * 3,
         z: Math.sin(angle) * r,
-        color: FIREFLY_COLORS[i % FIREFLY_COLORS.length],
-        hoverPhase: Math.random() * Math.PI * 2,
-        hoverSpeed: 0.4 + Math.random() * 0.6,
+        colorIdx: i % FIREFLY_COLORS.length,
+        visible: true,
       }
     }), [])
 
+  // Per-color local indices: firefly i belongs to group (i % 3), slot (Math.floor(i/3))
   useFrame(() => {
-    meshRefs.current.forEach((mesh) => {
-      if (!mesh) return
-      // Random blink: ~0.002 chance per frame to toggle visibility
-      if (Math.random() < 0.002) mesh.visible = !mesh.visible
+    const refs = [meshRef0.current, meshRef1.current, meshRef2.current]
+    // Track per-color instance counter for positioning
+    const counters = [0, 0, 0]
+    fireflies.forEach((f) => {
+      if (Math.random() < 0.002) f.visible = !f.visible
+      const ref = refs[f.colorIdx]
+      if (!ref) return
+      const slot = counters[f.colorIdx]++
+      dummy.position.set(f.x, f.y, f.z)
+      dummy.scale.setScalar(f.visible ? 1 : 0)
+      dummy.updateMatrix()
+      ref.setMatrixAt(slot, dummy.matrix)
     })
+    refs.forEach((ref) => { if (ref) ref.instanceMatrix.needsUpdate = true })
   })
 
   return (
     <>
-      {fireflies.map((f, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={[f.x, f.y, f.z]}
-        >
-          <sphereGeometry args={[0.06, 5, 5]} />
-          <meshStandardMaterial
-            color={f.color}
-            emissive={f.color}
-            emissiveIntensity={2.5}
-          />
-        </mesh>
-      ))}
+      <instancedMesh ref={meshRef0} args={[undefined, undefined, FIREFLY_PER_COLOR]} frustumCulled={false}>
+        <sphereGeometry args={[0.06, 5, 5]} />
+        <meshStandardMaterial color={FIREFLY_COLORS[0]} emissive={FIREFLY_COLORS[0]} emissiveIntensity={2.5} />
+      </instancedMesh>
+      <instancedMesh ref={meshRef1} args={[undefined, undefined, FIREFLY_PER_COLOR]} frustumCulled={false}>
+        <sphereGeometry args={[0.06, 5, 5]} />
+        <meshStandardMaterial color={FIREFLY_COLORS[1]} emissive={FIREFLY_COLORS[1]} emissiveIntensity={2.5} />
+      </instancedMesh>
+      <instancedMesh ref={meshRef2} args={[undefined, undefined, FIREFLY_PER_COLOR]} frustumCulled={false}>
+        <sphereGeometry args={[0.06, 5, 5]} />
+        <meshStandardMaterial color={FIREFLY_COLORS[2]} emissive={FIREFLY_COLORS[2]} emissiveIntensity={2.5} />
+      </instancedMesh>
     </>
   )
 }
@@ -912,39 +912,35 @@ function ExtraGodRays() {
 const EXTRA_DUST_COUNT = 200
 
 function ExtraDustMotes() {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const particles = useMemo(() => {
-    return Array.from({ length: EXTRA_DUST_COUNT }, (_, i) => ({
+    return Array.from({ length: EXTRA_DUST_COUNT }, () => ({
       x: (Math.random() - 0.5) * 80,
       y: Math.random() * 30,
       z: (Math.random() - 0.5) * 80,
       phase: Math.random() * Math.PI * 2,
       speed: 0.002 + Math.random() * 0.003,
-      index: i,
     }))
   }, [])
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
+    if (!meshRef.current) return
     particles.forEach((p, i) => {
-      const mesh = meshRefs.current[i]
-      if (!mesh) return
-      mesh.position.y += p.speed + Math.sin(t * 0.4 + p.phase) * 0.002
-      if (mesh.position.y > 32) mesh.position.y = 0
+      p.y += p.speed + Math.sin(t * 0.4 + p.phase) * 0.002
+      if (p.y > 32) p.y = 0
+      dummy.position.set(p.x, p.y, p.z)
+      dummy.scale.setScalar(1)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
   return (
-    <>
-      {particles.map((p, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={[p.x, p.y, p.z]}
-        >
-          <sphereGeometry args={[0.035, 4, 4]} />
-          <meshBasicMaterial color="#c8a060" transparent opacity={0.45} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, EXTRA_DUST_COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.035, 4, 4]} />
+      <meshBasicMaterial color="#c8a060" transparent opacity={0.45} />
+    </instancedMesh>
   )
 }
 
@@ -1360,7 +1356,7 @@ function SandDriftParticles() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, SAND_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, SAND_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
       <meshBasicMaterial color="#d4a853" transparent opacity={0.6} depthWrite={false} />
     </instancedMesh>
@@ -1804,7 +1800,7 @@ function CurseMist() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, CURSE_MIST_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, CURSE_MIST_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 7, 7]} />
       <meshBasicMaterial color="#004400" transparent opacity={0.25} depthWrite={false} />
     </instancedMesh>
