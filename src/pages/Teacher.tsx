@@ -114,7 +114,6 @@ export default function Teacher() {
 
   const [activeClassId, setActiveClassId] = useState<string>('')
   const activeClassIdResolved = activeClassId || (classes[0]?.id ?? '')
-  const activeMock = MOCK_CLASSES.find((c) => c.id === activeClassIdResolved) ?? MOCK_CLASSES[0]!
 
   if (!isTeacher) {
     return (
@@ -162,19 +161,18 @@ export default function Teacher() {
     <PlatformShell>
       <section className="kb-cover kb-cover--violet">
         <div className="kb-cover-meta">
-          <span className="eyebrow">Учительская консоль · демо</span>
+          <span className="eyebrow">Учительская консоль</span>
           <span className="kb-cover-meta-row">
-            <span>{pluralize(MOCK_CLASSES.length, 'class')}</span>
+            <span>{pluralize(classes.length, 'class')}</span>
             <span className="dot" />
-            <span>{pluralize(MOCK_CLASSES.reduce((s, c) => s + c.students.length, 0), 'student')}</span>
+            <span>{pluralize(classes.reduce((s, c) => s + c.studentCount, 0), 'student')}</span>
           </span>
         </div>
         <h1 className="kb-cover-title kb-cover-title--md">
           Кабинет<br/><span className="kb-cover-accent">учителя</span>
         </h1>
         <p className="kb-cover-sub">
-          Следите за прогрессом класса, выдавайте задания, собирайте heatmap.
-          Данные сейчас демо — при полной интеграции подтягиваются из Сферум/LTI.
+          Следите за прогрессом класса, открывайте уроки и собирайте heatmap по модулям.
         </p>
         <div className="kb-cover-mascot" aria-hidden>
           <Niksel pose="wave" size={240} />
@@ -231,7 +229,12 @@ export default function Teacher() {
       {tab === 'classes' && <ClassesTab classes={classes} loading={apiLoading} />}
       {tab === 'progress' && <ProgressTab classroomId={activeClassIdResolved} classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''} />}
       {tab === 'unlock' && <UnlockTab classroomId={activeClassIdResolved} showToast={showToast} />}
-      {tab === 'assignments' && <AssignmentsTab classroom={activeMock} />}
+      {tab === 'assignments' && (
+        <AssignmentsTab
+          classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''}
+          studentCount={classes.find((c) => c.id === activeClassIdResolved)?.studentCount ?? 0}
+        />
+      )}
     </PlatformShell>
   )
 }
@@ -565,12 +568,12 @@ function ProgressTab({ classroomId, classroomName }: { classroomId: string; clas
 
 // ─── Tab: Assignments ─────────────────────────────
 
-function AssignmentsTab({ classroom }: { classroom: Classroom }) {
+function AssignmentsTab({ classroomName, studentCount }: { classroomName: string; studentCount: number }) {
   return (
     <>
       <section style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 className="h2">Задания · {classroom.name}</h2>
+          <h2 className="h2">Задания · {classroomName}</h2>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>
             Назначай урок или капстон всему классу с дедлайном. Ученики получают уведомление.
           </p>
@@ -580,9 +583,9 @@ function AssignmentsTab({ classroom }: { classroom: Classroom }) {
 
       <div className="kb-grid-2">
         {[
-          { n: 1, title: 'Пройти урок M2 L3 — Переменные', due: 'через 3 дня', done: 8, total: classroom.students.length },
-          { n: 2, title: 'Защита капстона M1 — Прыжковая полоса', due: 'через 5 дней', done: 3, total: classroom.students.length },
-          { n: 3, title: 'Квиз урока M1 L4 — идеальный балл', due: 'без дедлайна', done: 14, total: classroom.students.length },
+          { n: 1, title: 'Пройти урок M2 L3 — Переменные', due: 'через 3 дня', done: 8, total: studentCount },
+          { n: 2, title: 'Защита капстона M1 — Прыжковая полоса', due: 'через 5 дней', done: 3, total: studentCount },
+          { n: 3, title: 'Квиз урока M1 L4 — идеальный балл', due: 'без дедлайна', done: 14, total: studentCount },
         ].map((a) => (
           <div key={a.n} className="kb-card">
             <div className="eyebrow">Задание · {a.due}</div>

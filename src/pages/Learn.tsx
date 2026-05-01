@@ -26,6 +26,7 @@ import {
 import { renderMd } from '../lib/md'
 import NikselIcon, { iconFromEmoji } from '../design/mascot/NikselIcon'
 import { fetchMyAccess, completeLesson as completeLessonApi } from '../api/lessonAccess'
+import { getAccessToken } from '../lib/authStorage'
 
 /**
  * Learn — каталог и детали 48-урочного курса Эдюсон Kids.
@@ -226,8 +227,7 @@ function ModulePage({ m, course }: { m: Module; course: Course }) {
   // null = guest/fallback (all unlocked); Set = server-provided access list
   const [unlockedLessons, setUnlockedLessons] = useState<Set<number> | null>(null)
   useEffect(() => {
-    const token = localStorage.getItem('kubik_access_token')
-    if (!token) return
+    if (!getAccessToken()) return
     fetchMyAccess()
       .then((rows) => setUnlockedLessons(new Set(rows.filter((r) => r.unlocked).map((r) => r.lessonN))))
       .catch(() => { /* API down or 401 → keep null (all-unlocked fallback) */ })
