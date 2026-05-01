@@ -49,6 +49,18 @@ export default function ToonOverride() {
           map: std.map ?? null,
           gradientMap,
         })
+
+        // Preserve normal map from the original material for depth detail
+        if (std.normalMap) {
+          (mesh.material as THREE.MeshToonMaterial).normalMap = std.normalMap
+          ;(mesh.material as THREE.MeshToonMaterial).normalScale = std.normalScale
+        }
+
+        // Slightly reduce saturation — imported models can look over-saturated with toon
+        const col = (mesh.material as THREE.MeshToonMaterial).color
+        const hsl = { h: 0, s: 0, l: 0 }
+        col.getHSL(hsl)
+        col.setHSL(hsl.h, Math.min(hsl.s * 0.9, 1.0), hsl.l)
       })
     }
 

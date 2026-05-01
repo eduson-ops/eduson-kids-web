@@ -10,6 +10,7 @@ import { Tree, Bush, Flowers, Mushroom, GrassTuft } from '../Scenery'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
 import WaterSurface from '../WaterSurface'
+import GradientSky from '../GradientSky'
 
 /**
  * GardenWorld — educational remake of «Grow a Garden» (Roblox top-4, 2025 breakout).
@@ -178,14 +179,234 @@ function buildGrid(): Array<{ pos: [number, number, number]; ripe: boolean; seed
   return out
 }
 
+// ---------------------------------------------------------------------------
+// Falling flower petals — 30 pink flat planes drifting downward with swirl
+// ---------------------------------------------------------------------------
+
+const PETAL_COUNT = 30
+
+// Static random seed data computed once
+const PETAL_SEEDS = Array.from({ length: PETAL_COUNT }, (_) => ({
+  x: (Math.random() - 0.5) * 25,
+  y: Math.random() * 12,
+  z: (Math.random() - 0.5) * 25,
+  phase: Math.random() * Math.PI * 2,
+  speed: 0.4 + Math.random() * 0.5,
+  swirl: 0.6 + Math.random() * 0.8,
+}))
+
+function FallingPetals() {
+  const refs = useRef<THREE.Mesh[]>([])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    refs.current.forEach((mesh, i) => {
+      if (!mesh) return
+      const s = PETAL_SEEDS[i]!
+      // Fall downward, reset at top
+      mesh.position.y -= s.speed * 0.016
+      if (mesh.position.y < 0) {
+        mesh.position.y = 12
+        mesh.position.x = (Math.random() - 0.5) * 25
+        mesh.position.z = (Math.random() - 0.5) * 25
+      }
+      // Gentle X drift + Y swirl rotation
+      mesh.position.x += Math.sin(t * s.swirl + s.phase) * 0.003
+      mesh.rotation.y = Math.sin(t * 0.7 + s.phase) * 1.2
+      mesh.rotation.z = Math.cos(t * 0.5 + s.phase) * 0.4
+    })
+  })
+
+  return (
+    <>
+      {PETAL_SEEDS.map((s, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { if (el) refs.current[i] = el }}
+          position={[s.x, s.y, s.z]}
+        >
+          <planeGeometry args={[0.15, 0.2]} />
+          <meshBasicMaterial color="#ffaacc" transparent opacity={0.8} side={THREE.DoubleSide} depthWrite={false} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Grass glow patches — bioluminescent circles pulsing at dusk
+// ---------------------------------------------------------------------------
+
+const GLOW_PATCH_COUNT = 10
+
+const GLOW_PATCHES = Array.from({ length: GLOW_PATCH_COUNT }, (_, i) => ({
+  x: (Math.random() - 0.5) * 30,
+  z: (Math.random() - 0.5) * 30,
+  radius: 0.8 + Math.random() * 0.7,
+  phase: i * 1.3,
+}))
+
+const glowVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const glowFragmentShader = `
+  uniform float iTime;
+  uniform float iPhase;
+  varying vec2 vUv;
+  void main() {
+    vec2 uv = vUv * 2.0 - 1.0;
+    float d = length(uv);
+    float pulse = 0.55 + 0.45 * sin(iTime * 0.6 + iPhase);
+    float alpha = (1.0 - smoothstep(0.4, 1.0, d)) * pulse;
+    vec3 innerColor = vec3(0.267, 1.0, 0.267);   // #44ff44
+    vec3 midColor   = vec3(0.0,   0.667, 0.0);   // #00aa00
+    float t = smoothstep(0.0, 0.6, d);
+    vec3 col = mix(innerColor, midColor, t);
+    gl_FragColor = vec4(col, alpha * 0.75);
+  }
+`
+
+function GrassGlowPatches() {
+  const timeRef = useRef(0)
+  const materialRefs = useRef<THREE.ShaderMaterial[]>([])
+
+  useFrame(({ clock }) => {
+    timeRef.current = clock.getElapsedTime()
+    materialRefs.current.forEach((mat) => {
+      if (mat && mat.uniforms) {
+        mat.uniforms.iTime!.value = timeRef.current
+      }
+    })
+  })
+
+  return (
+    <>
+      {GLOW_PATCHES.map((p, i) => {
+        const uniforms = {
+          iTime: { value: 0 },
+          iPhase: { value: p.phase },
+        }
+        return (
+          <mesh
+            key={i}
+            position={[p.x, 0.01, p.z]}
+            rotation={[-Math.PI / 2, 0, 0]}
+          >
+            <circleGeometry args={[p.radius, 16]} />
+            <shaderMaterial
+              ref={(el) => { if (el) materialRefs.current[i] = el }}
+              vertexShader={glowVertexShader}
+              fragmentShader={glowFragmentShader}
+              uniforms={uniforms}
+              transparent
+              depthWrite={false}
+            />
+          </mesh>
+        )
+      })}
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Butterflies — 6 pairs of wings drifting in figure-8 paths
+// ---------------------------------------------------------------------------
+
+const BUTTERFLY_COLORS = ['#ffaaff', '#aaffdd', '#ffddaa', '#aaaaff', '#ffaaaa', '#aaffaa']
+
+const BUTTERFLY_DATA = Array.from({ length: 6 }, (_, i) => ({
+  cx: (Math.random() - 0.5) * 20,
+  cy: 1.2 + Math.random() * 2.0,
+  cz: (Math.random() - 0.5) * 20,
+  speed: 0.3 + Math.random() * 0.3,
+  radius: 2.0 + Math.random() * 2.5,
+  phase: (i / 6) * Math.PI * 2,
+  flapSpeed: 4.0 + Math.random() * 2.0,
+  color: BUTTERFLY_COLORS[i] ?? '#ffffff',
+}))
+
+function Butterflies() {
+  const groupRefs = useRef<THREE.Group[]>([])
+  const leftWingRefs = useRef<THREE.Mesh[]>([])
+  const rightWingRefs = useRef<THREE.Mesh[]>([])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    BUTTERFLY_DATA.forEach((b, i) => {
+      const group = groupRefs.current[i]
+      if (!group) return
+      // Figure-8 path using Lissajous
+      const angle = t * b.speed + b.phase
+      group.position.x = b.cx + Math.sin(angle) * b.radius
+      group.position.y = b.cy + Math.sin(t * 0.4 + b.phase) * 0.4
+      group.position.z = b.cz + Math.sin(angle * 2) * (b.radius * 0.5)
+      // Face direction of movement
+      group.rotation.y = angle + Math.PI / 2
+
+      // Flap wings
+      const flapAngle = Math.sin(t * b.flapSpeed) * 0.9
+      const lw = leftWingRefs.current[i]
+      const rw = rightWingRefs.current[i]
+      if (lw) lw.rotation.y = flapAngle
+      if (rw) rw.rotation.y = -flapAngle
+    })
+  })
+
+  return (
+    <>
+      {BUTTERFLY_DATA.map((b, i) => (
+        <group
+          key={i}
+          ref={(el) => { if (el) groupRefs.current[i] = el }}
+          position={[b.cx, b.cy, b.cz]}
+        >
+          {/* Left wing */}
+          <mesh
+            ref={(el) => { if (el) leftWingRefs.current[i] = el }}
+            position={[-0.13, 0, 0]}
+          >
+            <planeGeometry args={[0.25, 0.18]} />
+            <meshBasicMaterial color={b.color} transparent opacity={0.85} side={THREE.DoubleSide} depthWrite={false} />
+          </mesh>
+          {/* Right wing */}
+          <mesh
+            ref={(el) => { if (el) rightWingRefs.current[i] = el }}
+            position={[0.13, 0, 0]}
+          >
+            <planeGeometry args={[0.25, 0.18]} />
+            <meshBasicMaterial color={b.color} transparent opacity={0.85} side={THREE.DoubleSide} depthWrite={false} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Main world component
+// ---------------------------------------------------------------------------
+
 export default function GardenWorld() {
   const beds = useMemo(buildGrid, [])
   const [harvested, setHarvested] = useState(0)
 
   return (
     <>
+      {/* Golden hour sunset sky */}
+      <GradientSky top="#1a2060" bottom="#ff7020" radius={440} />
+
       <Ground />
       <Fence />
+
+      {/* Visual enhancements */}
+      <FallingPetals />
+      <GrassGlowPatches />
+      <Butterflies />
 
       {beds.map((b, i) => (
         <Bed

@@ -24,7 +24,7 @@ export default function WaterSurface({
 
   useFrame((state) => {
     if (matRef.current) {
-      matRef.current.uniforms.iTime.value = state.clock.elapsedTime
+      matRef.current.uniforms.iTime!.value = state.clock.elapsedTime
     }
   })
 

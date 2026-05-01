@@ -9,6 +9,7 @@ import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import { Tree, Bush, Mushroom } from '../Scenery'
 import { PUBLIC_BASE } from '../../lib/publicPath'
+import GradientSky from '../GradientSky'
 
 // Kenney Graveyard Kit — CC0 GLB модели
 function GraveyardProp({
@@ -178,14 +179,176 @@ function Table({ pos, color = '#6b4f2a' }: { pos: [number, number, number]; colo
   )
 }
 
+// ─── Pulsing mystery orbs ─────────────────────────────────────
+const orbGlowVert = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const orbGlowFrag = `
+  uniform float iTime;
+  varying vec2 vUv;
+  void main() {
+    float d = length(vUv - 0.5) * 2.0;
+    float glow = clamp(1.0 - d, 0.0, 1.0);
+    float pulse = 0.7 + 0.3 * sin(iTime * 2.5);
+    gl_FragColor = vec4(1.0, 0.8, 0.0, glow * pulse);
+  }
+`
+
+// Fixed scatter positions for the 6 mystery orbs
+const ORB_POSITIONS: [number, number, number][] = [
+  [-12, 1.5,  -5],
+  [ 12, 1.5,  -6],
+  [ -5, 1.5,  12],
+  [  6, 1.5,  11],
+  [-14, 1.5,   9],
+  [ 14, 1.5,   7],
+]
+
+function MysteryOrb({ basePos }: { basePos: [number, number, number] }) {
+  const meshRef = useRef<THREE.Mesh>(null!)
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const uniforms = useMemo(() => ({ iTime: { value: 0.0 } }), [])
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime
+    if (meshRef.current) {
+      meshRef.current.position.y = basePos[1] + Math.sin(t * 1.2 + basePos[0]) * 0.18
+    }
+    if (matRef.current) {
+      matRef.current.uniforms.iTime!.value = t
+    }
+  })
+
+  return (
+    <mesh ref={meshRef} position={basePos}>
+      <sphereGeometry args={[0.4, 16, 16]} />
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={orbGlowVert}
+        fragmentShader={orbGlowFrag}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  )
+}
+
+// ─── Shadow vignette ground plane ─────────────────────────────
+const vignetteVert = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const vignetteFrag = `
+  varying vec2 vUv;
+  void main() {
+    float d = length(vUv - 0.5) * 2.0;
+    float alpha = clamp(d * d * 0.85, 0.0, 0.92);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
+  }
+`
+
+function VignetteGround() {
+  return (
+    <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[80, 80]} />
+      <shaderMaterial
+        vertexShader={vignetteVert}
+        fragmentShader={vignetteFrag}
+        transparent
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  )
+}
+
+// ─── Pulsing mystery ring ─────────────────────────────────────
+const ringVert = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const ringFrag = `
+  uniform float iTime;
+  varying vec2 vUv;
+  void main() {
+    // Flowing dots along the torus UV
+    float dot = step(0.85, sin(vUv.x * 60.0 - iTime * 2.0) * 0.5 + 0.5);
+    gl_FragColor = vec4(0.533, 0.0, 1.0, dot * 0.2);
+  }
+`
+
+function MysteryRing() {
+  const groupRef = useRef<THREE.Group>(null!)
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const uniforms = useMemo(() => ({ iTime: { value: 0.0 } }), [])
+
+  useFrame(({ clock }) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = clock.elapsedTime * 0.3
+    }
+    if (matRef.current) {
+      matRef.current.uniforms.iTime!.value = clock.elapsedTime
+    }
+  })
+
+  return (
+    <group ref={groupRef} position={[0, 1, 0]}>
+      <mesh>
+        <torusGeometry args={[8, 0.06, 8, 80]} />
+        <shaderMaterial
+          ref={matRef}
+          vertexShader={ringVert}
+          fragmentShader={ringFrag}
+          uniforms={uniforms}
+          transparent
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </group>
+  )
+}
+
 export default function MysteryWorld() {
   const vignetteColor = useMemo(() => new THREE.Color('#1a0e2e'), [])
 
   return (
     <>
       <color attach="background" args={[vignetteColor]} />
+
+      {/* Fog of mystery */}
+      <fog attach="fog" args={['#0a0510', 15, 60]} />
+
+      {/* Very dark sky */}
+      <GradientSky top="#050205" bottom="#150825" radius={440} />
+
       <Floor />
       <Walls />
+
+      {/* Shadow vignette ground */}
+      <VignetteGround />
+
+      {/* Pulsing mystery ring */}
+      <MysteryRing />
+
+      {/* 6 floating golden mystery orbs */}
+      {ORB_POSITIONS.map((pos, i) => (
+        <MysteryOrb key={`orb${i}`} basePos={pos} />
+      ))}
 
       {ROOMS.map((r, i) => (
         <RoomAccent key={i} room={r} />

@@ -1,8 +1,27 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react'
+import { forwardRef, useImperativeHandle, useRef, useMemo } from 'react'
 import * as THREE from 'three'
+import { RoundedBox } from '@react-three/drei'
 import type { Avatar, BodyShape } from '../lib/avatars'
 import type { PlayerVisualHandle } from './PlayerCharacter'
 import { getToonGradientMap } from '../lib/toonGradient'
+
+function OutlineRounded({
+  args,
+  radius = 0.07,
+  position,
+  rotation,
+}: {
+  args: [number, number, number]
+  radius?: number
+  position?: [number, number, number] | THREE.Vector3
+  rotation?: [number, number, number] | THREE.Euler
+}) {
+  return (
+    <RoundedBox args={args} radius={radius} smoothness={3} position={position as any} rotation={rotation as any} scale={1.07}>
+      <meshBasicMaterial color="#0d0d0d" side={THREE.BackSide} />
+    </RoundedBox>
+  )
+}
 
 // Переиспользуем единый интерфейс, чтобы Player мог переключаться между
 // процедурным (этим) и GLTF (PlayerCharacter) визуалом.
@@ -42,6 +61,33 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
   const legY = -bh * 0.5 - 0.25
   const armY = bh * 0.25
 
+  const faceTexture = useMemo(() => {
+    const S = 128
+    const canvas = document.createElement('canvas')
+    canvas.width = S; canvas.height = S
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = avatar.headColor
+    ctx.fillRect(0, 0, S, S)
+    for (const [ex] of [[36], [92]] as [number][]) {
+      const ey = 52
+      ctx.fillStyle = '#ffffff'
+      ctx.beginPath(); ctx.ellipse(ex, ey, 17, 17, 0, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = '#3a6ab0'
+      ctx.beginPath(); ctx.ellipse(ex, ey + 2, 11, 12, 0, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = '#111111'
+      ctx.beginPath(); ctx.ellipse(ex + 1, ey + 2, 6, 7, 0, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = '#ffffff'
+      ctx.beginPath(); ctx.ellipse(ex + 4, ey - 2, 3, 3, 0, 0, Math.PI * 2); ctx.fill()
+    }
+    ctx.strokeStyle = '#cc3333'; ctx.lineWidth = 7; ctx.lineCap = 'round'
+    ctx.beginPath(); ctx.arc(64, 88, 28, Math.PI + 0.25, Math.PI * 2 - 0.25); ctx.stroke()
+    ctx.fillStyle = 'rgba(255,110,110,0.35)'
+    ctx.beginPath(); ctx.ellipse(18, 82, 14, 10, 0, 0, Math.PI * 2); ctx.fill()
+    ctx.beginPath(); ctx.ellipse(110, 82, 14, 10, 0, 0, Math.PI * 2); ctx.fill()
+    const tex = new THREE.CanvasTexture(canvas); tex.needsUpdate = true
+    return tex
+  }, [avatar.headColor])
+
   useImperativeHandle(
     ref,
     () => ({
@@ -80,75 +126,59 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
   return (
     <group ref={rootRef} name="avatar-root">
       {/* Body */}
-      <mesh ref={bodyRef} position={[0, bh * 0.5, 0]} castShadow>
-        <boxGeometry args={[bw, bh, bd]} />
-        <meshStandardMaterial color={avatar.bodyColor} />
-      </mesh>
+      <RoundedBox ref={bodyRef} args={[bw, bh, bd]} radius={0.07} smoothness={3} position={[0, bh * 0.5, 0]} castShadow>
+        <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
+      </RoundedBox>
+      <OutlineRounded args={[bw, bh, bd]} position={[0, bh * 0.5, 0]} />
 
       {/* Head group */}
       <group ref={headGroupRef} position={[0, headY, 0]}>
-        <mesh castShadow>
-          <boxGeometry args={[bw * 0.82, 0.7, bd * 1.1]} />
-          <meshStandardMaterial color={avatar.headColor} />
-        </mesh>
-        {/* Eyes (white square + pupil) */}
-        <mesh position={[-0.18, 0.05, bd * 0.55 + 0.001]}>
-          <planeGeometry args={[0.2, 0.2]} />
-          <meshStandardMaterial color="#ffffff" />
-        </mesh>
-        <mesh position={[0.18, 0.05, bd * 0.55 + 0.001]}>
-          <planeGeometry args={[0.2, 0.2]} />
-          <meshStandardMaterial color="#ffffff" />
-        </mesh>
-        <mesh position={[-0.18, 0.05, bd * 0.55 + 0.002]}>
-          <planeGeometry args={[0.09, 0.09]} />
-          <meshStandardMaterial color="#2a1a1a" />
-        </mesh>
-        <mesh position={[0.18, 0.05, bd * 0.55 + 0.002]}>
-          <planeGeometry args={[0.09, 0.09]} />
-          <meshStandardMaterial color="#2a1a1a" />
-        </mesh>
-        {/* Mouth */}
-        <mesh position={[0, -0.15, bd * 0.55 + 0.001]}>
-          <planeGeometry args={[0.18, 0.04]} />
-          <meshStandardMaterial color="#2a1a1a" />
+        <RoundedBox args={[bw * 0.82, 0.7, bd * 1.1]} radius={0.08} smoothness={3} castShadow>
+          <meshToonMaterial color={avatar.headColor} gradientMap={gradientMap} />
+        </RoundedBox>
+        <OutlineRounded args={[bw * 0.82, 0.7, bd * 1.1]} radius={0.08} />
+
+        {/* Face texture — eyes + mouth + blush in one canvas plane */}
+        <mesh position={[0, 0.05, bd * 1.1 * 0.5 + 0.002]}>
+          <planeGeometry args={[bw * 0.75, 0.58]} />
+          <meshToonMaterial map={faceTexture} gradientMap={gradientMap} />
         </mesh>
 
-        <Ears style={avatar.earStyle} color={avatar.accentColor} />
-        <Hat style={avatar.hatStyle} color={avatar.accentColor} />
+        <Ears style={avatar.earStyle} color={avatar.accentColor} gradientMap={gradientMap} />
+        <Hat style={avatar.hatStyle} color={avatar.accentColor} gradientMap={gradientMap} />
       </group>
 
       {/* Legs — роторный оффсет сверху каждой ноги */}
       <group position={[-bw * 0.25, legY + 0.25, 0]}>
-        <mesh ref={legLRef} position={[0, -0.25, 0]} castShadow>
-          <boxGeometry args={[0.32, 0.5, 0.32]} />
-          <meshStandardMaterial color={avatar.bodyColor} />
-        </mesh>
+        <RoundedBox ref={legLRef} args={[0.32, 0.5, 0.32]} radius={0.06} smoothness={2} position={[0, -0.25, 0]} castShadow>
+          <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
+        </RoundedBox>
+        <OutlineRounded args={[0.32, 0.5, 0.32]} radius={0.06} position={[0, -0.25, 0]} />
       </group>
       <group position={[bw * 0.25, legY + 0.25, 0]}>
-        <mesh ref={legRRef} position={[0, -0.25, 0]} castShadow>
-          <boxGeometry args={[0.32, 0.5, 0.32]} />
-          <meshStandardMaterial color={avatar.bodyColor} />
-        </mesh>
+        <RoundedBox ref={legRRef} args={[0.32, 0.5, 0.32]} radius={0.06} smoothness={2} position={[0, -0.25, 0]} castShadow>
+          <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
+        </RoundedBox>
+        <OutlineRounded args={[0.32, 0.5, 0.32]} radius={0.06} position={[0, -0.25, 0]} />
       </group>
 
       {/* Arms — роторные группы */}
       <group ref={armLRef} position={[-bw * 0.55, armY + 0.3, 0]}>
-        <mesh position={[0, -0.28, 0]} castShadow>
-          <boxGeometry args={[0.28, 0.55, 0.28]} />
-          <meshStandardMaterial color={avatar.bodyColor} />
-        </mesh>
+        <RoundedBox args={[0.28, 0.55, 0.28]} radius={0.06} smoothness={2} position={[0, -0.28, 0]} castShadow>
+          <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
+        </RoundedBox>
+        <OutlineRounded args={[0.28, 0.55, 0.28]} radius={0.06} position={[0, -0.28, 0]} />
       </group>
       <group ref={armRRef} position={[bw * 0.55, armY + 0.3, 0]}>
-        <mesh position={[0, -0.28, 0]} castShadow>
-          <boxGeometry args={[0.28, 0.55, 0.28]} />
-          <meshStandardMaterial color={avatar.bodyColor} />
-        </mesh>
+        <RoundedBox args={[0.28, 0.55, 0.28]} radius={0.06} smoothness={2} position={[0, -0.28, 0]} castShadow>
+          <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
+        </RoundedBox>
+        <OutlineRounded args={[0.28, 0.55, 0.28]} radius={0.06} position={[0, -0.28, 0]} />
       </group>
 
       {/* Tail */}
       <group ref={tailRef} position={[0, bh * 0.4, -bd * 0.55]}>
-        <Tail style={avatar.tailStyle} color={avatar.accentColor} />
+        <Tail style={avatar.tailStyle} color={avatar.accentColor} gradientMap={gradientMap} />
       </group>
 
       {preview && <gridHelper args={[4, 8, '#333', '#333']} position={[0, 0, 0]} />}
@@ -156,18 +186,26 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
   )
 })
 
-function Ears({ style, color }: { style: Avatar['earStyle']; color: string }) {
+function Ears({
+  style,
+  color,
+  gradientMap,
+}: {
+  style: Avatar['earStyle']
+  color: string
+  gradientMap: THREE.DataTexture
+}) {
   if (style === 'none') return null
   if (style === 'cat') {
     return (
       <>
         <mesh position={[-0.25, 0.5, 0]} rotation={[0, 0, -0.2]} castShadow>
           <coneGeometry args={[0.14, 0.32, 4]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
         <mesh position={[0.25, 0.5, 0]} rotation={[0, 0, 0.2]} castShadow>
           <coneGeometry args={[0.14, 0.32, 4]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
       </>
     )
@@ -177,11 +215,11 @@ function Ears({ style, color }: { style: Avatar['earStyle']; color: string }) {
       <>
         <mesh position={[-0.3, 0.4, 0]} castShadow>
           <sphereGeometry args={[0.15, 8, 8]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
         <mesh position={[0.3, 0.4, 0]} castShadow>
           <sphereGeometry args={[0.15, 8, 8]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
       </>
     )
@@ -189,32 +227,38 @@ function Ears({ style, color }: { style: Avatar['earStyle']; color: string }) {
   if (style === 'bunny') {
     return (
       <>
-        <mesh position={[-0.18, 0.65, 0]} castShadow>
-          <boxGeometry args={[0.12, 0.55, 0.1]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
-        <mesh position={[0.18, 0.65, 0]} castShadow>
-          <boxGeometry args={[0.12, 0.55, 0.1]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
+        <RoundedBox args={[0.12, 0.55, 0.1]} radius={0.04} smoothness={2} position={[-0.18, 0.65, 0]} castShadow>
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
+        </RoundedBox>
+        <RoundedBox args={[0.12, 0.55, 0.1]} radius={0.04} smoothness={2} position={[0.18, 0.65, 0]} castShadow>
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
+        </RoundedBox>
       </>
     )
   }
   return null
 }
 
-function Hat({ style, color }: { style: Avatar['hatStyle']; color: string }) {
+function Hat({
+  style,
+  color,
+  gradientMap,
+}: {
+  style: Avatar['hatStyle']
+  color: string
+  gradientMap: THREE.DataTexture
+}) {
   if (style === 'none') return null
   if (style === 'cap') {
     return (
       <group position={[0, 0.5, 0]}>
         <mesh castShadow>
           <boxGeometry args={[0.75, 0.2, 0.7]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
         <mesh position={[0, -0.06, 0.4]} castShadow>
           <boxGeometry args={[0.75, 0.08, 0.22]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
       </group>
     )
@@ -224,7 +268,7 @@ function Hat({ style, color }: { style: Avatar['hatStyle']; color: string }) {
       <group position={[0, 0.45, 0]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.36, 0.36, 0.2, 8]} />
-          <meshStandardMaterial color="#ffd644" emissive="#ffd644" emissiveIntensity={0.15} metalness={0.6} roughness={0.2} />
+          <meshToonMaterial color="#ffd644" emissive="#ffd644" emissiveIntensity={0.15} gradientMap={gradientMap} />
         </mesh>
         {[0, 1, 2, 3].map((i) => (
           <mesh
@@ -237,7 +281,7 @@ function Hat({ style, color }: { style: Avatar['hatStyle']; color: string }) {
             castShadow
           >
             <coneGeometry args={[0.06, 0.2, 4]} />
-            <meshStandardMaterial color={color} />
+            <meshToonMaterial color={color} gradientMap={gradientMap} />
           </mesh>
         ))}
       </group>
@@ -248,11 +292,11 @@ function Hat({ style, color }: { style: Avatar['hatStyle']; color: string }) {
       <group position={[0, 0.25, 0]}>
         <mesh castShadow>
           <sphereGeometry args={[0.55, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial color="#ffffff" metalness={0.3} />
+          <meshToonMaterial color="#ffffff" gradientMap={gradientMap} />
         </mesh>
         <mesh position={[0, -0.1, 0.4]}>
           <boxGeometry args={[0.7, 0.28, 0.02]} />
-          <meshStandardMaterial color={color} transparent opacity={0.6} />
+          <meshToonMaterial color={color} transparent opacity={0.6} gradientMap={gradientMap} />
         </mesh>
       </group>
     )
@@ -262,11 +306,11 @@ function Hat({ style, color }: { style: Avatar['hatStyle']; color: string }) {
       <group position={[0, 0.5, 0]}>
         <mesh castShadow>
           <coneGeometry args={[0.42, 0.9, 8]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
         <mesh position={[0, -0.42, 0]} castShadow>
           <cylinderGeometry args={[0.45, 0.45, 0.08, 10]} />
-          <meshStandardMaterial color={color} />
+          <meshToonMaterial color={color} gradientMap={gradientMap} />
         </mesh>
       </group>
     )
@@ -274,13 +318,21 @@ function Hat({ style, color }: { style: Avatar['hatStyle']; color: string }) {
   return null
 }
 
-function Tail({ style, color }: { style: Avatar['tailStyle']; color: string }) {
+function Tail({
+  style,
+  color,
+  gradientMap,
+}: {
+  style: Avatar['tailStyle']
+  color: string
+  gradientMap: THREE.DataTexture
+}) {
   if (style === 'none') return null
   if (style === 'cat') {
     return (
       <mesh position={[0, -0.1, -0.25]} rotation={[-Math.PI / 3, 0, 0]} castShadow>
         <cylinderGeometry args={[0.08, 0.12, 0.7, 6]} />
-        <meshStandardMaterial color={color} />
+        <meshToonMaterial color={color} gradientMap={gradientMap} />
       </mesh>
     )
   }
@@ -288,7 +340,7 @@ function Tail({ style, color }: { style: Avatar['tailStyle']; color: string }) {
     return (
       <mesh position={[0, -0.1, -0.3]} castShadow>
         <sphereGeometry args={[0.2, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" />
+        <meshToonMaterial color="#ffffff" gradientMap={gradientMap} />
       </mesh>
     )
   }
@@ -296,7 +348,7 @@ function Tail({ style, color }: { style: Avatar['tailStyle']; color: string }) {
     return (
       <mesh position={[0, -0.15, -0.4]} rotation={[-Math.PI / 2.5, 0, 0]} castShadow>
         <coneGeometry args={[0.2, 0.8, 5]} />
-        <meshStandardMaterial color={color} />
+        <meshToonMaterial color={color} gradientMap={gradientMap} />
       </mesh>
     )
   }

@@ -1,10 +1,14 @@
 import { RigidBody } from '@react-three/rapier'
+import { useFrame } from '@react-three/fiber'
+import { useMemo, useRef } from 'react'
+import * as THREE from 'three'
 import Coin from '../Coin'
 import NPC from '../NPC'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import { Tree, Bush, Flowers, GrassTuft, Building } from '../Scenery'
+import GradientSky from '../GradientSky'
 
 const GRASS = '#6fd83e'
 const WALL_BLUE = '#2f5599'
@@ -49,9 +53,116 @@ function Walls() {
   )
 }
 
+// ─── Grid overlay — creation mode feel ───────────────────────────
+const GRID_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+const GRID_FRAG = `
+  varying vec2 vUv;
+  void main() {
+    // Thin lines every 2 units — uv maps 0..1 over 100 units, so 50 cells
+    vec2 grid50 = fract(vUv * 50.0);
+    float thinLine = step(0.97, grid50.x) + step(0.97, grid50.y);
+    thinLine = clamp(thinLine, 0.0, 1.0);
+
+    // Thick lines every 10 units — 10 cells over 100
+    vec2 grid10 = fract(vUv * 10.0);
+    float thickLine = step(0.94, grid10.x) + step(0.94, grid10.y);
+    thickLine = clamp(thickLine, 0.0, 1.0);
+
+    float alpha = thinLine * 0.08 + thickLine * 0.14;
+    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+  }
+`
+
+function GridOverlay() {
+  return (
+    <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[100, 100]} />
+      <shaderMaterial
+        vertexShader={GRID_VERT}
+        fragmentShader={GRID_FRAG}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  )
+}
+
+// ─── Creation sparkle orbiting particles ─────────────────────────
+const SPARKLE_COLORS = [
+  '#ff6ec7', '#ffdd44', '#44ffcc', '#88aaff', '#ff8844',
+  '#ccff44', '#ff44bb', '#44eeff', '#ffaa22', '#aaffaa',
+]
+
+interface SparkleParticle {
+  angle: number
+  angleSpeed: number
+  radius: number
+  yOffset: number
+  colorIdx: number
+}
+
+function CreationSparkles() {
+  const groupRef = useRef<THREE.Group>(null!)
+  const particles = useMemo<SparkleParticle[]>(() => {
+    return Array.from({ length: 20 }).map((_, i) => ({
+      angle: (i / 20) * Math.PI * 2,
+      angleSpeed: 0.4 + Math.random() * 0.8,
+      radius: 1.5 + Math.random() * 0.5,
+      yOffset: Math.random() * 1.5,
+      colorIdx: i % SPARKLE_COLORS.length,
+    }))
+  }, [])
+
+  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    particles.forEach((p, i) => {
+      const mesh = meshRefs.current[i]
+      if (!mesh) return
+      const angle = p.angle + t * p.angleSpeed
+      mesh.position.set(
+        Math.cos(angle) * p.radius,
+        1.5 + p.yOffset + Math.sin(t * 1.5 + i) * 0.2,
+        Math.sin(angle) * p.radius
+      )
+    })
+  })
+
+  return (
+    <group ref={groupRef} position={[0, 0, 6]}>
+      {particles.map((p, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { meshRefs.current[i] = el }}
+          position={[Math.cos(p.angle) * p.radius, 1.5 + p.yOffset, Math.sin(p.angle) * p.radius]}
+        >
+          <sphereGeometry args={[0.08, 6, 6]} />
+          <meshBasicMaterial color={SPARKLE_COLORS[p.colorIdx] ?? '#ffffff'} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
 export default function SandboxWorld() {
   return (
     <>
+      {/* Creative sunset sky */}
+      <GradientSky top="#1a0a30" bottom="#ff5500" radius={440} />
+
+      {/* Grid overlay — sandbox creation mode */}
+      <GridOverlay />
+
+      {/* Creation sparkle aura at spawn */}
+      <CreationSparkles />
+
       <Ground />
       <Walls />
 

@@ -57,6 +57,28 @@ export default function GradientSky({
             float h = normalize(vWorldPos + vec3(0.0, offset, 0.0)).y;
             float t = pow(max(h, 0.0), exponent);
             vec3 col = mix(bottomColor, topColor, t);
+
+            // Horizon glow — warm orange band
+            float horizonGlow = pow(1.0 - abs(normalize(vWorldPos + vec3(0.0, offset, 0.0)).y), 4.0) * 0.3;
+            col = mix(col, vec3(1.0, 0.5, 0.1), horizonGlow * 0.4);
+
+            // Sun disc + halo
+            vec3 sunDir = normalize(vec3(50.0, 45.0, 20.0));
+            vec3 viewDir = normalize(vWorldPos);
+            float sunDot = dot(viewDir, sunDir);
+
+            // Core disc
+            float sunDisc = smoothstep(0.9995, 0.9999, sunDot);
+            // Inner halo
+            float halo1 = pow(max(sunDot, 0.0), 64.0) * 0.6;
+            // Outer halo
+            float halo2 = pow(max(sunDot, 0.0), 16.0) * 0.15;
+
+            vec3 sunColor = vec3(1.0, 0.95, 0.7);
+            vec3 haloColor = mix(vec3(1.0, 0.6, 0.2), sunColor, 0.5);
+
+            col = col + sunDisc * sunColor + halo1 * haloColor + halo2 * haloColor * 0.5;
+
             gl_FragColor = vec4(col, 1.0);
           }
         `}

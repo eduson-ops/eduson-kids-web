@@ -1,11 +1,12 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import * as THREE from 'three'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
+import GradientSky from '../GradientSky'
 
 /**
  * PetSimWorld — educational remake of «Pet Simulator 99» (Roblox top-6).
@@ -164,14 +165,221 @@ function ZoneSign({ zone }: { zone: ZoneDef }) {
         <boxGeometry args={[0.3, 3, 0.3]} />
         <meshStandardMaterial color="#7a4a22" />
       </mesh>
-      {/* Буквы через маленькие шарики не делаем — пустая вывеска, цвет = зона */}
     </group>
   )
 }
 
+// ─────────────────────────────────────────────
+// Sparkle system — 40 tiny floating star particles
+// ─────────────────────────────────────────────
+
+interface SparkleData {
+  pos: [number, number, number]
+  phase: number
+  speed: number
+  driftX: number
+  driftZ: number
+  burstTimer: number
+  burstActive: boolean
+}
+
+function SparkleSystem() {
+  const count = 40
+
+  const sparkles = useMemo<SparkleData[]>(() => {
+    return Array.from({ length: count }, () => ({
+      pos: [
+        (Math.random() - 0.5) * 20,
+        Math.random() * 8,
+        (Math.random() - 0.5) * 20 - 30,
+      ] as [number, number, number],
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.8 + Math.random() * 1.2,
+      driftX: (Math.random() - 0.5) * 0.5,
+      driftZ: (Math.random() - 0.5) * 0.5,
+      burstTimer: 0,
+      burstActive: false,
+    }))
+  }, [])
+
+  const refs = useRef<Array<THREE.Mesh | null>>(Array(count).fill(null))
+  const timeRef = useRef(0)
+
+  // Burst cluster state — up to 4 extra sparkles at a random spot
+  const burstRef = useRef<{ active: boolean; pos: THREE.Vector3; timer: number }>({
+    active: false,
+    pos: new THREE.Vector3(),
+    timer: 0,
+  })
+  const burstMeshRefs = useRef<Array<THREE.Mesh | null>>([null, null, null, null])
+
+  useFrame((_, dt) => {
+    timeRef.current += dt
+
+    refs.current.forEach((mesh, i) => {
+      if (!mesh) return
+      const sp = sparkles[i]!
+      const t = timeRef.current * sp.speed + sp.phase
+      const opacity = (Math.sin(t) * 0.5 + 0.5)
+      ;(mesh.material as THREE.MeshBasicMaterial).opacity = opacity
+      mesh.visible = opacity > 0.05
+
+      // Gentle drift
+      mesh.position.x += sp.driftX * dt * 0.3
+      mesh.position.z += sp.driftZ * dt * 0.3
+      // Wrap around volume
+      if (mesh.position.x > 10) mesh.position.x = -10
+      if (mesh.position.x < -10) mesh.position.x = 10
+      if (mesh.position.z > 0) mesh.position.z = -60
+      if (mesh.position.z < -60) mesh.position.z = 0
+    })
+
+    // Random burst trigger
+    if (!burstRef.current.active && Math.random() < 0.005) {
+      burstRef.current.active = true
+      burstRef.current.timer = 0
+      burstRef.current.pos.set(
+        (Math.random() - 0.5) * 20,
+        Math.random() * 6 + 0.5,
+        (Math.random() - 0.5) * 20 - 30,
+      )
+    }
+
+    if (burstRef.current.active) {
+      burstRef.current.timer += dt
+      const bt = burstRef.current.timer
+      const alpha = bt < 0.4 ? bt / 0.4 : Math.max(0, 1 - (bt - 0.4) / 0.4)
+      burstMeshRefs.current.forEach((m, i) => {
+        if (!m) return
+        const angle = (i / 4) * Math.PI * 2
+        m.position.set(
+          burstRef.current.pos.x + Math.cos(angle) * bt * 1.5,
+          burstRef.current.pos.y + bt,
+          burstRef.current.pos.z + Math.sin(angle) * bt * 1.5,
+        )
+        ;(m.material as THREE.MeshBasicMaterial).opacity = alpha
+        m.visible = alpha > 0.01
+      })
+      if (bt > 0.8) {
+        burstRef.current.active = false
+        burstMeshRefs.current.forEach((m) => { if (m) m.visible = false })
+      }
+    }
+  })
+
+  return (
+    <>
+      {sparkles.map((sp, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { refs.current[i] = el }}
+          position={sp.pos}
+        >
+          <sphereGeometry args={[0.05, 4, 4]} />
+          <meshBasicMaterial color="#ffff00" transparent opacity={1} />
+        </mesh>
+      ))}
+      {/* Burst cluster meshes */}
+      {[0, 1, 2, 3].map((i) => (
+        <mesh
+          key={`burst-${i}`}
+          ref={(el) => { burstMeshRefs.current[i] = el }}
+          visible={false}
+          position={[0, -100, 0]}
+        >
+          <sphereGeometry args={[0.08, 4, 4]} />
+          <meshBasicMaterial color="#ffff44" transparent opacity={0} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Paw-print light patches on ground
+// ─────────────────────────────────────────────
+
+const PAW_PATCH_POSITIONS: Array<[number, number, number]> = [
+  [-4, 0.02, -5],
+  [4, 0.02, -8],
+  [-3, 0.02, -14],
+  [5, 0.02, -18],
+  [-5, 0.02, -25],
+  [3, 0.02, -30],
+  [-4, 0.02, -38],
+  [4, 0.02, -45],
+]
+
+const pawPatchVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const pawPatchFragmentShader = `
+  uniform float iTime;
+  uniform float iIndex;
+  varying vec2 vUv;
+  void main() {
+    vec2 center = vec2(0.5, 0.5);
+    // Stretch UV to make oval shape
+    vec2 stretched = vec2((vUv.x - 0.5) * 1.0, (vUv.y - 0.5) * 1.5);
+    float dist = length(stretched);
+    float fade = 1.0 - smoothstep(0.2, 0.5, dist);
+    float pulse = sin(iTime * 1.5 + iIndex * 0.8) * 0.15 + 0.45;
+    vec3 pink = vec3(1.0, 0.667, 0.733);
+    gl_FragColor = vec4(pink, fade * pulse);
+  }
+`
+
+function PawPatch({ pos, index }: { pos: [number, number, number]; index: number }) {
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+
+  const uniforms = useMemo(() => ({
+    iTime: { value: 0 },
+    iIndex: { value: index },
+  }), [index])
+
+  useFrame((_, dt) => {
+    if (matRef.current) {
+      matRef.current.uniforms.iTime!.value += dt
+    }
+  })
+
+  return (
+    <mesh position={pos} rotation={[-Math.PI / 2, 0, 0]} scale={[1.2, 0.8, 1]}>
+      <planeGeometry args={[2.5, 2.5, 1, 1]} />
+      <shaderMaterial
+        ref={matRef}
+        uniforms={uniforms}
+        vertexShader={pawPatchVertexShader}
+        fragmentShader={pawPatchFragmentShader}
+        transparent
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Main component
+// ─────────────────────────────────────────────
+
 export default function PetSimWorld() {
   return (
     <>
+      {/* Cheerful rainbow sky */}
+      <GradientSky top="#87ceeb" bottom="#ffe4b5" radius={440} />
+
+      {/* Pet area soft lighting */}
+      <pointLight color="#ffaacc" intensity={0.5} distance={8} position={[-4, 3, -10]} />
+      <pointLight color="#aaffcc" intensity={0.5} distance={8} position={[4, 3, -20]} />
+      <pointLight color="#ffffaa" intensity={0.5} distance={8} position={[-4, 3, -35]} />
+      <pointLight color="#ffaacc" intensity={0.5} distance={8} position={[4, 3, -50]} />
+
       {ZONES.map((z, i) => (
         <Zone key={`z${i}`} {...z} />
       ))}
@@ -192,6 +400,14 @@ export default function PetSimWorld() {
       {/* Блоки + монеты в каждой зоне */}
       {ZONES.map((z, i) => (
         <ZoneBlocks key={`b${i}`} zone={z} i={i} />
+      ))}
+
+      {/* Sparkle particles */}
+      <SparkleSystem />
+
+      {/* Paw-print light patches */}
+      {PAW_PATCH_POSITIONS.map((pos, i) => (
+        <PawPatch key={`paw${i}`} pos={pos} index={i} />
       ))}
 
       {/* Питомцы — GltfMonsters по зонам */}

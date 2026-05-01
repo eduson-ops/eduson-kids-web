@@ -8,6 +8,7 @@ import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import { Tree, Bush, Mushroom, Rock, GrassTuft } from '../Scenery'
 import { PUBLIC_BASE } from '../../lib/publicPath'
+import GradientSky from '../GradientSky'
 
 // Kenney Graveyard — CC0 (тыквы и фонари для атмосферы)
 function GraveyardProp({
@@ -73,8 +74,10 @@ function useDayNight(): { phase: 'day' | 'night'; t: number } {
 }
 
 function Sky({ phase }: { phase: 'day' | 'night' }) {
-  const color = phase === 'day' ? '#FFD7A8' : '#0c0a2a'
-  return <color attach="background" args={[color]} />
+  if (phase === 'night') {
+    return <GradientSky top="#000308" bottom="#050e1a" radius={440} />
+  }
+  return <color attach="background" args={['#FFD7A8']} />
 }
 
 function DynamicLighting({ phase }: { phase: 'day' | 'night' }) {
@@ -96,9 +99,193 @@ function DynamicLighting({ phase }: { phase: 'day' | 'night' }) {
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
+      {/* Moonlight — cool blue light from opposite direction to sun, only at night */}
+      {phase === 'night' && (
+        <directionalLight
+          position={[-20, 35, -10]}
+          intensity={0.6}
+          color="#c8d8ff"
+          castShadow={false}
+        />
+      )}
     </>
   )
 }
+
+/** Moon disc + point light, only shown at night */
+function Moon({ phase }: { phase: 'day' | 'night' }) {
+  if (phase !== 'night') return null
+  return (
+    <group position={[-60, 55, -80]}>
+      <mesh>
+        <sphereGeometry args={[2.5, 16, 16]} />
+        <meshBasicMaterial color="#fffde8" />
+      </mesh>
+      <pointLight color="#c8d8ff" intensity={1.5} distance={200} />
+    </group>
+  )
+}
+
+// ─── Bioluminescent ground patches ──────────────────────────────────────────
+
+const BIOLUMIN_VSHADER = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const BIOLUMIN_FSHADER = `
+  uniform vec3 uColor;
+  uniform float uTime;
+  varying vec2 vUv;
+  void main() {
+    float d = length(vUv - 0.5) * 2.0;
+    float alpha = clamp(1.0 - d, 0.0, 1.0);
+    // subtle pulse
+    float pulse = 0.75 + 0.25 * sin(uTime * 1.8);
+    gl_FragColor = vec4(uColor * pulse, alpha * 0.82);
+  }
+`
+
+const PATCH_POSITIONS: [number, number, number, number, number][] = [
+  // [x, z, rotY, scaleX, scaleZ]
+  [-8,  6,  0.3, 1.8, 1.4],
+  [9,  -5,  1.1, 1.5, 2.0],
+  [-5, -10, 0.7, 2.0, 1.6],
+  [12,  3,  0.2, 1.2, 1.2],
+  [-13, -3, 1.5, 1.6, 1.8],
+  [4,   12, 0.9, 1.4, 1.0],
+  [-11,  9, 0.4, 1.0, 1.5],
+  [7,  -13, 1.2, 1.8, 1.3],
+  [-4,   7, 0.0, 1.1, 1.1],
+  [15,  -8, 0.6, 2.0, 1.4],
+  [-7, -14, 1.0, 1.3, 1.7],
+  [10,  10, 0.8, 1.5, 1.5],
+  [-15,  4, 0.3, 1.2, 1.0],
+  [3,  -8,  0.5, 1.0, 1.8],
+]
+
+// alternating cyan / purple
+const PATCH_COLORS = ['#00ffcc', '#aa00ff']
+
+function BioluminescentPatches({ phase }: { phase: 'day' | 'night' }) {
+  const timeRef = useRef(0)
+
+  // We hold one ref array of ShaderMaterial per patch
+  const matsRef = useRef<(THREE.ShaderMaterial | null)[]>(
+    Array(PATCH_POSITIONS.length).fill(null)
+  )
+
+  useFrame((_, dt) => {
+    if (phase !== 'night') return
+    timeRef.current += dt
+    matsRef.current.forEach((mat) => {
+      if (mat) mat.uniforms.uTime!.value = timeRef.current
+    })
+  })
+
+  if (phase !== 'night') return null
+
+  return (
+    <>
+      {PATCH_POSITIONS.map((entry, i) => {
+        const [x, z, rotY, sx, sz] = entry
+        const hexColor = PATCH_COLORS[i % 2]
+        const color = new THREE.Color(hexColor)
+
+        return (
+          <mesh
+            key={i}
+            position={[x, 0.02, z]}
+            rotation={[-Math.PI / 2, 0, rotY]}
+            scale={[sx, sz, 1]}
+          >
+            <planeGeometry args={[1, 1]} />
+            <shaderMaterial
+              ref={(mat) => { matsRef.current[i] = mat }}
+              vertexShader={BIOLUMIN_VSHADER}
+              fragmentShader={BIOLUMIN_FSHADER}
+              uniforms={{
+                uColor: { value: color },
+                uTime: { value: 0 },
+              }}
+              transparent
+              depthWrite={false}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        )
+      })}
+    </>
+  )
+}
+
+// ─── Fireflies ───────────────────────────────────────────────────────────────
+
+interface FireflyData {
+  cx: number
+  cz: number
+  cy: number
+  radius: number
+  speed: number
+  phase: number
+  vertPhase: number
+}
+
+const FIREFLY_COUNT = 30
+const FIREFLY_LIGHT_COUNT = 8 // only first N get a point light
+
+const fireflyData: FireflyData[] = Array.from({ length: FIREFLY_COUNT }, (_, i) => {
+  const seed = i * 137.508
+  const pseudo = (n: number) => ((Math.sin(n) * 43758.5453) % 1 + 1) % 1
+  return {
+    cx: (pseudo(seed) - 0.5) * 28,
+    cz: (pseudo(seed + 1) - 0.5) * 28,
+    cy: 0.5 + pseudo(seed + 2) * 2.5,
+    radius: 1.0 + pseudo(seed + 3) * 2.0,
+    speed: 0.3 + pseudo(seed + 4) * 0.5,
+    phase: pseudo(seed + 5) * Math.PI * 2,
+    vertPhase: pseudo(seed + 6) * Math.PI * 2,
+  }
+})
+
+function Fireflies({ phase }: { phase: 'day' | 'night' }) {
+  const groupRef = useRef<THREE.Group>(null!)
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current || phase !== 'night') return
+    const t = clock.getElapsedTime()
+    const children = groupRef.current.children
+    fireflyData.forEach((fd, i) => {
+      const mesh = children[i]
+      if (!mesh) return
+      const angle = t * fd.speed + fd.phase
+      mesh.position.x = fd.cx + Math.cos(angle) * fd.radius
+      mesh.position.z = fd.cz + Math.sin(angle * 0.7) * fd.radius
+      mesh.position.y = fd.cy + Math.sin(t * 0.8 + fd.vertPhase) * 0.4
+    })
+  })
+
+  if (phase !== 'night') return null
+
+  return (
+    <group ref={groupRef}>
+      {fireflyData.map((fd, i) => (
+        <mesh key={i} position={[fd.cx, fd.cy, fd.cz]}>
+          <sphereGeometry args={[0.06, 6, 6]} />
+          <meshBasicMaterial color="#ffffaa" />
+          {i < FIREFLY_LIGHT_COUNT && (
+            <pointLight intensity={0.3} distance={2} color="#ffffaa" />
+          )}
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// ─── Components unchanged from original ──────────────────────────────────────
 
 function Campfire() {
   const flame = useRef<THREE.Group>(null!)
@@ -216,6 +403,15 @@ function Ground() {
   )
 }
 
+// ─── NightFog — dark atmospheric fog override ─────────────────────────────────
+
+function NightFog({ phase }: { phase: 'day' | 'night' }) {
+  if (phase !== 'night') return null
+  return <fog attach="fog" args={['#020810', 30, 120]} />
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+
 export default function NightsWorld() {
   const { phase, t } = useDayNight()
 
@@ -252,8 +448,13 @@ export default function NightsWorld() {
   return (
     <>
       <Sky phase={phase} />
+      <NightFog phase={phase} />
       <DynamicLighting phase={phase} />
+      <Moon phase={phase} />
       <Ground />
+
+      <BioluminescentPatches phase={phase} />
+      <Fireflies phase={phase} />
 
       <Campfire />
       <Cabin />

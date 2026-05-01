@@ -1,11 +1,12 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
+import GradientSky from '../GradientSky'
 
 /**
  * FashionWorld — educational remake of «Dress to Impress» (Roblox top-5, 2024).
@@ -132,11 +133,194 @@ function Backdrop() {
   )
 }
 
+// ─────────────────────────────────────────────
+// Runway spotlight beam cones
+// ─────────────────────────────────────────────
+
+const beamVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const beamFragmentShader = `
+  varying vec2 vUv;
+  void main() {
+    // vUv.y = 0 at bottom (wide end), 1 at top (narrow end) for a cone pointing DOWN
+    // Fade from alpha 0.4 at top to 0 at bottom
+    float alpha = vUv.y * 0.4;
+    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+  }
+`
+
+// Beam positions along the runway (x, y-top, z)
+const BEAM_POSITIONS: Array<[number, number, number]> = [
+  [0, 9, -8],
+  [0, 9, -18],
+  [0, 9, -28],
+  [0, 9, -38],
+]
+
+function RunwayBeams() {
+  const groupRefs = useRef<Array<THREE.Group | null>>([null, null, null, null])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    groupRefs.current.forEach((g, i) => {
+      if (!g) return
+      // Sweep ±15° around Y with sin wave, different phase per beam
+      g.rotation.y = Math.sin(t * 0.5 + i * 1.2) * (Math.PI / 12)
+    })
+  })
+
+  return (
+    <>
+      {BEAM_POSITIONS.map((pos, i) => (
+        <group
+          key={`beam-${i}`}
+          ref={(el) => { groupRefs.current[i] = el }}
+          position={pos}
+        >
+          {/* Cone points down: rotate π so tip is at top, base at bottom */}
+          <mesh rotation={[Math.PI, 0, 0]}>
+            <coneGeometry args={[3, 18, 16, 1, true]} />
+            <shaderMaterial
+              vertexShader={beamVertexShader}
+              fragmentShader={beamFragmentShader}
+              transparent
+              depthWrite={false}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        </group>
+      ))}
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Glitter floor shader on runway surface
+// ─────────────────────────────────────────────
+
+const glitterVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const glitterFragmentShader = `
+  uniform float iTime;
+  varying vec2 vUv;
+
+  float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5);
+  }
+
+  void main() {
+    vec2 grid = floor(vUv * 80.0);
+    float h = hash(grid);
+    // Animate threshold per sparkle so each one twinkles independently
+    float threshold = sin(iTime * 3.0 + h * 6.28) * 0.02 + 0.97;
+    float sparkle = h > threshold ? 1.0 : 0.0;
+
+    // Gold-white mix
+    vec3 sparkleColor = mix(vec3(1.0, 0.9, 0.4), vec3(1.0, 1.0, 1.0), h);
+    vec3 base = vec3(0.133, 0.0, 0.267); // #220044
+    vec3 col = base + sparkle * sparkleColor;
+
+    gl_FragColor = vec4(col, 0.6);
+  }
+`
+
+function GlitterFloor() {
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+
+  const uniforms = useMemo(() => ({
+    iTime: { value: 0 },
+  }), [])
+
+  useFrame((_, dt) => {
+    if (matRef.current) {
+      matRef.current.uniforms.iTime!.value += dt
+    }
+  })
+
+  return (
+    // Duplicate runway surface at y=0.01
+    <mesh position={[0, 0.11, -20]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[6, 50, 1, 1]} />
+      <shaderMaterial
+        ref={matRef}
+        uniforms={uniforms}
+        vertexShader={glitterVertexShader}
+        fragmentShader={glitterFragmentShader}
+        transparent
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Neon runway edge lights
+// ─────────────────────────────────────────────
+
+// Every 2 units along runway edges (z from -2 to -44, step 2)
+function buildEdgeLightPositions(): Array<{ pos: [number, number, number]; color: string }> {
+  const lights: Array<{ pos: [number, number, number]; color: string }> = []
+  for (let z = -2; z >= -44; z -= 2) {
+    const idx = Math.floor(Math.abs(z) / 2)
+    const color = idx % 2 === 0 ? '#ff44cc' : '#44ffee'
+    lights.push({ pos: [-3.2, 0.12, z], color })
+    lights.push({ pos: [3.2, 0.12, z], color })
+  }
+  return lights
+}
+
+const EDGE_LIGHTS = buildEdgeLightPositions()
+
+function NeonEdgeLights() {
+  return (
+    <>
+      {EDGE_LIGHTS.map(({ pos, color }, i) => (
+        <group key={`edge-${i}`} position={pos}>
+          <mesh>
+            <sphereGeometry args={[0.1, 6, 6]} />
+            <meshBasicMaterial color={color} />
+          </mesh>
+          <pointLight color={color} intensity={0.4} distance={3} />
+        </group>
+      ))}
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────
+// Main component
+// ─────────────────────────────────────────────
+
 export default function FashionWorld() {
   return (
     <>
+      {/* Glamour sky */}
+      <GradientSky top="#1a0030" bottom="#8800cc" radius={440} />
+
       <Stage />
       <Backdrop />
+
+      {/* Glitter floor overlay on runway */}
+      <GlitterFloor />
+
+      {/* Runway spotlight beam cones */}
+      <RunwayBeams />
+
+      {/* Neon edge lights along runway */}
+      <NeonEdgeLights />
 
       {/* 4 манекена по бокам подиума — каждый в своей теме */}
       <Mannequin pos={[-5, 0, -5]}  dressColor="#6B5CE7" accent="#FFD43C" />

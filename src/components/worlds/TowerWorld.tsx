@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
+import GradientSky from '../GradientSky'
 
 /**
  * TowerWorld — кап-стон для модуля M4 «Функции и повторы».
@@ -84,12 +85,14 @@ function StraightSection({ y, color, seed }: { y: number; color: string; seed: n
           <meshStandardMaterial color={color} roughness={0.85} />
         </mesh>
       </RigidBody>
+      <pointLight color="#4488ff" intensity={0.6} distance={5} position={[offsetX - 1.5, y - 0.5, 0]} />
       <RigidBody type="fixed" colliders="cuboid" position={[offsetX + 1.8, y, 0]}>
         <mesh castShadow receiveShadow>
           <boxGeometry args={[2, 0.5, 4]} />
           <meshStandardMaterial color={color} roughness={0.85} />
         </mesh>
       </RigidBody>
+      <pointLight color="#4488ff" intensity={0.6} distance={5} position={[offsetX + 1.8, y - 0.5, 0]} />
     </>
   )
 }
@@ -105,12 +108,15 @@ function ZigzagSection({ y, color, seed }: { y: number; color: string; seed: num
   return (
     <>
       {slots.map(([x, z], i) => (
-        <RigidBody key={i} type="fixed" colliders="cuboid" position={[x, y + i * 0.6, z]}>
-          <mesh castShadow receiveShadow>
-            <boxGeometry args={[1.6, 0.4, 1.6]} />
-            <meshStandardMaterial color={color} roughness={0.85} />
-          </mesh>
-        </RigidBody>
+        <group key={i}>
+          <RigidBody type="fixed" colliders="cuboid" position={[x, y + i * 0.6, z]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1.6, 0.4, 1.6]} />
+              <meshStandardMaterial color={color} roughness={0.85} />
+            </mesh>
+          </RigidBody>
+          <pointLight color="#4488ff" intensity={0.6} distance={5} position={[x, y + i * 0.6 - 0.4, z]} />
+        </group>
       ))}
     </>
   )
@@ -132,6 +138,7 @@ function MovingSection({ y, seed }: { y: number; seed: number }) {
           <meshStandardMaterial color={PAL.moving} roughness={0.6} metalness={0.2} />
         </mesh>
       </RigidBody>
+      <pointLight color="#4488ff" intensity={0.6} distance={5} position={[0, -0.4, 0]} />
     </group>
   )
 }
@@ -151,6 +158,7 @@ function RotatingSection({ y, seed }: { y: number; seed: number }) {
           <meshStandardMaterial color={PAL.rotating} roughness={0.5} />
         </mesh>
       </RigidBody>
+      <pointLight color="#4488ff" intensity={0.6} distance={5} position={[0, -0.3, 0]} />
     </group>
   )
 }
@@ -165,6 +173,7 @@ function SpikesSection({ y, color, seed }: { y: number; color: string; seed: num
           <meshStandardMaterial color={color} roughness={0.85} />
         </mesh>
       </RigidBody>
+      <pointLight color="#4488ff" intensity={0.6} distance={5} position={[0, y - 0.4, 0]} />
       {/* 2 патрулирующих врага в качестве "шипов" */}
       <Enemy pos={[-1.5 + rand(), y + 0.8, 0]} patrolX={2} color={PAL.spike} />
       <Enemy pos={[1.5 - rand(), y + 0.8, 0.5]} patrolX={1.5} color="#ff8c1a" />
@@ -218,6 +227,84 @@ function TowerBase() {
   )
 }
 
+// ─── Cloud Band (mid-height misty plane) ─────────────────────
+const cloudVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const cloudFragmentShader = `
+  uniform float iTime;
+  varying vec2 vUv;
+  void main() {
+    float wisp = sin(vUv.x * 12.0 + iTime * 0.3) * sin(vUv.y * 8.0 + iTime * 0.2);
+    float alpha = clamp(wisp * 0.5 + 0.5, 0.0, 1.0) * 0.12;
+    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+  }
+`
+
+function CloudBand() {
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const uniforms = useMemo(
+    () => ({ iTime: { value: 0.0 } }),
+    []
+  )
+  useFrame(({ clock }) => {
+    if (matRef.current) {
+      matRef.current.uniforms.iTime!.value = clock.elapsedTime
+    }
+  })
+  return (
+    <mesh position={[0, 15, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[200, 200]} />
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={cloudVertexShader}
+        fragmentShader={cloudFragmentShader}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </mesh>
+  )
+}
+
+// ─── Lightning Flash ─────────────────────────────────────────
+function LightningFlash() {
+  const ambientRef = useRef<THREE.AmbientLight>(null!)
+  const pointRef = useRef<THREE.PointLight>(null!)
+  const intensity = useRef(0.0)
+
+  useFrame(() => {
+    // Random trigger ~0.1% chance per frame
+    if (Math.random() < 0.001) {
+      intensity.current = 4.0
+    }
+    // Exponential decay
+    intensity.current *= 0.92
+    const v = intensity.current
+    if (ambientRef.current) {
+      ambientRef.current.intensity = v
+    }
+    if (pointRef.current) {
+      pointRef.current.intensity = v * 3.0
+    }
+  })
+
+  const topY = BASE_Y + SECTION_COUNT * SECTION_HEIGHT + 4
+
+  return (
+    <>
+      <ambientLight ref={ambientRef} intensity={0} color="#aaccff" />
+      <pointLight ref={pointRef} color="#aaccff" intensity={0} distance={60} position={[0, topY, 0]} />
+    </>
+  )
+}
+
 // ─── World Component ─────────────────────────────────────────
 export default function TowerWorld() {
   const sections = useMemo(() => buildSections(SEED), [])
@@ -225,6 +312,18 @@ export default function TowerWorld() {
 
   return (
     <>
+      {/* Dramatic stormy sky */}
+      <GradientSky top="#060410" bottom="#1a1040" radius={440} />
+
+      {/* Dense ground fog */}
+      <fog attach="fog" args={['#050315', 8, 80]} />
+
+      {/* Lightning flash effect */}
+      <LightningFlash />
+
+      {/* Cloud band at mid-height */}
+      <CloudBand />
+
       <Ground />
       <TowerBase />
       <TowerCore />

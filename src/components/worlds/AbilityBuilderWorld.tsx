@@ -1,12 +1,13 @@
 import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import * as THREE from 'three'
 import GoalTrigger from '../GoalTrigger'
 import { Tree, Bush } from '../Scenery'
 import { addCoin, shakeCamera } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
+import GradientSky from '../GradientSky'
 
 /**
  * AbilityBuilderWorld — educational remake of «Blox Fruits» (без grind).
@@ -28,6 +29,201 @@ import { SFX } from '../../lib/audio'
 const PROJECTILE_SPEED = 22
 const PROJECTILE_LIFETIME = 2
 const DUMMY_RESPAWN = 1.2
+
+const ORB_COLORS = [
+  '#ff0040', '#0080ff', '#00ff80', '#ff8000',
+  '#ff00ff', '#00ffff', '#ffff00', '#ff4080',
+]
+
+// 8 orb positions arranged in a ring around the arena
+const ORB_POSITIONS: Array<[number, number, number]> = [
+  [-8, 2.5, -8],
+  [0, 3.0, -12],
+  [8, 2.5, -8],
+  [12, 2.8, 0],
+  [8, 2.5, 8],
+  [0, 3.2, 12],
+  [-8, 2.5, 8],
+  [-12, 2.8, 0],
+]
+
+// Energy grid floor shader
+const GRID_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+const GRID_FRAG = `
+  uniform float uTime;
+  varying vec2 vUv;
+  void main() {
+    float row = floor(vUv.y * 20.0);
+    float offset = mod(row * 0.5, 1.0);
+    float col = mod(vUv.x * 20.0 + offset, 1.0);
+    float lineH = smoothstep(0.0, 0.04, col) * (1.0 - smoothstep(0.96, 1.0, col));
+    float lineV = smoothstep(0.0, 0.04, mod(vUv.y * 20.0, 1.0)) * (1.0 - smoothstep(0.96, 1.0, mod(vUv.y * 20.0, 1.0)));
+    float grid = 1.0 - (lineH * lineV);
+    float pulse = 0.5 + 0.5 * sin(uTime * 1.5 + vUv.x * 8.0 + vUv.y * 6.0);
+    vec3 col3 = mix(vec3(0.05, 0.1, 0.3), vec3(0.4, 0.6, 1.0), grid * 0.9);
+    gl_FragColor = vec4(col3, grid * 0.15 * (0.7 + 0.3 * pulse));
+  }
+`
+
+// Power orb glow shader
+const ORB_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+const ORB_FRAG = `
+  uniform vec3 uColor;
+  uniform float uPulse;
+  varying vec2 vUv;
+  void main() {
+    float d = 1.0 - length(vUv - 0.5) * 2.0;
+    d = max(d, 0.0);
+    float core = pow(d, 1.5);
+    float glow = pow(d, 0.4) * 0.5;
+    float brightness = (core + glow) * uPulse;
+    gl_FragColor = vec4(uColor * brightness, d * 0.9);
+  }
+`
+
+// Activation ring shader
+const RING_FRAG = `
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  void main() {
+    gl_FragColor = vec4(uColor, uOpacity);
+  }
+`
+const RING_VERT = `
+  void main() {
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+function EnergyGrid() {
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const uniforms = useMemo(
+    () => ({ uTime: { value: 0 } }),
+    []
+  )
+  useFrame(({ clock }) => {
+    if (matRef.current) matRef.current.uniforms.uTime!.value = clock.elapsedTime
+  })
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+      <planeGeometry args={[60, 60]} />
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={GRID_VERT}
+        fragmentShader={GRID_FRAG}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  )
+}
+
+function PowerOrb({ index, color, position }: { index: number; color: string; position: [number, number, number] }) {
+  const meshRef = useRef<THREE.Mesh>(null!)
+  const ringRef = useRef<THREE.Mesh>(null!)
+  const ringMatRef = useRef<THREE.ShaderMaterial>(null!)
+  const lightRef = useRef<THREE.PointLight>(null!)
+
+  const orbUniforms = useMemo(
+    () => ({
+      uColor: { value: new THREE.Color(color) },
+      uPulse: { value: 1.0 },
+    }),
+    [color]
+  )
+  const ringUniforms = useMemo(
+    () => ({
+      uColor: { value: new THREE.Color(color) },
+      uOpacity: { value: 0.6 },
+    }),
+    [color]
+  )
+
+  // Phase offset so orbs animate independently
+  const phase = index * (Math.PI * 2 / 8)
+  const ringPhase = useRef(phase)
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime
+    if (meshRef.current) {
+      // Bob up/down
+      meshRef.current.position.y = position[1] + Math.sin(t * 1.2 + phase) * 0.4
+      // Slow orbit around arena center — offset angle per orb
+      const baseAngle = Math.atan2(position[2], position[0])
+      const orbitAngle = baseAngle + t * 0.15
+      const radius = Math.hypot(position[0], position[2])
+      meshRef.current.position.x = Math.cos(orbitAngle) * radius
+      meshRef.current.position.z = Math.sin(orbitAngle) * radius
+    }
+    if (orbUniforms.uColor) {
+      orbUniforms.uPulse.value = 0.7 + 0.3 * Math.sin(t * 3.0 + phase)
+    }
+    if (lightRef.current && meshRef.current) {
+      lightRef.current.position.copy(meshRef.current.position)
+    }
+
+    // Activation ring: scale 1→3, opacity 0.6→0, then reset
+    ringPhase.current += 1 / 60 // approx per-frame increment
+    const ringT = (ringPhase.current % 2) / 2 // 0..1 over 2 seconds
+    if (ringRef.current) {
+      const sc = 1 + ringT * 2
+      ringRef.current.scale.setScalar(sc)
+      if (meshRef.current) {
+        ringRef.current.position.copy(meshRef.current.position)
+      }
+    }
+    if (ringMatRef.current) {
+      ringMatRef.current.uniforms.uOpacity!.value = 0.6 * (1 - ringT)
+    }
+  })
+
+  return (
+    <>
+      <mesh ref={meshRef} position={position}>
+        <sphereGeometry args={[0.4, 16, 16]} />
+        <shaderMaterial
+          vertexShader={ORB_VERT}
+          fragmentShader={ORB_FRAG}
+          uniforms={orbUniforms}
+          transparent
+          depthWrite={false}
+        />
+      </mesh>
+      <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]} position={position}>
+        <torusGeometry args={[0.6, 0.04, 8, 32]} />
+        <shaderMaterial
+          ref={ringMatRef}
+          vertexShader={RING_VERT}
+          fragmentShader={RING_FRAG}
+          uniforms={ringUniforms}
+          transparent
+          depthWrite={false}
+        />
+      </mesh>
+      <pointLight
+        ref={lightRef}
+        color={color}
+        intensity={0.8}
+        distance={6}
+        decay={2}
+        position={position}
+      />
+    </>
+  )
+}
 
 function Ground() {
   return (
@@ -260,8 +456,18 @@ export default function AbilityBuilderWorld() {
 
   return (
     <>
+      {/* Power sky */}
+      <GradientSky top="#000a30" bottom="#003090" radius={440} />
+
       <Ground />
+      {/* Energy grid overlay on floor */}
+      <EnergyGrid />
       <Arena />
+
+      {/* 8 power orbs floating around arena */}
+      {ORB_POSITIONS.map((pos, i) => (
+        <PowerOrb key={i} index={i} color={ORB_COLORS[i] ?? '#ffffff'} position={pos} />
+      ))}
 
       {/* 6 манекенов */}
       {DUMMY_POSITIONS.map((pos, i) => {

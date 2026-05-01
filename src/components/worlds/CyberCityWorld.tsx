@@ -77,7 +77,7 @@ function HoloGrid() {
   const matRef = useRef<HoloGridMaterial>(null!)
   useFrame(({ clock }) => {
     if (matRef.current) {
-      matRef.current.uniforms.iTime.value = clock.getElapsedTime()
+      matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
     }
   })
   return (
@@ -117,16 +117,16 @@ function Rain() {
     if (!mesh) return
     for (let i = 0; i < RAIN_COUNT; i++) {
       const b = i * 4
-      drops[b + 1] -= drops[b + 3] * dt
+      drops[b + 1]! -= drops[b + 3]! * dt
       // slight drift
-      drops[b]     += (Math.random() - 0.5) * 0.02
-      drops[b + 2] += (Math.random() - 0.5) * 0.02
-      if (drops[b + 1] < RAIN_BOTTOM) {
+      drops[b]!     += (Math.random() - 0.5) * 0.02
+      drops[b + 2]! += (Math.random() - 0.5) * 0.02
+      if (drops[b + 1]! < RAIN_BOTTOM) {
         drops[b + 1] = RAIN_TOP
         drops[b]     = (Math.random() - 0.5) * RAIN_AREA_X
         drops[b + 2] = (Math.random() - 0.5) * RAIN_AREA_Z - 55
       }
-      dummy.position.set(drops[b], drops[b + 1], drops[b + 2])
+      dummy.position.set(drops[b]!, drops[b + 1]!, drops[b + 2]!)
       dummy.scale.set(1, 1, 1)
       dummy.updateMatrix()
       mesh.setMatrixAt(i, dummy.matrix)
@@ -326,7 +326,7 @@ function NeonSign({
 }) {
   const mat = useRef<THREE.MeshStandardMaterial>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
-  const freq = PULSE_FREQS[freqIdx % PULSE_FREQS.length]
+  const freq = PULSE_FREQS[freqIdx % PULSE_FREQS.length]!
   useFrame((_, dt) => {
     phase.current += dt * freq
     if (mat.current) {
@@ -440,7 +440,13 @@ export default function CyberCityWorld() {
   return (
     <>
       {bg}
+      {/* ── Dark cyberpunk sky override (overrides GameScene GradientSky) ── */}
+      <GradientSky top="#0d0020" bottom="#1a0035" radius={440} />
       {nightLights}
+      {/* ── Holographic ground grid ── */}
+      <HoloGrid />
+      {/* ── Cyberpunk rain ── */}
+      <Rain />
       <Streets />
       <CityBounds />
 
@@ -508,13 +514,13 @@ export default function CyberCityWorld() {
       <SkyBridge pos={[0, 10.35, -77]} length={14} axis="z" neon={NEON_CYAN} />
 
       {/* ═══ NEON SIGNS ═══ */}
-      <NeonSign pos={[-32, 20, -5.95]} size={[8, 4]} color={NEON_PINK} />
-      <NeonSign pos={[32, 16, -5.95]} size={[8, 3]} color={NEON_BLUE} />
-      <NeonSign pos={[-32, 12, -33.95]} size={[8, 3]} color={NEON_PURPLE} rotY={Math.PI} />
-      <NeonSign pos={[0, 24, -5.95]} size={[6, 3]} color={NEON_YELLOW} />
-      <NeonSign pos={[0, 10, -58.95]} size={[6, 2.5]} color={NEON_CYAN} />
-      <NeonSign pos={[9.05, 20, -95]} size={[5, 3]} color={NEON_RED} rotY={-Math.PI / 2} />
-      <NeonSign pos={[-9.05, 18, -95]} size={[5, 3]} color={NEON_RED} rotY={Math.PI / 2} />
+      <NeonSign pos={[-32, 20, -5.95]} size={[8, 4]} color={NEON_PINK}   freqIdx={0} />
+      <NeonSign pos={[32, 16, -5.95]}  size={[8, 3]} color={NEON_BLUE}   freqIdx={1} />
+      <NeonSign pos={[-32, 12, -33.95]} size={[8, 3]} color={NEON_PURPLE} rotY={Math.PI} freqIdx={2} />
+      <NeonSign pos={[0, 24, -5.95]}   size={[6, 3]} color={NEON_YELLOW} freqIdx={3} />
+      <NeonSign pos={[0, 10, -58.95]}  size={[6, 2.5]} color={NEON_CYAN} freqIdx={0} />
+      <NeonSign pos={[9.05, 20, -95]}  size={[5, 3]} color={NEON_RED}    rotY={-Math.PI / 2} freqIdx={1} />
+      <NeonSign pos={[-9.05, 18, -95]} size={[5, 3]} color={NEON_RED}    rotY={Math.PI / 2}  freqIdx={2} />
 
       {/* ═══ MOVING BILLBOARD OBSTACLES (mid-air parkour hazard) ═══ */}
       <MovingBillboard startX={0} y={5} z={-20} />

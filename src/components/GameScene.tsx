@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { KeyboardControls } from '@react-three/drei'
+import { KeyboardControls, SoftShadows } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import Player from './Player'
 import Sun from './Sun'
@@ -29,12 +29,13 @@ import FocusedObjectIndicator from './FocusedObjectIndicator'
 import WorldAdditions from './WorldAdditions'
 import WorldOverridesApplier from './WorldOverridesApplier'
 import ToonOverride from './ToonOverride'
+import GroundOverride from './GroundOverride'
 import PostFX from './PostFX'
 import ScriptGhosts from './ScriptGhosts'
 import { getWorldTargets } from './worlds/scriptableTargets'
 import type { GameMeta } from '../lib/games'
 import type { Avatar } from '../lib/avatars'
-import { getPhysicsTimestep, getShadowMapSize } from '../lib/deviceTier'
+import { getPhysicsTimestep, getShadowMapSize, canPostfx } from '../lib/deviceTier'
 
 // Размер теневой карты берём из централизованного deviceTier (256/512/1024/2048).
 const SHADOW_MAP_SIZE = getShadowMapSize()
@@ -77,6 +78,7 @@ export default function GameScene({ game, avatar }: Props) {
         // PointerLock — сцена становится непригодной.
         onContextMenu={(e) => e.preventDefault()}
       >
+        {canPostfx() && <SoftShadows size={12} samples={12} focus={0.5} />}
         {/* Градиентное голубое небо через shader — всегда голубое */}
         <GradientSky top="#3d88ff" bottom="#b8e1ff" />
         {/* Pixel-voxel облака, медленно плывут */}
@@ -88,7 +90,7 @@ export default function GameScene({ game, avatar }: Props) {
 
         {/* Освещение: тёплое солнце + голубая заливка тени + сильный ambient.
             Избегаем "чёрного силуэта" персонажа когда он стоит между камерой и солнцем. */}
-        <ambientLight intensity={0.9} />
+        <ambientLight intensity={0.75} />
         <hemisphereLight args={['#bfe4ff', '#5bc87d', 0.55]} />
         <directionalLight
           position={SUN_POS}
@@ -99,15 +101,17 @@ export default function GameScene({ game, avatar }: Props) {
           shadow-mapSize-height={SHADOW_MAP_SIZE}
           shadow-camera-near={0.5}
           shadow-camera-far={120}
-          shadow-camera-left={-30}
-          shadow-camera-right={30}
-          shadow-camera-top={30}
-          shadow-camera-bottom={-30}
-          shadow-bias={-0.0001}
-          shadow-normalBias={0.02}
+          shadow-camera-left={-40}
+          shadow-camera-right={40}
+          shadow-camera-top={40}
+          shadow-camera-bottom={-40}
+          shadow-bias={-0.00005}
+          shadow-normalBias={0.03}
         />
         {/* Контровая подсветка с противоположной стороны — тень не чернеет */}
         <directionalLight position={FILL_LIGHT_POS} intensity={0.45} color="#b0d8ff" />
+        {/* Subtle top-down rim for character readability */}
+        <directionalLight position={[0, 30, -40]} intensity={0.25} color="#e8f4ff" />
 
         <Physics gravity={[0, -25, 0]} timeStep={PHYSICS_TIMESTEP}>
           <UniversalClickCatcher worldId={game.id}>
@@ -135,6 +139,8 @@ export default function GameScene({ game, avatar }: Props) {
         <WorldOverridesApplier worldId={game.id} />
         {/* Cel / toon shading — заменяет MeshStandardMaterial на MeshToonMaterial */}
         <ToonOverride />
+        {/* Procedural noise-variation shader for large ground planes */}
+        <GroundOverride />
         <PostFX />
         <CameraController />
         <FocusedObjectIndicator />

@@ -2,6 +2,7 @@ import { RigidBody, type RapierRigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { Html, useGLTF } from '@react-three/drei'
 import { useMemo, useRef, useState } from 'react'
+import * as THREE from 'three'
 import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
@@ -9,6 +10,7 @@ import { Tree, Bush, ParkedCar } from '../Scenery'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
 import { PUBLIC_BASE } from '../../lib/publicPath'
+import GradientSky from '../GradientSky'
 
 // Kenney Mini Market CC0 — атмосфера магазин-империи
 function MarketProp({
@@ -58,6 +60,149 @@ const BASE_COLOR = '#3d3148'
 const PATH_COLOR = '#ff9454'
 const COLORS = ['#FFD43C', '#FFB4C8', '#9FE8C7', '#A9D8FF', '#c879ff']
 const LABELS = ['💰 БАНК', '🍔 ФАСТФУД', '🎮 АРКАДА', '💎 АЛМАЗЫ', '🚀 РАКЕТЫ']
+
+// ─── Falling Money Particles ──────────────────────────────────────
+function MoneyParticle({ index: _index }: { index: number }) {
+  const meshRef = useRef<THREE.Mesh>(null!)
+  const state = useRef({
+    x: (Math.random() - 0.5) * 50,
+    y: 20 + Math.random() * 20,
+    z: (Math.random() - 0.5) * 50,
+    speedY: 2.5 + Math.random() * 2,
+    rotSpeedX: (Math.random() - 0.5) * 3,
+    rotSpeedY: (Math.random() - 0.5) * 3,
+    rotSpeedZ: (Math.random() - 0.5) * 3,
+  })
+
+  useFrame((_, dt) => {
+    const s = state.current
+    s.y -= s.speedY * dt
+    if (s.y < -1) {
+      s.x = (Math.random() - 0.5) * 50
+      s.y = 20 + Math.random() * 20
+      s.z = (Math.random() - 0.5) * 50
+    }
+    if (meshRef.current) {
+      meshRef.current.position.set(s.x, s.y, s.z)
+      meshRef.current.rotation.x += s.rotSpeedX * dt
+      meshRef.current.rotation.y += s.rotSpeedY * dt
+      meshRef.current.rotation.z += s.rotSpeedZ * dt
+    }
+  })
+
+  return (
+    <mesh ref={meshRef} position={[state.current.x, state.current.y, state.current.z]}>
+      <planeGeometry args={[0.3, 0.5]} />
+      <meshBasicMaterial color="#44cc44" transparent opacity={0.8} side={THREE.DoubleSide} />
+    </mesh>
+  )
+}
+
+function FallingMoney() {
+  return (
+    <>
+      {Array.from({ length: 25 }).map((_, i) => (
+        <MoneyParticle key={i} index={i} />
+      ))}
+    </>
+  )
+}
+
+// ─── Gold shimmer ground overlay ─────────────────────────────────
+const SHIMMER_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+const SHIMMER_FRAG = `
+  uniform float uTime;
+  varying vec2 vUv;
+  void main() {
+    float gx = floor(vUv.x * 20.0);
+    float gy = floor(vUv.y * 20.0);
+    float pattern = mod(gx + gy, 3.0);
+    if (pattern == 0.0) {
+      float pulse = sin(uTime * 2.0 + vUv.x * 5.0) * 0.15 + 0.7;
+      vec3 gold = vec3(1.0, 0.84, 0.0) * pulse;
+      gl_FragColor = vec4(gold, 0.4);
+    } else {
+      vec3 dark = vec3(0.05, 0.1, 0.05);
+      gl_FragColor = vec4(dark, 0.15);
+    }
+  }
+`
+
+function GoldShimmerGround() {
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+    }),
+    []
+  )
+  useFrame(({ clock }) => {
+    if (matRef.current) matRef.current.uniforms.uTime!.value = clock.getElapsedTime()
+  })
+  return (
+    <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[60, 60]} />
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={SHIMMER_VERT}
+        fragmentShader={SHIMMER_FRAG}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  )
+}
+
+// ─── Revenue ring ─────────────────────────────────────────────────
+const RING_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+const RING_FRAG = `
+  uniform float uTime;
+  varying vec2 vUv;
+  void main() {
+    float brightness = sin(uTime * 1.5) * 0.2 + 0.8;
+    vec3 gold = vec3(1.0, 0.75, 0.0) * brightness;
+    gl_FragColor = vec4(gold, 1.0);
+  }
+`
+
+function RevenueRing() {
+  const grpRef = useRef<THREE.Group>(null!)
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    if (matRef.current) matRef.current.uniforms.uTime!.value = t
+    if (grpRef.current) grpRef.current.rotation.y = t * 0.4
+  })
+
+  return (
+    <group ref={grpRef} position={[0, 3, 0]}>
+      <mesh>
+        <torusGeometry args={[3, 0.08, 16, 64]} />
+        <shaderMaterial
+          ref={matRef}
+          vertexShader={RING_VERT}
+          fragmentShader={RING_FRAG}
+          uniforms={uniforms}
+        />
+      </mesh>
+    </group>
+  )
+}
 
 function Ground() {
   return (
@@ -228,6 +373,18 @@ export default function TycoonWorld() {
 
   return (
     <>
+      {/* Deep green money sky */}
+      <GradientSky top="#002200" bottom="#004400" radius={440} />
+
+      {/* Falling money banknotes */}
+      <FallingMoney />
+
+      {/* Gold shimmer ground overlay */}
+      <GoldShimmerGround />
+
+      {/* Floating revenue ring */}
+      <RevenueRing />
+
       <Ground />
 
       {/* 5 плинтов */}

@@ -2,10 +2,12 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { BackSide } from 'three'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
+import GradientSky from '../GradientSky'
 
 // ─── Palette ─────────────────────────────────────────────────────
 const HULL = '#0b0b22'
@@ -270,6 +272,120 @@ function Beacon({ pos, color = WARN }: { pos: [number, number, number]; color?: 
   )
 }
 
+// ─── StarField ────────────────────────────────────────────────────
+function StarField() {
+  const positions = useMemo(() => {
+    const pts: Array<[number, number, number]> = []
+    const RADIUS = 200
+    for (let i = 0; i < 600; i++) {
+      // Random point inside sphere — rejection-sample for uniform distribution
+      let x = 0, y = 0, z = 0
+      do {
+        x = (Math.random() * 2 - 1) * RADIUS
+        y = (Math.random() * 2 - 1) * RADIUS
+        z = (Math.random() * 2 - 1) * RADIUS
+      } while (x * x + y * y + z * z > RADIUS * RADIUS)
+      pts.push([x, y, z])
+    }
+    return pts
+  }, [])
+
+  return (
+    <>
+      {positions.map((p, i) => (
+        <mesh key={i} position={p}>
+          <sphereGeometry args={[0.08, 4, 4]} />
+          <meshBasicMaterial color="white" />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── Nebula shader ────────────────────────────────────────────────
+const NEBULA_VERTEX = `
+  varying vec3 vDir;
+  void main() {
+    vDir = normalize(position);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const NEBULA_FRAGMENT = `
+  varying vec3 vDir;
+
+  // Hash function
+  float hash(vec3 p) {
+    p = fract(p * vec3(127.1, 311.7, 74.7));
+    p += dot(p, p.yxz + 19.19);
+    return fract((p.x + p.y) * p.z);
+  }
+
+  // 3-octave value noise
+  float fbm(vec3 p) {
+    float val = 0.0;
+    float amp = 0.5;
+    float freq = 1.0;
+    for (int i = 0; i < 3; i++) {
+      vec3 i3 = floor(p * freq);
+      vec3 f3 = fract(p * freq);
+      vec3 u = f3 * f3 * (3.0 - 2.0 * f3);
+      val += amp * mix(
+        mix(mix(hash(i3),              hash(i3 + vec3(1,0,0)), u.x),
+            mix(hash(i3 + vec3(0,1,0)), hash(i3 + vec3(1,1,0)), u.x), u.y),
+        mix(mix(hash(i3 + vec3(0,0,1)), hash(i3 + vec3(1,0,1)), u.x),
+            mix(hash(i3 + vec3(0,1,1)), hash(i3 + vec3(1,1,1)), u.x), u.y),
+        u.z
+      );
+      amp *= 0.5;
+      freq *= 2.0;
+    }
+    return val;
+  }
+
+  void main() {
+    vec3 dir = normalize(vDir);
+
+    // Base nebula noise — use direction as 3D sample point
+    float n1 = fbm(dir * 2.8);
+    float n2 = fbm(dir * 5.2 + vec3(1.7, 0.9, 2.3));
+    float n3 = fbm(dir * 9.1 + vec3(3.1, 1.4, 0.7));
+
+    // Deep purple base
+    vec3 deepPurple = vec3(0.102, 0.0,   0.251); // #1a0040
+    // Blue cloud
+    vec3 blue       = vec3(0.0,   0.188, 0.502); // #003080
+    // Pink streak
+    vec3 pink       = vec3(0.251, 0.0,   0.188); // #400030
+
+    // Layer the colours with noise weights
+    vec3 col = deepPurple;
+    col = mix(col, blue,  smoothstep(0.38, 0.65, n1));
+    col = mix(col, pink,  smoothstep(0.60, 0.80, n2) * 0.6);
+    // Bright wisps from 3rd octave
+    col += vec3(0.08, 0.04, 0.14) * smoothstep(0.55, 0.85, n3);
+
+    // Keep it dark — nebula is background atmosphere, not a lamp
+    col = clamp(col, 0.0, 1.0);
+    gl_FragColor = vec4(col, 1.0);
+  }
+`
+
+function NebulaSphere() {
+  return (
+    <mesh renderOrder={-9} frustumCulled={false}>
+      <sphereGeometry args={[350, 48, 24]} />
+      <shaderMaterial
+        side={BackSide}
+        depthWrite={false}
+        toneMapped={false}
+        vertexShader={NEBULA_VERTEX}
+        fragmentShader={NEBULA_FRAGMENT}
+      />
+    </mesh>
+  )
+}
+
 // ─── Void floor (deep pit visual) ────────────────────────────────
 function VoidFloor() {
   return (
@@ -282,17 +398,131 @@ function VoidFloor() {
   )
 }
 
-// ─── Main component ───────────────────────────────────────────────
-export default function SpaceStationWorld() {
-  // Override background to deep space
-  const bg = useMemo(() => (
-    <color attach="background" args={['#040410']} />
-  ), [])
+// ─── Asteroid belt ────────────────────────────────────────────────
+interface AsteroidData {
+  angle: number
+  radius: number
+  y: number
+  size: number
+  speed: number
+  color: string
+}
+
+function AsteroidBelt() {
+  const asteroids = useMemo<AsteroidData[]>(() => {
+    const colors = ['#887766', '#998877', '#776655', '#aa9988', '#665544']
+    return Array.from({ length: 15 }).map((_, i) => ({
+      angle: (i / 15) * Math.PI * 2 + Math.random() * 0.4,
+      radius: 40 + Math.random() * 20,
+      y: 5 + Math.random() * 15,
+      size: 0.3 + Math.random() * 0.5,
+      speed: 0.05 + Math.random() * 0.1,
+      color: colors[i % colors.length] ?? '#887766',
+    }))
+  }, [])
+
+  const grpRef = useRef<THREE.Group>(null!)
+  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const angles = useRef(asteroids.map((a) => a.angle))
+
+  useFrame((_, dt) => {
+    asteroids.forEach((a, i) => {
+      angles.current[i]! += a.speed * dt
+      const mesh = meshRefs.current[i]
+      if (mesh) {
+        mesh.position.set(
+          Math.cos(angles.current[i]!) * a.radius,
+          a.y,
+          Math.sin(angles.current[i]!) * a.radius
+        )
+        mesh.rotation.x += dt * 0.3
+        mesh.rotation.z += dt * 0.2
+      }
+    })
+  })
+
+  return (
+    <group ref={grpRef}>
+      {asteroids.map((a, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { meshRefs.current[i] = el }}
+          position={[Math.cos(a.angle) * a.radius, a.y, Math.sin(a.angle) * a.radius]}
+        >
+          <dodecahedronGeometry args={[a.size, 0]} />
+          <meshBasicMaterial color={a.color} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// ─── Station warning lights ───────────────────────────────────────
+// Placed at corners / key points of the station structure
+const WARNING_LIGHT_POSITIONS: Array<[number, number, number]> = [
+  [11, 1.5, 9],    // spawn platform corner
+  [-11, 1.5, -11], // spawn platform corner
+  [9, 1.5, -43],   // Alpha module corner
+  [-9, 8.5, -93],  // Beta module corner
+]
+
+function StationWarningLights() {
+  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const lightRefs = useRef<(THREE.PointLight | null)[]>([])
+  const phase = useRef(0)
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    // Blink pattern: sin(t*3) > 0.7 → visible
+    WARNING_LIGHT_POSITIONS.forEach((_, i) => {
+      const mesh = meshRefs.current[i]
+      const light = lightRefs.current[i]
+      // Stagger blink per light
+      const phaseOffset = i * (Math.PI / 2)
+      const isOn = Math.sin(t * 3 + phaseOffset) > 0.7
+      if (mesh) mesh.visible = isOn
+      if (light) light.visible = isOn
+    })
+    phase.current = t
+  })
 
   return (
     <>
-      {bg}
+      {WARNING_LIGHT_POSITIONS.map((pos, i) => (
+        <group key={i} position={pos}>
+          <mesh ref={(el) => { meshRefs.current[i] = el }}>
+            <sphereGeometry args={[0.2, 8, 8]} />
+            <meshBasicMaterial color={i % 2 === 0 ? '#ff4400' : '#ff8800'} />
+          </mesh>
+          <pointLight
+            ref={(el) => { lightRefs.current[i] = el }}
+            color={i % 2 === 0 ? '#ff4400' : '#ff8800'}
+            intensity={1.5}
+            distance={10}
+          />
+        </group>
+      ))}
+    </>
+  )
+}
+
+// ─── Main component ───────────────────────────────────────────────
+export default function SpaceStationWorld() {
+  return (
+    <>
+      {/* Dark space sky gradient */}
+      <GradientSky top="#000510" bottom="#050020" radius={440} />
+      {/* Nebula colour layer */}
+      <NebulaSphere />
+      {/* Star field */}
+      <StarField />
       <VoidFloor />
+
+      {/* Asteroid belt orbiting the station */}
+      <AsteroidBelt />
+
+      {/* Station warning lights — blinking red/orange */}
+      <StationWarningLights />
 
       {/* ── Level 0 (y=0) ── */}
 

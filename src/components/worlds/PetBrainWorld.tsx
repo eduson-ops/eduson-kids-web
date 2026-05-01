@@ -1,7 +1,7 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import * as THREE from 'three'
 import Coin from '../Coin'
 import NPC from '../NPC'
@@ -9,6 +9,7 @@ import GoalTrigger from '../GoalTrigger'
 import { Tree, Bush, Flowers, GrassTuft } from '../Scenery'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
+import GradientSky from '../GradientSky'
 
 /**
  * PetBrainWorld — educational remake of «Adopt Me Pet Brain».
@@ -49,12 +50,171 @@ const FOLLOW_DIST = 2.5
 const PET_REACH = 1.5           // радиус игрок→питомец для глажки
 const MOVE_SPEED = 3.5
 
+// 12 neural node positions in 3D volume
+const NODE_POSITIONS: Array<[number, number, number]> = [
+  [-7, 2, -8],
+  [0, 4, -10],
+  [7, 3, -9],
+  [-5, 5, -14],
+  [5, 2, -14],
+  [0, 6, -18],
+  [-8, 3, -20],
+  [8, 4, -20],
+  [-3, 2, -22],
+  [3, 5, -22],
+  [0, 3, -6],
+  [-2, 6, -16],
+]
+
+// 20 random connection pairs between the 12 nodes
+const CONNECTION_PAIRS: Array<[number, number]> = [
+  [0, 1], [1, 2], [0, 3], [1, 4], [1, 5],
+  [2, 4], [3, 5], [4, 5], [5, 6], [5, 7],
+  [6, 8], [7, 9], [8, 9], [3, 11], [11, 5],
+  [10, 0], [10, 1], [10, 2], [9, 7], [6, 11],
+]
+
+// 15 data particle pathways (start node index, end node index)
+const PARTICLE_PATHS: Array<[number, number]> = [
+  [0, 1], [1, 2], [1, 5], [3, 5], [4, 5],
+  [5, 6], [5, 7], [6, 8], [7, 9], [8, 9],
+  [10, 1], [11, 5], [0, 3], [2, 4], [9, 7],
+]
+
+// Matrix/binary ground shader
+const BINARY_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+const BINARY_FRAG = `
+  uniform float uTime;
+  varying vec2 vUv;
+  float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(127.1, 311.7))) * 43758.5453123);
+  }
+  void main() {
+    float col = floor(vUv.x * 40.0);
+    float row = floor(vUv.y * 60.0);
+    float digit = fract(sin(col * 127.1 + uTime * 2.0 + row * 311.7) * 43758.5);
+    float on = step(0.97, digit);
+    float brightness = 0.6 + 0.4 * rand(vec2(col, row + floor(uTime * 3.0)));
+    vec3 color = vec3(0.0, 1.0, 0.25) * brightness;
+    gl_FragColor = vec4(color * on, on * 0.08);
+  }
+`
+
+function DigitalGround() {
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
+  useFrame(({ clock }) => {
+    if (matRef.current) matRef.current.uniforms.uTime!.value = clock.elapsedTime
+  })
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+      <planeGeometry args={[50, 50]} />
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={BINARY_VERT}
+        fragmentShader={BINARY_FRAG}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  )
+}
+
+function NeuralNetwork() {
+  const networkGeom = useMemo(() => {
+    const points: THREE.Vector3[] = []
+    for (const [a, b] of CONNECTION_PAIRS) {
+      points.push(new THREE.Vector3(...NODE_POSITIONS[a]!))
+      points.push(new THREE.Vector3(...NODE_POSITIONS[b]!))
+    }
+    return new THREE.BufferGeometry().setFromPoints(points)
+  }, [])
+
+  return (
+    <lineSegments geometry={networkGeom}>
+      <lineBasicMaterial color="#00ff80" opacity={0.4} transparent />
+    </lineSegments>
+  )
+}
+
+function NeuralNodes() {
+  const refs = useRef<Array<THREE.Mesh | null>>([])
+  useFrame(({ clock }) => {
+    refs.current.forEach((mesh, i) => {
+      if (mesh) {
+        const sc = 1.0 + 0.3 * Math.sin(clock.elapsedTime * 2.5 + i * 0.8)
+        mesh.scale.setScalar(sc)
+      }
+    })
+  })
+  return (
+    <>
+      {NODE_POSITIONS.map((pos, i) => (
+        <group key={i} position={pos}>
+          <mesh ref={(el) => { refs.current[i] = el }}>
+            <sphereGeometry args={[0.2, 10, 10]} />
+            <meshBasicMaterial color="#00ff80" />
+          </mesh>
+          <pointLight intensity={0.4} distance={3} color="#00ff80" />
+        </group>
+      ))}
+    </>
+  )
+}
+
+function DataParticles() {
+  // Each particle: progress 0..1 along path, speed
+  const particles = useMemo(
+    () =>
+      PARTICLE_PATHS.map((path, i) => ({
+        path,
+        progress: (i / PARTICLE_PATHS.length),
+        speed: 1 / (1.0 + (i % 3) * 0.7), // varies 1s to ~2.4s
+      })),
+    []
+  )
+  const progressRef = useRef(particles.map((p) => p.progress))
+  const refs = useRef<Array<THREE.Mesh | null>>([])
+
+  useFrame((_, dt) => {
+    progressRef.current = progressRef.current.map((prog, i) => {
+      const newProg = prog + dt * particles[i]!.speed
+      return newProg > 1 ? newProg - 1 : newProg
+    })
+    refs.current.forEach((mesh, i) => {
+      if (!mesh) return
+      const [startIdx, endIdx] = particles[i]!.path
+      const start = new THREE.Vector3(...NODE_POSITIONS[startIdx]!)
+      const end = new THREE.Vector3(...NODE_POSITIONS[endIdx]!)
+      mesh.position.lerpVectors(start, end, progressRef.current[i]!)
+    })
+  })
+
+  return (
+    <>
+      {particles.map((_, i) => (
+        <mesh key={i} ref={(el) => { refs.current[i] = el }}>
+          <sphereGeometry args={[0.08, 6, 6]} />
+          <meshBasicMaterial color="#88ffaa" />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
 function Ground() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, 0]}>
       <mesh receiveShadow>
         <boxGeometry args={[50, 0.5, 50]} />
-        <meshStandardMaterial color="#6fd83e" roughness={0.9} />
+        <meshStandardMaterial color="#0a1a0a" roughness={0.9} />
       </mesh>
     </RigidBody>
   )
@@ -300,7 +460,17 @@ function Pet() {
 export default function PetBrainWorld() {
   return (
     <>
+      {/* Neural sky */}
+      <GradientSky top="#000810" bottom="#001a10" radius={440} />
+
       <Ground />
+      {/* Digital matrix ground overlay */}
+      <DigitalGround />
+
+      {/* Neural network visual */}
+      <NeuralNetwork />
+      <NeuralNodes />
+      <DataParticles />
 
       <FoodBowl pos={FOOD_POS} />
       <Bed pos={BED_POS} />

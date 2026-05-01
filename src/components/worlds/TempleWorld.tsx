@@ -7,6 +7,7 @@ import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
 import { Tree, Bush, Flowers, GrassTuft } from '../Scenery'
+import GradientSky from '../GradientSky'
 
 // ─── Palette ─────────────────────────────────────────────────────
 const STONE = '#a08c6a'
@@ -350,10 +351,194 @@ function Jungle() {
   )
 }
 
+// ─── Dust motes ──────────────────────────────────────────────────
+const DUST_COUNT = 100
+const DUST_CEILING = 12
+
+function DustMotes() {
+  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+
+  const particles = useMemo(() => {
+    return Array.from({ length: DUST_COUNT }, (_, i) => ({
+      x: (Math.random() - 0.5) * 30,
+      y: Math.random() * DUST_CEILING,
+      z: (Math.random() - 0.5) * 30,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.003 + Math.random() * 0.002,
+      index: i,
+    }))
+  }, [])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    particles.forEach((p, i) => {
+      const mesh = meshRefs.current[i]
+      if (!mesh) return
+      mesh.position.y += p.speed + Math.sin(t * 0.5 + p.phase) * 0.002
+      if (mesh.position.y > DUST_CEILING) {
+        mesh.position.y = 0
+      }
+    })
+  })
+
+  return (
+    <>
+      {particles.map((p, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { meshRefs.current[i] = el }}
+          position={[p.x, p.y, p.z]}
+        >
+          <sphereGeometry args={[0.04, 4, 4]} />
+          <meshBasicMaterial color="#d4a870" transparent opacity={0.6} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── Rune pads ────────────────────────────────────────────────────
+const RUNE_PAD_FRAG = `
+  uniform float iTime;
+  varying vec2 vUv;
+  void main() {
+    vec2 uv = vUv - 0.5;
+    float dist = length(uv);
+    float rings = mod(dist * 8.0, 1.0);
+    float glow = smoothstep(0.85, 1.0, rings) + smoothstep(0.45, 0.5, rings) * 0.5;
+    float pulse = 0.7 + sin(iTime * 0.8) * 0.3;
+    vec3 amber = vec3(0.784, 0.471, 0.125);
+    vec3 white = vec3(1.0, 0.9, 0.7);
+    vec3 col = mix(amber, white, glow * pulse);
+    float alpha = glow * pulse * 0.85;
+    if (dist > 0.48) discard;
+    gl_FragColor = vec4(col, alpha);
+  }
+`
+const RUNE_PAD_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const RUNE_PAD_POSITIONS: [number, number, number][] = [
+  [-20, 0.02, 20],
+  [20, 0.02, 20],
+  [-20, 0.02, -20],
+  [20, 0.02, -20],
+  [0, 0.02, 35],
+  [0, 0.02, -35],
+]
+
+function RunePads() {
+  const materialRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    materialRefs.current.forEach((mat) => {
+      if (mat) mat.uniforms.iTime!.value = t
+    })
+  })
+
+  return (
+    <>
+      {RUNE_PAD_POSITIONS.map((pos, i) => {
+        const uniforms = { iTime: { value: 0 } }
+        return (
+          <mesh key={i} position={pos} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[1.2, 32]} />
+            <shaderMaterial
+              ref={(el) => { materialRefs.current[i] = el }}
+              vertexShader={RUNE_PAD_VERT}
+              fragmentShader={RUNE_PAD_FRAG}
+              uniforms={uniforms}
+              transparent
+              depthWrite={false}
+            />
+          </mesh>
+        )
+      })}
+    </>
+  )
+}
+
+// ─── God rays ────────────────────────────────────────────────────
+const GOD_RAY_FRAG = `
+  uniform float iTime;
+  varying vec2 vUv;
+  void main() {
+    float alpha = vUv.y * 0.15;
+    float flicker = 0.85 + sin(iTime * 0.4) * 0.15;
+    vec3 col = mix(vec3(1.0, 0.95, 0.7), vec3(1.0, 1.0, 1.0), vUv.y);
+    gl_FragColor = vec4(col, alpha * flicker);
+  }
+`
+const GOD_RAY_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const GOD_RAY_CONFIGS: { pos: [number, number, number]; rotY: number }[] = [
+  { pos: [-8, 28, -6], rotY: 0.3 },
+  { pos: [0, 32, 5], rotY: -0.2 },
+  { pos: [9, 28, -4], rotY: 0.7 },
+]
+
+function GodRays() {
+  const groupRef = useRef<THREE.Group>(null!)
+  const materialRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    materialRefs.current.forEach((mat) => {
+      if (mat) {
+        mat.uniforms.iTime!.value = t
+      }
+    })
+    if (groupRef.current) {
+      groupRef.current.rotation.y = Math.sin(t * 0.08) * 0.06
+    }
+  })
+
+  return (
+    <group ref={groupRef}>
+      {GOD_RAY_CONFIGS.map((cfg, i) => {
+        const uniforms = { iTime: { value: 0 } }
+        return (
+          <mesh key={i} position={cfg.pos} rotation={[0, cfg.rotY, 0]}>
+            {/* ConeGeometry: radiusTop, radiusBottom, height, radialSegments — pointing down means wide top */}
+            <coneGeometry args={[5, 18, 12, 1, true]} />
+            <shaderMaterial
+              ref={(el) => { materialRefs.current[i] = el }}
+              vertexShader={GOD_RAY_VERT}
+              fragmentShader={GOD_RAY_FRAG}
+              uniforms={uniforms}
+              transparent
+              depthWrite={false}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────
 export default function TempleWorld() {
   return (
     <>
+      {/* ── Atmosphere ── */}
+      <GradientSky top="#0a0520" bottom="#1a0830" radius={440} />
+      <DustMotes />
+      <RunePads />
+      <GodRays />
+
       <Ground />
       <Walls />
       <Moat />
