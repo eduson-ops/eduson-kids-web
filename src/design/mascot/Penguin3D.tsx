@@ -3,13 +3,15 @@ import { useFrame } from '@react-three/fiber'
 import { Sphere, Cylinder, Cone } from '@react-three/drei'
 import * as THREE from 'three'
 import type { PlayerVisualHandle } from '../../components/PlayerCharacter'
+import { getToonGradientMap } from '../../lib/toonGradient'
 
-// Материалы переиспользуемые
-const MAT_BLACK  = new THREE.MeshStandardMaterial({ color: '#1a1a2e', roughness: 0.7 })
-const MAT_WHITE  = new THREE.MeshStandardMaterial({ color: '#fffbf3', roughness: 0.8 })
-const MAT_ORANGE = new THREE.MeshStandardMaterial({ color: '#FF9454', roughness: 0.6 })
-const MAT_EYE   = new THREE.MeshStandardMaterial({ color: '#000000', roughness: 0.3, metalness: 0.1 })
-const MAT_SHINE = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.0, metalness: 0.0, transparent: true, opacity: 0.7 })
+// Материалы переиспользуемые (MeshToonMaterial с общим gradientMap)
+const _gm = () => getToonGradientMap()
+const MAT_BLACK  = new THREE.MeshToonMaterial({ color: '#1a1a2e', gradientMap: _gm() })
+const MAT_WHITE  = new THREE.MeshToonMaterial({ color: '#fffbf3', gradientMap: _gm() })
+const MAT_ORANGE = new THREE.MeshToonMaterial({ color: '#FF9454', gradientMap: _gm() })
+const MAT_EYE   = new THREE.MeshToonMaterial({ color: '#000000', gradientMap: _gm() })
+const MAT_SHINE = new THREE.MeshToonMaterial({ color: '#ffffff', transparent: true, opacity: 0.7, gradientMap: _gm() })
 
 type PenguinAnimation = 'idle' | 'walk' | 'jump' | 'cheer'
 

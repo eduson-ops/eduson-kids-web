@@ -6,7 +6,7 @@ export default function PostFX() {
   if (!canPostfx()) return null
   const high = detectDeviceTier() === 'high'
   return (
-    <EffectComposer multisampling={0}>
+    <EffectComposer multisampling={0} enableNormalPass>
       <SSAO
         samples={high ? 24 : 12}
         radius={0.08}

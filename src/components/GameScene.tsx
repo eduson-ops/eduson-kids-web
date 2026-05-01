@@ -1,5 +1,5 @@
 import { Canvas } from '@react-three/fiber'
-import { KeyboardControls, SoftShadows } from '@react-three/drei'
+import { KeyboardControls } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import Player from './Player'
 import Sun from './Sun'
@@ -78,7 +78,6 @@ export default function GameScene({ game, avatar }: Props) {
         // PointerLock — сцена становится непригодной.
         onContextMenu={(e) => e.preventDefault()}
       >
-        {canPostfx() && <SoftShadows size={12} samples={12} focus={0.5} />}
         {/* Градиентное голубое небо через shader — всегда голубое */}
         <GradientSky top="#3d88ff" bottom="#b8e1ff" />
         {/* Pixel-voxel облака, медленно плывут */}
