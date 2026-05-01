@@ -2,6 +2,8 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
@@ -208,6 +210,7 @@ const DRIZZLE_COUNT = 80
 
 function NeonDrizzle() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip = useRef(0)
 
   // Precompute per-instance data: x, z starting position, y start, speed
   const instanceData = useMemo(() => {
@@ -238,8 +241,10 @@ function NeonDrizzle() {
   useFrame((_state, delta) => {
     const mesh = meshRef.current
     if (!mesh) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? delta * 2 : delta
     instanceData.forEach((d, i) => {
-      d.y -= d.speed * delta
+      d.y -= d.speed * step
       if (d.y < -1) {
         d.y = 15
         d.x = (Math.random() - 0.5) * 60

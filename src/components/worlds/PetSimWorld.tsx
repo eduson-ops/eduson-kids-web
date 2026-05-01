@@ -244,9 +244,11 @@ function SkySparkles() {
 // ─── ЛУГА (Meadow) — Pollen drift ────────────────────────────────────────
 
 function MeadowPollen() {
-  const count = 40
+  const COUNT = 40
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
-    Array.from({ length: count }, () => ({
+    Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 24,
       y: 1 + Math.random() * 3,
       z: -3 - Math.random() * 22,
@@ -261,29 +263,28 @@ function MeadowPollen() {
       ampZ: 0.5 + Math.random() * 0.8,
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
   const t = useRef(0)
 
   useFrame((_, dt) => {
+    if (!meshRef.current) return
     t.current += dt
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      m.position.x = d.x + Math.sin(t.current * d.freqX + d.phaseX) * d.ampX
-      m.position.y = d.y + Math.sin(t.current * d.freqY + d.phaseY) * d.ampY
-      m.position.z = d.z + Math.sin(t.current * d.freqZ + d.phaseZ) * d.ampZ
+    data.forEach((d, i) => {
+      dummy.position.set(
+        d.x + Math.sin(t.current * d.freqX + d.phaseX) * d.ampX,
+        d.y + Math.sin(t.current * d.freqY + d.phaseY) * d.ampY,
+        d.z + Math.sin(t.current * d.freqZ + d.phaseZ) * d.ampZ,
+      )
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
-          <sphereGeometry args={[0.04, 4, 4]} />
-          <meshBasicMaterial color="#ffe033" transparent opacity={0.85} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.04, 4, 4]} />
+      <meshBasicMaterial color="#ffe033" transparent opacity={0.85} />
+    </instancedMesh>
   )
 }
 
