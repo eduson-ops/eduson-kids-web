@@ -288,8 +288,9 @@ function ChildCodeSection({ navigate }: { navigate: ReturnType<typeof useNavigat
     e.preventDefault()
     if (childCode.length !== 6) { setStatus('error'); return }
     setStatus('checking')
-    const r = await apiLoginChildCode(childCode)
-    const name = r?.user?.name ?? `Игрок-${childCode.slice(-3)}`
+    // Attempt backend auth (expects login:pin format; 6-digit-only code creates demo session)
+    await apiLoginChildCode(childCode)
+    const name = `Игрок-${childCode.slice(-3)}`
     saveSession({ role: 'child', name, login: childCode })
     localStorage.setItem(CHILD_NAME_KEY, name)
     navigate('/')
@@ -333,8 +334,8 @@ function ChildCodeSection({ navigate }: { navigate: ReturnType<typeof useNavigat
 
 function ChildGuestSection({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
   const quickStart = async () => {
-    const r = await apiLoginGuest()
-    const name = r?.user?.name ?? 'Гость'
+    await apiLoginGuest()
+    const name = 'Гость'
     saveSession({ role: 'child', name, login: 'guest' })
     localStorage.setItem(CHILD_NAME_KEY, name)
     navigate('/')

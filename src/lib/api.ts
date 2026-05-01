@@ -107,8 +107,8 @@ async function request<T>(
 }
 
 interface AuthResponse {
-  token: string
-  user: { id: string; name: string }
+  accessToken: string
+  refreshToken?: string
 }
 
 export async function apiLoginChildCode(
@@ -119,8 +119,8 @@ export async function apiLoginChildCode(
     method: 'POST',
     body: JSON.stringify({ code, name }),
   })
-  if (r?.token) {
-    setToken(r.token)
+  if (r?.accessToken) {
+    setToken(r.accessToken)
     scheduleCookieMigration()
   }
   return r
@@ -168,8 +168,8 @@ export async function apiTeacherLogin(
 
 export async function apiLoginGuest(): Promise<AuthResponse | null> {
   const r = await request<AuthResponse>('/api/v1/auth/guest', { method: 'POST' })
-  if (r?.token) {
-    setToken(r.token)
+  if (r?.accessToken) {
+    setToken(r.accessToken)
     scheduleCookieMigration()
   }
   return r
