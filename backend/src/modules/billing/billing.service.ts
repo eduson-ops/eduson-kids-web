@@ -69,15 +69,24 @@ export class BillingService {
 
   /**
    * Handles a verified YuKassa webhook payload.
-   * Currently a stub — extend when YuKassa event schema is finalised.
+   *
+   * YuKassa sends { type: "notification", event: "payment.succeeded"|"payment.canceled", object: { id, status } }
+   * We dispatch to handlePaymentSuccess / handlePaymentFailure based on event type.
    *
    * @param body Verified, parsed webhook body.
    */
-  // TODO(billing): parse YuKassa event type and dispatch to
-  //   handlePaymentSuccess / handlePaymentFailure once event schema is known.
   async processYukassaEvent(body: unknown): Promise<void> {
-    // Placeholder — no-op until YuKassa event shape is confirmed.
-    void body;
+    const evt = body as { type?: string; event?: string; object?: { id?: string; status?: string } };
+    if (evt.type !== 'notification') return;
+
+    const paymentId = evt.object?.id;
+    if (!paymentId) return;
+
+    if (evt.event === 'payment.succeeded') {
+      await this.handlePaymentSuccess(paymentId);
+    } else if (evt.event === 'payment.canceled') {
+      await this.handlePaymentFailure(paymentId);
+    }
   }
 
   /**

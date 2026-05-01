@@ -79,6 +79,12 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
       ctx.fillStyle = '#ffffff'
       ctx.beginPath(); ctx.ellipse(ex + 4, ey - 2, 3, 3, 0, 0, Math.PI * 2); ctx.fill()
     }
+    // Eyebrows (inner ends slightly raised = friendly expression)
+    const browColor = new THREE.Color(avatar.headColor).getHSL({ h: 0, s: 0, l: 0 } as any)
+    ctx.strokeStyle = `hsl(${browColor.h * 360 | 0},${(browColor.s * 60) | 0}%,${Math.max((browColor.l * 100 - 30) | 0, 12)}%)`
+    ctx.lineWidth = 7; ctx.lineCap = 'round'
+    ctx.beginPath(); ctx.moveTo(18, 30); ctx.lineTo(50, 36); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(78, 36); ctx.lineTo(110, 30); ctx.stroke()
     ctx.strokeStyle = '#cc3333'; ctx.lineWidth = 7; ctx.lineCap = 'round'
     ctx.beginPath(); ctx.arc(64, 88, 28, Math.PI + 0.25, Math.PI * 2 - 0.25); ctx.stroke()
     ctx.fillStyle = 'rgba(255,110,110,0.35)'

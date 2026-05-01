@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import type { Avatar } from '../lib/avatars'
 import AvatarModel from './AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from './PlayerCharacter'
+import PlayerGLB from './PlayerGLB'
 import Penguin3D from '../design/mascot/Penguin3D'
 import { SFX } from '../lib/audio'
 import { DEG_TO_RAD } from '../lib/constants'
@@ -347,6 +348,8 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
       <group ref={meshGroup} position={[0, -CAP_HEIGHT - CAP_RADIUS, 0]}>
         {(!avatar.character || avatar.character === 'penguin') ? (
           <Penguin3D ref={visual} />
+        ) : avatar.character === 'penguin_hero' ? (
+          <PlayerGLB ref={visual} />
         ) : avatar.character !== 'custom' ? (
           <PlayerCharacter ref={visual} which={avatar.character} />
         ) : (

@@ -14,6 +14,7 @@
 
 import { PUBLIC_BASE } from './publicPath'
 import { INGESTED_COURSES as RAW_INGESTED_COURSES } from './courses.generated'
+import type { VideoSource } from '../components/VideoPlayer'
 
 /** MCQ-вопрос для квиза в конце презентации урока. */
 export interface QuizQuestion {
@@ -58,6 +59,8 @@ export interface Lesson {
   miniProject?: string
   /** Домашнее задание (markdown) */
   homework?: string
+  /** Вводное видео к уроку (опционально) */
+  video?: VideoSource
 }
 
 export interface Module {
@@ -110,6 +113,7 @@ const M1: Lesson[] = [
       mid: 'Прошёл все 3 таба (Строить/Скрипт/Тест), покрутил камеру',
       hard: '+ выбрал цвет сцены, изменил имя проекта',
     },
+    video: { kind: 'youtube', id: '6hfOvs8pY1k' }, // TED-Ed: What's an Algorithm?
     htmlFile: `${PUBLIC_BASE}/curriculum/lessons/L1_first_game.html`,
     guideFile: `${PUBLIC_BASE}/curriculum/lessons/L1_teacher_guide.md`,
     quiz: [
@@ -162,6 +166,7 @@ const M1: Lesson[] = [
     terms: ['блок', 'хат-событие', 'стопка'],
     newBlocks: ['@при запуске', 'сказать'],
     capstoneContribution: 'герой здоровается в начале игры',
+    video: { kind: 'youtube', id: 'OAx_6-wdslM' }, // Code.org: Intro to block-based coding
     htmlFile: `${PUBLIC_BASE}/curriculum/lessons/L3_events_collisions.html`,
     guideFile: `${PUBLIC_BASE}/curriculum/lessons/L3_teacher_guide.md`,
     quiz: [

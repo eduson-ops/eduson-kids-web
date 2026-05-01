@@ -27,6 +27,7 @@ import { renderMd } from '../lib/md'
 import NikselIcon, { iconFromEmoji } from '../design/mascot/NikselIcon'
 import { fetchMyAccess, completeLesson as completeLessonApi } from '../api/lessonAccess'
 import { getAccessToken } from '../lib/authStorage'
+import VideoPlayer from '../components/VideoPlayer'
 
 /**
  * Learn — каталог и детали 48-урочного курса Эдюсон Kids.
@@ -327,6 +328,15 @@ function LessonPage({ lesson, m, course }: { lesson: Lesson; m: Module; course: 
         <h1 className="h1" style={{ margin: '0 0 12px' }}>{lesson.title}</h1>
         <p className="curric-lesson-hook-big">{lesson.hook}</p>
       </header>
+
+      {lesson.video && (
+        <div style={{ marginBottom: 24 }}>
+          <VideoPlayer
+            src={lesson.video}
+            style={{ maxHeight: 440 }}
+          />
+        </div>
+      )}
 
       <div className="curric-lesson-grid">
         {/* Основная колонка */}

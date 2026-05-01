@@ -11,7 +11,7 @@ export type CharacterModel =
   | 'blueDemon'
   | 'bunny'
   | 'cactoro'
-  | 'penguin'
+  | 'penguin_hero'
 
 export interface Avatar {
   name: string
@@ -27,6 +27,18 @@ export interface Avatar {
 }
 
 export const PRESET_AVATARS: Avatar[] = [
+  // Пингвин-звезда — KubiK оригинальный персонаж
+  {
+    name: 'Пингвин-звезда',
+    character: 'penguin_hero',
+    bodyColor: '#0a0a14',
+    headColor: '#0a0a14',
+    accentColor: '#ffd644',
+    earStyle: 'none',
+    hatStyle: 'none',
+    tailStyle: 'none',
+    bodyShape: 'standard',
+  },
   // GLTF-пресеты (с анимациями ходьбы, бега, прыжка)
   {
     name: 'Крольчишка',
@@ -83,29 +95,6 @@ export const PRESET_AVATARS: Avatar[] = [
     tailStyle: 'dragon',
     bodyShape: 'standard',
   },
-  // Процедурные (собираешь сам: цвет, уши, шляпа, хвост)
-  {
-    name: 'Розовый котик',
-    character: 'custom',
-    bodyColor: '#ff5ab1',
-    headColor: '#ff5ab1',
-    accentColor: '#ffffff',
-    earStyle: 'cat',
-    hatStyle: 'none',
-    tailStyle: 'cat',
-    bodyShape: 'standard',
-  },
-  {
-    name: 'Ночной волшебник',
-    character: 'custom',
-    bodyColor: '#2a2840',
-    headColor: '#f0e0d0',
-    accentColor: '#c879ff',
-    earStyle: 'none',
-    hatStyle: 'wizard',
-    tailStyle: 'none',
-    bodyShape: 'standard',
-  },
 ]
 
 export const COLOR_PALETTE = [
@@ -123,7 +112,9 @@ export function loadAvatar(): Avatar {
       const parsed = JSON.parse(raw) as Partial<Avatar>
       // миграция: если старый Avatar без character → ставим 'custom'
       const merged = { ...PRESET_AVATARS[0], ...parsed } as Avatar
-      if (!merged.character) merged.character = 'custom'
+      if (!merged.character || merged.character === 'custom' || (merged.character as string) === 'kubik_hero') {
+        merged.character = 'penguin_hero'
+      }
       return merged
     }
   } catch {

@@ -120,20 +120,37 @@ export class LessonAccessService {
   ): Promise<LessonAccess> {
     const ctx = this.tenantContext.require();
 
-    const access = await this.accessRepo.findOne({
-      where: { tenantId: ctx.tenantId, studentId, lessonN },
-    });
-    if (!access) {
+    if (score !== undefined && (score < 0 || score > 100)) {
+      throw new BadRequestException('Score must be 0-100');
+    }
+
+    // Atomic update to avoid race condition when two requests arrive simultaneously.
+    // GREATEST keeps the highest score; COALESCE sets completedAt only once.
+    const qb = this.accessRepo
+      .createQueryBuilder()
+      .update(LessonAccess)
+      .set({
+        completed: true,
+        completedAt: () => 'COALESCE(completed_at, NOW())',
+        ...(score !== undefined
+          ? { score: () => `GREATEST(COALESCE(score, 0), ${score})` }
+          : {}),
+      })
+      .where('tenant_id = :tenantId AND student_id = :studentId AND lesson_n = :lessonN', {
+        tenantId: ctx.tenantId,
+        studentId,
+        lessonN,
+      });
+
+    const result = await qb.execute();
+    if ((result.affected ?? 0) === 0) {
       throw new ForbiddenException('Lesson not unlocked for this student');
     }
 
-    access.completed = true;
-    access.completedAt = access.completedAt ?? new Date();
-    if (score !== undefined) {
-      if (score < 0 || score > 100) throw new BadRequestException('Score must be 0-100');
-      access.score = Math.max(access.score ?? 0, score);
-    }
-    return this.accessRepo.save(access);
+    const updated = await this.accessRepo.findOneOrFail({
+      where: { tenantId: ctx.tenantId, studentId, lessonN },
+    });
+    return updated;
   }
 
   /**

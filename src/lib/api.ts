@@ -177,11 +177,11 @@ export async function apiLoginGuest(): Promise<AuthResponse | null> {
 
 export async function apiPutAvatar(avatar: Avatar): Promise<boolean> {
   if (!getToken()) return false
-  await request<void>('/api/v1/auth/avatar', {
+  const result = await request<void>('/api/v1/auth/avatar', {
     method: 'PUT',
     body: JSON.stringify({ avatar }),
   })
-  return true
+  return result !== null
 }
 
 export async function apiPutProgress(

@@ -200,9 +200,15 @@ export class AuthService {
   }
 
   private async findByLogin(login: string, role: UserRole): Promise<User> {
-    const user = await this.userRepo.findOne({
-      where: { login: login.toLowerCase(), role, isActive: true },
-    });
+    // passwordHash has select:false to prevent accidental exposure; addSelect loads it explicitly for password verification only.
+    const user = await this.userRepo
+      .createQueryBuilder('u')
+      .addSelect('u.passwordHash')
+      .where('u.login = :login AND u.role = :role AND u.isActive = true', {
+        login: login.toLowerCase(),
+        role,
+      })
+      .getOne();
     if (!user) throw new UnauthorizedException('Invalid credentials');
     return user;
   }

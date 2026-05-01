@@ -1,9 +1,10 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 
-type VideoSource =
+export type VideoSource =
   | { kind: 'mp4'; url: string }
   | { kind: 'vk'; videoId: string; oid?: string } // vk.com/video<oid>_<videoId>
   | { kind: 'hls'; url: string } // .m3u8
+  | { kind: 'youtube'; id: string } // youtube.com/watch?v=<id>
 
 interface VideoPlayerProps {
   src: VideoSource
@@ -95,6 +96,21 @@ export default function VideoPlayer({
     background: '#000',
     display: 'block',
     ...style,
+  }
+
+  if (src.kind === 'youtube') {
+    const embedUrl = `https://www.youtube-nocookie.com/embed/${src.id}?rel=0&modestbranding=1`
+    return (
+      <div className={className} style={{ position: 'relative', aspectRatio: '16/9', borderRadius: 12, overflow: 'hidden', background: '#000', ...style }}>
+        <iframe
+          src={embedUrl}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title="YouTube Video Player"
+        />
+      </div>
+    )
   }
 
   if (src.kind === 'vk') {

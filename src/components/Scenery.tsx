@@ -183,6 +183,98 @@ export function Mushroom({
   )
 }
 
+// ─── Generated toon props (Blender-generated, CC0-equivalent) ────────────
+
+const GEN = `${PUBLIC_BASE}/models/generated`
+
+export function Chest({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/chest.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Crystal({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/crystal.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Lantern({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/lantern.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Barrel({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/barrel.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Crate({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/crate.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function MushroomRed({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/mushroom_red.glb`} scale={scale} /></group>
+}
+
+export function MushroomGlow({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/mushroom_glow.glb`} scale={scale} /></group>
+}
+
+export function TreePine({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/tree_pine.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function TreeRound({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/tree_round.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Sign({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/sign.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Well({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/well.glb`} scale={scale} />
+    </RigidBody>
+  )
+}
+
+export function Portal({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/portal.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function GenCampfire({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/campfire.glb`} scale={scale} /></group>
+}
+
+export function Bench({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/bench.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
 // Прелоад самых частых моделей — убирает pop-in при первой игре
 useGLTF.preload(TREE_VARIANTS[0].url)
 useGLTF.preload(TREE_VARIANTS[1].url)
@@ -190,3 +282,8 @@ useGLTF.preload(`${CITY}/building-type-a.glb`)
 useGLTF.preload(`${CITY}/building-type-b.glb`)
 useGLTF.preload(`${CITY}/building-type-c.glb`)
 useGLTF.preload(`${CAR}/sedan.glb`)
+// Generated props preload
+useGLTF.preload(`${GEN}/chest.glb`)
+useGLTF.preload(`${GEN}/lantern.glb`)
+useGLTF.preload(`${GEN}/tree_pine.glb`)
+useGLTF.preload(`${GEN}/tree_round.glb`)

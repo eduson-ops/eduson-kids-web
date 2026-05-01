@@ -1,6 +1,6 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { ProgressEvent, ProgressEventKind } from './progress.entity';
 import { User } from '../auth/entities/user.entity';
 
@@ -164,7 +164,7 @@ export class ProgressService {
 
     const userIds = [...byUser.keys()];
     const users = userIds.length
-      ? await this.userRepo.findByIds(userIds)
+      ? await this.userRepo.find({ where: { id: In(userIds) } })
       : [];
 
     const top = users.map((u: User) => {

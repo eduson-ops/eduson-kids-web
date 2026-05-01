@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
-import { Tree, Bush, Mushroom, Rock, GrassTuft } from '../Scenery'
+import { Tree, Bush, Mushroom, Rock, GrassTuft, GenCampfire, MushroomGlow, MushroomRed, TreePine, Lantern } from '../Scenery'
 import { PUBLIC_BASE } from '../../lib/publicPath'
 import GradientSky from '../GradientSky'
 
@@ -433,8 +433,13 @@ export default function NightsWorld() {
         <Bush pos={[5, 0, -5]} variant={1} scale={1.0} />
         <Bush pos={[-12, 0, -5]} variant={0} scale={1.2} />
         <Bush pos={[12, 0, 5]} variant={1} scale={1.1} />
-        <Mushroom pos={[-6, 0, -12]} red scale={1.3} />
-        <Mushroom pos={[6, 0, 12]} red={false} scale={1.2} />
+        <MushroomRed pos={[-6, 0, -12]} scale={1.2} />
+        <MushroomGlow pos={[6, 0, 12]} scale={1.1} />
+        <MushroomGlow pos={[-9, 0, 5]} scale={0.85} />
+        <TreePine pos={[-18, 0, 0]} scale={1.2} />
+        <TreePine pos={[18, 0, 0]} scale={1.1} />
+        <Lantern pos={[-2.5, 0, -6.5]} scale={0.85} />
+        <Lantern pos={[2.5, 0, -6.5]} scale={0.85} />
         <Rock pos={[-14, 0, -14]} scale={1.5} />
         <Rock pos={[14, 0, 14]} scale={1.2} />
         <GrassTuft pos={[-3, 0, 3]} tall />
@@ -456,7 +461,7 @@ export default function NightsWorld() {
       <BioluminescentPatches phase={phase} />
       <Fireflies phase={phase} />
 
-      <Campfire />
+      <GenCampfire pos={[0, 0, 0]} scale={1.1} />
       <Cabin />
       <PhaseIndicator phase={phase} t={t} />
 

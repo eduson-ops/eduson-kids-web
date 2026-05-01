@@ -65,7 +65,7 @@ export class User {
   @Column({ type: 'varchar', length: 255 })
   login!: string;
 
-  @Column({ type: 'text', name: 'password_hash' })
+  @Column({ type: 'text', name: 'password_hash', select: false })
   passwordHash!: string;
 
   /** AES-256-GCM encrypted JSON: { firstName, lastName, email?, birthYear?, ... } */

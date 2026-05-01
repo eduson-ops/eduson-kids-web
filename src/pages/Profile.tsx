@@ -7,19 +7,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useToast } from '../hooks/useToast'
 import AvatarModel from '../components/AvatarModel'
 import PlayerCharacter, { type PlayerVisualHandle } from '../components/PlayerCharacter'
+import PlayerGLB from '../components/PlayerGLB'
 import Sun from '../components/Sun'
 import GradientSky from '../components/GradientSky'
 import {
-  COLOR_PALETTE,
   PRESET_AVATARS,
   loadAvatar,
   saveAvatar,
   type Avatar,
   type CharacterModel,
-  type EarStyle,
-  type HatStyle,
-  type TailStyle,
-  type BodyShape,
 } from '../lib/avatars'
 import { NikselMini } from '../design/mascot/Niksel'
 
@@ -92,7 +88,7 @@ export default function Profile() {
           <PillGroup<CharacterModel>
             value={avatar.character}
             options={[
-              ['custom', 'Свой котик'],
+              ['penguin_hero', '🐧 Пингвин'],
               ['bunny', 'Кролик'],
               ['cactoro', 'Кактус'],
               ['alien', 'Алиен'],
@@ -101,73 +97,7 @@ export default function Profile() {
             ]}
             onChange={(v) => patch({ character: v })}
           />
-          <p className="help-small">
-            {avatar.character === 'custom'
-              ? 'Собери сам: форма, уши, шляпа, хвост, цвета — ниже.'
-              : '3D-модель с анимациями: ходьба, бег, прыжок.'}
-          </p>
-        </Section>
-
-        <Section title="Форма тела (только для своего котика)">
-          <PillGroup<BodyShape>
-            value={avatar.bodyShape}
-            options={[
-              ['standard', 'Обычная'],
-              ['chubby', 'Толстенькая'],
-              ['thin', 'Худенькая'],
-            ]}
-            onChange={(v) => patch({ bodyShape: v })}
-          />
-        </Section>
-
-        <Section title="Цвет тела">
-          <ColorPicker value={avatar.bodyColor} onChange={(c) => patch({ bodyColor: c })} />
-        </Section>
-        <Section title="Цвет головы">
-          <ColorPicker value={avatar.headColor} onChange={(c) => patch({ headColor: c })} />
-        </Section>
-        <Section title="Акцент (уши / хвост / шляпа)">
-          <ColorPicker value={avatar.accentColor} onChange={(c) => patch({ accentColor: c })} />
-        </Section>
-
-        <Section title="Уши">
-          <PillGroup<EarStyle>
-            value={avatar.earStyle}
-            options={[
-              ['cat', 'Кошачьи'],
-              ['bear', 'Медвежьи'],
-              ['bunny', 'Заячьи'],
-              ['none', 'Без ушей'],
-            ]}
-            onChange={(v) => patch({ earStyle: v })}
-          />
-        </Section>
-
-        <Section title="Шляпа">
-          <PillGroup<HatStyle>
-            value={avatar.hatStyle}
-            options={[
-              ['none', 'Без'],
-              ['cap', 'Кепка'],
-              ['crown', 'Корона'],
-              ['helmet', 'Шлем'],
-              ['wizard', 'Колпак'],
-            ]}
-            onChange={(v) => patch({ hatStyle: v })}
-          />
-        </Section>
-
-        <Section title="Хвост">
-          <PillGroup<TailStyle>
-            value={avatar.tailStyle}
-            options={[
-              ['none', 'Без'],
-              ['cat', 'Кошачий'],
-              ['fluffy', 'Пушистый'],
-              ['dragon', 'Дракона'],
-            ]}
-            onChange={(v) => patch({ tailStyle: v })}
-          />
+          <p className="help-small">3D-персонаж с анимациями ходьбы, бега и прыжка.</p>
         </Section>
 
         <div className="profile-actions">
@@ -229,9 +159,9 @@ function PreviewAvatar({ avatar }: { avatar: Avatar }) {
   })
   return (
     <group position={[0, 0, 0]}>
-      {avatar.character && avatar.character !== 'custom' && avatar.character !== 'penguin' ? (
-        // 'penguin' нет в Quaternius Monster-наборе — для него рендерим AvatarModel
-        // (процедурный пингвин). Остальные пять идут через GLTF.
+      {avatar.character === 'penguin_hero' ? (
+        <PlayerGLB ref={handle} />
+      ) : avatar.character && avatar.character !== 'custom' && avatar.character !== 'penguin' ? (
         <PlayerCharacter ref={handle} which={avatar.character} />
       ) : (
         <AvatarModel ref={handle} avatar={avatar} />

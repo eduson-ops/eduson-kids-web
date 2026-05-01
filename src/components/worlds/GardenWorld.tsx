@@ -6,7 +6,7 @@ import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
-import { Tree, Bush, Flowers, Mushroom, GrassTuft } from '../Scenery'
+import { Tree, Bush, Flowers, Mushroom, GrassTuft, Well, Bench, MushroomRed, MushroomGlow, TreeRound, Lantern } from '../Scenery'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
 import WaterSurface from '../WaterSurface'
@@ -433,19 +433,27 @@ export default function GardenWorld() {
       <GltfMonster which="birb" pos={[-4, 2.2, -4]} patrolX={3} scale={0.7} sensor animation="Run" />
       <GltfMonster which="birb" pos={[4, 2.2, 4]} patrolX={2.5} scale={0.7} sensor animation="Run" />
 
-      {/* Декор по углам */}
-      <Tree pos={[-14, 0, -12]} variant={0} />
-      <Tree pos={[14, 0, -12]} variant={1} />
-      <Tree pos={[-14, 0, 12]} variant={2} />
-      <Tree pos={[14, 0, 12]} variant={3} />
+      {/* Декор по углам — новые Blender-модели */}
+      <TreeRound pos={[-14, 0, -12]} rotY={0.3} />
+      <TreeRound pos={[14, 0, -12]} rotY={1.2} />
+      <TreeRound pos={[-14, 0, 12]} rotY={2.1} />
+      <TreeRound pos={[14, 0, 12]} rotY={0.7} />
       <Bush pos={[-10, 0, 0]} variant={0} scale={1.2} />
       <Bush pos={[10, 0, 0]} variant={1} scale={1.2} />
       <Flowers pos={[-6, 0, 15]} scale={1.3} />
       <Flowers pos={[6, 0, 15]} scale={1.3} />
-      <Mushroom pos={[-8, 0, 8]} red scale={1.2} />
-      <Mushroom pos={[8, 0, -8]} red={false} scale={1.2} />
+      <MushroomRed pos={[-8, 0, 8]} scale={1.1} />
+      <MushroomRed pos={[8, 0, -8]} scale={0.9} />
+      <MushroomGlow pos={[-5, 0, -9]} scale={0.85} />
+      <MushroomGlow pos={[5, 0, 9]} scale={1.0} />
       <GrassTuft pos={[-3, 0, 11]} tall />
       <GrassTuft pos={[3, 0, -11]} tall={false} />
+      {/* Well и Bench у фермера */}
+      <Well pos={[-3, 0, 15]} scale={0.9} />
+      <Bench pos={[3, 0, 15]} scale={1.0} rotY={Math.PI} />
+      {/* Фонари у входа */}
+      <Lantern pos={[-2, 0, -13]} scale={0.9} />
+      <Lantern pos={[2, 0, -13]} scale={0.9} />
 
       {/* Декоративный пруд за забором, между деревьями и краем мира */}
       <WaterSurface position={[0, 0.02, 22]} width={16} depth={12} />
