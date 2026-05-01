@@ -1,7 +1,5 @@
-import { api } from './client'
+import { api, BASE } from './client'
 import { getAccessToken } from '../lib/authStorage'
-
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) || '/api/v1'
 
 export interface ClassroomDto {
   id: string
