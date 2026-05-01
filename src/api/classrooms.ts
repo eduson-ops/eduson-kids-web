@@ -1,4 +1,7 @@
 import { api } from './client'
+import { getAccessToken } from '../lib/authStorage'
+
+const BASE = (import.meta.env.VITE_API_BASE as string | undefined) || '/api/v1'
 
 export interface ClassroomDto {
   id: string
@@ -64,4 +67,37 @@ export function transferStudent(
   toClassroomId: string,
 ): Promise<void> {
   return api.post(`/classrooms/${fromClassroomId}/transfer`, { studentId, toClassroomId })
+}
+
+export interface BulkStudentInput {
+  firstName: string
+  lastName?: string
+  birthYear?: number
+}
+
+export function bulkCreateStudents(
+  classroomId: string,
+  students: BulkStudentInput[],
+): Promise<NewStudentResult[]> {
+  return api.post<NewStudentResult[]>(`/classrooms/${classroomId}/students/bulk`, { students })
+}
+
+/** Opens a PDF in a new tab / triggers download. Rotates PINs server-side. */
+export async function downloadRosterPdf(classroomId: string): Promise<void> {
+  const token = getAccessToken()
+  const res = await fetch(`${BASE}/classrooms/${classroomId}/students/print-pdf`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  })
+  if (!res.ok) throw new Error(res.statusText)
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `kubik-roster-${classroomId.slice(0, 8)}.pdf`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }

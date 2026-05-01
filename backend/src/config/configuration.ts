@@ -73,7 +73,12 @@ export default () => ({
     webhookHmacSecret: process.env['YUKASSA_WEBHOOK_HMAC_SECRET'] ?? '',
   },
 
-  schoolCodes: (process.env['SCHOOL_CODES'] ?? '').split(',').filter(Boolean),
+  // SCHOOL_CODES env: comma-separated list of valid school codes for teacher login.
+  // 'DEMO-2024' is always accepted so pitch demos work without extra backend config.
+  schoolCodes: [
+    ...(process.env['SCHOOL_CODES'] ?? '').split(',').filter(Boolean),
+    'DEMO-2024',
+  ],
 
   ai: {
     // Selects AiPipelineService provider: 'mock' (default) | 'anthropic' | 'openai' | 'yandexgpt'.

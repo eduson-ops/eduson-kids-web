@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { apiLoginChildCode, apiLoginGuest, apiChildLogin, apiParentLogin } from '../lib/api'
+import { apiLoginChildCode, apiLoginGuest, apiChildLogin, apiParentLogin, apiTeacherLogin } from '../lib/api'
 import { startVkLogin, vkConfig } from '../lib/vkAuth'
 import { checkPin } from '../lib/classRoster'
 import { saveSession, CHILD_NAME_KEY, ADMIN_KEY } from '../lib/auth'
@@ -359,6 +359,8 @@ function ChildGuestSection({ navigate }: { navigate: ReturnType<typeof useNaviga
 
 // ─── Staff: Parent / Teacher login ───────────────────────────────────
 
+const TEACHER_ROLE_KEY = 'ek_role'
+
 function StaffLogin({
   role,
   navigate,
@@ -368,6 +370,7 @@ function StaffLogin({
 }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [schoolCode, setSchoolCode] = useState('')
   const [status, setStatus] = useState<'idle' | 'checking' | 'error'>('idle')
   const [errMsg, setErrMsg] = useState('')
 
@@ -383,21 +386,33 @@ function StaffLogin({
       setErrMsg('Введи email и пароль')
       return
     }
+    if (!isParent && !schoolCode.trim()) {
+      setStatus('error')
+      setErrMsg('Введи код школы (выдаёт администратор)')
+      return
+    }
     setStatus('checking')
-    const r = await apiParentLogin(email.trim(), password.trim())
+    let r: { accessToken: string } | null = null
+    if (isParent) {
+      r = await apiParentLogin(email.trim(), password.trim())
+    } else {
+      r = await apiTeacherLogin(email.trim(), password.trim(), schoolCode.trim().toUpperCase())
+    }
     if (r?.accessToken) {
       saveSession({ role, name: email.trim(), email: email.trim() })
+      if (!isParent) localStorage.setItem(TEACHER_ROLE_KEY, 'teacher')
       navigate(redirectTo)
       return
     }
     setStatus('error')
-    setErrMsg('Неверный email или пароль')
+    setErrMsg('Неверный email, пароль или код школы')
   }
 
   const demoLogin = () => {
     saveSession({ role, name: demoName, email: 'demo@eduson.ru' })
     if (role === 'teacher') {
       localStorage.setItem(ADMIN_KEY, '1')
+      localStorage.setItem(TEACHER_ROLE_KEY, 'teacher')
     }
     navigate(redirectTo)
   }
@@ -428,6 +443,18 @@ function StaffLogin({
           autoComplete="current-password"
           aria-label="Пароль"
         />
+        {!isParent && (
+          <input
+            type="text"
+            placeholder="Код школы (напр. DEMO-2024)"
+            value={schoolCode}
+            onChange={(e) => { setStatus('idle'); setSchoolCode(e.target.value) }}
+            className="login-code-input"
+            autoComplete="organization"
+            aria-label="Код школы"
+            style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+          />
+        )}
         <button
           type="submit"
           className="kb-btn kb-btn--lg"

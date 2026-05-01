@@ -5,24 +5,9 @@ import Niksel from '../design/mascot/Niksel'
 import NikselIcon from '../design/mascot/NikselIcon'
 import { pluralize } from '../lib/plural'
 import { useToast } from '../hooks/useToast'
+import { loadSession } from '../lib/auth'
 import { fetchClassrooms, fetchStudents, type ClassroomDto, type StudentDto } from '../api/classrooms'
 import { fetchClassroomProgress, unlockBatch, type ClassroomProgressStudent } from '../api/lessonAccess'
-
-/**
- * /teacher — учительская консоль (MVP-заглушка для B2B/B2G-питча).
- *
- * 3 вкладки:
- *   1. «Классы» — список с кодами приглашения (mock-data: 2 класса)
- *   2. «Прогресс» — heatmap 20 учеников × 8 модулей
- *   3. «Назначения» — пригласить домашнее задание группе
- *
- * Доступ:
- *   - localStorage.ek_role = 'teacher'
- *   - или ?role=teacher в URL (для демо)
- *   - иначе — заглушка «Эта страница для учителей»
- *
- * В production: backend-роль, заявка на верификацию школы, SSO через Сферум.
- */
 
 const ROLE_KEY = 'ek_role'
 
@@ -30,6 +15,12 @@ function isTeacherRole(): boolean {
   if (typeof window === 'undefined') return false
   const urlRole = new URLSearchParams(window.location.search).get('role')
   if (urlRole === 'teacher') {
+    localStorage.setItem(ROLE_KEY, 'teacher')
+    return true
+  }
+  // Accept JWT session role as well as legacy ek_role key
+  const session = loadSession()
+  if (session?.role === 'teacher') {
     localStorage.setItem(ROLE_KEY, 'teacher')
     return true
   }
@@ -238,7 +229,7 @@ export default function Teacher() {
       )}
 
       {tab === 'classes' && <ClassesTab classes={classes} loading={apiLoading} />}
-      {tab === 'progress' && <ProgressTab classroom={activeMock} />}
+      {tab === 'progress' && <ProgressTab classroomId={activeClassIdResolved} classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''} />}
       {tab === 'unlock' && <UnlockTab classroomId={activeClassIdResolved} showToast={showToast} />}
       {tab === 'assignments' && <AssignmentsTab classroom={activeMock} />}
     </PlatformShell>
@@ -445,104 +436,129 @@ function UnlockTab({ classroomId, showToast }: {
 
 // ─── Tab: Progress ────────────────────────────────
 
-function ProgressTab({ classroom }: { classroom: Classroom }) {
+function ProgressTab({ classroomId, classroomName }: { classroomId: string; classroomName: string }) {
+  const [students, setStudents] = useState<StudentDto[]>([])
+  const [progress, setProgress] = useState<ClassroomProgressStudent[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const MODULE_SIZE = 6
+
+  useEffect(() => {
+    if (!classroomId) return
+    setLoading(true)
+    Promise.all([
+      fetchStudents(classroomId).catch(() => [] as StudentDto[]),
+      fetchClassroomProgress(classroomId).catch(() => [] as ClassroomProgressStudent[]),
+    ]).then(([s, p]) => { setStudents(s); setProgress(p) })
+      .finally(() => setLoading(false))
+  }, [classroomId])
+
+  const progressByStudent = new Map(progress.map((p) => [p.studentId, p.lessons]))
+
+  const formatLastSeen = (dt: string | null): { label: string; alarm: boolean } => {
+    if (!dt) return { label: 'никогда', alarm: true }
+    const days = Math.floor((Date.now() - new Date(dt).getTime()) / 86400000)
+    if (days === 0) return { label: 'сегодня', alarm: false }
+    if (days === 1) return { label: 'вчера', alarm: false }
+    return { label: `${days} дн. назад`, alarm: days >= 5 }
+  }
+
+  if (!classroomId) {
+    return <div className="kb-card" style={{ padding: 24, color: 'var(--ink-soft)' }}>Выбери класс выше.</div>
+  }
+
   return (
     <>
       <section style={{ marginBottom: 24 }}>
-        <h2 className="h2" style={{ marginBottom: 8 }}>Прогресс · {classroom.name}</h2>
+        <h2 className="h2" style={{ marginBottom: 8 }}>Прогресс · {classroomName}</h2>
         <p style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-          Heatmap: каждая строка — ученик, столбец — модуль M1..M8. Ячейка показывает долю пройденных уроков модуля.
+          Heatmap: каждая строка — ученик, столбец — модуль M1..M8. Дробь: пройдено/открыто уроков.
         </p>
       </section>
 
-      <div className="kb-card" style={{ padding: 20, overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid rgba(21,20,27,.08)' }}>
-              <th style={{ textAlign: 'left', padding: '8px 12px' }}>Ученик</th>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                <th key={n} style={{ padding: '8px 4px', textAlign: 'center', fontFamily: 'var(--f-display)' }}>M{n}</th>
-              ))}
-              <th style={{ padding: '8px 12px', textAlign: 'center' }}>Стрик</th>
-              <th style={{ padding: '8px 12px' }}>Был</th>
-            </tr>
-          </thead>
-          <tbody>
-            {classroom.students.map((s) => {
-              const isAlarm = s.lastActive.includes('7 дн') || s.lastActive.includes('5') || s.lastActive.includes('6')
-              return (
-                <tr key={s.id} style={{ borderBottom: '1px solid rgba(21,20,27,.04)' }}>
-                  <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', fontWeight: 600 }}>
-                    {isAlarm && <span title="Не был > 5 дней" style={{ marginRight: 6 }}>⚠</span>}
-                    {s.name}
-                  </td>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => {
-                    const moduleStart = (n - 1) * 6
-                    const doneInMod = Math.max(0, Math.min(6, s.progress - moduleStart))
-                    const pct = doneInMod / 6
-                    const intensity = pct > 0 ? 0.15 + pct * 0.75 : 0
-                    const bg = pct === 1 ? 'var(--mint-deep, #3DB07A)' : pct > 0 ? `rgba(107, 92, 231, ${intensity})` : 'rgba(21,20,27,.05)'
-                    const color = pct >= 0.7 ? '#fff' : 'var(--ink)'
-                    return (
-                      <td key={n} style={{ padding: 0, textAlign: 'center' }}>
-                        <div
-                          style={{
-                            margin: '2px auto',
-                            width: 34,
-                            height: 26,
-                            background: bg,
-                            color,
-                            borderRadius: 6,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 11,
-                            fontWeight: 700,
-                            fontFamily: 'var(--f-mono)',
-                          }}
-                          title={`M${n}: ${doneInMod}/6 уроков`}
-                        >
-                          {doneInMod > 0 ? `${doneInMod}/6` : ''}
-                        </div>
-                      </td>
-                    )
-                  })}
-                  <td style={{ padding: '8px 12px', textAlign: 'center', fontFamily: 'var(--f-mono)' }}>
-                    {s.streak > 0 ? `🔥${s.streak}` : '—'}
-                  </td>
-                  <td style={{ padding: '8px 12px', color: isAlarm ? '#c33' : 'var(--ink-soft)', fontSize: 12 }}>
-                    {s.lastActive}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <section style={{ marginTop: 24 }}>
-        <h3 className="h3" style={{ marginBottom: 10 }}>Тревоги класса</h3>
-        <div className="kb-card" style={{ padding: 18 }}>
-          {classroom.students.filter((s) => s.lastActive.includes('7 дн') || s.lastActive.includes('5') || s.lastActive.includes('6')).length === 0 ? (
-            <p style={{ color: 'var(--mint-deep, #3DB07A)', fontWeight: 600, margin: 0 }}>
-              ✓ В классе всё спокойно — все ученики занимались за последние 5 дней.
-            </p>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {classroom.students
-                .filter((s) => s.lastActive.includes('7 дн') || s.lastActive.includes('5') || s.lastActive.includes('6'))
-                .map((s) => (
-                  <li key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span>⚠</span>
-                    <strong style={{ flex: 1 }}>{s.name}</strong>
-                    <span style={{ color: '#c33', fontSize: 13 }}>{s.lastActive}</span>
-                    <button className="kb-btn kb-btn--sm">✉ Написать родителю</button>
-                  </li>
+      {loading ? (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>Загрузка…</div>
+      ) : (
+        <div className="kb-card" style={{ padding: 0, overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid rgba(21,20,27,.08)', background: 'var(--bg-soft, #f9f8ff)' }}>
+                <th style={{ textAlign: 'left', padding: '8px 12px' }}>Ученик</th>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  <th key={n} style={{ padding: '8px 4px', textAlign: 'center', fontFamily: 'var(--f-display)' }}>M{n}</th>
                 ))}
-            </ul>
-          )}
+                <th style={{ padding: '8px 12px' }}>Был</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.length === 0 ? (
+                <tr><td colSpan={10} style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>В классе нет учеников</td></tr>
+              ) : students.map((s) => {
+                const lessonMap = progressByStudent.get(s.id) ?? {}
+                const { label: lastSeen, alarm } = formatLastSeen(s.lastLoginAt)
+                return (
+                  <tr key={s.id} style={{ borderBottom: '1px solid rgba(21,20,27,.04)' }}>
+                    <td style={{ padding: '8px 12px', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                      {alarm && <span title="Не был ≥ 5 дней" style={{ marginRight: 6 }}>⚠</span>}
+                      {s.login}
+                    </td>
+                    {Array.from({ length: 8 }, (_, mi) => {
+                      const moduleStart = mi * MODULE_SIZE + 1
+                      const moduleLessons = Array.from({ length: MODULE_SIZE }, (_, li) => moduleStart + li)
+                      const unlocked = moduleLessons.filter((n) => lessonMap[n]?.unlocked).length
+                      const completed = moduleLessons.filter((n) => lessonMap[n]?.completed).length
+                      const pct = unlocked / MODULE_SIZE
+                      const bg = completed === MODULE_SIZE
+                        ? 'var(--mint-deep, #3DB07A)'
+                        : pct > 0 ? `rgba(107,92,231,${0.15 + pct * 0.7})` : 'rgba(21,20,27,.05)'
+                      const color = pct >= 0.6 || completed === MODULE_SIZE ? '#fff' : 'var(--ink)'
+                      return (
+                        <td key={mi} style={{ padding: 2, textAlign: 'center' }}>
+                          <div
+                            title={`M${mi + 1}: ${completed}✓ / ${unlocked} откр.`}
+                            style={{ width: 36, height: 26, margin: '0 auto', borderRadius: 6, background: bg, color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, fontFamily: 'var(--f-mono)' }}
+                          >
+                            {unlocked > 0 ? `${completed}/${unlocked}` : ''}
+                          </div>
+                        </td>
+                      )
+                    })}
+                    <td style={{ padding: '8px 12px', color: alarm ? '#c33' : 'var(--ink-soft)', fontSize: 12 }}>
+                      {lastSeen}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
-      </section>
+      )}
+
+      {!loading && students.length > 0 && (
+        <section style={{ marginTop: 24 }}>
+          <h3 className="h3" style={{ marginBottom: 10 }}>Тревоги класса</h3>
+          <div className="kb-card" style={{ padding: 18 }}>
+            {students.filter((s) => formatLastSeen(s.lastLoginAt).alarm).length === 0 ? (
+              <p style={{ color: 'var(--mint-deep, #3DB07A)', fontWeight: 600, margin: 0 }}>
+                ✓ В классе всё спокойно — все ученики входили за последние 5 дней.
+              </p>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {students.filter((s) => formatLastSeen(s.lastLoginAt).alarm).map((s) => {
+                  const { label } = formatLastSeen(s.lastLoginAt)
+                  return (
+                    <li key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span>⚠</span>
+                      <strong style={{ flex: 1 }}>{s.login}</strong>
+                      <span style={{ color: '#c33', fontSize: 13 }}>{label}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
     </>
   )
 }

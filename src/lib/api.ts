@@ -150,6 +150,22 @@ export async function apiParentLogin(email: string, password: string): Promise<{
   return r
 }
 
+export async function apiTeacherLogin(
+  email: string,
+  password: string,
+  schoolCode: string,
+): Promise<{ accessToken: string } | null> {
+  const r = await request<{ accessToken: string }>('/api/v1/auth/teacher/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, schoolCode }),
+  })
+  if (r?.accessToken) {
+    setToken(r.accessToken)
+    scheduleCookieMigration()
+  }
+  return r
+}
+
 export async function apiLoginGuest(): Promise<AuthResponse | null> {
   const r = await request<AuthResponse>('/api/v1/auth/guest', { method: 'POST' })
   if (r?.token) {
