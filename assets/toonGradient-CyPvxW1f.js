@@ -1,0 +1,1 @@
+import{E as n,Pt as i,ht as a}from"./vendor-physics-DXTlMK5L.js";var e=null;function o(){if(e)return e;const r=new Uint8Array([28,65,100,135,165,195,220,248]),t=new n(r,8,1,i);return t.minFilter=a,t.magFilter=a,t.generateMipmaps=!1,t.needsUpdate=!0,e=t,t}export{o as t};
