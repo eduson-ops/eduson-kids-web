@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
+import { randomBytes } from 'node:crypto';
 import Redis from 'ioredis';
 import { User, UserRole } from './entities/user.entity';
 import { PiiCryptoService } from '../../common/crypto/pii-crypto.service';
@@ -65,7 +66,7 @@ export class AuthService {
   }
 
   async loginGuest(): Promise<{ accessToken: string }> {
-    const guestId = require('crypto').randomBytes(8).toString('hex') as string;
+    const guestId = randomBytes(8).toString('hex');
     const payload: JwtPayload = {
       sub: `guest-${guestId}`,
       role: 'guest' as UserRole,
@@ -240,7 +241,7 @@ export class AuthService {
   }
 
   issueTokens(user: User): { accessToken: string; refreshToken: string } {
-    const jti = require('crypto').randomBytes(16).toString('hex') as string;
+    const jti = randomBytes(16).toString('hex');
 
     const accessPayload: JwtPayload = {
       sub: user.id,

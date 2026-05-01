@@ -228,7 +228,13 @@ export default function Teacher() {
 
       {tab === 'classes' && <ClassesTab classes={classes} loading={apiLoading} />}
       {tab === 'progress' && <ProgressTab classroomId={activeClassIdResolved} classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''} />}
-      {tab === 'unlock' && <UnlockTab classroomId={activeClassIdResolved} showToast={showToast} />}
+      {tab === 'unlock' && (
+        <UnlockTab
+          classroomId={activeClassIdResolved}
+          classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''}
+          showToast={showToast}
+        />
+      )}
       {tab === 'assignments' && (
         <AssignmentsTab
           classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''}
@@ -290,8 +296,9 @@ function ClassesTab({ classes, loading }: {
 
 // ─── Tab: Unlock Lessons ──────────────────────────
 
-function UnlockTab({ classroomId, showToast }: {
+function UnlockTab({ classroomId, classroomName, showToast }: {
   classroomId: string
+  classroomName: string
   showToast: (msg: string, kind: 'success' | 'error' | 'info') => void
 }) {
   const [students, setStudents] = useState<StudentDto[]>([])
@@ -340,7 +347,7 @@ function UnlockTab({ classroomId, showToast }: {
   return (
     <>
       <section style={{ marginBottom: 20 }}>
-        <h2 className="h2" style={{ marginBottom: 8 }}>Открыть урок · {classroomId.slice(0, 8)}…</h2>
+        <h2 className="h2" style={{ marginBottom: 8 }}>Открыть урок · {classroomName || classroomId.slice(0, 8)}</h2>
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 16px' }}>
           Выбери урок и открой его всему классу. Ученики увидят его в своём журнале после обновления страницы.
         </p>

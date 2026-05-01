@@ -143,12 +143,14 @@ export class ClassroomService {
   }
 
   /**
-   * Cryptographically-secure 6-digit PIN. Uses node:crypto (not Math.random)
-   * because PINs gate child account auth — see S-04 audit.
+   * Cryptographically-secure 6-char alphanumeric PIN from a confusion-free
+   * alphabet (no 0/1/O/l/I/5/S/j). Matches PIN_ALPHABET in StudentRosterService.
    */
   private generatePin(): string {
-    const buf = randomBytes(4);
-    const n = buf.readUInt32BE(0) % 900000;
-    return (100000 + n).toString();
+    const ALPHA = 'abcdefghkmnpqrtuvwxyz2346789';
+    const buf = randomBytes(6);
+    let pin = '';
+    for (let i = 0; i < 6; i++) pin += ALPHA[buf[i] % ALPHA.length];
+    return pin;
   }
 }
