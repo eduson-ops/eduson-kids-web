@@ -2,7 +2,9 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { canPostfx } from '../../lib/deviceTier'
+import { canPostfx, detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -34,6 +36,7 @@ const BIO_DATA: BioParticle[] = (() => {
 function BioPlankton() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   // Per-instance colors cycling through BIO_COLORS
   const colorArray = useMemo(() => {
@@ -49,6 +52,7 @@ function BioPlankton() {
   }, [])
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     BIO_DATA.forEach((p, i) => {
       // drift upward, reset when y > 12
@@ -227,6 +231,7 @@ function BubbleStream() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const COUNT = 90
   const ref = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip = useRef(0)
   const particles = useMemo(() =>
     Array.from({ length: COUNT }, (_, i) => {
       const stream = Math.floor(i / 30)
@@ -235,9 +240,11 @@ function BubbleStream() {
       return { x: sx + (Math.random() - 0.5) * 2, y: Math.random() * 20 - 1, z: sz + (Math.random() - 0.5) * 2, speed: Math.random() * 0.04 + 0.02, wobble: Math.random() * Math.PI * 2 }
     }), [])
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     particles.forEach((p, i) => {
-      p.y += p.speed
-      p.wobble += dt * 2
+      p.y += p.speed * (_isLow ? 2 : 1)
+      p.wobble += step * 2
       if (p.y > 20) p.y = -1
       dummy.position.set(p.x + Math.sin(p.wobble) * 0.3, p.y, p.z)
       dummy.scale.setScalar(0.12 + Math.sin(p.wobble) * 0.04)
@@ -445,6 +452,7 @@ function OxygenBubbles() {
   const COUNT = 80
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const bubbleData = useMemo<BubbleData[]>(() => {
     const seed = (n: number) => ((Math.sin(n * 53.7 + 199.3) * 43758.5453) % 1 + 1) % 1
     return Array.from({ length: COUNT }, (_, i) => ({
@@ -459,6 +467,7 @@ function OxygenBubbles() {
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     bubbleData.forEach((b, i) => {
       const y = ((t * b.speed + b.phase) % 12) + 0.1

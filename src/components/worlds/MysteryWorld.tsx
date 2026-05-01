@@ -3,6 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 
 // ─── MansionFog — 20 drifting semi-transparent planes creating eerie mist ───
 const FOG_PLANES: { pos: [number, number, number]; phase: number; speed: number }[] = [
@@ -110,6 +113,7 @@ const CLUE_PARTICLE_COUNT = 30
 function ClueParticles() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const params = useMemo(() =>
     Array.from({ length: CLUE_PARTICLE_COUNT }, (_, i) => ({
       radius: 2 + (i % 5) * 0.45,
@@ -121,6 +125,7 @@ function ClueParticles() {
     })), [])
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     params.forEach((p, i) => {
       const angle = t * p.speed + p.phase
@@ -798,8 +803,10 @@ function StoneCircle() {
     })), [])
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     mistData.forEach((m, i) => {
       const x = Math.cos(m.angle + t * 0.08) * m.radius
@@ -908,8 +915,10 @@ function SwampZone() {
     })), [])
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     bubbleData.forEach((b, i) => {
       const cycleT = (t * b.speed + b.phase) % 4.0
