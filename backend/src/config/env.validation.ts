@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 
@@ -59,9 +59,11 @@ class EnvironmentVariables {
   REDIS_PASSWORD: string = '';
 
   @IsString()
+  @IsNotEmpty()
   JWT_ACCESS_SECRET!: string;
 
   @IsString()
+  @IsNotEmpty()
   JWT_REFRESH_SECRET!: string;
 
   @IsString()
@@ -71,6 +73,7 @@ class EnvironmentVariables {
   JWT_REFRESH_EXPIRES: string = '30d';
 
   @IsString()
+  @IsNotEmpty()
   PII_KEY!: string;
 
   @IsString()
