@@ -12,6 +12,8 @@ import { seedDemoStateIfEmpty } from './lib/demoSeed'
 import { apiGetMe } from './lib/api'
 import { saveSession, loadSession } from './lib/auth'
 import { getAccessToken } from './lib/authStorage'
+import { fetchMyAccess } from './api/lessonAccess'
+import { syncCompletedFromApi } from './lib/progress'
 import { useTenantBranding } from './hooks/useTenantBranding'
 import './App.css'
 import './styles/mobile.css'
@@ -102,6 +104,12 @@ export default function App() {
           if (me.login) s.login = me.login
           if (me.email) s.email = me.email
           saveSession(s)
+        }
+        // Sync completed lessons from backend for cross-device progress
+        if (me.role === 'child') {
+          fetchMyAccess()
+            .then((rows) => syncCompletedFromApi(rows.filter((r) => r.completed).map((r) => r.lessonN)))
+            .catch(() => { /* offline — local progress is fine */ })
         }
       }).catch(() => { /* backend offline — stay local */ })
     }

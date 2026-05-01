@@ -153,6 +153,21 @@ export function unmarkLesson(n: number) {
   emit()
 }
 export function countDone(): number { return completed.size }
+
+/** Merge server-side completed lessons into local store (cross-device sync). */
+export function syncCompletedFromApi(lessonNs: number[]): void {
+  let changed = false
+  for (const n of lessonNs) {
+    if (!completed.has(n)) {
+      completed = new Set([...completed, n])
+      changed = true
+    }
+  }
+  if (changed) {
+    persistCompleted()
+    emit()
+  }
+}
 export function countDoneInModule(_moduleN: number, lessonNumbers: number[]): number {
   return lessonNumbers.filter((n) => completed.has(n)).length
 }
