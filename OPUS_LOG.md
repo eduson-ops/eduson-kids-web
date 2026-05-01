@@ -146,12 +146,38 @@ TypeScript cleanup:
 
 ---
 
-## Skipped / Deferred
+---
 
-- VideoPlayer integration into LessonPage (no video URLs in curriculum yet)
-- `hls.js` npm install (deferred until actual HLS content exists)
-- Smoke test against live YC backend (requires deploy)
-- Backend deployment to YC (requires `TF apply` or manual container push)
+## ✅ Session 5 — Security Hardening + Prototype Deploy (2026-05-01)
+
+**Security fixes:**
+- `user.entity.ts`: `passwordHash` → `select: false` prevents hash leakage in unfiltered queries
+- `auth.service.ts`: `findByLogin()` uses `createQueryBuilder().addSelect('u.passwordHash')` — explicit load only for auth
+- `env.validation.ts`: `@IsNotEmpty()` added to JWT secrets — empty string no longer passes validation
+- `lesson-access.controller.ts`: added `toRow()` mapper — tenantId/classroomId/unlockedBy never returned in API responses
+
+**Data integrity fixes:**
+- `lesson-access.service.ts`: `completeLesson()` race condition fixed — atomic SQL `GREATEST(COALESCE(score))` + `COALESCE(completed_at, NOW())`
+- `billing.service.ts`: `processYukassaEvent()` implemented — dispatches `payment.succeeded`→`handlePaymentSuccess`, `payment.canceled`→`handlePaymentFailure`
+- `progress.service.ts`: deprecated `findByIds()` → `find({ where: { id: In(userIds) } })`
+- `api.ts`: `apiPutAvatar()` now returns actual `result !== null` instead of always `true`
+
+**Frontend:**
+- `VideoPlayer.tsx`: YouTube embed support via `youtube-nocookie.com`
+- `curriculum.ts`: `video?: VideoSource` field on Lesson interface; demo videos on L1 (TED-Ed algorithm) and L3 (block coding)
+- `Learn.tsx`: VideoPlayer rendered on LessonPage when `lesson.video` present
+
+**Deploy:**
+- GH Pages: built and pushed to `gh-pages` branch → live at https://eduson-ops.github.io/t/
+- Backend CI: triggered `api-deploy.yml` on `tmp-gh-pages` via `workflow_dispatch`
+- `.env.production`: added `VITE_BASE=/t/` (was missing, caused broken asset paths)
+
+**After CI completes — run manually in YC console:**
+```bash
+# Connect to backend container (YC Serverless Container shell or via SSH to VM)
+npm run migration:run   # runs all pending migrations incl. 1714000007000 + 1714000008000
+npm run seed            # creates demo accounts
+```
 
 ---
 
@@ -164,10 +190,15 @@ TypeScript cleanup:
 
 ---
 
-## Next Steps
+## ✅ Prototype Complete
 
-1. Push to `main` → GH Pages CI auto-deploys frontend
-2. Deploy backend to YC Serverless Container (see `OPUS_FULLDAY_PLAN.md` Block 0)
-3. Run `npm run seed` to create demo teacher + child accounts
-4. Teacher logs in with DEMO-2024 → creates classroom → bulk creates students → downloads PIN sheet
-5. Teacher unlocks lessons 1–6 (M1) → student logs in → sees unlocked lessons in Learn.tsx
+**Live URL:** https://eduson-ops.github.io/t/  
+**Backend:** https://bba885qd0t1b4ds56ltb.containers.yandexcloud.net  
+
+**Full demo flow:**
+1. Teacher logs in → `DEMO-2024` school code
+2. Creates classroom → Bulk creates students → prints PDF card sheet with PINs
+3. Opens Lesson Unlock tab → unlocks M1 (уроки 1-6) для всего класса
+4. Student gets PIN card → logs in → sees 6 unlocked lessons in /learn
+5. Opens Lesson 1 → sees YouTube video intro → opens Studio → codes first script
+6. Teacher sees progress heatmap in real time
