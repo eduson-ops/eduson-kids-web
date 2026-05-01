@@ -1,6 +1,9 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import { type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import Coin from '../Coin'
@@ -358,6 +361,7 @@ const DUST_CEILING = 12
 function DustMotes() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const particles = useMemo(() => {
     return Array.from({ length: DUST_COUNT }, () => ({
@@ -370,10 +374,11 @@ function DustMotes() {
   }, [])
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime()
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const t = clock.getElapsedTime()
     particles.forEach((p, i) => {
-      p.y += p.speed + Math.sin(t * 0.5 + p.phase) * 0.002
+      p.y += (p.speed + Math.sin(t * 0.5 + p.phase) * 0.002) * (_isLow ? 2 : 1)
       if (p.y > DUST_CEILING) p.y = 0
       dummy.position.set(p.x, p.y, p.z)
       dummy.scale.setScalar(1)
@@ -773,6 +778,7 @@ function JungleFireflies() {
   const meshRef1 = useRef<THREE.InstancedMesh>(null!)
   const meshRef2 = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const fireflies = useMemo(() =>
     Array.from({ length: FIREFLY_COUNT }, (_, i) => {
@@ -789,6 +795,7 @@ function JungleFireflies() {
 
   // Per-color local indices: firefly i belongs to group (i % 3), slot (Math.floor(i/3))
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const refs = [meshRef0.current, meshRef1.current, meshRef2.current]
     // Track per-color instance counter for positioning
     const counters = [0, 0, 0]
@@ -914,6 +921,7 @@ const EXTRA_DUST_COUNT = 200
 function ExtraDustMotes() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const particles = useMemo(() => {
     return Array.from({ length: EXTRA_DUST_COUNT }, () => ({
       x: (Math.random() - 0.5) * 80,
@@ -924,10 +932,11 @@ function ExtraDustMotes() {
     }))
   }, [])
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime()
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const t = clock.getElapsedTime()
     particles.forEach((p, i) => {
-      p.y += p.speed + Math.sin(t * 0.4 + p.phase) * 0.002
+      p.y += (p.speed + Math.sin(t * 0.4 + p.phase) * 0.002) * (_isLow ? 2 : 1)
       if (p.y > 32) p.y = 0
       dummy.position.set(p.x, p.y, p.z)
       dummy.scale.setScalar(1)

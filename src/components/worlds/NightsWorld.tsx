@@ -3,6 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
@@ -268,6 +271,7 @@ const fireflyData: FireflyData[] = Array.from({ length: FIREFLY_COUNT }, (_, i) 
 function Fireflies({ phase }: { phase: 'day' | 'night' }) {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const colorArray = useMemo(() => {
     const arr = new Float32Array(FIREFLY_COUNT * 3)
@@ -286,6 +290,7 @@ function Fireflies({ phase }: { phase: 'day' | 'night' }) {
 
   useFrame(({ clock }) => {
     if (!meshRef.current || phase !== 'night') return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     fireflyData.forEach((fd, i) => {
       const angle = t * fd.speed + fd.phase
@@ -514,9 +519,11 @@ const WISP_LIGHT_POSITIONS: [number, number, number][] = [
 function WillOWisps() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     wispParticles.forEach((wp, i) => {
       const x = wp.baseX + Math.sin(t * wp.orbitSpeed + wp.phase) * wp.orbitRadius
@@ -641,9 +648,11 @@ const mistParticles: MistParticle[] = Array.from({ length: 30 }, (_, i) => {
 function GroundMist({ phase }: { phase: 'day' | 'night' }) {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
     if (!meshRef.current || phase !== 'night') return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     mistParticles.forEach((mp, i) => {
       const drift = Math.sin(t * mp.driftSpeed + mp.driftPhase) * mp.driftAmp

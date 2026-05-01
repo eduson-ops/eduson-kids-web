@@ -3,6 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef, useEffect } from 'react'
 import * as THREE from 'three'
 import { BackSide } from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -513,6 +516,7 @@ const DEBRIS_COUNT = 40
 
 function DebrisField() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip = useRef(0)
 
   // Pre-allocated temporaries — reused every frame, no per-frame GC pressure
   const _mat = useRef(new THREE.Matrix4())
@@ -561,14 +565,16 @@ function DebrisField() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const mat = _mat.current
     const pos = _pos.current
     const quat = _quat.current
     const scl = _scl.current
     instanceData.forEach((d, i) => {
-      d.euler.x += d.rotX * dt
-      d.euler.y += d.rotY * dt
-      d.euler.z += d.rotZ * dt
+      d.euler.x += d.rotX * step
+      d.euler.y += d.rotY * step
+      d.euler.z += d.rotZ * step
       pos.copy(d.pos)
       quat.setFromEuler(d.euler)
       scl.copy(d.scale)
@@ -590,9 +596,11 @@ function DebrisField() {
 // 200 additional bright stars concentrated in the deep-z far field
 // (z -150 to -400) to increase the sense of cosmic depth.
 function DeepStars() {
-  const positions = useMemo(() => {
+  const COUNT = 200
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const starData = useMemo(() => {
     const seed = (n: number) => ((Math.sin(n) * 43758.5453) % 1 + 1) % 1
-    return Array.from({ length: 200 }, (_, i) => ({
+    return Array.from({ length: COUNT }, (_, i) => ({
       pos: [
         (seed(i * 17.1) - 0.5) * 320,
         (seed(i * 17.2) - 0.5) * 280,
@@ -602,15 +610,23 @@ function DeepStars() {
     }))
   }, [])
 
+  useEffect(() => {
+    if (!meshRef.current) return
+    const dummy = new THREE.Object3D()
+    starData.forEach((s, i) => {
+      dummy.position.set(...s.pos)
+      dummy.scale.setScalar(s.r)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [starData])
+
   return (
-    <>
-      {positions.map((s, i) => (
-        <mesh key={i} position={s.pos}>
-          <sphereGeometry args={[s.r, 4, 4]} />
-          <meshBasicMaterial color="#e8eeff" toneMapped={false} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[1, 4, 4]} />
+      <meshBasicMaterial color="#e8eeff" toneMapped={false} />
+    </instancedMesh>
   )
 }
 
@@ -731,6 +747,7 @@ interface AsteroidInstanceData {
 function AsteroidBelt() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const asteroids = useMemo<AsteroidInstanceData[]>(() => {
     const seed = (n: number) => ((Math.sin(n) * 43758.5453) % 1 + 1) % 1
@@ -752,12 +769,14 @@ function AsteroidBelt() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     for (let i = 0; i < ASTEROID_COUNT; i++) {
       const a = asteroids[i]!
-      a.angle += a.orbitSpeed * dt
-      a.rx += a.selfRotSpeed * dt
-      a.ry += a.selfRotSpeed * dt * 0.7
-      a.rz += a.selfRotSpeed * dt * 0.5
+      a.angle += a.orbitSpeed * step
+      a.rx += a.selfRotSpeed * step
+      a.ry += a.selfRotSpeed * step * 0.7
+      a.rz += a.selfRotSpeed * step * 0.5
       dummy.position.set(
         Math.cos(a.angle) * a.ringRadius,
         a.y,
