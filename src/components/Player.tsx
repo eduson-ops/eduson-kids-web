@@ -80,6 +80,11 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
   const vCamVel = useRef(new THREE.Vector3())   // velocity спринг-системы камеры
   // Сглаженная позиция тела для камеры — устраняет дрёбезг от дискретных шагов physics (60hz) при рендере 120+fps
   const smoothBodyPos = useRef(new THREE.Vector3(startPos[0], startPos[1], startPos[2]))
+  // Pre-allocated ray objects — reused every frame to avoid GC pressure (was 4 allocs/frame = GC freeze every 3-5s)
+  const _rayOrigin = useRef({ x: 0, y: 0, z: 0 })
+  const _rayDir = useRef({ x: 0, y: -1, z: 0 })
+  const _ray = useRef(new rapier.Ray(_rayOrigin.current, _rayDir.current))
+  const _ekPos = useRef({ x: 0, y: 0, z: 0 })
 
   useEffect(() => {
     vStart.current.set(startPos[0], startPos[1], startPos[2])
@@ -161,10 +166,10 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
     smoothBodyPos.current.x += (pos.x - smoothBodyPos.current.x) * _sAlpha
     smoothBodyPos.current.y += (pos.y - smoothBodyPos.current.y) * _sAlpha
     smoothBodyPos.current.z += (pos.z - smoothBodyPos.current.z) * _sAlpha
-    const rayOrigin = { x: pos.x, y: pos.y - (CAP_HEIGHT + CAP_RADIUS) + 0.05, z: pos.z }
-    const rayDir = { x: 0, y: -1, z: 0 }
-    const ray = new rapier.Ray(rayOrigin, rayDir)
-    const hit = world.castRay(ray, 0.25, true, undefined, undefined, undefined, body.current)
+    _rayOrigin.current.x = pos.x
+    _rayOrigin.current.y = pos.y - (CAP_HEIGHT + CAP_RADIUS) + 0.05
+    _rayOrigin.current.z = pos.z
+    const hit = world.castRay(_ray.current, 0.25, true, undefined, undefined, undefined, body.current)
     const grounded = hit !== null
 
     // Coyote time: "подарочная" секунда после схода с края
@@ -323,8 +328,8 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
     // Экспозиция позиции игрока глобально — читают миры-песочницы
     // для механик (pet follow, ability aim, ownership proximity и т.д.)
     if (typeof window !== 'undefined') {
-      const w = window as unknown as { __ekPlayerPos?: { x: number; y: number; z: number } }
-      w.__ekPlayerPos = { x: pos.x, y: pos.y, z: pos.z }
+      _ekPos.current.x = pos.x; _ekPos.current.y = pos.y; _ekPos.current.z = pos.z
+      ;(window as unknown as { __ekPlayerPos?: { x: number; y: number; z: number } }).__ekPlayerPos = _ekPos.current
     }
 
     // Respawn: падение в pit или удар врага

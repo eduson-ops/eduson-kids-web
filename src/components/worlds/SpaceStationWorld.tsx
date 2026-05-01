@@ -398,33 +398,29 @@ function Beacon({ pos, color = WARN }: { pos: [number, number, number]; color?: 
   )
 }
 
-// ─── StarField ────────────────────────────────────────────────────
+// ─── StarField ─── 600→1 draw call via THREE.Points ──────────────
 function StarField() {
-  const positions = useMemo(() => {
-    const pts: Array<[number, number, number]> = []
+  const geometry = useMemo(() => {
     const RADIUS = 200
-    for (let i = 0; i < 600; i++) {
-      // Random point inside sphere — rejection-sample for uniform distribution
-      let x = 0, y = 0, z = 0
-      do {
-        x = (Math.random() * 2 - 1) * RADIUS
-        y = (Math.random() * 2 - 1) * RADIUS
-        z = (Math.random() * 2 - 1) * RADIUS
-      } while (x * x + y * y + z * z > RADIUS * RADIUS)
-      pts.push([x, y, z])
+    const count = 600
+    const buf = new Float32Array(count * 3)
+    let n = 0
+    while (n < count) {
+      const x = (Math.random() * 2 - 1) * RADIUS
+      const y = (Math.random() * 2 - 1) * RADIUS
+      const z = (Math.random() * 2 - 1) * RADIUS
+      if (x * x + y * y + z * z <= RADIUS * RADIUS) {
+        buf[n * 3] = x; buf[n * 3 + 1] = y; buf[n * 3 + 2] = z; n++
+      }
     }
-    return pts
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.BufferAttribute(buf, 3))
+    return geo
   }, [])
-
   return (
-    <>
-      {positions.map((p, i) => (
-        <mesh key={i} position={p}>
-          <sphereGeometry args={[0.08, 4, 4]} />
-          <meshBasicMaterial color="white" />
-        </mesh>
-      ))}
-    </>
+    <points geometry={geometry} frustumCulled={false}>
+      <pointsMaterial color="white" size={0.5} sizeAttenuation transparent opacity={0.85} />
+    </points>
   )
 }
 
