@@ -1004,11 +1004,9 @@ function SwampZone() {
         />
       </instancedMesh>
 
-      {/* 4 eerie green point lights low over swamp */}
-      <pointLight color="#33ff44" intensity={1.2} distance={10} decay={2} position={[-8,  1,  -5]} />
-      <pointLight color="#22dd33" intensity={1.0} distance={10} decay={2} position={[ 7,  1,  -4]} />
-      <pointLight color="#33ff44" intensity={1.1} distance={10} decay={2} position={[ 8,  1,   6]} />
-      <pointLight color="#22dd33" intensity={0.9} distance={10} decay={2} position={[-7,  1,   7]} />
+      {/* 2 eerie green point lights low over swamp */}
+      <pointLight color="#33ff44" intensity={1.8} distance={16} decay={2} position={[ 0,  1,  -4]} />
+      <pointLight color="#22dd33" intensity={1.6} distance={16} decay={2} position={[ 0,  1,   6]} />
     </group>
   )
 }
@@ -1608,17 +1606,9 @@ function CryptArch({ pos }: { pos: [number, number, number] }) {
 function GraveyardDecor() {
   return (
     <>
-      {/* 8 Pumpkins scattered in the graveyard exterior with orange point lights */}
+      {/* 8 Pumpkins scattered in the graveyard exterior */}
       {GRAVEYARD_PUMPKIN_POSITIONS.map((pos, i) => (
-        <group key={`gvpk${i}`}>
-          <Pumpkin pos={pos} scale={1.2} rotY={(i * 1.1) % (Math.PI * 2)} />
-          <pointLight
-            color="#ff5500"
-            intensity={1.5}
-            distance={6}
-            position={[pos[0], pos[1] + 1, pos[2]] as [number, number, number]}
-          />
-        </group>
+        <Pumpkin key={`gvpk${i}`} pos={pos} scale={1.2} rotY={(i * 1.1) % (Math.PI * 2)} />
       ))}
       {/* 4 tombstone-style boxes at graveyard corners */}
       {TOMBSTONE_POSITIONS.map((pos, i) => (

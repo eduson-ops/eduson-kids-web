@@ -55,16 +55,9 @@ function ArenaBarrier() {
           side={THREE.DoubleSide}
         />
       </mesh>
-      {/* 8 point lights evenly spaced around the ring */}
-      {BARRIER_LIGHT_ANGLES.map((a, i) => (
-        <pointLight
-          key={`barrier-light-${i}`}
-          color="#6600cc"
-          intensity={3}
-          distance={25}
-          position={[Math.cos(a) * 90, 8, Math.sin(a) * 90]}
-        />
-      ))}
+      {/* Barrier glow — 2 opposing lights instead of 8 */}
+      <pointLight color="#6600cc" intensity={6} distance={30} position={[90, 8, 0]} />
+      <pointLight color="#6600cc" intensity={6} distance={30} position={[-90, 8, 0]} />
     </>
   )
 }
@@ -1088,7 +1081,7 @@ const RING_LIGHT_COLORS = [
   '#4488ff', // frost
 ]
 
-const RING_LIGHT_ANGLES = Array.from({ length: 12 }, (_, i) => (i / 12) * Math.PI * 2)
+const RING_LIGHT_ANGLES = Array.from({ length: 6 }, (_, i) => (i / 6) * Math.PI * 2)
 
 function ArenaLights() {
   const ringLightRefs = useRef<THREE.PointLight[]>([])
@@ -1098,7 +1091,7 @@ function ArenaLights() {
     const t = clock.elapsedTime
     ringLightRefs.current.forEach((light, i) => {
       if (!light) return
-      _col.current.setHSL((t * 0.08 + i / 12) % 1.0, 1.0, 0.6)
+      _col.current.setHSL((t * 0.08 + i / 6) % 1.0, 1.0, 0.6)
       light.color.copy(_col.current)
     })
   })

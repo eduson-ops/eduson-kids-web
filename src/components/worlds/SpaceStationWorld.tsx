@@ -498,9 +498,11 @@ function ThrusterGlowRings() {
             <torusGeometry args={[1.5, 0.15, 16, 64]} />
             <meshBasicMaterial color="#00ffff" toneMapped={false} />
           </mesh>
-          <pointLight color="#00aaff" intensity={3} distance={8} />
         </group>
       ))}
+      {/* 2 shared lights for the whole thruster cluster */}
+      <pointLight color="#00aaff" intensity={5} distance={20} position={[-6, 3.5, -149]} />
+      <pointLight color="#00aaff" intensity={5} distance={20} position={[6, 3.5, -149]} />
     </>
   )
 }
@@ -957,12 +959,10 @@ const STREAM_POSITIONS: Array<[number, number, number]> = [
 const STREAM_COUNT    = 12   // particles per pillar
 const STREAM_HEIGHT   = 8    // y range each particle cycles through
 
-// Warning beacon positions at entry / transition points
+// Warning beacon positions at entry / transition points (3 of 5 kept)
 const ACTIVITY_BEACON_POSITIONS: Array<[number, number, number]> = [
   [ 0,  1,  -22],   // bridge STA-00 → STA-01 entry
-  [20,  1,  -52],   // East bridge mid-point
   [-14, 8,  -84],   // Beta module west entry
-  [ 0, 15, -104],   // bridge to command entry
   [13, 15, -128],   // Command bridge east rail
 ]
 
@@ -1053,7 +1053,6 @@ function StationActivity() {
             <boxGeometry args={[0.6, 0.05, 0.15]} />
             <meshStandardMaterial color={NEON_CYAN} emissive={NEON_CYAN} emissiveIntensity={1.2} roughness={0.2} />
           </mesh>
-          <pointLight color="#48e0ff" intensity={1} distance={4} />
         </group>
       ))}
 
