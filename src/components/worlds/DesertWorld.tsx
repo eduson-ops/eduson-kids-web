@@ -716,7 +716,7 @@ function SandStorm() {
   })
 
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, COUNT]}>
+    <instancedMesh ref={ref} args={[undefined, undefined, COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
       <meshBasicMaterial color="#d4a853" transparent opacity={0.35} />
     </instancedMesh>

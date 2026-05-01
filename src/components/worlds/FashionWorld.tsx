@@ -1,6 +1,6 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import Coin from '../Coin'
 import NPC from '../NPC'
@@ -905,11 +905,57 @@ function BackstageArea() {
   ]
 
   // Gold star pattern on curtain: 7 sphere-cluster stars at varying positions
+  // Each star = 1 centre + 4 satellites → 7 centres + 28 satellites = 35 total instances
   type StarPos = { x: number; y: number }
   const curtainStars: StarPos[] = [
     { x: -8, y: 5 }, { x: -4, y: 2 }, { x: 0, y: 6 }, { x: 4, y: 2 },
     { x: 8, y: 5 }, { x: -6, y: 7 }, { x: 6, y: 7 },
   ]
+  const STAR_SAT_OFFSETS: Array<[number, number, number]> = [
+    [-0.28, 0, 0], [0.28, 0, 0], [0, -0.28, 0], [0, 0.28, 0],
+  ]
+  const starCentreRef = useRef<THREE.InstancedMesh>(null!)
+  const starSatRef    = useRef<THREE.InstancedMesh>(null!)
+  const starDummy     = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!starCentreRef.current || !starSatRef.current) return
+    const Z = 42.88
+    curtainStars.forEach((s, i) => {
+      starDummy.position.set(s.x, s.y, Z)
+      starDummy.updateMatrix()
+      starCentreRef.current.setMatrixAt(i, starDummy.matrix)
+    })
+    starCentreRef.current.instanceMatrix.needsUpdate = true
+    let si = 0
+    curtainStars.forEach((s) => {
+      STAR_SAT_OFFSETS.forEach(([ox, oy, oz]) => {
+        starDummy.position.set(s.x + ox, s.y + oy, Z + oz)
+        starDummy.updateMatrix()
+        starSatRef.current.setMatrixAt(si++, starDummy.matrix)
+      })
+    })
+    starSatRef.current.instanceMatrix.needsUpdate = true
+  }, [starDummy])
+
+  // InstancedMesh refs for velvet rope poles (4 cylinders + 4 sphere caps)
+  const poleCylRef = useRef<THREE.InstancedMesh>(null!)
+  const poleCapRef = useRef<THREE.InstancedMesh>(null!)
+  const poleDummy  = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!poleCylRef.current || !poleCapRef.current) return
+    poleXPositions.forEach((x, i) => {
+      // cylinder centred at local [0,0.6,18] (pole group position)
+      poleDummy.position.set(x, 0.6, 18)
+      poleDummy.updateMatrix()
+      poleCylRef.current.setMatrixAt(i, poleDummy.matrix)
+      // sphere cap sits 0.65 above the cylinder centre
+      poleDummy.position.set(x, 0.6 + 0.65, 18)
+      poleDummy.updateMatrix()
+      poleCapRef.current.setMatrixAt(i, poleDummy.matrix)
+    })
+    poleCylRef.current.instanceMatrix.needsUpdate = true
+    poleCapRef.current.instanceMatrix.needsUpdate = true
+  }, [poleDummy])
 
   // VIP sign star decorations (3 small spheres flanking text)
   const vipStarOffsets: Array<[number, number, number]> = [
@@ -940,39 +986,26 @@ function BackstageArea() {
         <meshStandardMaterial color="#660022" roughness={0.8} />
       </mesh>
 
-      {/* Gold star pattern on curtain */}
-      {curtainStars.map((s, i) => (
-        <group key={`cstar-${i}`} position={[s.x, s.y, 42.88]}>
-          {/* centre sphere */}
-          <mesh>
-            <sphereGeometry args={[0.18, 6, 6]} />
-            <meshStandardMaterial color="#ffdd00" emissive="#ffdd00" emissiveIntensity={2.5} />
-          </mesh>
-          {/* four satellite spheres */}
-          {([[-0.28,0,0],[0.28,0,0],[0,-0.28,0],[0,0.28,0]] as Array<[number,number,number]>).map((off, j) => (
-            <mesh key={j} position={off}>
-              <sphereGeometry args={[0.1, 5, 5]} />
-              <meshStandardMaterial color="#ffdd00" emissive="#ffdd00" emissiveIntensity={2} />
-            </mesh>
-          ))}
-        </group>
-      ))}
+      {/* Gold star pattern on curtain — 7 centres + 28 satellites as InstancedMeshes */}
+      <instancedMesh ref={starCentreRef} args={[undefined, undefined, 7]} frustumCulled={false}>
+        <sphereGeometry args={[0.18, 6, 6]} />
+        <meshStandardMaterial color="#ffdd00" emissive="#ffdd00" emissiveIntensity={2.5} />
+      </instancedMesh>
+      <instancedMesh ref={starSatRef} args={[undefined, undefined, 28]} frustumCulled={false}>
+        <sphereGeometry args={[0.1, 5, 5]} />
+        <meshStandardMaterial color="#ffdd00" emissive="#ffdd00" emissiveIntensity={2} />
+      </instancedMesh>
 
       {/* ── Velvet rope barrier ── */}
-      {/* 4 golden poles */}
-      {poleXPositions.map((x, i) => (
-        <group key={`pole-${i}`} position={[x, 0.6, 18]}>
-          <mesh>
-            <cylinderGeometry args={[0.1, 0.1, 1.2, 12]} />
-            <meshStandardMaterial color="#ddaa00" metalness={0.8} roughness={0.2} />
-          </mesh>
-          {/* Pole top cap */}
-          <mesh position={[0, 0.65, 0]}>
-            <sphereGeometry args={[0.14, 8, 8]} />
-            <meshStandardMaterial color="#ddaa00" metalness={0.9} roughness={0.1} />
-          </mesh>
-        </group>
-      ))}
+      {/* 4 golden poles — cylinder shafts + sphere caps as InstancedMeshes */}
+      <instancedMesh ref={poleCylRef} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <cylinderGeometry args={[0.1, 0.1, 1.2, 12]} />
+        <meshStandardMaterial color="#ddaa00" metalness={0.8} roughness={0.2} />
+      </instancedMesh>
+      <instancedMesh ref={poleCapRef} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <sphereGeometry args={[0.14, 8, 8]} />
+        <meshStandardMaterial color="#ddaa00" metalness={0.9} roughness={0.1} />
+      </instancedMesh>
       {/* Rope segments connecting poles */}
       {poleXPositions.slice(0, -1).map((x, i) => {
         const nextX = poleXPositions[i + 1]
@@ -1056,25 +1089,48 @@ function BackstageArea() {
 
 function PhotoWall() {
   // Positioned on the right side of backstage, at x=+45, facing inward (rotated)
-  // 12 logo boxes: 4 columns × 3 rows
-  type LogoBox = { x: number; y: number; color: string }
-  const logoBoxes: LogoBox[] = []
+  // 12 logo boxes: 4 columns × 3 rows — split into 2 InstancedMeshes by alternating colour
   const cols = 4
   const rows = 3
   const startX = -7.5
   const startY = 2.5
   const stepX = 5
   const stepY = 2.5
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const idx = r * cols + c
-      logoBoxes.push({
-        x: startX + c * stepX,
-        y: startY + r * stepY,
-        color: idx % 2 === 0 ? '#ff88cc' : '#ffcc44',
-      })
-    }
-  }
+
+  // Precompute positions split by colour (even idx = pink, odd idx = gold)
+  const logoPosEven = useMemo<Array<[number, number]>>(() => {
+    const out: Array<[number, number]> = []
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if ((r * cols + c) % 2 === 0) out.push([startX + c * stepX, startY + r * stepY])
+    return out
+  }, [])
+  const logoPosOdd = useMemo<Array<[number, number]>>(() => {
+    const out: Array<[number, number]> = []
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if ((r * cols + c) % 2 !== 0) out.push([startX + c * stepX, startY + r * stepY])
+    return out
+  }, [])
+
+  const logoPinkRef = useRef<THREE.InstancedMesh>(null!)
+  const logoGoldRef = useRef<THREE.InstancedMesh>(null!)
+  const logoDummy   = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!logoPinkRef.current || !logoGoldRef.current) return
+    logoPosEven.forEach(([x, y], i) => {
+      logoDummy.position.set(x, y, -0.26)
+      logoDummy.updateMatrix()
+      logoPinkRef.current.setMatrixAt(i, logoDummy.matrix)
+    })
+    logoPinkRef.current.instanceMatrix.needsUpdate = true
+    logoPosOdd.forEach(([x, y], i) => {
+      logoDummy.position.set(x, y, -0.26)
+      logoDummy.updateMatrix()
+      logoGoldRef.current.setMatrixAt(i, logoDummy.matrix)
+    })
+    logoGoldRef.current.instanceMatrix.needsUpdate = true
+  }, [logoDummy, logoPosEven, logoPosOdd])
 
   // 4 spotlights pointing at the photo wall from in front
   type SpotPos = [number, number, number]
@@ -1093,18 +1149,15 @@ function PhotoWall() {
         <meshStandardMaterial color="#ffffff" roughness={0.4} />
       </mesh>
 
-      {/* ── 12 logo boxes in grid ── */}
-      {logoBoxes.map((lb, i) => (
-        <mesh key={`logo-${i}`} position={[lb.x, lb.y, -0.26]}>
-          <boxGeometry args={[1.5, 1.5, 0.1]} />
-          <meshStandardMaterial
-            color={lb.color}
-            emissive={lb.color}
-            emissiveIntensity={1}
-            roughness={0.3}
-          />
-        </mesh>
-      ))}
+      {/* ── 12 logo boxes in grid — 2 InstancedMeshes by colour (6 each) ── */}
+      <instancedMesh ref={logoPinkRef} args={[undefined, undefined, 6]} frustumCulled={false}>
+        <boxGeometry args={[1.5, 1.5, 0.1]} />
+        <meshStandardMaterial color="#ff88cc" emissive="#ff88cc" emissiveIntensity={1} roughness={0.3} />
+      </instancedMesh>
+      <instancedMesh ref={logoGoldRef} args={[undefined, undefined, 6]} frustumCulled={false}>
+        <boxGeometry args={[1.5, 1.5, 0.1]} />
+        <meshStandardMaterial color="#ffcc44" emissive="#ffcc44" emissiveIntensity={1} roughness={0.3} />
+      </instancedMesh>
 
       {/* ── Ring light (large torus like a photographer's ring flash) ── */}
       <mesh position={[0, 5, -0.5]}>

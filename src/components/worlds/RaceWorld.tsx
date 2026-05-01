@@ -855,6 +855,7 @@ const SPECTATOR_COUNT = 20
 
 function SpectatorStands() {
   const meshRef = useRef<THREE.InstancedMesh>(null)
+  const _dummy = useRef(new THREE.Object3D())
 
   // Build per-instance color array and base transforms
   const { colors, positions } = useMemo(() => {
@@ -880,7 +881,7 @@ function SpectatorStands() {
   useEffect(() => {
     const mesh = meshRef.current
     if (!mesh) return
-    const dummy = new THREE.Object3D()
+    const dummy = _dummy.current
     for (let i = 0; i < SPECTATOR_COUNT; i++) {
       const [px, py, pz] = positions[i]!
       dummy.position.set(px, py, pz)
@@ -923,7 +924,7 @@ function SpectatorStands() {
       }
     }
 
-    const dummy = new THREE.Object3D()
+    const dummy = _dummy.current
     for (let i = 0; i < SPECTATOR_COUNT; i++) {
       const [px, py, pz] = positions[i]!
 
@@ -1359,7 +1360,7 @@ function RainSystem() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, RAIN_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, RAIN_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 4, 4]} />
       <meshBasicMaterial color="#aaccff" transparent opacity={0.5} depthWrite={false} />
     </instancedMesh>
