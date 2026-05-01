@@ -35,7 +35,7 @@ import ScriptGhosts from './ScriptGhosts'
 import { getWorldTargets } from './worlds/scriptableTargets'
 import type { GameMeta } from '../lib/games'
 import type { Avatar } from '../lib/avatars'
-import { getPhysicsTimestep, getShadowMapSize, canPostfx } from '../lib/deviceTier'
+import { getPhysicsTimestep, getShadowMapSize } from '../lib/deviceTier'
 
 // Размер теневой карты берём из централизованного deviceTier (256/512/1024/2048).
 const SHADOW_MAP_SIZE = getShadowMapSize()

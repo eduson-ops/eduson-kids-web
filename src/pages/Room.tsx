@@ -27,40 +27,9 @@ import { Track } from 'livekit-client'
 import { NikselMini } from '../design/mascot/Niksel'
 import { apiRoomToken } from '../lib/api'
 
-const LK_URL_FALLBACK = 'wss://edusonlms-apk4qgt4.livekit.cloud'
-const LK_KEY_FALLBACK = 'APIsABHfKrBN9xG'
-const LK_SECRET_FALLBACK = 'fTjEXOUcKkeeDuIUxyqfRKzQbdZFq4MXBjQbrSM66qLC'
-
-// ── Fallback: client-side JWT when backend is unavailable ─────────────────
-function b64url(input: ArrayBuffer | string): string {
-  const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : new Uint8Array(input)
-  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-}
-async function makeFallbackToken(roomName: string, identity: string): Promise<{ token: string; url: string }> {
-  const now = Math.floor(Date.now() / 1000)
-  const header = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-  const payload = b64url(JSON.stringify({
-    iss: LK_KEY_FALLBACK,
-    sub: identity,
-    iat: now,
-    exp: now + 7200,
-    nbf: now,
-    video: {
-      room: roomName,
-      roomJoin: true,
-      canPublish: true,
-      canSubscribe: true,
-      canPublishData: true,
-      // Explicit screen share grants — some LK Cloud tenants require this
-      canPublishSources: ['camera', 'microphone', 'screen_share', 'screen_share_audio'],
-    },
-  }))
-  const signingInput = `${header}.${payload}`
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(LK_SECRET_FALLBACK), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(signingInput))
-  return { token: `${signingInput}.${b64url(sig)}`, url: LK_URL_FALLBACK }
-}
-// ─────────────────────────────────────────────────────────────────────────
+// Token and LiveKit URL must come from the backend (/api/v1/rooms/:id/token).
+// Client-side token generation was removed because it required embedding the
+// LiveKit API secret in the bundle — never put LiveKit secrets in client code.
 
 // ── Branded inner layout ──────────────────────────────────────────────────
 function EdusonConference({ roomId, onLeave }: { roomId: string; onLeave: () => void }) {
@@ -208,7 +177,7 @@ export default function Room() {
   const safeRoom = roomId ?? 'урок'
 
   const [token, setToken] = useState<string | null>(null)
-  const [serverUrl, setServerUrl] = useState<string>(LK_URL_FALLBACK)
+  const [serverUrl, setServerUrl] = useState<string>('')
   const [name, setName] = useState('')
   const [joining, setJoining] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -253,14 +222,12 @@ export default function Room() {
     if (!n) { setErr('Введи своё имя'); return }
     setJoining(true); setErr(null)
     try {
-      const backendResult = await apiRoomToken(safeRoom, n)
-      if (backendResult) {
-        setToken(backendResult.token)
-        setServerUrl(backendResult.url)
+      const result = await apiRoomToken(safeRoom, n)
+      if (result) {
+        setToken(result.token)
+        setServerUrl(result.url)
       } else {
-        const fallback = await makeFallbackToken(safeRoom, n)
-        setToken(fallback.token)
-        setServerUrl(fallback.url)
+        setErr('Не удалось получить токен от сервера. Проверь подключение или попроси учителя.')
       }
     } catch (e) {
       setErr('Ошибка подключения: ' + String(e))
