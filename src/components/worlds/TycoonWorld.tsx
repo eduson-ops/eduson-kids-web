@@ -390,10 +390,8 @@ function IndustrialPipework() {
     { pos: [-100, 8,  28], len: 8 },
   ]
   const junctionLights: [number, number, number][] = [
-    [-85, 8, -35],
-    [-85, 8,  35],
-    [-70, 8,   0],
-    [-100, 8,  0],
+    [-85, 8,  0],
+    [-100, 8, 0],
   ]
 
   return (
@@ -442,7 +440,6 @@ function HeatGlow() {
               roughness={0.4}
             />
           </mesh>
-          <pointLight color="#ff4400" intensity={3} distance={12} />
         </group>
       ))}
     </group>
@@ -505,10 +502,11 @@ function ConveyorBelts() {
               uniforms={uniforms}
             />
           </mesh>
-          {/* orange point light matching HeatGlow theme */}
-          <pointLight position={[0, 2, 0]} color="#ff6600" intensity={2} distance={12} />
         </group>
       ))}
+      {/* 2 shared lights for the belt cluster */}
+      <pointLight position={[-78, 3, 10]} color="#ff6600" intensity={4} distance={25} />
+      <pointLight position={[-107, 3, 5]} color="#ff6600" intensity={4} distance={25} />
     </group>
   )
 }
