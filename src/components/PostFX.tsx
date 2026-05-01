@@ -7,11 +7,11 @@ export default function PostFX() {
   return (
     <EffectComposer multisampling={0}>
       <Bloom
-        intensity={0.28}
-        luminanceThreshold={0.86}
-        luminanceSmoothing={0.2}
-        mipmapBlur
-        kernelSize={KernelSize.MEDIUM}
+        intensity={0.2}
+        luminanceThreshold={0.9}
+        luminanceSmoothing={0.1}
+        mipmapBlur={false}
+        kernelSize={KernelSize.SMALL}
         blendFunction={BlendFunction.ADD}
       />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />

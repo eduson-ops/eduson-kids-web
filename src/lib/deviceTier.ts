@@ -59,10 +59,9 @@ export function detectDeviceTier(): DeviceTier {
 
 
 /** Размер теневой текстуры для directionalLight.shadow-mapSize. */
-export function getShadowMapSize(): 256 | 512 | 1024 | 2048 {
+export function getShadowMapSize(): 256 | 512 | 1024 {
   const t = detectDeviceTier()
-  if (t === 'low') return 512
-  if (t === 'high') return 2048
+  if (t === 'low') return 256
   return 1024
 }
 

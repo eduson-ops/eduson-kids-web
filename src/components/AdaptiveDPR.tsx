@@ -64,7 +64,7 @@ export default function AdaptiveDPR() {
     } else if (isMobile()) {
       initial = Math.min(raw, 1.5)
     } else {
-      initial = Math.min(raw, 2)
+      initial = Math.min(raw, 1.5)
     }
     // Apply saved quality preference (всегда побеждает авто-детект)
     const saved = localStorage.getItem(QUALITY_KEY)

@@ -29,8 +29,10 @@ export default function AmbientDust() {
     return arr
   }, [])
 
+  const frameCount = useRef(0)
   useFrame(({ clock }, dt) => {
     if (!enabled || !meshRef.current) return
+    if (++frameCount.current % 2 !== 0) return  // 30fps is enough for dust
     const t = clock.getElapsedTime()
     const cx = camera.position.x
     const cz = camera.position.z

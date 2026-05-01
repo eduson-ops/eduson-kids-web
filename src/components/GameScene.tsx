@@ -39,6 +39,7 @@ import { getWorldTargets } from './worlds/scriptableTargets'
 import type { GameMeta } from '../lib/games'
 import type { Avatar } from '../lib/avatars'
 import { getPhysicsTimestep, getShadowMapSize } from '../lib/deviceTier'
+import type { ComponentType } from 'react'
 
 // Размер теневой карты берём из централизованного deviceTier (256/512/1024/2048).
 const SHADOW_MAP_SIZE = getShadowMapSize()
@@ -71,14 +72,10 @@ export default function GameScene({ game, avatar }: Props) {
   return (
     <KeyboardControls map={KEYS}>
       <Canvas
-        shadows="soft"
-        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60, near: 0.1, far: 600 }}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-        dpr={[1, 2]}
-        // Глушим браузерное контекст-меню в зоне канваса: правый клик в режиме
-        // редактора должен быть свободен для собственных действий редактора,
-        // иначе любой ПКМ открывает «копировать/сохранить картинку» и кикает
-        // PointerLock — сцена становится непригодной.
+        shadows
+        camera={{ position: [spawn[0], spawn[1] + 4, spawn[2] + 8], fov: 60, near: 0.1, far: 300 }}
+        gl={{ antialias: false, powerPreference: 'high-performance' }}
+        dpr={[1, 1.5]}
         onContextMenu={(e) => e.preventDefault()}
       >
         {/* Градиентное голубое небо через shader — всегда голубое */}
@@ -153,46 +150,29 @@ export default function GameScene({ game, avatar }: Props) {
   )
 }
 
-function pickWorld(cat: GameMeta['category']) {
+type Spawn = [number, number, number]
+function pickWorld(cat: GameMeta['category']): { world: ComponentType; spawn: Spawn } {
   switch (cat) {
-    case 'race':
-      return { world: RaceWorld, spawn: RACE_SPAWN }
-    case 'tower':
-      return { world: TowerWorld, spawn: TOWER_SPAWN }
-    case 'garden':
-      return { world: GardenWorld, spawn: GARDEN_SPAWN }
-    case 'pets':
-      return { world: PetSimWorld, spawn: PETSIM_SPAWN }
-    case 'town':
-      return { world: BotTownWorld, spawn: BOTTOWN_SPAWN }
-    case 'fashion':
-      return { world: FashionWorld, spawn: FASHION_SPAWN }
-    case 'mystery':
-      return { world: MysteryWorld, spawn: MYSTERY_SPAWN }
-    case 'nights':
-      return { world: NightsWorld, spawn: NIGHTS_SPAWN }
-    case 'tycoon':
-      return { world: TycoonWorld, spawn: TYCOON_SPAWN }
-    case 'ability':
-      return { world: AbilityBuilderWorld, spawn: ABILITY_SPAWN }
-    case 'petbrain':
-      return { world: PetBrainWorld, spawn: PETBRAIN_SPAWN }
+    case 'race':    return { world: RaceWorld,           spawn: RACE_SPAWN }
+    case 'tower':   return { world: TowerWorld,          spawn: TOWER_SPAWN }
+    case 'garden':  return { world: GardenWorld,         spawn: GARDEN_SPAWN }
+    case 'pets':    return { world: PetSimWorld,         spawn: PETSIM_SPAWN }
+    case 'town':    return { world: BotTownWorld,        spawn: BOTTOWN_SPAWN }
+    case 'fashion': return { world: FashionWorld,        spawn: FASHION_SPAWN }
+    case 'mystery': return { world: MysteryWorld,        spawn: MYSTERY_SPAWN }
+    case 'nights':  return { world: NightsWorld,         spawn: NIGHTS_SPAWN }
+    case 'tycoon':  return { world: TycoonWorld,         spawn: TYCOON_SPAWN }
+    case 'ability': return { world: AbilityBuilderWorld, spawn: ABILITY_SPAWN }
+    case 'petbrain': return { world: PetBrainWorld,      spawn: PETBRAIN_SPAWN }
     case 'sandbox':
     case 'rp':
-    case 'sim':
-      return { world: SandboxWorld, spawn: SANDBOX_SPAWN }
-    case 'temple':
-      return { world: TempleWorld, spawn: TEMPLE_SPAWN }
-    case 'space':
-      return { world: SpaceStationWorld, spawn: SPACE_SPAWN }
-    case 'cyber':
-      return { world: CyberCityWorld, spawn: CYBER_SPAWN }
-    case 'ocean':
-      return { world: OceanWorld, spawn: OCEAN_SPAWN }
-    case 'desert':
-      return { world: DesertWorld, spawn: DESERT_SPAWN }
+    case 'sim':     return { world: SandboxWorld,        spawn: SANDBOX_SPAWN }
+    case 'temple':  return { world: TempleWorld,         spawn: TEMPLE_SPAWN }
+    case 'space':   return { world: SpaceStationWorld,   spawn: SPACE_SPAWN }
+    case 'cyber':   return { world: CyberCityWorld,      spawn: CYBER_SPAWN }
+    case 'ocean':   return { world: OceanWorld,          spawn: OCEAN_SPAWN }
+    case 'desert':  return { world: DesertWorld,         spawn: DESERT_SPAWN }
     case 'obby':
-    default:
-      return { world: ObbyWorld, spawn: OBBY_SPAWN }
+    default:        return { world: ObbyWorld,           spawn: OBBY_SPAWN }
   }
 }

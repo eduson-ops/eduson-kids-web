@@ -78,6 +78,8 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
   const vDesiredCam = useRef(new THREE.Vector3())
   const vStart = useRef(new THREE.Vector3(startPos[0], startPos[1], startPos[2]))
   const vCamVel = useRef(new THREE.Vector3())   // velocity спринг-системы камеры
+  // Сглаженная позиция тела для камеры — устраняет дрёбезг от дискретных шагов physics (60hz) при рендере 120+fps
+  const smoothBodyPos = useRef(new THREE.Vector3(startPos[0], startPos[1], startPos[2]))
 
   useEffect(() => {
     vStart.current.set(startPos[0], startPos[1], startPos[2])
@@ -153,6 +155,12 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
 
     // Grounded raycast (тянем из позиции капсулы чуть ниже подошвы)
     const pos = body.current.translation()
+    // Сглаживаем позицию для камеры: frame-rate-independent lerp с частотой 240hz
+    // Устраняет дискретные "прыжки" позиции между physics-шагами (60hz) при высоком FPS
+    const _sAlpha = 1 - Math.exp(-dt * 240)
+    smoothBodyPos.current.x += (pos.x - smoothBodyPos.current.x) * _sAlpha
+    smoothBodyPos.current.y += (pos.y - smoothBodyPos.current.y) * _sAlpha
+    smoothBodyPos.current.z += (pos.z - smoothBodyPos.current.z) * _sAlpha
     const rayOrigin = { x: pos.x, y: pos.y - (CAP_HEIGHT + CAP_RADIUS) + 0.05, z: pos.z }
     const rayDir = { x: 0, y: -1, z: 0 }
     const ray = new rapier.Ray(rayOrigin, rayDir)
@@ -279,11 +287,12 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
     const camHeight = 2.5
     const pitchY = Math.sin(cam.pitch) * dist * 0.6
     const pitchDist = Math.cos(cam.pitch) * dist
+    const sp = smoothBodyPos.current  // сглаженная позиция — без дрёбезга
 
     vDesiredCam.current.set(
-      pos.x - vCamFwd.current.x * pitchDist,
-      pos.y + camHeight + pitchY,
-      pos.z - vCamFwd.current.z * pitchDist
+      sp.x - vCamFwd.current.x * pitchDist,
+      sp.y + camHeight + pitchY,
+      sp.z - vCamFwd.current.z * pitchDist
     )
 
     // Per-axis spring integration: a = k*(target-p) - c*v ; v += a*dt ; p += v*dt
@@ -309,7 +318,7 @@ function PlayerImpl({ avatar, startPos = [0, 3, 6] }: Props) {
       if (shakeTimer.current === 0) shakeIntensity.current = 0
     }
 
-    camera.lookAt(pos.x, pos.y + 0.5, pos.z)
+    camera.lookAt(sp.x, sp.y + 0.5, sp.z)
 
     // Экспозиция позиции игрока глобально — читают миры-песочницы
     // для механик (pet follow, ability aim, ownership proximity и т.д.)
