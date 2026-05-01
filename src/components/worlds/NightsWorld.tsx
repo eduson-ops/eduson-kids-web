@@ -249,7 +249,7 @@ interface FireflyData {
 }
 
 const FIREFLY_COUNT = 30
-const FIREFLY_LIGHT_COUNT = 8 // only first N get a point light
+const FIREFLY_LIGHT_COUNT = 4 // only first N get a point light
 
 const fireflyData: FireflyData[] = Array.from({ length: FIREFLY_COUNT }, (_, i) => {
   const seed = i * 137.508
@@ -507,11 +507,8 @@ const wispParticles: WispParticle[] = (() => {
 
 const WISP_LIGHT_POSITIONS: [number, number, number][] = [
   [-15, 1.5, -25],
-  [ 20, 1.5, -40],
   [ -8, 1.5, -55],
-  [ 18, 1.5, -65],
   [-25, 1.5, -45],
-  [  5, 1.5, -35],
 ]
 
 function WillOWisps() {
@@ -870,10 +867,8 @@ function DeepForestDecor() {
       <RuinsPillar pos={[-17, 0, -63]} scale={1.0} rotY={2.4} />
       <RuinsPillar pos={[16, 0, -71]} scale={1.3} rotY={0.8} />
       {/* Eerie deep-forest lights */}
-      <pointLight position={[-10, 3, -50]} color="#4400aa" intensity={3} distance={15} decay={2} />
-      <pointLight position={[10, 3, -58]} color="#00aa44" intensity={2.5} distance={12} decay={2} />
-      <pointLight position={[-8, 3, -66]} color="#aa0044" intensity={3} distance={14} decay={2} />
-      <pointLight position={[8, 3, -74]} color="#0044aa" intensity={2.5} distance={12} decay={2} />
+      <pointLight position={[-9, 3, -58]} color="#4400aa" intensity={4} distance={24} decay={2} />
+      <pointLight position={[9, 3, -66]} color="#00aa44" intensity={3.5} distance={22} decay={2} />
       {/* Crystal clusters on forest floor */}
       <CrystalCluster pos={[-20, 0, -49]} scale={1.3} rotY={0.5} />
       <CrystalCluster pos={[19, 0, -60]} scale={1.5} rotY={1.8} />
@@ -2296,9 +2291,6 @@ export default function NightsWorld() {
       <FairyHouse pos={[10, 0, -18]} scale={1.3} rotY={0.7} />
       <FairyHouse pos={[-12, 0, -32]} scale={1.5} rotY={-0.4} />
       <FairyHouse pos={[8, 0, -55]} scale={1.2} rotY={1.8} />
-      <pointLight color="#ff8833" intensity={2.0} distance={8} position={[10, 2, -18]} />
-      <pointLight color="#ff8833" intensity={2.0} distance={8} position={[-12, 2, -32]} />
-      <pointLight color="#ff8833" intensity={2.0} distance={8} position={[8, 2, -55]} />
 
       {/* ── DragonEgg — dark artifacts scattered in the forest ── */}
       <DragonEgg pos={[3, 0, -25]} scale={1.4} rotY={0.3} />

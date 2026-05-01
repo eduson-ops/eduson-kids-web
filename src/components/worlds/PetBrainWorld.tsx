@@ -192,7 +192,6 @@ function NeuralNodes() {
             <sphereGeometry args={[0.8, 16, 16]} />
             <meshStandardMaterial color="#00ccff" emissive="#00ccff" emissiveIntensity={1.2} />
           </mesh>
-          <pointLight color="#00ccff" intensity={1.5} distance={8} />
         </group>
       ))}
       {HIDDEN_NODES.map((pos, i) => (
@@ -201,7 +200,6 @@ function NeuralNodes() {
             <sphereGeometry args={[0.8, 16, 16]} />
             <meshStandardMaterial color="#cc00ff" emissive="#cc00ff" emissiveIntensity={1.2} />
           </mesh>
-          <pointLight color="#aa00ff" intensity={1.2} distance={8} />
         </group>
       ))}
       {OUTPUT_NODES.map((pos, i) => (
@@ -210,9 +208,11 @@ function NeuralNodes() {
             <sphereGeometry args={[0.8, 16, 16]} />
             <meshStandardMaterial color="#ff8800" emissive="#ff8800" emissiveIntensity={1.2} />
           </mesh>
-          <pointLight color="#ff6600" intensity={1.2} distance={8} />
         </group>
       ))}
+      <pointLight color="#00ccff" intensity={5} distance={40} position={[-30, 2, 0]} />
+      <pointLight color="#aa00ff" intensity={5} distance={45} position={[0, 2, 0]} />
+      <pointLight color="#ff6600" intensity={4} distance={35} position={[30, 2, 0]} />
     </>
   )
 }
@@ -826,7 +826,6 @@ function ZoneHalos() {
             <torusGeometry args={[def.radius, def.tube, 12, 80]} />
             <meshBasicMaterial color={def.color} transparent={false} toneMapped={false} />
           </mesh>
-          <pointLight color={def.color} intensity={3} distance={15} />
         </group>
       ))}
     </>

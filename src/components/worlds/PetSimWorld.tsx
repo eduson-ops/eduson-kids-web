@@ -977,10 +977,8 @@ export default function PetSimWorld() {
       <BiomeFloor color="#1a0a2e" z0={-90} z1={-120} roughness={0.2} metalness={0.6}
         emissive="#220044" emissiveIntensity={0.3} />
       <BiomeArch z={-90} color="#aa44ff" label="КРИСТАЛЛЫ" />
-      <pointLight color="#8800ff" intensity={2.0} distance={30} position={[-10, 6, -100]} />
-      <pointLight color="#00ccff" intensity={1.8} distance={25} position={[10, 5, -110]} />
-      <pointLight color="#cc44ff" intensity={1.5} distance={20} position={[0, 8, -105]} />
-      <pointLight color="#4400cc" intensity={1.2} distance={18} position={[-15, 4, -115]} />
+      <pointLight color="#8800ff" intensity={3.5} distance={35} position={[-10, 6, -100]} />
+      <pointLight color="#00ccff" intensity={3.0} distance={35} position={[10, 5, -112]} />
 
       {/* Crystal formations */}
       <Crystal pos={[-14, 0, -93]} scale={2.0} rotY={0.5} />
@@ -1030,10 +1028,8 @@ export default function PetSimWorld() {
       <BiomeFloor color="#f0f8ff" z0={-120} z1={-150} roughness={0.05} metalness={0.1}
         emissive="#ffffff" emissiveIntensity={0.15} />
       <BiomeArch z={-120} color="#ffaacc" label="НЕБО" />
-      <pointLight color="#ffaaee" intensity={1.5} distance={35} position={[-10, 7, -130]} />
-      <pointLight color="#aaffee" intensity={1.5} distance={30} position={[10, 6, -140]} />
-      <pointLight color="#ffddaa" intensity={1.2} distance={25} position={[0, 10, -135]} />
-      <pointLight color="#ccaaff" intensity={1.0} distance={20} position={[-15, 5, -145]} />
+      <pointLight color="#ffaaee" intensity={3.0} distance={40} position={[-10, 7, -130]} />
+      <pointLight color="#aaffee" intensity={2.5} distance={40} position={[10, 6, -142]} />
 
       {/* Cloud-like pillars */}
       <RigidBody type="fixed" colliders="cuboid" position={[-15, 2, -125]}>

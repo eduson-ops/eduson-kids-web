@@ -429,10 +429,8 @@ function FactoryGrit() {
 
   const industrialLights: Array<[number, number, number]> = [
     [-25,  6,  30],
-    [-55,  6,  30],
-    [-80,  6,  50],
-    [-45,  6,  70],
-    [-70,  6,  80],
+    [-55,  6,  55],
+    [-72,  6,  78],
   ]
 
   return (
@@ -539,7 +537,7 @@ function FactorySmoke() {
 // ─── City Lights Glow (NE quadrant) ──────────────────────────────
 function CityLights() {
   const COLORS = ['#ff8800', '#ffffff', '#44aaff']
-  const lights = useMemo(() => Array.from({ length: 20 }).map((_, i) => ({
+  const lights = useMemo(() => Array.from({ length: 8 }).map((_, i) => ({
     x: 15 + Math.random() * 70,
     y: 5 + Math.random() * 7,
     z: -15 - Math.random() * 65,

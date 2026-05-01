@@ -750,14 +750,10 @@ function SponsorBanners() {
               emissiveIntensity={0.3}
             />
           </mesh>
-          <pointLight
-            position={[0, 0, 0]}
-            intensity={1.5}
-            distance={10}
-            color={color}
-          />
         </group>
       ))}
+      <pointLight position={[-28, 3, 0]} color="#ff88ff" intensity={4} distance={28} />
+      <pointLight position={[ 28, 3, 0]} color="#ff88ff" intensity={4} distance={28} />
     </group>
   )
 }

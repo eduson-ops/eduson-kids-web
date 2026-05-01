@@ -503,8 +503,6 @@ function AnimatedCars() {
             <boxGeometry args={[0.95, 0.4, 0.78]} />
             <meshStandardMaterial color={cfg.color} roughness={0.3} metalness={0.4} />
           </mesh>
-          {/* Headlights */}
-          <pointLight color="#ffffcc" intensity={1.8} distance={10} position={[0.9, 0.1, 0]} />
           {/* Wheels */}
           {([-0.55, 0.55] as const).map((xo) =>
             ([-0.7, 0.7] as const).map((zo) => (
@@ -978,14 +976,6 @@ function RobotMarketStall({ cfg }: { cfg: StallConfig }) {
         )
       })}
 
-      {/* Stall point light */}
-      <pointLight
-        color={cfg.lightColor}
-        intensity={2}
-        distance={6}
-        decay={2}
-        position={[0, 2.5, 0]}
-      />
     </group>
   )
 }
@@ -997,6 +987,8 @@ function MarketStalls() {
       {configs.map((cfg, i) => (
         <RobotMarketStall key={i} cfg={cfg} />
       ))}
+      <pointLight color="#aaddff" intensity={4} distance={22} position={[35, 3, -38]} />
+      <pointLight color="#aaddff" intensity={4} distance={22} position={[35, 3, -62]} />
     </>
   )
 }
@@ -1792,12 +1784,6 @@ const LAMP_POSITIONS: [number, number, number][] = [
   [8, 0, 8],
   [-20, 0, 0],
   [20, 0, 0],
-  [-30, 0, -10],
-  [30, 0, -10],
-  [-30, 0, 10],
-  [30, 0, 10],
-  [0, 0, -28],
-  [0, 0, 28],
 ]
 
 // NPC positions (matches the 3 NPCs below)
