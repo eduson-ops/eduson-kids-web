@@ -151,6 +151,12 @@ export default function Hub() {
   const currentModuleN = Math.min(TOTAL_MODULES, Math.ceil(safeLesson / LESSONS_PER_MODULE))
   const currentModuleTitle = MODULES[currentModuleN - 1]?.title ?? 'Первые шаги в Эдюсон Kids'
 
+  // For a new student (no local progress), direct to first teacher-unlocked lesson
+  const firstApiUnlocked = apiUnlockedLessons && apiUnlockedLessons.size > 0
+    ? Math.min(...Array.from(apiUnlockedLessons))
+    : null
+  const targetLesson = lessonsCompleted === 0 && firstApiUnlocked ? firstApiUnlocked : safeLesson
+
   const featuredGames = GAMES.filter((g) => g.featured).slice(0, 3)
 
   return (
@@ -180,14 +186,16 @@ export default function Hub() {
         </p>
         <div className="kb-cover-actions">
           <Link
-            to={courseComplete ? '/studio' : `/learn/lesson/${safeLesson}`}
+            to={courseComplete ? '/studio' : `/learn/lesson/${targetLesson}`}
             className="kb-btn kb-btn--lg kb-btn--secondary"
           >
             {courseComplete
               ? '🏆 Курс пройден! Открыть Студию'
-              : lessonsCompleted === 0
-                ? '🚀 Начать урок 1'
-                : `▶ Продолжить урок ${safeLesson}`}
+              : lessonsCompleted === 0 && firstApiUnlocked
+                ? `🚀 Начать урок ${firstApiUnlocked}`
+                : lessonsCompleted === 0
+                  ? '🚀 Начать урок 1'
+                  : `▶ Продолжить урок ${targetLesson}`}
           </Link>
           <Link to="/learn" className="kb-cover-link-lite">
             Все уроки
