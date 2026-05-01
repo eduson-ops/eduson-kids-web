@@ -126,6 +126,26 @@ All TypeScript checks pass (frontend + backend), Vite build clean (3.66s).
 
 ---
 
+## ✅ Session 4 — Extended security & type audit (2026-05-01)
+
+Security fixes:
+
+- **`classroom.service.ts` `transferStudent()`**: authorization check used `&&` instead of `||` — a teacher who owned the DESTINATION classroom could steal students from any other teacher's classroom. Fixed to require ownership of the SOURCE classroom specifically.
+- **`auth.service.ts` `loginChildByCode()`**: was generating both access and refresh tokens but only returning `accessToken`. The refresh token was silently discarded, so the session expired after 15 min with no refresh path. Fixed to return both tokens.
+- **`auth.controller.ts` `childCodeLogin()`**: was not setting the `refresh_token` cookie (unlike all other login endpoints). Also used hardcoded `ip = 'internal'` defeating per-IP rate limiting. Fixed: now extracts real client IP and sets both cookies.
+- **`lesson-access.controller.ts`**: `unlock` and `complete` endpoints returned the raw TypeORM entity including `tenantId`, `classroomId`, `unlockedBy` — internal fields that should never reach the frontend. Added `toRow()` mapper that strips these and returns only the fields the frontend expects.
+
+API consistency fixes:
+
+- **`useTenantBranding.ts`**: was using `VITE_API_BASE` env var (defaulting to `/api/v1` relative path) while all other API callers use `VITE_API_URL`. White-label branding was hitting GH Pages instead of the backend. Fixed to use the same Capacitor-aware origin detection as `api/client.ts`.
+- **`lib/api.ts` `AuthResponse` type**: was checking `r?.token` (old field name) but backend now returns `{ accessToken, refreshToken }`. Updated type and fixed all callers (`apiLoginChildCode`, `apiLoginGuest`) to check `r?.accessToken`.
+
+TypeScript cleanup:
+
+- **17 world component files** (`WaterSurface`, `AbilityBuilderWorld`, `BotTownWorld`, `CyberCityWorld`, `FashionWorld`, `GardenWorld`, `MysteryWorld`, `NightsWorld`, `ObbyWorld`, `PetBrainWorld`, `PetSimWorld`, `SandboxWorld`, `SpaceStationWorld`, `TempleWorld`, `TowerWorld`, `TycoonWorld`, and more): resolved ~50 TypeScript strict-mode errors — non-null assertions on uniform accesses, `?? fallback` on optional color props, removed unused variables (MONEY_VERT/FRAG, meshRef, visible). Frontend now compiles with **0 TypeScript errors**.
+
+---
+
 ## Skipped / Deferred
 
 - VideoPlayer integration into LessonPage (no video URLs in curriculum yet)
