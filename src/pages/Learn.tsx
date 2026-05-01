@@ -25,6 +25,7 @@ import {
 } from '../lib/progress'
 import { renderMd } from '../lib/md'
 import NikselIcon, { iconFromEmoji } from '../design/mascot/NikselIcon'
+import { fetchMyAccess, completeLesson as completeLessonApi } from '../api/lessonAccess'
 
 /**
  * Learn — каталог и детали 48-урочного курса Эдюсон Kids.
@@ -222,6 +223,16 @@ function ModulePage({ m, course }: { m: Module; course: Course }) {
   const done = course.slug === 'kubik' ? countDoneInModule(m.n, m.lessons.map((l) => l.n)) : 0
   const parentUrl = course.slug === 'kubik' ? '/learn' : `/learn/course/${course.slug}`
 
+  // null = guest/fallback (all unlocked); Set = server-provided access list
+  const [unlockedLessons, setUnlockedLessons] = useState<Set<number> | null>(null)
+  useEffect(() => {
+    const token = localStorage.getItem('kubik_access_token')
+    if (!token) return
+    fetchMyAccess()
+      .then((rows) => setUnlockedLessons(new Set(rows.filter((r) => r.unlocked).map((r) => r.lessonN))))
+      .catch(() => { /* API down or 401 → keep null (all-unlocked fallback) */ })
+  }, [])
+
   return (
     <PlatformShell activeKey="learn">
       <Link to={parentUrl} className="kb-shell-nav-link" style={{ display: 'inline-block', marginBottom: 16 }}>
@@ -250,11 +261,10 @@ function ModulePage({ m, course }: { m: Module; course: Course }) {
       </header>
 
       <div className="curric-lesson-list">
-        {m.lessons.map((l, idx) => {
-          // DEV: все уроки разблокированы на время разработки
-          void idx
+        {m.lessons.map((l) => {
+          // unlockedLessons=null → guest mode, show all unlocked
+          const unlocked = unlockedLessons === null ? true : unlockedLessons.has(l.n)
           const isDone = isLessonDone(l.n)
-          const unlocked = true
 
           const lessonHref = course.slug === 'kubik'
             ? `/learn/lesson/${l.n}`
@@ -263,11 +273,12 @@ function ModulePage({ m, course }: { m: Module; course: Course }) {
             <Link
               key={l.n}
               to={unlocked ? lessonHref : '#'}
+              onClick={!unlocked ? (e) => e.preventDefault() : undefined}
               className={`curric-lesson-card ${!unlocked ? 'locked' : ''} ${isDone ? 'done' : ''}`}
               style={{ '--accent': KIND_COLOR[l.kind] } as React.CSSProperties}
             >
               <div className="curric-lesson-n">
-                {isDone ? '✓' : l.n}
+                {isDone ? '✓' : !unlocked ? '🔒' : l.n}
               </div>
               <div className="curric-lesson-body">
                 <div className="curric-lesson-meta">
@@ -278,7 +289,7 @@ function ModulePage({ m, course }: { m: Module; course: Course }) {
                 <p className="curric-lesson-hook">{l.hook}</p>
               </div>
               <div className="curric-lesson-cta">
-                {!unlocked ? '🔒' : isDone ? 'Пройдено' : 'Открыть →'}
+                {!unlocked ? 'Заблокировано' : isDone ? 'Пройдено' : 'Открыть →'}
               </div>
             </Link>
           )
@@ -437,7 +448,10 @@ function LessonPage({ lesson, m, course }: { lesson: Lesson; m: Module; course: 
           {/* Действия */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 24 }}>
             {course.slug === 'kubik' && (!isDone ? (
-              <button className="kb-btn kb-btn--lg" onClick={() => markLessonDone(lesson.n)}>
+              <button className="kb-btn kb-btn--lg" onClick={() => {
+                markLessonDone(lesson.n)
+                completeLessonApi({ lessonN: lesson.n }).catch(() => {/* silently ignore if not authenticated */})
+              }}>
                 ✓ Отметить пройденным
               </button>
             ) : (

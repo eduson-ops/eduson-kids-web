@@ -41,6 +41,14 @@ class CreateClassroomDto {
   name!: string;
 }
 
+class TransferStudentDto {
+  @IsString()
+  studentId!: string;
+
+  @IsString()
+  toClassroomId!: string;
+}
+
 class AddStudentsDto {
   @IsInt()
   @Min(1)
@@ -93,10 +101,41 @@ export class ClassroomController {
     return this.classroomService.create(user.sub, dto.name);
   }
 
+  @Get()
+  @Roles('teacher', 'curator', 'school_admin', 'platform_admin')
+  @ApiOperation({ summary: 'List all classrooms for the current teacher' })
+  findAll(@CurrentUser() user: JwtPayload) {
+    return this.classroomService.findAllByTeacher(user.sub);
+  }
+
   @Get(':id')
-  @Roles('teacher')
+  @Roles('teacher', 'curator', 'school_admin', 'platform_admin')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.classroomService.findById(id);
+  }
+
+  @Get(':id/students')
+  @Roles('teacher', 'curator', 'school_admin', 'platform_admin')
+  @ApiOperation({ summary: 'List all students in a classroom' })
+  getStudents(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: JwtPayload) {
+    return this.classroomService.getStudents(id, user.sub);
+  }
+
+  @Post(':id/transfer')
+  @Roles('teacher', 'curator', 'school_admin', 'platform_admin')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Transfer a student from this classroom to another' })
+  async transferStudent(
+    @Param('id', ParseUUIDPipe) fromClassroomId: string,
+    @Body() dto: TransferStudentDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    await this.classroomService.transferStudent(
+      dto.studentId,
+      fromClassroomId,
+      dto.toClassroomId,
+      user.sub,
+    );
   }
 
   @Patch(':id')

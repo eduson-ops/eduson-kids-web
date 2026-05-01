@@ -91,6 +91,51 @@ export class ClassroomService {
     return students;
   }
 
+  async findAllByTeacher(teacherId: string): Promise<Classroom[]> {
+    const ctx = this.tenantContext.require();
+    return this.classroomRepo.find({
+      where: { teacherId, tenantId: ctx.tenantId, isArchived: false },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getStudents(classroomId: string, teacherId: string): Promise<User[]> {
+    const classroom = await this.findById(classroomId);
+    if (classroom.teacherId !== teacherId) throw new ForbiddenException();
+    const ctx = this.tenantContext.require();
+    return this.userRepo.find({
+      where: { classroomId, tenantId: ctx.tenantId, role: UserRole.CHILD },
+      order: { createdAt: 'ASC' },
+      select: ['id', 'login', 'classroomId', 'role', 'isActive', 'lastLoginAt', 'createdAt'],
+    });
+  }
+
+  async transferStudent(
+    studentId: string,
+    fromClassroomId: string,
+    toClassroomId: string,
+    teacherId: string,
+  ): Promise<void> {
+    const ctx = this.tenantContext.require();
+    const [from, to] = await Promise.all([
+      this.findById(fromClassroomId),
+      this.findById(toClassroomId),
+    ]);
+    if (from.teacherId !== teacherId && to.teacherId !== teacherId) {
+      throw new ForbiddenException('Must own at least one of the classrooms');
+    }
+    const student = await this.userRepo.findOne({
+      where: { id: studentId, classroomId: fromClassroomId, tenantId: ctx.tenantId },
+    });
+    if (!student) throw new NotFoundException('Student not found in source classroom');
+
+    await this.dataSource.transaction(async (manager) => {
+      await manager.update(User, { id: studentId }, { classroomId: toClassroomId });
+      await manager.decrement(Classroom, { id: fromClassroomId }, 'studentCount', 1);
+      await manager.increment(Classroom, { id: toClassroomId }, 'studentCount', 1);
+    });
+  }
+
   /**
    * Cryptographically-secure 6-digit PIN. Uses node:crypto (not Math.random)
    * because PINs gate child account auth — see S-04 audit.

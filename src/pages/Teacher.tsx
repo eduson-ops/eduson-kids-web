@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import PlatformShell from '../components/PlatformShell'
 import Niksel from '../design/mascot/Niksel'
 import NikselIcon from '../design/mascot/NikselIcon'
 import { pluralize } from '../lib/plural'
 import { useToast } from '../hooks/useToast'
+import { fetchClassrooms, fetchStudents, type ClassroomDto, type StudentDto } from '../api/classrooms'
+import { fetchClassroomProgress, unlockBatch, type ClassroomProgressStudent } from '../api/lessonAccess'
 
 /**
  * /teacher — учительская консоль (MVP-заглушка для B2B/B2G-питча).
@@ -34,7 +36,7 @@ function isTeacherRole(): boolean {
   return localStorage.getItem(ROLE_KEY) === 'teacher'
 }
 
-type Tab = 'classes' | 'progress' | 'assignments'
+type Tab = 'classes' | 'progress' | 'assignments' | 'unlock'
 
 interface Student {
   id: string
@@ -96,8 +98,32 @@ const MOCK_CLASSES: Classroom[] = [
 export default function Teacher() {
   const isTeacher = isTeacherRole()
   const [tab, setTab] = useState<Tab>('classes')
-  const [activeClassId, setActiveClassId] = useState<string>(MOCK_CLASSES[0]!.id)
-  const active = (MOCK_CLASSES.find((c) => c.id === activeClassId) ?? MOCK_CLASSES[0])!
+  const { show: showToast } = useToast()
+
+  // Real classrooms from API (falls back to MOCK_CLASSES if API unavailable)
+  const [apiClasses, setApiClasses] = useState<ClassroomDto[] | null>(null)
+  const [apiLoading, setApiLoading] = useState(true)
+
+  useEffect(() => {
+    if (!isTeacher) return
+    fetchClassrooms()
+      .then((data) => setApiClasses(data))
+      .catch(() => setApiClasses(null))
+      .finally(() => setApiLoading(false))
+  }, [isTeacher])
+
+  // Use real classrooms if available, otherwise fall back to mock
+  const classes: Array<{ id: string; name: string; inviteCode: string; studentCount: number }> =
+    apiClasses?.map((c) => ({
+      id: c.id,
+      name: c.name,
+      inviteCode: c.inviteCode ?? '------',
+      studentCount: c.studentCount,
+    })) ?? MOCK_CLASSES.map((c) => ({ id: c.id, name: c.name, inviteCode: c.inviteCode, studentCount: c.students.length }))
+
+  const [activeClassId, setActiveClassId] = useState<string>('')
+  const activeClassIdResolved = activeClassId || (classes[0]?.id ?? '')
+  const activeMock = MOCK_CLASSES.find((c) => c.id === activeClassIdResolved) ?? MOCK_CLASSES[0]!
 
   if (!isTeacher) {
     return (
@@ -165,10 +191,11 @@ export default function Teacher() {
       </section>
 
       {/* Tabs */}
-      <div className="kb-tabs" role="tablist" style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '2px solid rgba(21,20,27,.08)' }}>
+      <div className="kb-tabs" role="tablist" style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '2px solid rgba(21,20,27,.08)', flexWrap: 'wrap' }}>
         {([
           { k: 'classes' as Tab, label: '🏫 Классы' },
           { k: 'progress' as Tab, label: '📊 Прогресс' },
+          { k: 'unlock' as Tab, label: '🔓 Открыть уроки' },
           { k: 'assignments' as Tab, label: '📝 Задания' },
         ]).map(({ k, label }) => (
           <button
@@ -197,11 +224,11 @@ export default function Teacher() {
       {/* Class picker (shared) */}
       {tab !== 'classes' && (
         <div style={{ marginBottom: 20, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {MOCK_CLASSES.map((c) => (
+          {classes.map((c) => (
             <button
               key={c.id}
               onClick={() => setActiveClassId(c.id)}
-              className={activeClassId === c.id ? 'kb-btn kb-btn--secondary' : 'kb-btn'}
+              className={activeClassIdResolved === c.id ? 'kb-btn kb-btn--secondary' : 'kb-btn'}
               style={{ fontSize: 13 }}
             >
               {c.name}
@@ -210,81 +237,208 @@ export default function Teacher() {
         </div>
       )}
 
-      {tab === 'classes' && <ClassesTab />}
-      {tab === 'progress' && <ProgressTab classroom={active} />}
-      {tab === 'assignments' && <AssignmentsTab classroom={active} />}
+      {tab === 'classes' && <ClassesTab classes={classes} loading={apiLoading} />}
+      {tab === 'progress' && <ProgressTab classroom={activeMock} />}
+      {tab === 'unlock' && <UnlockTab classroomId={activeClassIdResolved} showToast={showToast} />}
+      {tab === 'assignments' && <AssignmentsTab classroom={activeMock} />}
     </PlatformShell>
   )
 }
 
 // ─── Tab: Classes ─────────────────────────────────
 
-function ClassesTab() {
-  const [showCreate, setShowCreate] = useState(false)
+function ClassesTab({ classes, loading }: {
+  classes: Array<{ id: string; name: string; inviteCode: string; studentCount: number }>
+  loading: boolean
+}) {
   const { show: showToast } = useToast()
   return (
     <>
       <section style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <h2 className="h2">Мои классы</h2>
-        <button className="kb-btn kb-btn--secondary" onClick={() => setShowCreate(true)}>
-          ➕ Создать класс
-        </button>
       </section>
 
-      {showCreate && (
-        <div className="kb-card kb-card--feature" style={{ marginBottom: 20, background: 'var(--yellow-soft)' }}>
-          <h3 className="h3">Новый класс</h3>
-          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '8px 0 16px' }}>
-            В production создание добавит запись в БД. Сейчас демо — только mock-данные отображаются.
-            Ученики подключаются через 6-буквенный код приглашения или QR-код.
-          </p>
-          <button className="kb-btn" onClick={() => setShowCreate(false)}>Закрыть</button>
-        </div>
+      {loading && (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>Загрузка…</div>
       )}
 
       <div className="kb-grid-2">
-        {MOCK_CLASSES.map((c) => {
-          const avgProgress = Math.round(c.students.reduce((s, st) => s + st.progress, 0) / c.students.length)
-          const activeNow = c.students.filter((s) => s.lastActive === 'сегодня').length
-          return (
-            <div key={c.id} className="kb-card kb-card--feature">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <div>
-                  <span className="eyebrow">Класс</span>
-                  <h3 className="h3" style={{ marginTop: 4 }}>{c.name}</h3>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span className="eyebrow">Код</span>
-                  <code style={{ display: 'block', fontFamily: 'var(--f-mono)', fontSize: 18, fontWeight: 900, color: 'var(--violet)', marginTop: 4 }}>
-                    {c.inviteCode}
-                  </code>
-                </div>
+        {classes.map((c) => (
+          <div key={c.id} className="kb-card kb-card--feature">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+              <div>
+                <span className="eyebrow">Класс</span>
+                <h3 className="h3" style={{ marginTop: 4 }}>{c.name}</h3>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, padding: '14px 0', borderTop: '1px solid rgba(21,20,27,.08)', borderBottom: '1px solid rgba(21,20,27,.08)' }}>
-                <div>
-                  <div className="eyebrow">Учеников</div>
-                  <strong style={{ fontSize: 20, color: 'var(--violet)' }}>{c.students.length}</strong>
-                </div>
-                <div>
-                  <div className="eyebrow">Сегодня</div>
-                  <strong style={{ fontSize: 20, color: 'var(--mint-deep, #3DB07A)' }}>{activeNow}</strong>
-                </div>
-                <div>
-                  <div className="eyebrow">Прогресс</div>
-                  <strong style={{ fontSize: 20, color: 'var(--yellow-ink, #7A5900)' }}>{avgProgress}/48</strong>
-                </div>
-              </div>
-              <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button className="kb-btn kb-btn--sm kb-btn--secondary" disabled title="Детали класса — Q2 2026">Открыть →</button>
-                <button className="kb-btn kb-btn--sm" onClick={() => {
-                  navigator.clipboard?.writeText(c.inviteCode)
-                  showToast(`✓ Код ${c.inviteCode} скопирован`, 'success')
-                }}>📋 Скопировать код</button>
+              <div style={{ textAlign: 'right' }}>
+                <span className="eyebrow">Код</span>
+                <code style={{ display: 'block', fontFamily: 'var(--f-mono)', fontSize: 18, fontWeight: 900, color: 'var(--violet)', marginTop: 4 }}>
+                  {c.inviteCode}
+                </code>
               </div>
             </div>
-          )
-        })}
+            <div style={{ padding: '14px 0', borderTop: '1px solid rgba(21,20,27,.08)', borderBottom: '1px solid rgba(21,20,27,.08)' }}>
+              <div className="eyebrow">Учеников</div>
+              <strong style={{ fontSize: 20, color: 'var(--violet)' }}>{c.studentCount}</strong>
+            </div>
+            <div style={{ marginTop: 14, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="kb-btn kb-btn--sm" onClick={() => {
+                void navigator.clipboard?.writeText(c.inviteCode)
+                showToast(`✓ Код ${c.inviteCode} скопирован`, 'success')
+              }}>📋 Скопировать код</button>
+            </div>
+          </div>
+        ))}
       </div>
+    </>
+  )
+}
+
+// ─── Tab: Unlock Lessons ──────────────────────────
+
+function UnlockTab({ classroomId, showToast }: {
+  classroomId: string
+  showToast: (msg: string, kind: 'success' | 'error' | 'info') => void
+}) {
+  const [students, setStudents] = useState<StudentDto[]>([])
+  const [progress, setProgress] = useState<ClassroomProgressStudent[]>([])
+  const [loading, setLoading] = useState(false)
+  const [selectedLesson, setSelectedLesson] = useState(1)
+  const [unlocking, setUnlocking] = useState(false)
+
+  const LESSON_COUNT = 48
+  const MODULE_SIZE = 6
+
+  const reload = () => {
+    if (!classroomId) return
+    setLoading(true)
+    Promise.all([
+      fetchStudents(classroomId).catch(() => [] as StudentDto[]),
+      fetchClassroomProgress(classroomId).catch(() => [] as ClassroomProgressStudent[]),
+    ]).then(([s, p]) => {
+      setStudents(s)
+      setProgress(p)
+    }).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { reload() }, [classroomId])
+
+  const progressByStudent = new Map(progress.map((p) => [p.studentId, p.lessons]))
+
+  const handleUnlockAll = async () => {
+    if (!classroomId) return
+    setUnlocking(true)
+    try {
+      const result = await unlockBatch({ classroomId, lessonN: selectedLesson })
+      showToast(`✓ Урок ${selectedLesson} открыт: ${result.unlocked} учеников (${result.skipped} уже было)`, 'success')
+      reload()
+    } catch (e) {
+      showToast('Ошибка: ' + (e instanceof Error ? e.message : ''), 'error')
+    } finally {
+      setUnlocking(false)
+    }
+  }
+
+  if (!classroomId) {
+    return <div className="kb-card" style={{ padding: 24, color: 'var(--ink-soft)' }}>Выбери класс выше.</div>
+  }
+
+  return (
+    <>
+      <section style={{ marginBottom: 20 }}>
+        <h2 className="h2" style={{ marginBottom: 8 }}>Открыть урок · {classroomId.slice(0, 8)}…</h2>
+        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 16px' }}>
+          Выбери урок и открой его всему классу. Ученики увидят его в своём журнале после обновления страницы.
+        </p>
+
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 4 }}>
+              Урок (1–{LESSON_COUNT})
+            </label>
+            <select
+              value={selectedLesson}
+              onChange={(e) => setSelectedLesson(Number(e.target.value))}
+              style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid var(--border, #e5e2f0)', fontSize: 14, fontFamily: 'inherit', background: '#fff' }}
+            >
+              {Array.from({ length: LESSON_COUNT }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  Урок {n} · М{Math.ceil(n / MODULE_SIZE)} L{((n - 1) % MODULE_SIZE) + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            className="kb-btn kb-btn--secondary"
+            onClick={() => void handleUnlockAll()}
+            disabled={unlocking}
+          >
+            {unlocking ? 'Открываю…' : `🔓 Открыть урок ${selectedLesson} всем`}
+          </button>
+        </div>
+      </section>
+
+      {loading ? (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>Загрузка…</div>
+      ) : (
+        <div className="kb-card" style={{ padding: 0, overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid rgba(21,20,27,.08)', background: 'var(--bg-soft, #f9f8ff)' }}>
+                <th style={{ textAlign: 'left', padding: '10px 14px' }}>Ученик</th>
+                {Array.from({ length: 8 }, (_, i) => i + 1).map((m) => (
+                  <th key={m} style={{ padding: '10px 6px', textAlign: 'center', fontFamily: 'var(--f-display)' }}>М{m}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((student) => {
+                const lessonMap = progressByStudent.get(student.id) ?? {}
+                return (
+                  <tr key={student.id} style={{ borderBottom: '1px solid rgba(21,20,27,.04)' }}>
+                    <td style={{ padding: '8px 14px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      {student.login}
+                    </td>
+                    {Array.from({ length: 8 }, (_, mi) => {
+                      const moduleStart = mi * MODULE_SIZE + 1
+                      const moduleLessons = Array.from({ length: MODULE_SIZE }, (_, li) => moduleStart + li)
+                      const unlocked = moduleLessons.filter((n) => lessonMap[n]?.unlocked).length
+                      const completed = moduleLessons.filter((n) => lessonMap[n]?.completed).length
+                      const pct = unlocked / MODULE_SIZE
+                      const bg = completed === MODULE_SIZE
+                        ? 'var(--mint-deep, #3DB07A)'
+                        : pct > 0 ? `rgba(107,92,231,${0.15 + pct * 0.7})` : 'rgba(21,20,27,.05)'
+                      const color = pct >= 0.6 || completed === MODULE_SIZE ? '#fff' : 'var(--ink)'
+                      return (
+                        <td key={mi} style={{ padding: 2, textAlign: 'center' }}>
+                          <div
+                            title={`М${mi + 1}: ${unlocked} откр. / ${completed} пройд.`}
+                            style={{
+                              width: 36, height: 26, margin: '0 auto', borderRadius: 6,
+                              background: bg, color,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 11, fontWeight: 700, fontFamily: 'var(--f-mono)',
+                            }}
+                          >
+                            {unlocked > 0 ? `${completed}/${unlocked}` : ''}
+                          </div>
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              })}
+              {students.length === 0 && (
+                <tr>
+                  <td colSpan={9} style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>
+                    В классе нет учеников
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </>
   )
 }

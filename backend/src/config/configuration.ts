@@ -50,10 +50,13 @@ export default () => ({
   piiKey: process.env['PII_KEY'] ?? '',
 
   cors: {
-    whitelist: (
-      process.env['CORS_WHITELIST'] ??
-      'http://localhost:5173,http://localhost:4173,https://eduson-ops.github.io'
-    ).split(','),
+    whitelist: [
+      ...(
+        process.env['CORS_WHITELIST'] ??
+        'http://localhost:5173,http://localhost:4173'
+      ).split(','),
+      'https://eduson-ops.github.io',
+    ].filter(Boolean),
   },
 
   livekit: {
