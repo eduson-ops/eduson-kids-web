@@ -23,11 +23,12 @@ type SmokeParticle = {
 }
 
 function ExhaustSmoke() {
-  const refs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const particles = useMemo<SmokeParticle[]>(() => {
     return Array.from({ length: SMOKE_COUNT }, () => ({
-      x: (Math.random() - 0.5) * 30,    // -15 to 15
+      x: (Math.random() - 0.5) * 30,
       baseZ: 50 + (Math.random() - 0.5) * 6,
       y: Math.random() * 3,
       scale: 0.3 + Math.random() * 0.7,
@@ -37,39 +38,29 @@ function ExhaustSmoke() {
   }, [])
 
   useFrame((_s, delta) => {
+    if (!meshRef.current) return
     particles.forEach((p, i) => {
-      const mesh = refs.current[i]
-      if (!mesh) return
       if (!p.visible) {
-        // reset
         p.y = 0
         p.scale = 0.3 + Math.random() * 0.4
         p.visible = true
       }
       p.y += delta * p.speed
       p.scale += delta * 0.25
-      if (p.y >= 3) {
-        p.visible = false
-      }
-      mesh.position.y = p.y
-      mesh.scale.setScalar(p.scale)
-      mesh.visible = p.visible
+      if (p.y >= 3) p.visible = false
+      dummy.position.set(p.x, p.y, p.baseZ)
+      dummy.scale.setScalar(p.visible ? p.scale : 0)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <group>
-      {particles.map((p, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { refs.current[i] = el }}
-          position={[p.x, p.y, p.baseZ]}
-        >
-          <sphereGeometry args={[0.12, 6, 6]} />
-          <meshBasicMaterial color="#888888" opacity={0.25} transparent />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, SMOKE_COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.12, 6, 6]} />
+      <meshBasicMaterial color="#888888" opacity={0.25} transparent />
+    </instancedMesh>
   )
 }
 

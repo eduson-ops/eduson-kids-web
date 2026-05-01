@@ -442,9 +442,12 @@ function OceanFish() {
 interface BubbleData { x: number; z: number; startY: number; speed: number; radius: number; phase: number }
 
 function OxygenBubbles() {
+  const COUNT = 80
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const bubbleData = useMemo<BubbleData[]>(() => {
     const seed = (n: number) => ((Math.sin(n * 53.7 + 199.3) * 43758.5453) % 1 + 1) % 1
-    return Array.from({ length: 80 }, (_, i) => ({
+    return Array.from({ length: COUNT }, (_, i) => ({
       x: (seed(i * 4.1) - 0.5) * 180,
       z: (seed(i * 4.2) - 0.5) * 180,
       startY: 0,
@@ -454,38 +457,31 @@ function OxygenBubbles() {
     }))
   }, [])
 
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
-
   useFrame(({ clock }) => {
+    if (!meshRef.current) return
     const t = clock.getElapsedTime()
     bubbleData.forEach((b, i) => {
-      const m = meshRefs.current[i]
-      if (!m) return
       const y = ((t * b.speed + b.phase) % 12) + 0.1
-      m.position.set(b.x + Math.sin(t * 0.3 + b.phase) * 0.3, y, b.z)
+      dummy.position.set(b.x + Math.sin(t * 0.3 + b.phase) * 0.3, y, b.z)
+      dummy.scale.setScalar(b.radius)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {bubbleData.map((b, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={[b.x, 0, b.z]}
-        >
-          <sphereGeometry args={[b.radius, 6, 6]} />
-          <meshStandardMaterial
-            color="#aaddff"
-            transparent
-            opacity={0.45}
-            roughness={0.1}
-            metalness={0.2}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[1, 6, 6]} />
+      <meshStandardMaterial
+        color="#aaddff"
+        transparent
+        opacity={0.45}
+        roughness={0.1}
+        metalness={0.2}
+        depthWrite={false}
+      />
+    </instancedMesh>
   )
 }
 
