@@ -198,7 +198,7 @@ export async function apiPutProgress(
   return !!r?.ok
 }
 
-export async function apiGetMe(): Promise<{ id: string; role: string; name: string; login?: string; email?: string } | null> {
+export async function apiGetMe(): Promise<{ id: string; role: string; name: string; login?: string; email?: string; classroomId?: string } | null> {
   if (!getToken()) return null
   return request('/api/v1/auth/me')
 }

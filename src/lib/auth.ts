@@ -6,8 +6,9 @@ export type Role = 'child' | 'parent' | 'teacher' | 'admin' | 'school_admin'
 export interface Session {
   role: Role
   name: string
-  login?: string    // for child: transliterated login
-  email?: string    // for parent/teacher
+  login?: string       // for child: transliterated login
+  email?: string       // for parent/teacher
+  classroomId?: string // for child: their classroom UUID
 }
 
 const SESSION_KEY = 'ek_session'

@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react'
 import PlatformShell from '../components/PlatformShell'
 import ChatRoom from '../components/chat/ChatRoom'
 import { loadSession, CHILD_NAME_KEY } from '../lib/auth'
-import { getClassrooms } from '../lib/classRoster'
 import { getChatSocket } from '../lib/chatClient'
 
 const HIDDEN_GRACE_MS = 5000
@@ -39,8 +38,8 @@ export default function Chat() {
   const name = session?.name ?? login
   const senderRole = role
 
-  const classrooms = getClassrooms()
-  const classroomId = classrooms[0]?.id ?? null
+  // Use classroomId from session (hydrated from /auth/me on startup)
+  const classroomId = session?.classroomId ?? null
 
   const roomClass = `class:${classroomId ?? 'demo'}`
   const roomDmTeacher = `dm:${dmRoom(login, 'teacher')}`

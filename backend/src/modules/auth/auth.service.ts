@@ -170,7 +170,14 @@ export class AuthService {
     }
   }
 
-  async getMe(userId: string): Promise<{ id: string; role: string; name: string; login: string; email?: string }> {
+  async getMe(userId: string): Promise<{
+    id: string;
+    role: string;
+    name: string;
+    login: string;
+    email?: string;
+    classroomId?: string;
+  }> {
     const user = await this.userRepo.findOne({ where: { id: userId, isActive: true } });
     if (!user) throw new UnauthorizedException('User not found');
 
@@ -184,7 +191,14 @@ export class AuthService {
     }
 
     const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || user.login;
-    return { id: user.id, role: user.role, name, login: user.login, email: profile.email };
+    return {
+      id: user.id,
+      role: user.role,
+      name,
+      login: user.login,
+      email: profile.email,
+      ...(user.classroomId ? { classroomId: user.classroomId } : {}),
+    };
   }
 
   private async findByLogin(login: string, role: UserRole): Promise<User> {

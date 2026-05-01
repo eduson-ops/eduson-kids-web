@@ -103,6 +103,7 @@ export default function App() {
           }
           if (me.login) s.login = me.login
           if (me.email) s.email = me.email
+          if (me.classroomId) s.classroomId = me.classroomId
           saveSession(s)
         }
         // Sync completed lessons from backend for cross-device progress
