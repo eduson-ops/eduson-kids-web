@@ -10,7 +10,7 @@ import { ensureAchievementsWatcher } from './lib/achievements'
 import { startStreakReminderWatcher } from './lib/streakReminder'
 import { seedDemoStateIfEmpty } from './lib/demoSeed'
 import { apiGetMe } from './lib/api'
-import { saveSession, loadSession } from './lib/auth'
+import { saveSession, loadSession, type Role } from './lib/auth'
 import { getAccessToken } from './lib/authStorage'
 import { fetchMyAccess } from './api/lessonAccess'
 import { syncCompletedFromApi } from './lib/progress'
@@ -98,7 +98,7 @@ export default function App() {
         const existing = loadSession()
         if (!existing || existing.name !== me.name) {
           const s: Parameters<typeof saveSession>[0] = {
-            role: me.role as 'child' | 'parent' | 'teacher',
+            role: me.role as Role,
             name: me.name,
           }
           if (me.login) s.login = me.login
@@ -326,7 +326,7 @@ export default function App() {
         <Route
           path="/teacher"
           element={
-            <RequireRole role={['teacher', 'admin']}>
+            <RequireRole role={['teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin']}>
               <Suspense fallback={<RouteLoader label="Открываю кабинет учителя…" />}>
                 <Teacher />
               </Suspense>
@@ -374,13 +374,13 @@ export default function App() {
           }
         />
 
-        <Route path="/teacher/classes" element={<RequireRole role={['teacher', 'admin']}><Suspense fallback={<RouteLoader label="Открываю классы…" />}><TeacherClasses /></Suspense></RequireRole>} />
+        <Route path="/teacher/classes" element={<RequireRole role={['teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin']}><Suspense fallback={<RouteLoader label="Открываю классы…" />}><TeacherClasses /></Suspense></RequireRole>} />
         <Route path="/trainers" element={<Suspense fallback={<RouteLoader label="Открываю тренажёры…" />}><TrainersHub /></Suspense>} />
         <Route path="/trainers/:trainerId/:puzzleN" element={<Suspense fallback={<RouteLoader label="Открываю задачу…" />}><Trainer /></Suspense>} />
         <Route path="/python-ide" element={<Suspense fallback={<RouteLoader label="Открываю Python IDE…" />}><PythonIDE /></Suspense>} />
         <Route path="/chat" element={<Suspense fallback={<RouteLoader label="Открываю чат…" />}><Chat /></Suspense>} />
         <Route path="/room/:roomId" element={<Suspense fallback={<RouteLoader label="Подключаюсь к занятию…" />}><Room /></Suspense>} />
-        <Route path="/admin" element={<RequireRole role="admin"><Suspense fallback={<RouteLoader label="Открываю администрирование…" />}><AdminPanel /></Suspense></RequireRole>} />
+        <Route path="/admin" element={<RequireRole role={['admin', 'school_admin', 'platform_admin', 'regional_admin', 'curator']}><Suspense fallback={<RouteLoader label="Открываю администрирование…" />}><AdminPanel /></Suspense></RequireRole>} />
 
         {/* /character — исторический псевдоним. Настоящий 3D-редактор героя живёт в /profile. */}
         <Route path="/character" element={<Navigate to="/profile" replace />} />

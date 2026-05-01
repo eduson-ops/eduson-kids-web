@@ -11,6 +11,10 @@ import { fetchClassroomProgress, unlockBatch, type ClassroomProgressStudent } fr
 
 const ROLE_KEY = 'ek_role'
 
+const TEACHER_ROLES = new Set([
+  'teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin',
+])
+
 function isTeacherRole(): boolean {
   if (typeof window === 'undefined') return false
   const urlRole = new URLSearchParams(window.location.search).get('role')
@@ -20,7 +24,7 @@ function isTeacherRole(): boolean {
   }
   // Accept JWT session role as well as legacy ek_role key
   const session = loadSession()
-  if (session?.role === 'teacher') {
+  if (session?.role && TEACHER_ROLES.has(session.role)) {
     localStorage.setItem(ROLE_KEY, 'teacher')
     return true
   }

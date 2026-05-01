@@ -198,7 +198,9 @@ export default function PlatformShell({ children, activeKey }: Props) {
   // (Earlier `isAdmin || role === 'teacher'` caused parents/students to see teacher
   // nav if ek_admin was set in localStorage from a previous demo session.)
   let groups: NavGroup[]
-  if (role === 'teacher' || role === 'admin' || role === 'school_admin') {
+  const isTeacherRole = role === 'teacher' || role === 'methodist' || role === 'curator'
+    || role === 'school_admin' || role === 'regional_admin' || role === 'platform_admin' || role === 'admin'
+  if (isTeacherRole) {
     groups = GROUPS_TEACHER
   } else if (role === 'parent') {
     groups = GROUPS_PARENT
@@ -210,6 +212,7 @@ export default function PlatformShell({ children, activeKey }: Props) {
 
   // Hide admin-only items unless user is actually an admin or has the dev flag
   const showAdmin = isAdmin || role === 'admin' || role === 'school_admin'
+    || role === 'regional_admin' || role === 'platform_admin'
   if (!showAdmin) {
     groups = groups.map((g) => ({
       ...g,
