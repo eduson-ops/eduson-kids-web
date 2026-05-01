@@ -2,6 +2,8 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import { useRef, useMemo, useState } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -109,6 +111,7 @@ const COIN_COLORS = ['#ffd644', '#ffec80', '#e8b800'] as const
 function MoneyRain() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const { camera } = useThree()
+  const frameSkip = useRef(0)
   const states = useMemo(() =>
     Array.from({ length: COIN_COUNT }).map((_, i) => ({
       x: (Math.random() - 0.5) * 80,   // -40..40 local offset
@@ -125,11 +128,13 @@ function MoneyRain() {
   )
   useFrame((_, dt) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const camX = camera.position.x
     const camZ = camera.position.z
     states.forEach((s, i) => {
-      s.y -= s.speed * dt
-      s.rotZ += s.speed * dt
+      s.y -= s.speed * step
+      s.rotZ += s.speed * step
       if (s.y < -1) {
         s.y = 25
         s.x = (Math.random() - 0.5) * 80
@@ -157,6 +162,7 @@ function MoneyRain() {
 const VORTEX_COUNT = 80
 function GoldenVortex() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip = useRef(0)
   const particles = useMemo(() =>
     Array.from({ length: VORTEX_COUNT }).map((_, i) => ({
       baseAngle: (i / VORTEX_COUNT) * Math.PI * 2,
@@ -168,6 +174,7 @@ function GoldenVortex() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   useFrame(({ clock }) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     particles.forEach((p, i) => {
       const angle = p.baseAngle + t * p.speed

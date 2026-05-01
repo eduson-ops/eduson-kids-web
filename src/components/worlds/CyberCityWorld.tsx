@@ -2,7 +2,8 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame, extend } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { canPostfx } from '../../lib/deviceTier'
+import { canPostfx, detectDeviceTier } from '../../lib/deviceTier'
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -275,6 +276,7 @@ const RAIN_BOTTOM = -1
 function Rain() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   // Each drop: [x, y, z, speed]
   const drops = useMemo(() => {
@@ -292,9 +294,11 @@ function Rain() {
   useFrame((_, dt) => {
     const mesh = meshRef.current
     if (!mesh) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     for (let i = 0; i < RAIN_COUNT; i++) {
       const b = i * 4
-      drops[b + 1]! -= drops[b + 3]! * dt
+      drops[b + 1]! -= drops[b + 3]! * step
       // slight drift
       drops[b]!     += (Math.random() - 0.5) * 0.02
       drops[b + 2]! += (Math.random() - 0.5) * 0.02
