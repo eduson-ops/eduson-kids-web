@@ -510,7 +510,6 @@ function CrystalZoneDecor() {
               opacity={0.9}
             />
           </mesh>
-          <pointLight position={[0, 4, 0]} color="#88ddff" intensity={1.5} distance={8} />
         </group>
       ))}
 
@@ -613,7 +612,6 @@ function VolcanoZoneDecor() {
               roughness={0.2}
             />
           </mesh>
-          <pointLight position={[0, -3, 0]} color="#ff4400" intensity={3} distance={14} />
         </group>
       ))}
 
@@ -734,8 +732,6 @@ function FloatingSideDecor() {
             <boxGeometry args={[4, 0.8, 3]} />
             <meshStandardMaterial color="#8b6f47" roughness={0.95} />
           </mesh>
-          {/* Glow light underneath */}
-          <pointLight position={[0, -1, 0]} color="#ffccee" intensity={1} distance={8} />
         </group>
       ))}
 
@@ -765,7 +761,6 @@ function FloatingSideDecor() {
               opacity={0.9}
             />
           </mesh>
-          <pointLight position={[0, 0, 0]} color={item.color} intensity={1} distance={10} />
         </group>
       ))}
 
@@ -792,7 +787,6 @@ function FloatingSideDecor() {
               roughness={0.98}
             />
           </mesh>
-          <pointLight position={[0, 0, 0]} color="#ff4400" intensity={2} distance={12} />
         </group>
       ))}
     </>
@@ -1262,13 +1256,9 @@ export default function ObbyWorld() {
       <pointLight position={[5, 5, -95]} color="#ff8800" intensity={4} distance={20} />
       <pointLight position={[-5, 5, -90]} color="#ff4400" intensity={4} distance={20} />
 
-      {/* Lava glow — ground-level embers */}
-      <pointLight position={[ 5, 0.5, -80]} color="#ff3300" intensity={4} distance={12} />
-      <pointLight position={[-5, 0.5, -80]} color="#ff3300" intensity={4} distance={12} />
-      <pointLight position={[ 5, 0.5, -88]} color="#ff3300" intensity={4} distance={12} />
-      <pointLight position={[-5, 0.5, -88]} color="#ff3300" intensity={4} distance={12} />
-      <pointLight position={[ 5, 0.5, -95]} color="#ff3300" intensity={4} distance={12} />
-      <pointLight position={[-5, 0.5, -102]} color="#ff3300" intensity={4} distance={12} />
+      {/* Lava glow — ground-level embers (2 instead of 6; main lava lights above cover the zone) */}
+      <pointLight position={[0, 0.5, -84]} color="#ff3300" intensity={5} distance={20} />
+      <pointLight position={[0, 0.5, -98]} color="#ff3300" intensity={5} distance={20} />
 
       {/* ── Zone 3 extras: LAVA ROCKS ────────────────────── */}
       <LavaRock pos={[ 10, 1.0, -77]} scale={1.3} rotY={0.6} />

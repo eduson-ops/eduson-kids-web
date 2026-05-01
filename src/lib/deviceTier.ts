@@ -76,6 +76,11 @@ export function canPostfx(): boolean {
   return detectDeviceTier() !== 'low'
 }
 
+/** Разрешить ли декоративные point-light'ы сверх базовых (sun/fill). На low — нет. */
+export function canExtraLights(): boolean {
+  return detectDeviceTier() !== 'low'
+}
+
 export const QUALITY_KEY = 'ek_quality'
 
 /**

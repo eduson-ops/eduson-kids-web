@@ -102,26 +102,14 @@ function MainPyramid() {
 }
 
 // ─── Pyramid Sunset Glow ─────────────────────────────────────────────────────
-// 6 amber point-lights at ground level around the pyramid base (~radius 25)
-const GLOW_ANGLES = [0, 1.047, 2.094, 3.142, 4.189, 5.236] // 60° apart
+// 2 amber point-lights opposite each other around the pyramid base
 const GLOW_RADIUS = 25
 
 function PyramidSunsetGlow() {
   return (
     <>
-      {GLOW_ANGLES.map((a, i) => (
-        <pointLight
-          key={i}
-          position={[
-            Math.cos(a) * GLOW_RADIUS,
-            0.5,
-            Math.sin(a) * GLOW_RADIUS,
-          ]}
-          color="#ff6600"
-          intensity={2}
-          distance={40}
-        />
-      ))}
+      <pointLight position={[GLOW_RADIUS, 0.5, 0]} color="#ff6600" intensity={4} distance={55} />
+      <pointLight position={[-GLOW_RADIUS, 0.5, 0]} color="#ff6600" intensity={4} distance={55} />
     </>
   )
 }

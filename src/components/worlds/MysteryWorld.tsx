@@ -2233,42 +2233,18 @@ export default function MysteryWorld() {
 
       {/* ─── Spiders — creepy graveyard & mansion decorations ─── */}
       {/* 4 spiders scattered near the graveyard / tombstone area */}
-      <group>
-        <Spider pos={[-25, 0, -22]} scale={1.4} rotY={0.6} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[-25, 1, -22]} />
-      </group>
-      <group>
-        <Spider pos={[24, 0, -25]} scale={1.8} rotY={2.1} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[24, 1, -25]} />
-      </group>
-      <group>
-        <Spider pos={[-27, 0, 24]} scale={1.2} rotY={-0.9} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[-27, 1, 24]} />
-      </group>
-      <group>
-        <Spider pos={[26, 0, 27]} scale={1.6} rotY={3.5} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[26, 1, 27]} />
-      </group>
+      <Spider pos={[-25, 0, -22]} scale={1.4} rotY={0.6} />
+      <Spider pos={[24, 0, -25]} scale={1.8} rotY={2.1} />
+      <Spider pos={[-27, 0, 24]} scale={1.2} rotY={-0.9} />
+      <Spider pos={[26, 0, 27]} scale={1.6} rotY={3.5} />
 
       {/* 2 spiders on mansion exterior walls (y=2-3) */}
-      <group>
-        <Spider pos={[-22, 2.5, -8]} scale={1.5} rotY={Math.PI / 2} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[-22, 3, -8]} />
-      </group>
-      <group>
-        <Spider pos={[22, 2, 10]} scale={1.5} rotY={-Math.PI / 2} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[22, 3, 10]} />
-      </group>
+      <Spider pos={[-22, 2.5, -8]} scale={1.5} rotY={Math.PI / 2} />
+      <Spider pos={[22, 2, 10]} scale={1.5} rotY={-Math.PI / 2} />
 
       {/* 2 giant spiders flanking the mansion entrance (z≈-22, one each side) */}
-      <group>
-        <Spider pos={[-6, 0, -22]} scale={2.5} rotY={0.3} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[-6, 1, -22]} />
-      </group>
-      <group>
-        <Spider pos={[6, 0, -22]} scale={2.5} rotY={-0.3} />
-        <pointLight color="#880000" intensity={1} distance={6} decay={2} position={[6, 1, -22]} />
-      </group>
+      <Spider pos={[-6, 0, -22]} scale={2.5} rotY={0.3} />
+      <Spider pos={[6, 0, -22]} scale={2.5} rotY={-0.3} />
 
       {/* ─── Spider webs in mansion corners (thin planes at y=3.5, 45° tilts) ─── */}
       {/* SW corner — Столовая */}

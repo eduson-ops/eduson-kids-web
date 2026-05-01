@@ -370,7 +370,6 @@ function AudienceCanopy() {
             <boxGeometry args={[0.3, 0.3, 8]} />
             <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2.5} />
           </mesh>
-          <pointLight color={color} intensity={1.5} distance={12} />
         </group>
       ))}
     </>
@@ -380,20 +379,12 @@ function AudienceCanopy() {
 // ─── CROWD LIGHTS ─────────────────────────────────────────────────────────────
 
 function CrowdLights() {
-  const leftPositions: Array<[number, number, number]> = [
-    [-18, 7, -30], [-18, 7, -45], [-18, 7, -60], [-18, 7, -75], [-18, 7, -90], [-18, 7, -105],
-  ]
-  const rightPositions: Array<[number, number, number]> = [
-    [18, 7, -30], [18, 7, -45], [18, 7, -60], [18, 7, -75], [18, 7, -90], [18, 7, -105],
-  ]
   return (
     <>
-      {leftPositions.map((pos, i) => (
-        <pointLight key={`cl-left-${i}`} position={pos} color="#ff88ff" intensity={2} distance={15} />
-      ))}
-      {rightPositions.map((pos, i) => (
-        <pointLight key={`cl-right-${i}`} position={pos} color="#88ffff" intensity={2} distance={15} />
-      ))}
+      <pointLight position={[-18, 7, -47]} color="#ff88ff" intensity={3} distance={30} />
+      <pointLight position={[-18, 7, -87]} color="#ff88ff" intensity={3} distance={30} />
+      <pointLight position={[18, 7, -47]} color="#88ffff" intensity={3} distance={30} />
+      <pointLight position={[18, 7, -87]} color="#88ffff" intensity={3} distance={30} />
     </>
   )
 }
