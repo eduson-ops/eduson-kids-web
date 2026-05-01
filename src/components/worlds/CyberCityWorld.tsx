@@ -299,9 +299,6 @@ function Rain() {
     for (let i = 0; i < RAIN_COUNT; i++) {
       const b = i * 4
       drops[b + 1]! -= drops[b + 3]! * step
-      // slight drift
-      drops[b]!     += (Math.random() - 0.5) * 0.02
-      drops[b + 2]! += (Math.random() - 0.5) * 0.02
       if (drops[b + 1]! < RAIN_BOTTOM) {
         drops[b + 1] = RAIN_TOP
         drops[b]     = (Math.random() - 0.5) * RAIN_AREA_X

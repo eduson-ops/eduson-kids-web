@@ -693,6 +693,7 @@ function SandStorm() {
       speed: Math.random() * 0.08 + 0.04,
       drift: Math.random() * 0.03 + 0.01,
       phase: Math.random() * Math.PI * 2,
+      scale: Math.random() * 0.08 + 0.04,
     })), [])
 
   useFrame((_, dt) => {
@@ -704,7 +705,7 @@ function SandStorm() {
       p.phase += dt * (isLow ? 1 : 0.5)
       if (p.x > 100) p.x = -100
       dummy.position.set(p.x, p.y, p.z)
-      dummy.scale.setScalar(Math.random() * 0.08 + 0.04)
+      dummy.scale.setScalar(p.scale)
       dummy.updateMatrix()
       ref.current.setMatrixAt(i, dummy.matrix)
     })
