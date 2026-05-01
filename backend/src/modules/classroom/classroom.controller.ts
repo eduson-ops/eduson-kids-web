@@ -12,6 +12,7 @@ import {
   HttpStatus,
   Res,
   ForbiddenException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -212,15 +213,16 @@ export class ClassroomController {
 
     // Regenerate PINs for every student of the class (originals are not
     // recoverable — Argon2id one-way hash). Teacher then prints fresh sheet.
-    const cards = await this.rosterService.regeneratePinsAndGetCards(
-      id,
-      user.sub,
-    );
-
-    const buf = await this.pdfService.generateRosterPdf(cards, {
-      className: classroom.name,
-      brandName: 'KubiK',
-    });
+    let buf: Buffer;
+    try {
+      const cards = await this.rosterService.regeneratePinsAndGetCards(id, user.sub);
+      buf = await this.pdfService.generateRosterPdf(cards, {
+        className: classroom.name,
+        brandName: 'KubiK',
+      });
+    } catch {
+      throw new InternalServerErrorException('Не удалось сгенерировать PDF. Попробуйте ещё раз.');
+    }
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
