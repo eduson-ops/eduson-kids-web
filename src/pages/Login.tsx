@@ -162,17 +162,17 @@ function ChildPinSection({ navigate }: { navigate: ReturnType<typeof useNavigate
       return
     }
     setStatus('checking')
-    // 1. Check locally from roster
-    const ok = checkPin(pinLogin.trim(), pin)
-    if (ok) {
+    // 1. Try backend (authoritative — catches API-only students)
+    const r = await apiChildLogin(pinLogin.trim(), pin)
+    if (r?.accessToken) {
       saveSession({ role: 'child', name: pinLogin.trim(), login: pinLogin.trim() })
       localStorage.setItem(CHILD_NAME_KEY, pinLogin.trim())
       navigate('/')
       return
     }
-    // 2. Try backend
-    const r = await apiChildLogin(pinLogin.trim(), pin)
-    if (r?.accessToken) {
+    // 2. Local roster fallback (offline / demo mode)
+    const ok = checkPin(pinLogin.trim(), pin)
+    if (ok) {
       saveSession({ role: 'child', name: pinLogin.trim(), login: pinLogin.trim() })
       localStorage.setItem(CHILD_NAME_KEY, pinLogin.trim())
       navigate('/')
