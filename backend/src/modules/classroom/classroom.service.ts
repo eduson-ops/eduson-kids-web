@@ -20,7 +20,13 @@ export class ClassroomService {
 
   async create(teacherId: string, name: string): Promise<Classroom> {
     const ctx = this.tenantContext.require();
-    const classroom = this.classroomRepo.create({ teacherId, name, tenantId: ctx.tenantId });
+    const inviteCode = randomBytes(4).toString('hex').toUpperCase(); // 8-char hex
+    const classroom = this.classroomRepo.create({
+      teacherId,
+      name,
+      tenantId: ctx.tenantId,
+      inviteCode,
+    });
     return this.classroomRepo.save(classroom);
   }
 

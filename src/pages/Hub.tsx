@@ -1,15 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import PlatformShell from '../components/PlatformShell'
-import Niksel from '../design/mascot/Niksel'
 import NikselIcon, { type NikselIconKind } from '../design/mascot/NikselIcon'
-import { MascotMoodOverlay } from '../design/mascot/MascotMoodOverlay'
 import { GAMES } from '../lib/games'
 import { plural, pluralize } from '../lib/plural'
 import { useProgress } from '../hooks/useProgress'
-import { useMascotMood } from '../hooks/useMascotMood'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { CHILD_NAME_KEY } from '../lib/auth'
+import { getAccessToken } from '../lib/authStorage'
+import { fetchMyAccess } from '../api/lessonAccess'
 
 /**
  * Hub — the new front door of Eduson Kids.
@@ -57,13 +56,21 @@ export default function Hub() {
   const p = useProgress()
   const currentLesson = p.currentLesson
   const coins = p.completedLessons * COINS_PER_LESSON
-  const mood = useMascotMood('hub')
   const isMobile = useIsMobile()
   const [scrolled, setScrolled] = useState(false)
   const [pyWarmup, setPyWarmup] = useState<'idle' | 'visible' | 'fading'>('idle')
+  // Lessons unlocked by teacher via API (null = not logged in → fallback to local progress)
+  const [apiUnlockedLessons, setApiUnlockedLessons] = useState<Set<number> | null>(null)
 
   useEffect(() => {
     setName(localStorage.getItem(CHILD_NAME_KEY))
+  }, [])
+
+  useEffect(() => {
+    if (!getAccessToken()) return
+    fetchMyAccess()
+      .then((rows) => setApiUnlockedLessons(new Set(rows.filter((r) => r.unlocked).map((r) => r.lessonN))))
+      .catch(() => { /* API down — local fallback */ })
   }, [])
 
   // Pre-warm Pyodide during idle time so that when the user opens the
@@ -131,11 +138,16 @@ export default function Hub() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Unlock modules based on progress: module N unlocks after finishing lesson (N-1)*6
+  // Unlock modules based on local progress + teacher-unlocked API lessons
   const lessonsCompleted = p.completedLessons
   const courseComplete = lessonsCompleted >= TOTAL_LESSONS
   const safeLesson = Math.min(currentLesson, TOTAL_LESSONS)
-  const unlockedModuleN = Math.max(1, Math.ceil((lessonsCompleted + 1) / LESSONS_PER_MODULE))
+  const localUnlockedModuleN = Math.max(1, Math.ceil((lessonsCompleted + 1) / LESSONS_PER_MODULE))
+  // If teacher unlocked lessons from a later module, show that module as unlocked too
+  const apiUnlockedModuleN = apiUnlockedLessons
+    ? Math.max(1, ...Array.from(apiUnlockedLessons).map((n) => Math.ceil(n / LESSONS_PER_MODULE)))
+    : 1
+  const unlockedModuleN = Math.max(localUnlockedModuleN, apiUnlockedModuleN)
   const currentModuleN = Math.min(TOTAL_MODULES, Math.ceil(safeLesson / LESSONS_PER_MODULE))
   const currentModuleTitle = MODULES[currentModuleN - 1]?.title ?? 'Первые шаги в Эдюсон Kids'
 
@@ -201,14 +213,7 @@ export default function Hub() {
           </div>
         </div>
 
-        <div className="kb-cover-mascot" aria-hidden>
-          {/* still: на главной пингвин статичен — анимация breathing/blink/wave
-              отвлекала на демо и тащила repaint-нагрузку на low-end Android. */}
-          <Niksel pose={mood} size={280} still />
-          <MascotMoodOverlay mood={mood} />
-        </div>
-
-        {/* Plashki встают РЯДОМ в верхний ряд над title, НЕ над пингвином и не в его зоне. */}
+        {/* Plashki встают РЯДОМ в верхний ряд над title. */}
         <div className={`kb-cover-deco kb-cover-deco--top-row${scrolled ? ' is-scrolled' : ''}`} aria-hidden>
           <div className="kb-cover-deco-block b-logic" style={{ transform: 'rotate(-4deg)' }}>Если</div>
           <div className="kb-cover-deco-block b-data" style={{ transform: 'rotate(3deg)' }}>Повтори</div>
