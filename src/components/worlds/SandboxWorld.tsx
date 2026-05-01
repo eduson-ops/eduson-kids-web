@@ -2,6 +2,9 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { getShadowMapSize } from '../../lib/deviceTier'
+
+const SHADOW_MAP_SIZE = getShadowMapSize()
 import Coin from '../Coin'
 import NPC from '../NPC'
 import Enemy from '../Enemy'
@@ -2023,7 +2026,7 @@ export default function SandboxWorld() {
       <SunsetSky />
       <ambientLight intensity={0.55} color="#c8d8f0" />
       <directionalLight position={[30, 60, 20]} intensity={0.9} castShadow color="#fff5e0"
-        shadow-mapSize-width={2048} shadow-mapSize-height={2048}
+        shadow-mapSize-width={SHADOW_MAP_SIZE} shadow-mapSize-height={SHADOW_MAP_SIZE}
         shadow-camera-far={300} shadow-camera-left={-120} shadow-camera-right={120}
         shadow-camera-top={120} shadow-camera-bottom={-120}
       />
