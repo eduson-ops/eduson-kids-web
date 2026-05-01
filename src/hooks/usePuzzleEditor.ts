@@ -167,6 +167,17 @@ export function usePuzzleEditor(
     setBlocklyPython(python)
   }, [])
 
+  // Auto-run preview when blocks change (debounced 700ms)
+  const autoRunRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handleRunRef = useRef(handleRun)
+  useEffect(() => { handleRunRef.current = handleRun }, [handleRun])
+  useEffect(() => {
+    if (mode !== 'blocks' || !blocklyPython) return
+    if (autoRunRef.current) clearTimeout(autoRunRef.current)
+    autoRunRef.current = setTimeout(() => { void handleRunRef.current() }, 700)
+    return () => { if (autoRunRef.current) clearTimeout(autoRunRef.current) }
+  }, [blocklyPython, mode])
+
   // ── return ─────────────────────────────────────────────────────
   return {
     // editor mode

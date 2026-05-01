@@ -325,6 +325,10 @@ export default function Room() {
       // Lower screen-share bitrate so free-tier LK Cloud doesn't kick on bandwidth.
       // 1280×720 @ 15fps @ 1.5 Mbps is plenty for code/UI demos and stays under tier limits.
       options={{
+        // The screen-share system picker briefly hides the tab (visibilitychange → hidden),
+        // which makes livekit-client think the page is gone and triggers a disconnect.
+        // Disabling this prevents the kick while the user picks a screen.
+        disconnectOnPageLeave: false,
         publishDefaults: {
           screenShareEncoding: {
             maxBitrate: 1_500_000,
@@ -334,17 +338,20 @@ export default function Room() {
           videoCodec: 'vp8',
           dtx: true,
         },
-        // Disconnect quickly on permission denial instead of reconnect spam
         reconnectPolicy: {
           nextRetryDelayInMs: () => 2000,
         },
       }}
       onDisconnected={(reason) => {
-        // Log reason so we can debug 2-3s kicks
         // eslint-disable-next-line no-console
         console.warn('[LiveKit] disconnected:', reason)
-        // Only fully exit if this wasn't a mobile-lifecycle-triggered disconnect.
-        if (!needsReconnectRef.current) setToken(null)
+        // Give 3s grace for auto-reconnect (e.g. brief network blip during screen-share).
+        // If lkConnect is still true after grace period, the SDK couldn't recover — exit room.
+        if (!needsReconnectRef.current) {
+          setTimeout(() => {
+            setToken((prev) => (prev ? null : prev))
+          }, 3000)
+        }
       }}
       onError={(err) => {
         // eslint-disable-next-line no-console

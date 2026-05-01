@@ -9,6 +9,7 @@ export interface GameMeta {
     | 'tower' | 'garden' | 'pets' | 'town'
     | 'fashion' | 'mystery' | 'nights'
     | 'tycoon' | 'ability' | 'petbrain'
+    | 'temple' | 'space' | 'cyber'
   emoji: string
   color: string
   playersOnline: number
@@ -202,6 +203,61 @@ export const GAMES: GameMeta[] = [
     hot: true,
     fresh: true,
     rank: 10,
+    scene: 'playground',
+  },
+  // ─── New epic worlds ───
+  {
+    id: 'ancient-temple',
+    title: 'Храм Майя: Золотой Алтарь',
+    author: 'Эдюсон KidsStudio',
+    authorColor: '#a08c6a',
+    category: 'temple',
+    emoji: '🏛',
+    color: '#a08c6a',
+    playersOnline: 21,
+    views: 14800,
+    likes: 623,
+    featured: true,
+    template: true,
+    hot: true,
+    fresh: true,
+    rank: 0,
+    scene: 'playground',
+  },
+  {
+    id: 'space-station',
+    title: 'Станция «Аврора» — Захват Мостика',
+    author: 'Эдюсон KidsStudio',
+    authorColor: '#4c97ff',
+    category: 'space',
+    emoji: '🚀',
+    color: '#0b0b22',
+    playersOnline: 17,
+    views: 12400,
+    likes: 541,
+    featured: true,
+    template: true,
+    hot: true,
+    fresh: true,
+    rank: 0,
+    scene: 'playground',
+  },
+  {
+    id: 'cyber-city',
+    title: 'КиберГород 2087: Вершина',
+    author: 'Эдюсон KidsStudio',
+    authorColor: '#ff5ab1',
+    category: 'cyber',
+    emoji: '🌃',
+    color: '#ff5ab1',
+    playersOnline: 19,
+    views: 16200,
+    likes: 712,
+    featured: true,
+    template: true,
+    hot: true,
+    fresh: true,
+    rank: 0,
     scene: 'playground',
   },
   // ─── Classic worlds ───

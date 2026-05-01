@@ -206,11 +206,22 @@ export default function Play() {
             }}
             aria-label={edit ? 'Выключить режим редактирования' : 'Включить режим редактирования'}
             aria-pressed={edit}
-            title="Редактировать карту: спавн объектов (Q), перекраска, скрипты на объектах"
+            title="Редактировать карту: подойди к объекту → Q (скрипт), Tab → Studio (вид сверху)"
           >
-            <span aria-hidden>⚡</span> {edit ? 'Выкл' : 'Ред.'}
+            <span aria-hidden>✏️</span> {edit ? 'Выйти' : 'Ред.'}
             {scriptedCount > 0 && <span className="edit-count">{scriptedCount}</span>}
           </button>
+          {edit && (
+            <button
+              className="hud-btn"
+              onClick={() => { SFX.click(); navigate('/studio') }}
+              title="Studio — редактор сверху (Tab)"
+              aria-label="Открыть Studio в режиме сверху"
+              style={{ background: 'rgba(107, 92, 231, 0.85)', borderColor: 'rgba(107, 92, 231, 0.9)', color: '#fff' }}
+            >
+              🏗️ Studio
+            </button>
+          )}
           <button className="hud-btn" onClick={toggleMute} aria-label={muted ? 'Включить звук' : 'Выключить звук'} aria-pressed={muted}>
             <span aria-hidden>{muted ? '🔇' : '🔊'}</span>
           </button>
@@ -219,10 +230,10 @@ export default function Play() {
 
       {edit && (
         <div className="edit-mode-hint">
-          <strong>⚡ Режим редактирования.</strong>
-          Подойди к объекту и нажми <kbd>Q</kbd> — откроется редактор.
-          Если ничего не наведено, <kbd>Q</kbd> — палитра спавна.
-          <kbd>Tab</kbd> — Studio (вид сверху).
+          <strong>✏️ Режим редактирования</strong>
+          <span style={{ opacity: 0.7, marginLeft: 8, fontSize: 13 }}>
+            Подойди к объекту → <kbd>Q</kbd> чтобы редактировать · <kbd>Q</kbd> в пустоте → спавн объектов
+          </span>
           {editsCount > 0 && !confirmReset && (
             <button
               className="edit-mode-exit"
@@ -265,16 +276,17 @@ export default function Play() {
           aria-label="Подсказки клавиш режима редактирования"
           style={{
             position: 'fixed',
-            bottom: 12,
+            bottom: 80,
             left: '50%',
             transform: 'translateX(-50%)',
             display: 'flex',
-            gap: 14,
-            padding: '8px 14px',
-            borderRadius: 12,
-            background: 'rgba(15,17,23,0.86)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255,212,60,0.35)',
+            gap: 10,
+            padding: '8px 16px',
+            borderRadius: 14,
+            background: 'rgba(10,10,20,0.92)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255,212,60,0.45)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
             zIndex: 50,
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 12,
@@ -282,10 +294,13 @@ export default function Play() {
             pointerEvents: 'none',
           }}
         >
-          <HotbarKey k="Q" label="Редактировать / спавн" />
-          <HotbarKey k="Tab" label="Studio сверху" />
+          <HotbarKey k="Q" label="Ред. объекта" />
+          <span style={{ opacity: 0.3, alignSelf: 'center' }}>·</span>
+          <HotbarKey k="Tab" label="Studio ↑" />
+          <span style={{ opacity: 0.3, alignSelf: 'center' }}>·</span>
           <HotbarKey k="Esc" label="Отмена" />
-          <HotbarKey k="WASD" label="Ходить" />
+          <span style={{ opacity: 0.3, alignSelf: 'center' }}>·</span>
+          <HotbarKey k="WASD" label="Движение" />
         </div>
       )}
 

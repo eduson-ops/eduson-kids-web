@@ -110,6 +110,32 @@ const ABILITY_TARGETS: WorldTarget[] = [
   { id: 'dummy-5', pos: [10, 1.5, 10], label: 'Манекен ПЗ', kind: 'enemy', radius: 1.3 },
 ]
 
+const TEMPLE_TARGETS: WorldTarget[] = [
+  { id: 'enemy-t1-a', pos: [0, 8.5, 15], label: 'Страж 1-го яруса', kind: 'enemy', radius: 1.2 },
+  { id: 'enemy-t1-b', pos: [0, 8.5, -10], label: 'Страж Севера', kind: 'enemy', radius: 1.2 },
+  { id: 'enemy-t2', pos: [0, 15.5, 5], label: 'Страж 2-го яруса', kind: 'enemy', radius: 1.2 },
+  { id: 'enemy-t3', pos: [0, 22.5, -3], label: 'Страж 3-го яруса', kind: 'enemy', radius: 1.2 },
+  { id: 'boss', pos: [0, 36.1, -1], label: 'Демон-босс', kind: 'enemy', radius: 1.5 },
+  { id: 'altar', pos: [0, 37.65, 0], label: 'Золотой алтарь', kind: 'goal', radius: 2 },
+]
+
+const SPACE_TARGETS: WorldTarget[] = [
+  { id: 'patrol-dock', pos: [0, 1.5, -15], label: 'Робот-охранник (Dock)', kind: 'enemy', radius: 1.2 },
+  { id: 'patrol-alpha', pos: [0, 1.5, -52], label: 'Робот Alpha', kind: 'enemy', radius: 1.2 },
+  { id: 'patrol-beta', pos: [0, 8.5, -84], label: 'Робот Beta', kind: 'enemy', radius: 1.2 },
+  { id: 'captain', pos: [0, 14.5, -130], label: 'Капитан Пришелец', kind: 'npc', radius: 1.4 },
+  { id: 'command-bridge', pos: [0, 18, -128], label: 'Командный мостик', kind: 'goal', radius: 3 },
+]
+
+const CYBER_TARGETS: WorldTarget[] = [
+  { id: 'street-enemy-1', pos: [-16, 1.5, -12], label: 'Кибер-бандит L', kind: 'enemy', radius: 1.2 },
+  { id: 'street-enemy-2', pos: [16, 1.5, -40], label: 'Кибер-бандит R', kind: 'enemy', radius: 1.2 },
+  { id: 'rooftop-guard', pos: [0, 27.5, -40], label: 'Страж небоскрёба', kind: 'enemy', radius: 1.2 },
+  { id: 'boss-cactoro', pos: [0, 36.5, -95], label: 'Кактор-босс', kind: 'enemy', radius: 1.4 },
+  { id: 'hacker-npc', pos: [20, 0, -50], label: 'Хакер', kind: 'npc', radius: 1.3 },
+  { id: 'skyscraper-top', pos: [0, 39, -95], label: 'Вершина МегаТауэр', kind: 'goal', radius: 2.5 },
+]
+
 const PETBRAIN_TARGETS: WorldTarget[] = [
   { id: 'pet', pos: [0, 1, 4], label: 'Питомец', kind: 'npc', radius: 1.2 },
   { id: 'food', pos: [-10, 1, -6], label: 'Миска еды', kind: 'prop', radius: 1 },
@@ -120,6 +146,9 @@ const PETBRAIN_TARGETS: WorldTarget[] = [
 
 // ─── Регистр по точному game.id (приоритет) ───
 const BY_GAME_ID: Record<string, WorldTarget[]> = {
+  'ancient-temple': TEMPLE_TARGETS,
+  'space-station': SPACE_TARGETS,
+  'cyber-city': CYBER_TARGETS,
   'obby-rainbow': OBBY_TARGETS,
   'growbot-garden': GARDEN_TARGETS,
   'tower-of-code': TOWER_TARGETS,
@@ -147,6 +176,9 @@ const BY_CATEGORY: Record<string, WorldTarget[]> = {
   tycoon: TYCOON_TARGETS,
   ability: ABILITY_TARGETS,
   petbrain: PETBRAIN_TARGETS,
+  temple: TEMPLE_TARGETS,
+  space: SPACE_TARGETS,
+  cyber: CYBER_TARGETS,
   // category=sandbox/rp/sim → SandboxWorld → переиспользуем BotTown-like targets
   sandbox: BOTTOWN_TARGETS,
   rp: BOTTOWN_TARGETS,

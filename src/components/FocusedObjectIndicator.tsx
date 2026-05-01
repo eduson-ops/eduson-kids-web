@@ -121,31 +121,38 @@ export default function FocusedObjectIndicator() {
 
   return (
     <Html
-      position={[target.pos[0], target.pos[1] + 1.5, target.pos[2]]}
+      position={[target.pos[0], target.pos[1] + 2.0, target.pos[2]]}
       center
-      distanceFactor={8}
+      distanceFactor={6}
       zIndexRange={[100, 0]}
       style={{ pointerEvents: 'none' }}
     >
-      <div
-        style={{
-          background: 'rgba(15, 17, 23, 0.92)',
-          color: '#FFD43C',
-          padding: '6px 12px',
-          borderRadius: 8,
-          fontSize: 12,
-          fontFamily: 'JetBrains Mono, monospace',
-          whiteSpace: 'nowrap',
-          border: '1px solid #FFD43C',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-        }}
-      >
-        {target.label && <div style={{ color: '#fff', marginBottom: 4 }}>{target.label}</div>}
-        <kbd style={{
-          background: '#FFD43C', color: '#15141B', padding: '2px 6px',
-          borderRadius: 4, fontWeight: 700, fontSize: 11,
-        }}>Q</kbd>
-        <span style={{ marginLeft: 6 }}>редактировать</span>
+      <div style={{
+        background: 'rgba(10, 10, 20, 0.96)',
+        color: '#FFD43C',
+        padding: '10px 16px',
+        borderRadius: 12,
+        fontSize: 14,
+        fontFamily: 'JetBrains Mono, monospace',
+        whiteSpace: 'nowrap',
+        border: '2px solid #FFD43C',
+        boxShadow: '0 0 24px rgba(255, 212, 60, 0.4), 0 4px 16px rgba(0,0,0,0.6)',
+        animation: 'focusHintPulse 1.2s ease-in-out infinite',
+        textAlign: 'center',
+        minWidth: 140,
+      }}>
+        {target.label && (
+          <div style={{ color: '#fff', marginBottom: 6, fontSize: 13, fontWeight: 700 }}>
+            {target.label}
+          </div>
+        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <kbd style={{
+            background: '#FFD43C', color: '#15141B', padding: '3px 10px',
+            borderRadius: 6, fontWeight: 700, fontSize: 14, lineHeight: 1.4,
+          }}>Q</kbd>
+          <span style={{ color: '#fff', fontSize: 13 }}>редактировать</span>
+        </div>
       </div>
     </Html>
   )

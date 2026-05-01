@@ -549,13 +549,13 @@
    clipping "Стрик · ачивок" meta row on phones. Drop ring out of absolute
    flow; % is also in the "Прогресс" footer cell below. ===== */
 @media (max-width: 768px) {
-  .portfolio-hero-cover { position: relative; }
+  .portfolio-hero-cover {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
 
   .portfolio-progress-ring {
-    position: static !important;
-    right: auto !important;
-    top: auto !important;
-    margin: 14px auto 4px !important;
+    margin: 4px auto 0 !important;
     display: flex;
     justify-content: center;
   }
@@ -583,4 +583,102 @@
   }
   .kb-cover { padding: 20px 14px 20px !important; }
   .kb-cover-title { font-size: clamp(32px, 10vw, 48px) !important; }
+}
+
+/* ================================================================
+   9. Trainers / PuzzleEditor — Android touch fixes
+   Главные проблемы: Blockly drag не работает без touch-action: none,
+   инпуты зуммируются (Android тоже), зоны редактора слишком маленькие
+   на 360px-экранах.
+   ================================================================ */
+@media (max-width: 820px) {
+  /* Puzzle layout: stack columns, allow natural scroll */
+  .puzzle-layout {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Каждая панель имеет минимальную высоту для комфортной работы */
+  .puzzle-editor-panel { min-height: 480px !important; }
+  .puzzle-preview-panel { min-height: 300px !important; }
+  .puzzle-editor-zone { min-height: 380px !important; }
+
+  /* Blockly SVG: без touch-action: none браузер перехватывает touch
+     и drag blocks не работает на Android WebView */
+  .blockly-container,
+  .blockly-container svg,
+  .blocklySvg {
+    touch-action: none !important;
+  }
+
+  /* Input fields: минимум 16px font-size предотвращает зум на Android */
+  .puzzle-task-panel input,
+  .puzzle-editor-panel input,
+  .puzzle-editor-panel textarea,
+  .cm-editor .cm-content {
+    font-size: 16px !important;
+  }
+
+  /* Кнопки тренажёра — 44px min-height для комфортного тапа */
+  .puzzle-actions .kb-btn,
+  .trainer-tab,
+  .puzzle-header-nav button {
+    min-height: 48px !important;
+    font-size: 15px !important;
+  }
+
+  /* Hint ladder на мобилке: убираем hover, делаем tap */
+  .hint-item { cursor: pointer; }
+}
+
+@media (max-width: 480px) {
+  /* Detective board: компактнее на маленьких экранах */
+  .detective-board { padding: 12px !important; }
+  .puzzle-header { flex-direction: column; gap: 10px; }
+  .puzzle-header-left { flex: 1; }
+}
+
+/* ================================================================
+   10. Play (3D игра) — Android canvas touch fixes
+   canvas должен захватывать все touch-события, иначе движение/
+   look не работают. PointerLock не доступен на Android — используем
+   MobileControls (уже есть), нужно убедиться что canvas не блокирует.
+   ================================================================ */
+.play-canvas canvas {
+  touch-action: none !important;
+}
+
+/* MobileControls джойстики: достаточно большие для пальца */
+@media (max-width: 820px) {
+  .mobile-controls {
+    pointer-events: auto;
+    touch-action: none;
+  }
+  .mobile-joystick,
+  .mobile-btn {
+    min-width: 64px !important;
+    min-height: 64px !important;
+  }
+}
+
+/* ================================================================
+   11. Studio BuildScene — Three.js canvas touch
+   ================================================================ */
+.studio-build canvas,
+.build-scene canvas {
+  touch-action: none !important;
+}
+
+/* Studio на мобилке: скрываем dense toolbar, показываем StudioMobileBar */
+@media (max-width: 640px) {
+  .studio-header {
+    flex-wrap: wrap;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    padding-top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+  }
+  .studio-stats { display: none !important; }
+  .studio-tabs button { padding: 8px 10px !important; font-size: 13px !important; }
+  .studio-actions button { min-height: 40px; font-size: 13px; }
 }

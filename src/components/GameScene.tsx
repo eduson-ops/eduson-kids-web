@@ -18,6 +18,9 @@ import NightsWorld, { NIGHTS_SPAWN } from './worlds/NightsWorld'
 import TycoonWorld, { TYCOON_SPAWN } from './worlds/TycoonWorld'
 import AbilityBuilderWorld, { ABILITY_SPAWN } from './worlds/AbilityBuilderWorld'
 import PetBrainWorld, { PETBRAIN_SPAWN } from './worlds/PetBrainWorld'
+import TempleWorld, { TEMPLE_SPAWN } from './worlds/TempleWorld'
+import SpaceStationWorld, { SPACE_SPAWN } from './worlds/SpaceStationWorld'
+import CyberCityWorld, { CYBER_SPAWN } from './worlds/CyberCityWorld'
 import CameraController from './CameraController'
 import AdaptiveDPR from './AdaptiveDPR'
 import Scriptable from './Scriptable'
@@ -164,6 +167,12 @@ function pickWorld(cat: GameMeta['category']) {
     case 'rp':
     case 'sim':
       return { world: SandboxWorld, spawn: SANDBOX_SPAWN }
+    case 'temple':
+      return { world: TempleWorld, spawn: TEMPLE_SPAWN }
+    case 'space':
+      return { world: SpaceStationWorld, spawn: SPACE_SPAWN }
+    case 'cyber':
+      return { world: CyberCityWorld, spawn: CYBER_SPAWN }
     case 'obby':
     default:
       return { world: ObbyWorld, spawn: OBBY_SPAWN }
