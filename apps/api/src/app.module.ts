@@ -18,6 +18,11 @@ import { AuditModule } from './modules/audit/audit.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { RoomModule } from './modules/room/room.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { LessonAccessModule } from './modules/lesson-access/lesson-access.module';
+import { ScheduleModule as AppScheduleModule } from './modules/schedule/schedule.module';
+import { LessonReportsModule } from './modules/lesson-reports/lesson-reports.module';
+import { GuestModule } from './modules/guest/guest.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -115,6 +120,11 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     ChatModule,
     RoomModule,
     AdminModule,
+    LessonAccessModule,
+    AppScheduleModule,
+    LessonReportsModule,
+    GuestModule,
+    NotificationsModule,
   ],
   providers: [
     {

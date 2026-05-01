@@ -46,6 +46,21 @@ export class User {
   @Column({ type: 'simple-array', name: 'linked_child_ids', nullable: true })
   linkedChildIds!: string[] | null;
 
+  /** CRM record URL for admin tracking */
+  @Column({ type: 'text', name: 'crm_url', nullable: true })
+  crmUrl!: string | null;
+
+  /** Learning track: python | scratch | vibe */
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  track!: string | null;
+
+  /** Parent contact for notifications */
+  @Column({ type: 'varchar', length: 32, name: 'parent_phone', nullable: true })
+  parentPhone!: string | null;
+
+  @Column({ type: 'varchar', length: 255, name: 'parent_email', nullable: true })
+  parentEmail!: string | null;
+
   @Column({ type: 'boolean', name: 'is_active', default: true })
   isActive!: boolean;
 

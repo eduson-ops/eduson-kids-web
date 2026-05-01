@@ -7,9 +7,9 @@ export default function PostFX() {
   return (
     <EffectComposer multisampling={0}>
       <Bloom
-        intensity={0.2}
-        luminanceThreshold={0.9}
-        luminanceSmoothing={0.1}
+        intensity={0.25}
+        luminanceThreshold={1.0}
+        luminanceSmoothing={0.05}
         mipmapBlur={false}
         kernelSize={KernelSize.SMALL}
         blendFunction={BlendFunction.ADD}

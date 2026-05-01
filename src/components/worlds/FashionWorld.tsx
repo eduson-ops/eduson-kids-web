@@ -2,6 +2,9 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
@@ -43,6 +46,7 @@ function GlitterFloor({ position, width, length }: { position: [number,number,nu
 
 function DiscoBall({ position }: { position: [number,number,number] }) {
   const groupRef = useRef<THREE.Group>(null!)
+  const tilesRef = useRef<THREE.InstancedMesh>(null!)
   useFrame((_, dt) => { if (groupRef.current) groupRef.current.rotation.y += dt * 0.8 })
   const tiles = useMemo(() => {
     const out: Array<{ pos: [number,number,number]; rot: [number,number,number] }> = []
@@ -57,18 +61,27 @@ function DiscoBall({ position }: { position: [number,number,number] }) {
     }
     return out
   }, [])
+  useEffect(() => {
+    if (!tilesRef.current) return
+    const dummy = new THREE.Object3D()
+    tiles.forEach((t, i) => {
+      dummy.position.set(...t.pos)
+      dummy.rotation.set(...t.rot)
+      dummy.updateMatrix()
+      tilesRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    tilesRef.current.instanceMatrix.needsUpdate = true
+  }, [tiles])
   return (
     <group position={position} ref={groupRef}>
       <mesh>
         <sphereGeometry args={[1, 20, 20]} />
         <meshStandardMaterial color="#111111" metalness={0.9} roughness={0.1} />
       </mesh>
-      {tiles.map((t, i) => (
-        <mesh key={i} position={t.pos}>
-          <boxGeometry args={[0.12, 0.12, 0.02]} />
-          <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={1.5} metalness={1} roughness={0} />
-        </mesh>
-      ))}
+      <instancedMesh ref={tilesRef} args={[undefined, undefined, tiles.length]} frustumCulled={false}>
+        <boxGeometry args={[0.12, 0.12, 0.02]} />
+        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={1.5} metalness={1} roughness={0} />
+      </instancedMesh>
     </group>
   )
 }
@@ -222,51 +235,63 @@ function GlitterParticles() {
 // ─── GLITTER SHOWER ──────────────────────────────────────────────────────────
 
 const GLITTER_COLORS = ['#ff88cc', '#ffd700', '#88ffcc', '#ff44ff', '#44ddff']
+const _RESET_POOL = 16
 
 function GlitterShower() {
-  const count = 200
-  const groupRef = useRef<THREE.Group>(null!)
+  const COUNT = 200
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
-  const confetti = useMemo(() => {
-    return Array.from({ length: count }, () => ({
-      x: (Math.random() - 0.5) * 80,
-      y: Math.random() * 21,
-      z: -(Math.random() * 140 + 10),
-      speed: 0.04 + Math.random() * 0.08,
-      rotSpeedX: (Math.random() - 0.5) * 3,
-      rotSpeedZ: (Math.random() - 0.5) * 3,
-      color: GLITTER_COLORS[Math.floor(Math.random() * GLITTER_COLORS.length)],
-    }))
-  }, [])
+  const particles = useMemo(() => Array.from({ length: COUNT }, () => ({
+    x: (Math.random() - 0.5) * 80,
+    y: Math.random() * 21,
+    z: -(Math.random() * 140 + 10),
+    speed: 0.04 + Math.random() * 0.08,
+    rotX: 0,
+    rotZ: 0,
+    rotSpeedX: (Math.random() - 0.5) * 3,
+    rotSpeedZ: (Math.random() - 0.5) * 3,
+    resetXs: Array.from({ length: _RESET_POOL }, () => (Math.random() - 0.5) * 80),
+    resetIdx: 0,
+    colorIdx: Math.floor(Math.random() * GLITTER_COLORS.length),
+  })), [])
 
-  const refs = useRef<Array<THREE.Mesh | null>>([])
+  useEffect(() => {
+    if (!meshRef.current) return
+    const col = new THREE.Color()
+    particles.forEach((p, i) => {
+      col.set(GLITTER_COLORS[p.colorIdx]!)
+      meshRef.current.setColorAt(i, col)
+    })
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+  }, [particles])
 
   useFrame((_, dt) => {
-    refs.current.forEach((mesh, i) => {
-      if (!mesh) return
-      mesh.position.y -= confetti[i].speed
-      mesh.rotation.x += confetti[i].rotSpeedX * dt
-      mesh.rotation.z += confetti[i].rotSpeedZ * dt
-      if (mesh.position.y < -1) {
-        mesh.position.y = 20
-        mesh.position.x = (Math.random() - 0.5) * 80
+    if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    particles.forEach((p, i) => {
+      p.y -= p.speed * (_isLow ? 2 : 1)
+      p.rotX += p.rotSpeedX * step
+      p.rotZ += p.rotSpeedZ * step
+      if (p.y < -1) {
+        p.y = 20
+        p.x = p.resetXs[p.resetIdx++ % _RESET_POOL]!
       }
+      dummy.position.set(p.x, p.y, p.z)
+      dummy.rotation.set(p.rotX, 0, p.rotZ)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <group ref={groupRef}>
-      {confetti.map((c, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { refs.current[i] = el }}
-          position={[c.x, c.y, c.z]}
-        >
-          <planeGeometry args={[0.05, 0.05]} />
-          <meshBasicMaterial color={c.color} side={THREE.DoubleSide} transparent opacity={0.9} depthWrite={false} />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <planeGeometry args={[0.05, 0.05]} />
+      <meshBasicMaterial vertexColors side={THREE.DoubleSide} transparent opacity={0.9} depthWrite={false} />
+    </instancedMesh>
   )
 }
 
@@ -703,8 +728,10 @@ function AudienceCrowd() {
 
   // One ref per figure group
   const groupRefs = useRef<Array<THREE.Group | null>>([])
+  const crowdSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (crowdSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     groupRefs.current.forEach((g, i) => {
       if (!g) return

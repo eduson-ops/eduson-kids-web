@@ -214,7 +214,8 @@ function NeonDrizzle() {
 
   // Precompute per-instance data: x, z starting position, y start, speed
   const instanceData = useMemo(() => {
-    const data: { x: number; z: number; y: number; speed: number; color: THREE.Color }[] = []
+    const POOL = 16
+    const data: { x: number; z: number; y: number; speed: number; color: THREE.Color; resetXs: number[]; resetZs: number[]; resetIdx: number }[] = []
     for (let i = 0; i < DRIZZLE_COUNT; i++) {
       data.push({
         x: (Math.random() - 0.5) * 60,
@@ -222,6 +223,9 @@ function NeonDrizzle() {
         y: Math.random() * 16,
         speed: 12 + Math.random() * 6,
         color: i % 2 === 0 ? new THREE.Color('#00ffff') : new THREE.Color('#ff44aa'),
+        resetXs: Array.from({ length: POOL }, () => (Math.random() - 0.5) * 60),
+        resetZs: Array.from({ length: POOL }, () => (Math.random() - 0.5) * 60),
+        resetIdx: 0,
       })
     }
     return data
@@ -247,8 +251,8 @@ function NeonDrizzle() {
       d.y -= d.speed * step
       if (d.y < -1) {
         d.y = 15
-        d.x = (Math.random() - 0.5) * 60
-        d.z = (Math.random() - 0.5) * 60
+        d.x = d.resetXs[d.resetIdx % 16]!
+        d.z = d.resetZs[d.resetIdx++ % 16]!
       }
       dummy.position.set(d.x, d.y, d.z)
       dummy.updateMatrix()
@@ -1346,15 +1350,22 @@ interface SteamParticle {
   y: number
   speed: number
   phase: number
+  resetXs: number[]
+  resetZs: number[]
+  resetIdx: number
 }
 
 function makeSteamParticles(cx: number, cz: number): SteamParticle[] {
+  const POOL = 12
   return Array.from({ length: STEAM_COUNT }, (_, i) => ({
     x: cx + (Math.random() - 0.5) * 1.2,
     z: cz + (Math.random() - 0.5) * 1.2,
     y: 14 + Math.random() * 4,
     speed: 1.5 + Math.random() * 1.5,
     phase: (i / STEAM_COUNT) * Math.PI * 2,
+    resetXs: Array.from({ length: POOL }, () => cx + (Math.random() - 0.5) * 1.2) as number[],
+    resetZs: Array.from({ length: POOL }, () => cz + (Math.random() - 0.5) * 1.2) as number[],
+    resetIdx: i,
   }))
 }
 
@@ -1371,8 +1382,8 @@ function TowerSteam({ cx, cz }: { cx: number; cz: number }) {
       const top = 14 + 8
       if (p.y > top) {
         p.y = 14
-        p.x = cx + (Math.random() - 0.5) * 1.2
-        p.z = cz + (Math.random() - 0.5) * 1.2
+        p.x = p.resetXs[p.resetIdx % 12]!
+        p.z = p.resetZs[p.resetIdx++ % 12]!
       }
       const progress = (p.y - 14) / 8
       const scale = 0.3 + progress * 1.2

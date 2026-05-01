@@ -8,6 +8,8 @@ import { useToast } from '../hooks/useToast'
 import { loadSession } from '../lib/auth'
 import { fetchClassrooms, fetchStudents, type ClassroomDto, type StudentDto } from '../api/classrooms'
 import { fetchClassroomProgress, unlockBatch, type ClassroomProgressStudent } from '../api/lessonAccess'
+import { fetchMySlots, createSlot, updateSlotStatus, type SlotDto } from '../api/schedule'
+import { fetchMyReports, createReport, type ReportDto, type CreateReportPayload } from '../api/lessonReports'
 
 const ROLE_KEY = 'ek_role'
 
@@ -31,7 +33,7 @@ function isTeacherRole(): boolean {
   return localStorage.getItem(ROLE_KEY) === 'teacher'
 }
 
-type Tab = 'classes' | 'progress' | 'assignments' | 'unlock'
+type Tab = 'classes' | 'progress' | 'assignments' | 'unlock' | 'schedule' | 'reports' | 'methodologies' | 'students'
 
 interface Student {
   id: string
@@ -187,6 +189,10 @@ export default function Teacher() {
       <div className="kb-tabs" role="tablist" style={{ display: 'flex', gap: 8, marginBottom: 24, borderBottom: '2px solid rgba(21,20,27,.08)', flexWrap: 'wrap' }}>
         {([
           { k: 'classes' as Tab, label: '🏫 Классы' },
+          { k: 'students' as Tab, label: '👨‍🎓 Ученики' },
+          { k: 'schedule' as Tab, label: '🗓 Расписание' },
+          { k: 'reports' as Tab, label: '📋 Отчёты' },
+          { k: 'methodologies' as Tab, label: '📚 Методички' },
           { k: 'progress' as Tab, label: '📊 Прогресс' },
           { k: 'unlock' as Tab, label: '🔓 Открыть уроки' },
           { k: 'assignments' as Tab, label: '📝 Задания' },
@@ -231,6 +237,10 @@ export default function Teacher() {
       )}
 
       {tab === 'classes' && <ClassesTab classes={classes} loading={apiLoading} />}
+      {tab === 'students' && <StudentsTab classroomId={activeClassIdResolved} classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''} />}
+      {tab === 'schedule' && <ScheduleTab classrooms={classes} showToast={showToast} />}
+      {tab === 'reports' && <ReportsTab classrooms={classes} showToast={showToast} />}
+      {tab === 'methodologies' && <MethodologiesTab />}
       {tab === 'progress' && <ProgressTab classroomId={activeClassIdResolved} classroomName={classes.find((c) => c.id === activeClassIdResolved)?.name ?? ''} />}
       {tab === 'unlock' && (
         <UnlockTab
@@ -629,4 +639,541 @@ function AssignmentsTab({ classroomName, studentCount }: { classroomName: string
       </section>
     </>
   )
+}
+
+// ─── Tab: Students with contacts ──────────────────
+
+function StudentsTab({ classroomId, classroomName }: { classroomId: string; classroomName: string }) {
+  const [students, setStudents] = useState<StudentDto[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!classroomId) return
+    setLoading(true)
+    fetchStudents(classroomId)
+      .then(setStudents)
+      .finally(() => setLoading(false))
+  }, [classroomId])
+
+  if (!classroomId) return <div className="kb-card" style={{ padding: 24, color: 'var(--ink-soft)' }}>Выбери класс выше.</div>
+
+  return (
+    <>
+      <h2 className="h2" style={{ marginBottom: 16 }}>Ученики · {classroomName}</h2>
+      {loading ? (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>Загрузка…</div>
+      ) : students.length === 0 ? (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>В классе нет учеников</div>
+      ) : (
+        <div className="kb-card" style={{ padding: 0, overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: 'var(--bg-soft, #f9f8ff)', borderBottom: '2px solid var(--border, #e5e2f0)' }}>
+                {['Логин', 'Роль', 'Последний вход', 'Телефон родителя', 'Email родителя', 'Трек'].map((h) => (
+                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s) => (
+                <tr key={s.id} style={{ borderBottom: '1px solid rgba(21,20,27,.04)' }}>
+                  <td style={{ padding: '8px 14px', fontWeight: 700, fontFamily: 'var(--f-mono)' }}>{s.login}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--ink-soft)' }}>{s.role}</td>
+                  <td style={{ padding: '8px 14px', color: 'var(--ink-soft)' }}>
+                    {s.lastLoginAt ? new Date(s.lastLoginAt).toLocaleDateString('ru-RU') : '—'}
+                  </td>
+                  <td style={{ padding: '8px 14px' }}>
+                    {(s as any).parentPhone
+                      ? <a href={`tel:${(s as any).parentPhone}`} style={{ color: 'var(--violet)' }}>{(s as any).parentPhone}</a>
+                      : <span style={{ color: 'var(--ink-soft)' }}>—</span>}
+                  </td>
+                  <td style={{ padding: '8px 14px' }}>
+                    {(s as any).parentEmail
+                      ? <a href={`mailto:${(s as any).parentEmail}`} style={{ color: 'var(--violet)' }}>{(s as any).parentEmail}</a>
+                      : <span style={{ color: 'var(--ink-soft)' }}>—</span>}
+                  </td>
+                  <td style={{ padding: '8px 14px' }}>
+                    <span style={{
+                      display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+                      background: (s as any).track === 'python' ? 'var(--sky-soft)' : (s as any).track === 'scratch' ? 'var(--orange-soft)' : 'var(--pink-soft)',
+                      color: (s as any).track === 'python' ? 'var(--sky-ink)' : (s as any).track === 'scratch' ? 'var(--orange-ink)' : 'var(--pink-ink)',
+                    }}>
+                      {(s as any).track ?? '—'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ─── Tab: Schedule ────────────────────────────────
+
+function ScheduleTab({ classrooms, showToast }: {
+  classrooms: Array<{ id: string; name: string }>
+  showToast: (msg: string, kind: 'success' | 'error' | 'info') => void
+}) {
+  const [slots, setSlots] = useState<SlotDto[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({
+    datetime: '',
+    durationMin: 60,
+    type: 'regular' as SlotDto['type'],
+    classroomId: '',
+    zoomLink: '',
+    notes: '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const reload = () => {
+    setLoading(true)
+    fetchMySlots()
+      .then(setSlots)
+      .catch(() => showToast('Ошибка загрузки расписания', 'error'))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(reload, [])
+
+  const handleCreate = async () => {
+    if (!form.datetime) { showToast('Укажи дату и время', 'error'); return }
+    setSaving(true)
+    try {
+      await createSlot({
+        datetime: new Date(form.datetime).toISOString(),
+        durationMin: form.durationMin,
+        type: form.type,
+        classroomId: form.classroomId || undefined,
+        zoomLink: form.zoomLink || undefined,
+        notes: form.notes || undefined,
+      })
+      showToast('Слот создан', 'success')
+      setShowForm(false)
+      reload()
+    } catch (e) {
+      showToast('Ошибка: ' + (e instanceof Error ? e.message : ''), 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleCancel = async (slotId: string) => {
+    try {
+      await updateSlotStatus(slotId, 'cancelled')
+      showToast('Занятие отменено', 'success')
+      reload()
+    } catch {
+      showToast('Ошибка отмены', 'error')
+    }
+  }
+
+  const upcoming = slots.filter((s) => s.status === 'scheduled' && new Date(s.datetime) >= new Date())
+  const past = slots.filter((s) => s.status !== 'scheduled' || new Date(s.datetime) < new Date())
+
+  const fmtDt = (iso: string) =>
+    new Date(iso).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+
+  const statusColor = (s: SlotDto['status']) =>
+    ({ scheduled: '#3DB07A', conducted: '#6B5CE7', cancelled: '#dc2626', transferred: '#FF9454' }[s] ?? '#999')
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <h2 className="h2">Моё расписание</h2>
+        <button className="kb-btn kb-btn--secondary" onClick={() => setShowForm((v) => !v)}>
+          {showForm ? '✕ Закрыть' : '+ Добавить слот'}
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="kb-card" style={{ padding: 24, marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>Новый слот</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={lbl}>Дата и время</label>
+              <input type="datetime-local" value={form.datetime} onChange={(e) => setForm((f) => ({ ...f, datetime: e.target.value }))} style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Длительность (мин)</label>
+              <input type="number" value={form.durationMin} onChange={(e) => setForm((f) => ({ ...f, durationMin: Number(e.target.value) }))} style={inp} min={15} max={180} />
+            </div>
+            <div>
+              <label style={lbl}>Тип</label>
+              <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as any }))} style={inp}>
+                <option value="regular">Обычное</option>
+                <option value="trial">Пробное</option>
+                <option value="makeup">Отработка</option>
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Класс (опционально)</label>
+              <select value={form.classroomId} onChange={(e) => setForm((f) => ({ ...f, classroomId: e.target.value }))} style={inp}>
+                <option value="">— не указан —</option>
+                {classrooms.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style={lbl}>Ссылка на Zoom / LiveKit</label>
+            <input type="url" value={form.zoomLink} onChange={(e) => setForm((f) => ({ ...f, zoomLink: e.target.value }))} placeholder="https://…" style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>Примечание</label>
+            <textarea value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} style={{ ...inp, height: 60, resize: 'vertical' }} />
+          </div>
+          <button className="kb-btn kb-btn--secondary" onClick={() => void handleCreate()} disabled={saving}>
+            {saving ? 'Сохранение…' : '✓ Создать слот'}
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>Загрузка…</div>
+      ) : (
+        <>
+          {upcoming.length > 0 && (
+            <section style={{ marginBottom: 28 }}>
+              <h3 className="h3" style={{ marginBottom: 12 }}>Предстоящие</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {upcoming.map((s) => (
+                  <div key={s.id} className="kb-card" style={{ padding: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 200 }}>
+                      <div style={{ fontWeight: 800, fontSize: 15 }}>{fmtDt(s.datetime)}</div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>
+                        {s.durationMin} мин · {s.type === 'trial' ? 'Пробное' : s.type === 'makeup' ? 'Отработка' : 'Обычное'}
+                        {s.classroomId && ' · Класс привязан'}
+                      </div>
+                      {s.notes && <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 4 }}>{s.notes}</div>}
+                    </div>
+                    {s.zoomLink && (
+                      <a href={s.zoomLink} target="_blank" rel="noreferrer" className="kb-btn" style={{ fontSize: 13 }}>
+                        Войти на занятие →
+                      </a>
+                    )}
+                    <button
+                      className="kb-btn"
+                      style={{ fontSize: 12, color: '#dc2626', borderColor: '#dc2626' }}
+                      onClick={() => void handleCancel(s.id)}
+                    >
+                      Отменить
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {past.length > 0 && (
+            <section>
+              <h3 className="h3" style={{ marginBottom: 12 }}>История</h3>
+              <div className="kb-card" style={{ padding: 0, overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: 'var(--bg-soft, #f9f8ff)', borderBottom: '2px solid var(--border)' }}>
+                      <th style={{ padding: '8px 14px', textAlign: 'left' }}>Дата</th>
+                      <th style={{ padding: '8px 14px', textAlign: 'left' }}>Тип</th>
+                      <th style={{ padding: '8px 14px', textAlign: 'left' }}>Статус</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {past.slice(0, 20).map((s) => (
+                      <tr key={s.id} style={{ borderBottom: '1px solid rgba(21,20,27,.04)' }}>
+                        <td style={{ padding: '8px 14px' }}>{fmtDt(s.datetime)}</td>
+                        <td style={{ padding: '8px 14px', color: 'var(--ink-soft)' }}>
+                          {s.type === 'trial' ? 'Пробное' : s.type === 'makeup' ? 'Отработка' : 'Обычное'}
+                        </td>
+                        <td style={{ padding: '8px 14px' }}>
+                          <span style={{ color: statusColor(s.status), fontWeight: 700 }}>
+                            {s.status === 'scheduled' ? 'Запланировано' : s.status === 'conducted' ? 'Проведено' : s.status === 'cancelled' ? 'Отменено' : 'Перенесено'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {upcoming.length === 0 && past.length === 0 && (
+            <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>
+              Слотов пока нет. Нажми «+ Добавить слот», чтобы создать первый.
+            </div>
+          )}
+        </>
+      )}
+    </>
+  )
+}
+
+// ─── Tab: Lesson Reports ─────────────────────────
+
+function ReportsTab({ classrooms, showToast }: {
+  classrooms: Array<{ id: string; name: string; studentCount: number }>
+  showToast: (msg: string, kind: 'success' | 'error' | 'info') => void
+}) {
+  const [reports, setReports] = useState<ReportDto[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [students, setStudents] = useState<StudentDto[]>([])
+  const [form, setForm] = useState<CreateReportPayload>({
+    studentId: '',
+    conductedAt: new Date().toISOString().slice(0, 16),
+    status: 'conducted',
+    grade: undefined,
+    notes: '',
+    vkRecordUrl: '',
+    isSubstitute: false,
+    lessonN: undefined,
+  })
+  const [saving, setSaving] = useState(false)
+  const [selectedClassId, setSelectedClassId] = useState('')
+
+  const reload = () => {
+    setLoading(true)
+    fetchMyReports()
+      .then(setReports)
+      .catch(() => showToast('Ошибка загрузки отчётов', 'error'))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(reload, [])
+
+  useEffect(() => {
+    if (!selectedClassId) return
+    fetchStudents(selectedClassId).then(setStudents).catch(() => null)
+  }, [selectedClassId])
+
+  const handleSubmit = async () => {
+    if (!form.studentId) { showToast('Выбери ученика', 'error'); return }
+    setSaving(true)
+    try {
+      await createReport({
+        ...form,
+        conductedAt: new Date(form.conductedAt).toISOString(),
+        grade: form.grade ? Number(form.grade) : undefined,
+        lessonN: form.lessonN ? Number(form.lessonN) : undefined,
+      })
+      showToast('Отчёт сохранён', 'success')
+      setShowForm(false)
+      reload()
+    } catch (e) {
+      showToast('Ошибка сохранения: ' + (e instanceof Error ? e.message : ''), 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const statusLabel = (s: ReportDto['status']) =>
+    ({ conducted: 'Проведено', cancelled: 'Отменено', transferred: 'Перенесено' }[s])
+  const statusColor = (s: ReportDto['status']) =>
+    ({ conducted: '#3DB07A', cancelled: '#dc2626', transferred: '#FF9454' }[s])
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <h2 className="h2">Отчёты по занятиям</h2>
+        <button className="kb-btn kb-btn--secondary" onClick={() => setShowForm((v) => !v)}>
+          {showForm ? '✕ Закрыть' : '+ Заполнить отчёт'}
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="kb-card" style={{ padding: 24, marginBottom: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h3 style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>Отчёт о занятии</h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={lbl}>Класс</label>
+              <select value={selectedClassId} onChange={(e) => { setSelectedClassId(e.target.value); setForm((f) => ({ ...f, studentId: '' })) }} style={inp}>
+                <option value="">— выбери —</option>
+                {classrooms.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Ученик</label>
+              <select value={form.studentId} onChange={(e) => setForm((f) => ({ ...f, studentId: e.target.value }))} style={inp} disabled={!selectedClassId}>
+                <option value="">— выбери —</option>
+                {students.map((s) => <option key={s.id} value={s.id}>{s.login}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Дата занятия</label>
+              <input type="datetime-local" value={form.conductedAt} onChange={(e) => setForm((f) => ({ ...f, conductedAt: e.target.value }))} style={inp} />
+            </div>
+            <div>
+              <label style={lbl}>Статус занятия</label>
+              <select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as any }))} style={inp}>
+                <option value="conducted">✅ Проведено</option>
+                <option value="cancelled">❌ Отменено</option>
+                <option value="transferred">🔄 Перенесено</option>
+              </select>
+            </div>
+            <div>
+              <label style={lbl}>Оценка (1–5)</label>
+              <input type="number" value={form.grade ?? ''} onChange={(e) => setForm((f) => ({ ...f, grade: Number(e.target.value) || undefined }))} style={inp} min={1} max={5} placeholder="—" />
+            </div>
+            <div>
+              <label style={lbl}>Номер урока</label>
+              <input type="number" value={form.lessonN ?? ''} onChange={(e) => setForm((f) => ({ ...f, lessonN: Number(e.target.value) || undefined }))} style={inp} min={1} max={200} placeholder="—" />
+            </div>
+          </div>
+
+          <div>
+            <label style={lbl}>Ссылка на запись (VK Video)</label>
+            <input type="url" value={form.vkRecordUrl ?? ''} onChange={(e) => setForm((f) => ({ ...f, vkRecordUrl: e.target.value }))} placeholder="https://vk.com/video…" style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>Комментарий</label>
+            <textarea value={form.notes ?? ''} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Как прошло занятие, что отработали…" rows={3} style={{ ...inp, resize: 'vertical' }} />
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
+            <input type="checkbox" checked={form.isSubstitute} onChange={(e) => setForm((f) => ({ ...f, isSubstitute: e.target.checked }))} />
+            Я провёл занятие как замена
+          </label>
+
+          <button className="kb-btn kb-btn--secondary" onClick={() => void handleSubmit()} disabled={saving}>
+            {saving ? 'Сохранение…' : '✓ Сохранить отчёт'}
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>Загрузка…</div>
+      ) : reports.length === 0 ? (
+        <div className="kb-card" style={{ padding: 24, textAlign: 'center', color: 'var(--ink-soft)' }}>
+          Отчётов пока нет. После занятия нажми «+ Заполнить отчёт».
+        </div>
+      ) : (
+        <div className="kb-card" style={{ padding: 0, overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: 'var(--bg-soft, #f9f8ff)', borderBottom: '2px solid var(--border)' }}>
+                {['Дата', 'Статус', 'Оценка', 'Урок', 'Запись', 'Комментарий'].map((h) => (
+                  <th key={h} style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr key={r.id} style={{ borderBottom: '1px solid rgba(21,20,27,.04)' }}>
+                  <td style={{ padding: '8px 14px', whiteSpace: 'nowrap' }}>
+                    {new Date(r.conductedAt).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {r.isSubstitute && <span title="Замена" style={{ marginLeft: 6, fontSize: 11, color: 'var(--orange-deep)' }}>замена</span>}
+                  </td>
+                  <td style={{ padding: '8px 14px' }}>
+                    <span style={{ color: statusColor(r.status), fontWeight: 700 }}>{statusLabel(r.status)}</span>
+                  </td>
+                  <td style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 800 }}>{r.grade ?? '—'}</td>
+                  <td style={{ padding: '8px 14px' }}>{r.lessonN ?? '—'}</td>
+                  <td style={{ padding: '8px 14px' }}>
+                    {r.vkRecordUrl
+                      ? <a href={r.vkRecordUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--violet)', fontSize: 12 }}>Смотреть</a>
+                      : <span style={{ color: 'var(--ink-soft)' }}>—</span>}
+                  </td>
+                  <td style={{ padding: '8px 14px', color: 'var(--ink-soft)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {r.notes || '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+}
+
+// ─── Tab: Methodologies ───────────────────────────
+
+const METHODS_PYTHON = Array.from({ length: 12 }, (_, i) => ({
+  n: i + 1,
+  title: `Урок ${i + 1} · Python`,
+  url: `/courses/python-ai/lesson_${String(i + 1).padStart(2, '0')}.html`,
+}))
+
+const METHODS_VIBE_1 = Array.from({ length: 12 }, (_, i) => ({
+  n: i + 1,
+  title: `Урок ${i + 1} · Vibe-coding Ступень 1`,
+  url: `/courses/vibe-coding-step1/lesson_${String(i + 1).padStart(2, '0')}.html`,
+}))
+
+const METHODS_VIBE_2 = Array.from({ length: 12 }, (_, i) => ({
+  n: i + 1,
+  title: `Урок ${i + 1} · Vibe-coding Ступень 2`,
+  url: `/courses/vibe-coding-step2/lesson_${String(i + 1).padStart(2, '0')}.html`,
+}))
+
+function MethodologiesTab() {
+  const [filter, setFilter] = useState<'python' | 'vibe1' | 'vibe2' | 'scratch'>('python')
+
+  const lessons = filter === 'python' ? METHODS_PYTHON : filter === 'vibe1' ? METHODS_VIBE_1 : METHODS_VIBE_2
+  const hasScratch = filter === 'scratch'
+
+  return (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <h2 className="h2">Методички</h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {([
+            ['python', '🐍 Python'],
+            ['vibe1', '🌐 Vibe-1'],
+            ['vibe2', '🌐 Vibe-2'],
+            ['scratch', '🎮 Scratch'],
+          ] as const).map(([k, l]) => (
+            <button key={k} className={filter === k ? 'kb-btn kb-btn--secondary' : 'kb-btn'} style={{ fontSize: 13 }} onClick={() => setFilter(k)}>
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {hasScratch ? (
+        <div className="kb-card" style={{ padding: 24 }}>
+          <p style={{ color: 'var(--ink-soft)', marginBottom: 20, fontSize: 14 }}>
+            Игры Scratch доступны на платформе и в редакторе. Для занятий рекомендуем открывать в браузере напрямую.
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <a href="/scratch/game1.sb3" download className="kb-btn">⬇ Скачать Игру 1</a>
+            <a href="/scratch/game2.sb3" download className="kb-btn">⬇ Скачать Игру 2</a>
+            <a href="https://scratch.mit.edu" target="_blank" rel="noreferrer" className="kb-btn kb-btn--secondary">Открыть Scratch →</a>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+          {lessons.map((l) => (
+            <a
+              key={l.n}
+              href={l.url}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: 'block', padding: '16px 20px', borderRadius: 14,
+                background: 'var(--paper-2)', border: '1.5px solid var(--paper-3)',
+                textDecoration: 'none', color: 'var(--ink)', transition: 'box-shadow .15s',
+              }}
+            >
+              <div style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--ink-soft)', marginBottom: 6 }}>
+                УРОК {String(l.n).padStart(2, '0')}
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{l.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--violet)', marginTop: 8, fontWeight: 600 }}>Открыть методичку →</div>
+            </a>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
+// ─── Style helpers ────────────────────────────────
+const lbl: React.CSSProperties = { display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 4 }
+const inp: React.CSSProperties = {
+  width: '100%', padding: '9px 12px', borderRadius: 10, border: '1px solid var(--border, #e5e2f0)',
+  fontSize: 14, fontFamily: 'inherit', background: '#fff', color: '#15141b', boxSizing: 'border-box',
 }

@@ -49,6 +49,8 @@ const TeacherClasses = lazy(() => import('./pages/TeacherClasses'))
 const Chat = lazy(() => import('./pages/Chat'))
 const Room = lazy(() => import('./pages/Room'))
 const AdminPanel = lazy(() => import('./pages/Admin'))
+const GuestLanding = lazy(() => import('./pages/GuestLanding'))
+const GuestJoin = lazy(() => import('./pages/GuestJoin'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 function RouteLoader({ label }: { label: string }) {
@@ -381,6 +383,10 @@ export default function App() {
         <Route path="/chat" element={<Suspense fallback={<RouteLoader label="Открываю чат…" />}><Chat /></Suspense>} />
         <Route path="/room/:roomId" element={<Suspense fallback={<RouteLoader label="Подключаюсь к занятию…" />}><Room /></Suspense>} />
         <Route path="/admin" element={<RequireRole role={['admin', 'school_admin', 'platform_admin', 'regional_admin', 'curator']}><Suspense fallback={<RouteLoader label="Открываю администрирование…" />}><AdminPanel /></Suspense></RequireRole>} />
+
+        {/* Guest public pages */}
+        <Route path="/guest" element={<Suspense fallback={<RouteLoader label="Загружаю лендинг…" />}><GuestLanding /></Suspense>} />
+        <Route path="/join/:token" element={<Suspense fallback={<RouteLoader label="Проверяю код…" />}><GuestJoin /></Suspense>} />
 
         {/* /character — исторический псевдоним. Настоящий 3D-редактор героя живёт в /profile. */}
         <Route path="/character" element={<Navigate to="/profile" replace />} />

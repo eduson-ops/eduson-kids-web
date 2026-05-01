@@ -2,6 +2,9 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
@@ -193,6 +196,9 @@ const PETAL_SEEDS = Array.from({ length: PETAL_COUNT }, (_) => ({
   phase: Math.random() * Math.PI * 2,
   speed: 0.4 + Math.random() * 0.5,
   swirl: 0.6 + Math.random() * 0.8,
+  resetXs: Array.from({ length: 12 }, () => (Math.random() - 0.5) * 25),
+  resetZs: Array.from({ length: 12 }, () => (Math.random() - 0.5) * 25),
+  resetIdx: 0,
 }))
 
 // Mutable per-petal positions tracked across frames (avoids reading from GPU)
@@ -201,20 +207,20 @@ const _petalPos = PETAL_SEEDS.map((s) => ({ x: s.x, y: s.y, z: s.z }))
 function FallingPetals() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < PETAL_COUNT; i++) {
       const s = PETAL_SEEDS[i]!
       const pos = _petalPos[i]!
-      // Fall downward, reset at top
-      pos.y -= s.speed * 0.016
+      pos.y -= s.speed * (_isLow ? 0.032 : 0.016)
       if (pos.y < 0) {
         pos.y = 12
-        pos.x = (Math.random() - 0.5) * 25
-        pos.z = (Math.random() - 0.5) * 25
+        pos.x = s.resetXs[s.resetIdx % 12]!
+        pos.z = s.resetZs[s.resetIdx++ % 12]!
       }
-      // Gentle X drift + Y swirl rotation
       pos.x += Math.sin(t * s.swirl + s.phase) * 0.003
       dummy.position.set(pos.x, pos.y, pos.z)
       dummy.rotation.set(
@@ -339,8 +345,10 @@ const POLLEN_DATA = Array.from({ length: POLLEN_COUNT }, (_, i) => ({
 function PollenDrift() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     POLLEN_DATA.forEach((p, i) => {
       dummy.position.set(

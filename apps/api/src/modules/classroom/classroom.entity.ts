@@ -22,6 +22,15 @@ export class Classroom {
   @Column({ type: 'int', name: 'student_count', default: 0 })
   studentCount!: number;
 
+  @Column({ type: 'varchar', length: 32, name: 'invite_code', nullable: true })
+  inviteCode!: string | null;
+
+  @Column({ type: 'boolean', name: 'is_archived', default: false })
+  isArchived!: boolean;
+
+  @Column({ type: 'jsonb', default: '{}' })
+  metadata!: Record<string, unknown>;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 

@@ -12,7 +12,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { IsString, IsInt, Min, Max, Length } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsArray, IsNumber, Min, Max, Length, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ClassroomService } from './classroom.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -37,6 +38,34 @@ class AddStudentsDto {
   namePrefix!: string;
 }
 
+class BulkStudentItem {
+  @IsString()
+  firstName!: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  birthYear?: number;
+}
+
+class BulkCreateDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BulkStudentItem)
+  students!: BulkStudentItem[];
+}
+
+class TransferStudentDto {
+  @IsString()
+  studentId!: string;
+
+  @IsString()
+  toClassroomId!: string;
+}
+
 @ApiTags('classrooms')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -44,8 +73,14 @@ class AddStudentsDto {
 export class ClassroomController {
   constructor(private readonly classroomService: ClassroomService) {}
 
+  @Get()
+  @Roles('teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin')
+  list(@CurrentUser() user: JwtPayload) {
+    return this.classroomService.list(user.sub, user.role);
+  }
+
   @Post()
-  @Roles('teacher')
+  @Roles('teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin')
   create(@Body() dto: CreateClassroomDto, @CurrentUser() user: JwtPayload) {
     return this.classroomService.create(user.sub, dto.name);
   }
@@ -73,13 +108,39 @@ export class ClassroomController {
     return this.classroomService.delete(id, user.sub);
   }
 
+  @Get(':id/students')
+  @Roles('teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin')
+  getStudents(@Param('id', ParseUUIDPipe) id: string) {
+    return this.classroomService.getStudents(id);
+  }
+
   @Post(':id/students')
-  @Roles('teacher')
+  @Roles('teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin')
   addStudents(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddStudentsDto,
     @CurrentUser() user: JwtPayload,
   ) {
     return this.classroomService.addStudents(id, user.sub, dto.count, dto.namePrefix);
+  }
+
+  @Post(':id/students/bulk')
+  @Roles('teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin')
+  bulkCreateStudents(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: BulkCreateDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.classroomService.bulkCreateStudents(id, user.sub, dto.students);
+  }
+
+  @Post(':id/transfer')
+  @Roles('teacher', 'methodist', 'curator', 'school_admin', 'regional_admin', 'platform_admin', 'admin')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async transferStudent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: TransferStudentDto,
+  ) {
+    await this.classroomService.transferStudent(id, dto.studentId, dto.toClassroomId);
   }
 }
