@@ -877,7 +877,7 @@ function StoneCircle() {
       </mesh>
 
       {/* Green magical mist — InstancedMesh 20 spheres */}
-      <instancedMesh ref={mistRef} args={[undefined, undefined, STONE_MIST_COUNT]}>
+      <instancedMesh ref={mistRef} args={[undefined, undefined, STONE_MIST_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[1, 6, 6]} />
         <meshBasicMaterial
           color="#22aa44"
@@ -994,7 +994,7 @@ function SwampZone() {
       ))}
 
       {/* Swamp gas bubbles — InstancedMesh 30 */}
-      <instancedMesh ref={bubbleRef} args={[undefined, undefined, SWAMP_BUBBLE_COUNT]}>
+      <instancedMesh ref={bubbleRef} args={[undefined, undefined, SWAMP_BUBBLE_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[1, 5, 5]} />
         <meshBasicMaterial
           color="#44aa22"
@@ -1936,7 +1936,7 @@ function DragonSkeleton() {
       ))}
 
       {/* ── Green bone mist — InstancedMesh 20 spheres ── */}
-      <instancedMesh ref={mistRef} args={[undefined, undefined, DRAGON_BONE_MIST_COUNT]}>
+      <instancedMesh ref={mistRef} args={[undefined, undefined, DRAGON_BONE_MIST_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[1, 5, 5]} />
         <meshBasicMaterial
           color="#22aa44"
@@ -2034,7 +2034,7 @@ function DragonAura() {
       ))}
 
       {/* 30 purple energy motes drifting around the body */}
-      <instancedMesh ref={moteRef} args={[undefined, undefined, DRAGON_CURSE_MOTE_COUNT]}>
+      <instancedMesh ref={moteRef} args={[undefined, undefined, DRAGON_CURSE_MOTE_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[1, 5, 5]} />
         <meshStandardMaterial
           color="#440088"

@@ -669,7 +669,7 @@ function SprinklerUnit({ pos }: { pos: [number, number, number] }) {
         <meshStandardMaterial color="#aaaaaa" roughness={0.6} />
       </mesh>
       {/* Water particles */}
-      <instancedMesh ref={waterRef} args={[undefined, undefined, SPRINKLER_COUNT]}>
+      <instancedMesh ref={waterRef} args={[undefined, undefined, SPRINKLER_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[0.06, 4, 4]} />
         <meshBasicMaterial color="#88ccff" transparent opacity={0.6} depthWrite={false} />
       </instancedMesh>

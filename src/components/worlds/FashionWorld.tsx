@@ -580,7 +580,7 @@ function ConfettiGroup({ color, pieces }: { color: string; pieces: ConfettiPiece
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, PIECES_PER_COLOR]} position={[0, 0, -172]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PIECES_PER_COLOR]} position={[0, 0, -172]} frustumCulled={false}>
       <planeGeometry args={[0.12, 0.12]} />
       <meshBasicMaterial color={color} transparent opacity={0.9} side={THREE.DoubleSide} depthWrite={false} />
     </instancedMesh>
@@ -852,6 +852,7 @@ function ConfettiCannonGroup({
     <instancedMesh
       ref={meshRef}
       args={[undefined, undefined, PIECES_PER_CANNON]}
+      frustumCulled={false}
     >
       <boxGeometry args={[0.15, 0.3, 0.02]} />
       <meshBasicMaterial color={color} side={THREE.DoubleSide} transparent opacity={0.92} depthWrite={false} />

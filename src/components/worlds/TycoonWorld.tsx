@@ -146,7 +146,7 @@ function MoneyRain() {
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, COIN_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COIN_COUNT]} frustumCulled={false}>
       <cylinderGeometry args={[0.12, 0.12, 0.04, 8]} />
       <meshBasicMaterial vertexColors />
     </instancedMesh>
@@ -180,7 +180,7 @@ function GoldenVortex() {
     meshRef.current.instanceMatrix.needsUpdate = true
   })
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, VORTEX_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, VORTEX_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[0.08, 6, 6]} />
       <meshBasicMaterial color="#ffd700" transparent opacity={0.8} />
     </instancedMesh>
@@ -1853,7 +1853,7 @@ function RooftopMoneyRain() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, RMONEY_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, RMONEY_COUNT]} frustumCulled={false}>
       <boxGeometry args={[0.3, 0.5, 0.02]} />
       <meshStandardMaterial color="#00aa44" transparent opacity={0.9} emissive="#007722" emissiveIntensity={0.4} />
     </instancedMesh>

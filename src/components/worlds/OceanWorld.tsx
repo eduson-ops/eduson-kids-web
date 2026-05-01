@@ -247,7 +247,7 @@ function BubbleStream() {
     ref.current.instanceMatrix.needsUpdate = true
   })
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, COUNT]}>
+    <instancedMesh ref={ref} args={[undefined, undefined, COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
       <meshBasicMaterial color="#88ccff" transparent opacity={0.4} />
     </instancedMesh>
@@ -427,7 +427,7 @@ function OceanFish() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, 20]} castShadow>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 20]} castShadow frustumCulled={false}>
       <boxGeometry args={[0.5, 0.2, 0.8]} />
       <meshStandardMaterial vertexColors />
       <instancedBufferAttribute
@@ -811,7 +811,7 @@ function DeepSeaFish() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, DEEP_FISH_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, DEEP_FISH_COUNT]} frustumCulled={false}>
       <boxGeometry args={[0.6, 0.2, 0.15]} />
       <meshStandardMaterial color="#0044aa" />
     </instancedMesh>
@@ -1369,7 +1369,7 @@ function SunkenShipwreck() {
       ))}
 
       {/* ── Mossy growth (InstancedMesh 40 small spheres) ── */}
-      <instancedMesh ref={mossRef} args={[undefined, undefined, MOSS_COUNT]}>
+      <instancedMesh ref={mossRef} args={[undefined, undefined, MOSS_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[0.2, 5, 4]} />
         <meshStandardMaterial color="#225522" roughness={0.9} />
       </instancedMesh>
@@ -1639,7 +1639,7 @@ function AncientCityRuins() {
       </group>
 
       {/* ── Mossy overgrowth (InstancedMesh 30 spheres) ── */}
-      <instancedMesh ref={mossRef} args={[undefined, undefined, RUIN_MOSS_COUNT]}>
+      <instancedMesh ref={mossRef} args={[undefined, undefined, RUIN_MOSS_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[1, 6, 5]} />
         <meshStandardMaterial color="#224422" roughness={0.95} />
       </instancedMesh>

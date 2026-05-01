@@ -318,6 +318,7 @@ function VictoryFireworks() {
             <instancedMesh
               ref={(el) => { meshRefs.current[b] = el }}
               args={[undefined, undefined, BURST_PARTICLE_COUNT]}
+              frustumCulled={false}
             >
               <sphereGeometry args={[1, 5, 5]} />
               <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.5} />
@@ -951,7 +952,7 @@ function SpectatorStands() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, SPECTATOR_COUNT]} castShadow>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, SPECTATOR_COUNT]} castShadow frustumCulled={false}>
       <boxGeometry args={[0.4, 0.6, 0.2]} />
       <meshStandardMaterial vertexColors roughness={0.7} />
     </instancedMesh>

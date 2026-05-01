@@ -1038,6 +1038,7 @@ function SpectatorSection({ side }: { side: 'left' | 'right' }) {
         ref={bodyInstRef}
         args={[bodyGeo, undefined, COUNT]}
         castShadow
+        frustumCulled={false}
       >
         <meshStandardMaterial color="#cc8844" roughness={0.8} />
       </instancedMesh>
@@ -1047,6 +1048,7 @@ function SpectatorSection({ side }: { side: 'left' | 'right' }) {
         ref={headInstRef}
         args={[headGeo, undefined, COUNT]}
         castShadow
+        frustumCulled={false}
       >
         <meshStandardMaterial color="#ffcc99" roughness={0.7} />
       </instancedMesh>

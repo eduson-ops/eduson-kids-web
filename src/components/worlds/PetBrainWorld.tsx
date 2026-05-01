@@ -676,7 +676,7 @@ function NeuralPulses() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
       <sphereGeometry args={[0.18, 6, 6]} />
       <meshBasicMaterial color="#00ffaa" />
     </instancedMesh>
@@ -755,7 +755,7 @@ function SynapsePulses() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, SYNAPSE_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, SYNAPSE_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[0.15, 5, 4]} />
       <meshBasicMaterial color="#00ffaa" transparent opacity={0.9} depthWrite={false} vertexColors />
     </instancedMesh>
@@ -902,6 +902,7 @@ function DataParticleRings() {
         applyColors(el)
       }}
       args={[undefined, undefined, TOTAL_ORBIT]}
+      frustumCulled={false}
     >
       <sphereGeometry args={[0.1, 6, 6]} />
       <meshBasicMaterial vertexColors toneMapped={false} />
@@ -988,17 +989,17 @@ function DNAHelix() {
   return (
     <group ref={groupRef} position={[DNA_CX, 0, DNA_CZ]}>
       {/* Strand A — pink */}
-      <instancedMesh ref={strandARef} args={[undefined, undefined, DNA_COUNT]}>
+      <instancedMesh ref={strandARef} args={[undefined, undefined, DNA_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[0.22, 8, 8]} />
         <meshStandardMaterial color="#ff4488" emissive="#ff4488" emissiveIntensity={0.8} />
       </instancedMesh>
       {/* Strand B — blue */}
-      <instancedMesh ref={strandBRef} args={[undefined, undefined, DNA_COUNT]}>
+      <instancedMesh ref={strandBRef} args={[undefined, undefined, DNA_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[0.22, 8, 8]} />
         <meshStandardMaterial color="#44aaff" emissive="#44aaff" emissiveIntensity={0.8} />
       </instancedMesh>
       {/* Rungs — green midpoints */}
-      <instancedMesh ref={rungsRef} args={[undefined, undefined, 20]}>
+      <instancedMesh ref={rungsRef} args={[undefined, undefined, 20]} frustumCulled={false}>
         <sphereGeometry args={[0.12, 6, 6]} />
         <meshStandardMaterial color="#aaffaa" emissive="#aaffaa" emissiveIntensity={0.6} />
       </instancedMesh>
@@ -1170,7 +1171,7 @@ function MindwaveArc({ pair, arcIdx }: { pair: [[number, number, number], [numbe
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, ARC_SPHERE_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, ARC_SPHERE_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
       <meshBasicMaterial color="#00ffff" transparent opacity={0.85} depthWrite={false} />
     </instancedMesh>

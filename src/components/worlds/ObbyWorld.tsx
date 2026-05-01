@@ -247,7 +247,7 @@ function SkySparkles() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
       <meshBasicMaterial color="#ddeeff" transparent opacity={0.82} depthWrite={false} />
     </instancedMesh>
@@ -323,7 +323,7 @@ function CrystalDust() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 5, 5]} />
       <meshBasicMaterial color="#cc88ff" transparent opacity={0.7} depthWrite={false} />
     </instancedMesh>
@@ -378,7 +378,7 @@ function VolcanoEmbers() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
       <sphereGeometry args={[1, 5, 5]} />
       <meshBasicMaterial vertexColors transparent opacity={0.9} depthWrite={false} />
     </instancedMesh>
@@ -618,7 +618,7 @@ function VolcanoZoneDecor() {
       ))}
 
       {/* Flying embers — InstancedMesh 60 sparks */}
-      <instancedMesh ref={emberRef} args={[undefined, undefined, COUNT]}>
+      <instancedMesh ref={emberRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
         <sphereGeometry args={[1, 5, 5]} />
         <meshBasicMaterial color="#ff6600" transparent opacity={0.88} depthWrite={false} />
       </instancedMesh>
