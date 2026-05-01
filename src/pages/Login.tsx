@@ -158,7 +158,7 @@ function ChildPinSection({ navigate }: { navigate: ReturnType<typeof useNavigate
     e.preventDefault()
     if (!pinLogin.trim() || pin.length !== 6) {
       setStatus('error')
-      setErrMsg('Введи логин и 6-значный пин')
+      setErrMsg('Введи логин и 6-символьный пин')
       return
     }
     setStatus('checking')
@@ -192,7 +192,7 @@ function ChildPinSection({ navigate }: { navigate: ReturnType<typeof useNavigate
       <form className="login-code-form" onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Логин (напр. masha-ivanova-3a)"
+          placeholder="Логин (напр. kub_school_0001)"
           value={pinLogin}
           onChange={(e) => { setStatus('idle'); setPinLogin(e.target.value.trim()) }}
           className="login-code-input"
@@ -201,13 +201,12 @@ function ChildPinSection({ navigate }: { navigate: ReturnType<typeof useNavigate
         />
         <input
           type="password"
-          inputMode="numeric"
-          pattern="[0-9]*"
+          inputMode="text"
           autoComplete="one-time-code"
           maxLength={6}
-          placeholder="Пин (6 цифр)"
+          placeholder="Пин (6 символов)"
           value={pin}
-          onChange={(e) => { setStatus('idle'); setPin(e.target.value.replace(/\D/g, '')) }}
+          onChange={(e) => { setStatus('idle'); setPin(e.target.value.trim().slice(0, 6)) }}
           className="login-code-input"
           aria-label="Пин-код"
         />
