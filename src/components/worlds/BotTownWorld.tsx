@@ -157,30 +157,46 @@ const WINDOW_LIGHTS = Array.from({ length: 12 }, (_, i) => ({
 }))
 
 function BotWindowLights() {
-  const meshRefs = useRef<THREE.Mesh[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  // Track per-instance visibility state
+  const visibleRef = useRef<boolean[]>(Array.from({ length: WINDOW_LIGHTS.length }, () => true))
+
+  // Set initial matrices and colors once
+  useEffect(() => {
+    if (!meshRef.current) return
+    WINDOW_LIGHTS.forEach((w, i) => {
+      dummy.position.set(w.x, w.y, w.z)
+      dummy.scale.setScalar(1)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      meshRef.current.setColorAt(i, new THREE.Color(w.color))
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+  }, [dummy])
 
   useFrame(() => {
-    meshRefs.current.forEach((mesh) => {
-      if (!mesh) return
+    if (!meshRef.current) return
+    let changed = false
+    WINDOW_LIGHTS.forEach((w, i) => {
       if (Math.random() < 0.005) {
-        mesh.visible = !mesh.visible
+        visibleRef.current[i] = !visibleRef.current[i]
+        dummy.position.set(w.x, w.y, w.z)
+        dummy.scale.setScalar(visibleRef.current[i] ? 1 : 0)
+        dummy.updateMatrix()
+        meshRef.current.setMatrixAt(i, dummy.matrix)
+        changed = true
       }
     })
+    if (changed) meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {WINDOW_LIGHTS.map((w, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { if (el) meshRefs.current[i] = el }}
-          position={[w.x, w.y, w.z]}
-        >
-          <sphereGeometry args={[0.12, 6, 6]} />
-          <meshBasicMaterial color={w.color} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, WINDOW_LIGHTS.length]} frustumCulled={false}>
+      <sphereGeometry args={[0.12, 6, 6]} />
+      <meshBasicMaterial vertexColors />
+    </instancedMesh>
   )
 }
 
@@ -265,9 +281,6 @@ const holoSignFragmentShader = `
   }
 `
 
-// Single shared uniforms object — all sign instances reference it
-const signUniforms = { iTime: { value: 0 } }
-
 const SIGN_CONFIGS: { pos: [number, number, number]; rotY: number }[] = [
   { pos: [-13, 4.5, -14], rotY: Math.PI / 2 },
   { pos: [13, 5.0, -14],  rotY: -Math.PI / 2 },
@@ -276,34 +289,37 @@ const SIGN_CONFIGS: { pos: [number, number, number]; rotY: number }[] = [
 ]
 
 function HoloCitySigns() {
-  const uniformsRef = useRef(signUniforms)
-  const matsRef = useRef<THREE.ShaderMaterial[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+
+  useEffect(() => {
+    if (!meshRef.current) return
+    SIGN_CONFIGS.forEach((cfg, i) => {
+      dummy.position.set(...cfg.pos)
+      dummy.rotation.set(0, cfg.rotY, 0)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime()
-    uniformsRef.current.iTime.value = t
-    matsRef.current.forEach((m) => {
-      if (m) m.uniforms.iTime!.value = t
-    })
+    uniforms.iTime.value = clock.getElapsedTime()
   })
 
   return (
-    <>
-      {SIGN_CONFIGS.map((cfg, i) => (
-        <mesh key={i} position={cfg.pos} rotation={[0, cfg.rotY, 0]}>
-          <planeGeometry args={[2, 1.5]} />
-          <shaderMaterial
-            ref={(el) => { if (el) matsRef.current[i] = el }}
-            vertexShader={holoSignVertexShader}
-            fragmentShader={holoSignFragmentShader}
-            uniforms={{ iTime: { value: 0 } }}
-            transparent
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, SIGN_CONFIGS.length]} frustumCulled={false}>
+      <planeGeometry args={[2, 1.5]} />
+      <shaderMaterial
+        vertexShader={holoSignVertexShader}
+        fragmentShader={holoSignFragmentShader}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </instancedMesh>
   )
 }
 
@@ -325,20 +341,32 @@ const PUDDLE_CONFIGS: { pos: [number, number, number]; radius: number }[] = [
 ]
 
 function WetStreetPuddles() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+
+  useEffect(() => {
+    if (!meshRef.current) return
+    PUDDLE_CONFIGS.forEach((p, i) => {
+      dummy.position.set(...p.pos)
+      dummy.rotation.set(-Math.PI / 2, 0, 0)
+      // radius is baked into geometry as 1; scale XY to match each puddle's radius
+      dummy.scale.set(p.radius, p.radius, 1)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
+
   return (
-    <>
-      {PUDDLE_CONFIGS.map((p, i) => (
-        <mesh key={i} position={p.pos} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[p.radius, 24]} />
-          <meshBasicMaterial
-            color="#001144"
-            opacity={0.55}
-            transparent
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PUDDLE_CONFIGS.length]} frustumCulled={false}>
+      <circleGeometry args={[1, 24]} />
+      <meshBasicMaterial
+        color="#001144"
+        opacity={0.55}
+        transparent
+        depthWrite={false}
+      />
+    </instancedMesh>
   )
 }
 
@@ -369,14 +397,38 @@ const NEON_STRIP_CONFIGS: { pos: [number, number, number]; colorIndex: number }[
   { pos: [24.5,  4.5,  1.5],  colorIndex: 2 },
 ]
 
+// Pre-group strip positions by colorIndex so each InstancedMesh handles one color
+const NEON_STRIPS_BY_COLOR = NEON_STRIP_COLORS.map((_, ci) =>
+  NEON_STRIP_CONFIGS.filter((s) => s.colorIndex === ci).map((s) => s.pos)
+)
+
+function NeonStripGroup({ color, positions }: { color: string; positions: [number, number, number][] }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+
+  useEffect(() => {
+    if (!meshRef.current) return
+    positions.forEach((pos, i) => {
+      dummy.position.set(...pos)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy, positions])
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, positions.length]} frustumCulled={false}>
+      <boxGeometry args={[0.15, 3, 0.15]} />
+      <meshBasicMaterial color={color} />
+    </instancedMesh>
+  )
+}
+
 function BuildingNeonStrips() {
   return (
     <>
-      {NEON_STRIP_CONFIGS.map((s, i) => (
-        <mesh key={i} position={s.pos}>
-          <boxGeometry args={[0.15, 3, 0.15]} />
-          <meshBasicMaterial color={NEON_STRIP_COLORS[s.colorIndex]} />
-        </mesh>
+      {NEON_STRIP_COLORS.map((color, ci) => (
+        <NeonStripGroup key={ci} color={color} positions={NEON_STRIPS_BY_COLOR[ci]} />
       ))}
     </>
   )

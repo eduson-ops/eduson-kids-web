@@ -158,89 +158,82 @@ function BreakableBlock({
 // ─── Snowflake particle system (Winter biome) ─────────────────────────────
 
 function SnowflakeSystem() {
-  const count = 60
-  const positions = useMemo(() =>
-    Array.from({ length: count }, () => ({
+  const COUNT = 60
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const data = useMemo(() =>
+    Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 38,
       y: Math.random() * 10 + 1,
       z: -30 - Math.random() * 30,
       speed: 0.3 + Math.random() * 0.7,
       drift: (Math.random() - 0.5) * 0.4,
-      phase: Math.random() * Math.PI * 2,
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
 
   useFrame((_, dt) => {
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const p = positions[i]!
-      m.position.y -= p.speed * dt
-      m.position.x += p.drift * dt * 0.5
-      if (m.position.y < 0.1) {
-        m.position.y = 10
-        m.position.x = (Math.random() - 0.5) * 38
+    if (!meshRef.current) return
+    data.forEach((p, i) => {
+      p.y -= p.speed * dt
+      p.x += p.drift * dt * 0.5
+      if (p.y < 0.1) {
+        p.y = 10
+        p.x = (Math.random() - 0.5) * 38
       }
+      dummy.position.set(p.x, p.y, p.z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {positions.map((p, i) => (
-        <mesh
-          key={i}
-          ref={el => { refs.current[i] = el }}
-          position={[p.x, p.y, p.z]}
-        >
-          <octahedronGeometry args={[0.08, 0]} />
-          <meshBasicMaterial color="#cceeff" transparent opacity={0.9} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <octahedronGeometry args={[0.08, 0]} />
+      <meshBasicMaterial color="#cceeff" transparent opacity={0.9} toneMapped={false} />
+    </instancedMesh>
   )
 }
 
 // ─── Sky sparkle particle system (Sky biome) ──────────────────────────────
 
 function SkySparkles() {
-  const count = 80
+  const COUNT = 80
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
-    Array.from({ length: count }, () => ({
+    Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 38,
       y: Math.random() * 8 + 0.5,
       z: -120 - Math.random() * 30,
       phase: Math.random() * Math.PI * 2,
       speed: 1 + Math.random() * 2,
-      color: ['#ff88cc', '#88ffcc', '#ffcc44', '#88ccff', '#cc88ff'][Math.floor(Math.random() * 5)]!,
+      color: new THREE.Color(['#ff88cc', '#88ffcc', '#ffcc44', '#88ccff', '#cc88ff'][Math.floor(Math.random() * 5)]!),
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
   const t = useRef(0)
 
   useFrame((_, dt) => {
+    if (!meshRef.current) return
     t.current += dt
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
+    data.forEach((d, i) => {
       const s = Math.abs(Math.sin(t.current * d.speed + d.phase))
-      m.scale.setScalar(s * 0.5 + 0.1)
-      ;(m.material as THREE.MeshBasicMaterial).opacity = s
+      const sc = s * 0.5 + 0.1
+      dummy.position.set(d.x, d.y, d.z)
+      dummy.scale.setScalar(sc)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      meshRef.current.setColorAt(i, d.color)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh
-          key={i}
-          ref={el => { refs.current[i] = el }}
-          position={[d.x, d.y, d.z]}
-        >
-          <octahedronGeometry args={[0.12, 0]} />
-          <meshBasicMaterial color={d.color} transparent opacity={1} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <octahedronGeometry args={[0.12, 0]} />
+      <meshBasicMaterial vertexColors toneMapped={false} />
+    </instancedMesh>
   )
 }
 
@@ -293,9 +286,11 @@ function MeadowPollen() {
 // ─── ЗИМА (Winter) — Snowfall ─────────────────────────────────────────────
 
 function WinterSnow() {
-  const count = 120
+  const COUNT = 120
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
-    Array.from({ length: count }, () => ({
+    Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 30,
       y: Math.random() * 11,
       z: -32 - Math.random() * 25,
@@ -305,32 +300,30 @@ function WinterSnow() {
       driftFreq: 0.4 + Math.random() * 0.6,
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
   const t = useRef(0)
 
   useFrame((_, dt) => {
+    if (!meshRef.current) return
     t.current += dt
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      m.position.y -= d.speed * dt
-      m.position.x += d.driftX * dt + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.008
-      if (m.position.y < -1) {
-        m.position.y = 10
-        m.position.x = (Math.random() - 0.5) * 30
+    data.forEach((d, i) => {
+      d.y -= d.speed * dt
+      d.x += d.driftX * dt + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.008
+      if (d.y < -1) {
+        d.y = 10
+        d.x = (Math.random() - 0.5) * 30
       }
+      dummy.position.set(d.x, d.y, d.z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
-          <sphereGeometry args={[0.05, 4, 4]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.05, 4, 4]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.9} toneMapped={false} />
+    </instancedMesh>
   )
 }
 
@@ -339,42 +332,45 @@ function WinterSnow() {
 const EMBER_COLORS = ['#ff4400', '#ff8800', '#ffcc00'] as const
 
 function VolcanoEmbers() {
-  const count = 60
+  const COUNT = 60
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
-    Array.from({ length: count }, () => ({
+    Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 28,
       y: 1 + Math.random() * 9,
       z: -63 - Math.random() * 22,
       speed: 3 + Math.random() * 3,
-      radius: 0.04 + Math.random() * 0.03,
-      color: EMBER_COLORS[Math.floor(Math.random() * 3)]!,
+      scale: 0.04 + Math.random() * 0.03,
+      color: new THREE.Color(EMBER_COLORS[Math.floor(Math.random() * 3)]!),
       driftX: (Math.random() - 0.5) * 1.2,
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
 
   useFrame((_, dt) => {
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      m.position.y += d.speed * dt
-      m.position.x += d.driftX * dt * 0.3
-      if (m.position.y > 10) {
-        m.position.y = 1
-        m.position.x = (Math.random() - 0.5) * 28
+    if (!meshRef.current) return
+    data.forEach((d, i) => {
+      d.y += d.speed * dt
+      d.x += d.driftX * dt * 0.3
+      if (d.y > 10) {
+        d.y = 1
+        d.x = (Math.random() - 0.5) * 28
       }
+      dummy.position.set(d.x, d.y, d.z)
+      dummy.scale.setScalar(d.scale)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      meshRef.current.setColorAt(i, d.color)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
-          <sphereGeometry args={[d.radius, 4, 4]} />
-          <meshBasicMaterial color={d.color} transparent opacity={0.9} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[1, 4, 4]} />
+      <meshBasicMaterial vertexColors transparent opacity={0.9} toneMapped={false} />
+    </instancedMesh>
   )
 }
 
@@ -609,9 +605,11 @@ function CandySparkle() {
 // ─── Global floating sparkles across entire map ───────────────────────────
 
 function GlobalSparkles() {
-  const count = 100
+  const COUNT = 100
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
-    Array.from({ length: count }, () => ({
+    Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 38,
       y: Math.random() * 9 + 0.5,
       z: -Math.random() * 150,
@@ -619,29 +617,28 @@ function GlobalSparkles() {
       speed: 0.6 + Math.random() * 1.4,
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
   const t = useRef(0)
 
   useFrame((_, dt) => {
+    if (!meshRef.current) return
     t.current += dt
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      const s = (Math.sin(t.current * d.speed + d.phase) * 0.5 + 0.5)
-      ;(m.material as THREE.MeshBasicMaterial).opacity = s * 0.7
-      m.visible = s > 0.05
+    data.forEach((d, i) => {
+      const s = Math.sin(t.current * d.speed + d.phase) * 0.5 + 0.5
+      // Encode opacity via scale (s > 0.05 → visible, else scale=0)
+      const sc = s > 0.05 ? s * 0.7 : 0
+      dummy.position.set(d.x, d.y, d.z)
+      dummy.scale.setScalar(sc)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
-          <sphereGeometry args={[0.045, 4, 4]} />
-          <meshBasicMaterial color="#ffffaa" transparent opacity={1} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.045, 4, 4]} />
+      <meshBasicMaterial color="#ffffaa" toneMapped={false} />
+    </instancedMesh>
   )
 }
 
@@ -706,63 +703,96 @@ const CLOUD_TOWERS = [
   { x:  22, z: -145 },
 ] as const
 
+// Pre-built instance data for SkyCloudArchitecture
+const PLATFORM_OFFSETS = [
+  { pos: [0, 0, 0] as const,      r: 2.5 },
+  { pos: [1.8, -0.5, 0] as const, r: 2.0 },
+  { pos: [-1.8, -0.5, 0] as const, r: 2.0 },
+  { pos: [0, -0.3, 1.5] as const, r: 2.0 },
+  { pos: [0, -0.3, -1.5] as const, r: 2.0 },
+] as const
+
+const TOWER_LEVELS = [
+  { dy: 2,  r: 2.0 },
+  { dy: 5,  r: 1.8 },
+  { dy: 8,  r: 1.5 },
+  { dy: 11, r: 1.2 },
+] as const
+
 function SkyCloudArchitecture() {
+  const PLATFORM_COUNT = CLOUD_PLATFORMS.length * PLATFORM_OFFSETS.length  // 6 × 5 = 30
+  const TOWER_COUNT    = CLOUD_TOWERS.length    * TOWER_LEVELS.length       // 4 × 4 = 16
+
+  const platformRef = useRef<THREE.InstancedMesh>(null!)
+  const towerRef    = useRef<THREE.InstancedMesh>(null!)
+
+  // Set instance matrices once on mount — these are static meshes
+  const platformMatrices = useMemo(() => {
+    const d = new THREE.Object3D()
+    const mats: THREE.Matrix4[] = []
+    CLOUD_PLATFORMS.forEach(({ cx, cy, cz }) => {
+      PLATFORM_OFFSETS.forEach(({ pos, r }) => {
+        d.position.set(cx + pos[0], cy + pos[1], cz + pos[2])
+        d.scale.setScalar(r)
+        d.updateMatrix()
+        mats.push(d.matrix.clone())
+      })
+    })
+    return mats
+  }, [])
+
+  const towerMatrices = useMemo(() => {
+    const d = new THREE.Object3D()
+    const mats: THREE.Matrix4[] = []
+    CLOUD_TOWERS.forEach(({ x, z }) => {
+      TOWER_LEVELS.forEach(({ dy, r }) => {
+        d.position.set(x, dy, z)
+        d.scale.setScalar(r)
+        d.updateMatrix()
+        mats.push(d.matrix.clone())
+      })
+    })
+    return mats
+  }, [])
+
+  // Apply matrices once after mount
+  useFrame(() => {
+    if (platformRef.current && !platformRef.current.userData.init) {
+      platformMatrices.forEach((m, i) => platformRef.current.setMatrixAt(i, m))
+      platformRef.current.instanceMatrix.needsUpdate = true
+      platformRef.current.userData.init = true
+    }
+    if (towerRef.current && !towerRef.current.userData.init) {
+      towerMatrices.forEach((m, i) => towerRef.current.setMatrixAt(i, m))
+      towerRef.current.instanceMatrix.needsUpdate = true
+      towerRef.current.userData.init = true
+    }
+  })
+
   return (
     <group>
-      {/* Fluffy cloud platforms */}
+      {/* Platform point lights — kept individual (only 6) */}
       {CLOUD_PLATFORMS.map(({ cx, cy, cz }, i) => (
-        <group key={i} position={[cx, cy, cz] as [number, number, number]}>
-          {(
-            [
-              { pos: [0, 0, 0] as [number, number, number],      r: 2.5 },
-              { pos: [1.8, -0.5, 0] as [number, number, number], r: 2.0 },
-              { pos: [-1.8, -0.5, 0] as [number, number, number],r: 2.0 },
-              { pos: [0, -0.3, 1.5] as [number, number, number], r: 2.0 },
-              { pos: [0, -0.3, -1.5] as [number, number, number],r: 2.0 },
-            ] as const
-          ).map(({ pos, r }, j) => (
-            <mesh key={j} position={pos} castShadow>
-              <sphereGeometry args={[r, 14, 10]} />
-              <meshStandardMaterial
-                color="#ffffff"
-                emissive="#eeeeff"
-                emissiveIntensity={0.4}
-                roughness={0.1}
-              />
-            </mesh>
-          ))}
-          <pointLight
-            position={[0, -1, 0] as [number, number, number]}
-            color="#ffccee"
-            intensity={1.2}
-            distance={12}
-          />
-        </group>
+        <pointLight
+          key={i}
+          position={[cx, cy - 1, cz] as [number, number, number]}
+          color="#ffccee"
+          intensity={1.2}
+          distance={12}
+        />
       ))}
 
-      {/* Corner cloud towers */}
-      {CLOUD_TOWERS.map(({ x, z }, ti) => (
-        <group key={ti}>
-          {(
-            [
-              { y: 2,  r: 2.0 },
-              { y: 5,  r: 1.8 },
-              { y: 8,  r: 1.5 },
-              { y: 11, r: 1.2 },
-            ] as const
-          ).map(({ y, r }, si) => (
-            <mesh key={si} position={[x, y, z] as [number, number, number]} castShadow>
-              <sphereGeometry args={[r, 12, 8]} />
-              <meshStandardMaterial
-                color="#f0f8ff"
-                emissive="#ddeeff"
-                emissiveIntensity={0.3}
-                roughness={0.1}
-              />
-            </mesh>
-          ))}
-        </group>
-      ))}
+      {/* Fluffy cloud platforms — 30 spheres, one InstancedMesh */}
+      <instancedMesh ref={platformRef} args={[undefined, undefined, PLATFORM_COUNT]} frustumCulled={false} castShadow>
+        <sphereGeometry args={[1, 14, 10]} />
+        <meshStandardMaterial color="#ffffff" emissive="#eeeeff" emissiveIntensity={0.4} roughness={0.1} />
+      </instancedMesh>
+
+      {/* Corner cloud towers — 16 spheres, one InstancedMesh */}
+      <instancedMesh ref={towerRef} args={[undefined, undefined, TOWER_COUNT]} frustumCulled={false} castShadow>
+        <sphereGeometry args={[1, 12, 8]} />
+        <meshStandardMaterial color="#f0f8ff" emissive="#ddeeff" emissiveIntensity={0.3} roughness={0.1} />
+      </instancedMesh>
     </group>
   )
 }

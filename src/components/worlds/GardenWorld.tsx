@@ -195,41 +195,44 @@ const PETAL_SEEDS = Array.from({ length: PETAL_COUNT }, (_) => ({
   swirl: 0.6 + Math.random() * 0.8,
 }))
 
+// Mutable per-petal positions tracked across frames (avoids reading from GPU)
+const _petalPos = PETAL_SEEDS.map((s) => ({ x: s.x, y: s.y, z: s.z }))
+
 function FallingPetals() {
-  const refs = useRef<THREE.Mesh[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
-    refs.current.forEach((mesh, i) => {
-      if (!mesh) return
+    for (let i = 0; i < PETAL_COUNT; i++) {
       const s = PETAL_SEEDS[i]!
+      const pos = _petalPos[i]!
       // Fall downward, reset at top
-      mesh.position.y -= s.speed * 0.016
-      if (mesh.position.y < 0) {
-        mesh.position.y = 12
-        mesh.position.x = (Math.random() - 0.5) * 25
-        mesh.position.z = (Math.random() - 0.5) * 25
+      pos.y -= s.speed * 0.016
+      if (pos.y < 0) {
+        pos.y = 12
+        pos.x = (Math.random() - 0.5) * 25
+        pos.z = (Math.random() - 0.5) * 25
       }
       // Gentle X drift + Y swirl rotation
-      mesh.position.x += Math.sin(t * s.swirl + s.phase) * 0.003
-      mesh.rotation.y = Math.sin(t * 0.7 + s.phase) * 1.2
-      mesh.rotation.z = Math.cos(t * 0.5 + s.phase) * 0.4
-    })
+      pos.x += Math.sin(t * s.swirl + s.phase) * 0.003
+      dummy.position.set(pos.x, pos.y, pos.z)
+      dummy.rotation.set(
+        0,
+        Math.sin(t * 0.7 + s.phase) * 1.2,
+        Math.cos(t * 0.5 + s.phase) * 0.4,
+      )
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {PETAL_SEEDS.map((s, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { if (el) refs.current[i] = el }}
-          position={[s.x, s.y, s.z]}
-        >
-          <planeGeometry args={[0.15, 0.2]} />
-          <meshBasicMaterial color="#ffaacc" transparent opacity={0.8} side={THREE.DoubleSide} depthWrite={false} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PETAL_COUNT]} frustumCulled={false}>
+      <planeGeometry args={[0.15, 0.2]} />
+      <meshBasicMaterial color="#ffaacc" transparent opacity={0.8} side={THREE.DoubleSide} depthWrite={false} />
+    </instancedMesh>
   )
 }
 
@@ -352,7 +355,7 @@ function PollenDrift() {
   })
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, POLLEN_COUNT]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, POLLEN_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[0.045, 5, 4]} />
       <meshBasicMaterial color="#ffffcc" />
     </instancedMesh>

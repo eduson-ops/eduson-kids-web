@@ -218,8 +218,10 @@ const FP_CYCLE = FP_RISE + FP_HOLD + FP_FADE + FP_WAIT // 8.0 s
 
 function GhostFootprints() {
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const frameCount = useRef(0)
 
   useFrame(({ clock }) => {
+    if (++frameCount.current % 2 !== 0) return
     const t = clock.elapsedTime
     GHOST_FOOTPRINT_DEFS.forEach((fp, i) => {
       const mesh = meshRefs.current[i]
@@ -690,65 +692,46 @@ function MysteryRing() {
 const RUNE_COUNT = 12
 
 function FloatingRunes() {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
-  const lightRefs = useRef<(THREE.PointLight | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const rotYArr = useRef(new Float32Array(RUNE_COUNT))
 
   const runes = useMemo(() =>
     Array.from({ length: RUNE_COUNT }, (_, i) => {
       const angle = (i / RUNE_COUNT) * Math.PI * 2
-      const radius = 25 + Math.random() * 10
+      const radius = 25 + (i * 7.3) % 10
       return {
         baseX: Math.cos(angle) * radius,
         baseZ: Math.sin(angle) * radius,
-        baseY: 5 + Math.random() * 7,
+        baseY: 5 + (i * 3.7) % 7,
         phase: (i / RUNE_COUNT) * Math.PI * 2,
       }
     }), [])
 
   useFrame(({ clock }) => {
+    if (!meshRef.current) return
     const t = clock.elapsedTime
     runes.forEach((r, i) => {
-      const mesh = meshRefs.current[i]
-      if (mesh) {
-        mesh.position.y = r.baseY + Math.sin(t * 0.8 + r.phase) * 1.2
-        mesh.rotation.y += 0.008
-        mesh.rotation.z = Math.sin(t * 0.3 + r.phase) * 0.15
-      }
-      const light = lightRefs.current[i]
-      if (light) {
-        light.position.y = r.baseY + Math.sin(t * 0.8 + r.phase) * 1.2
-      }
+      rotYArr.current[i] = (rotYArr.current[i] ?? 0) + 0.008
+      dummy.position.set(r.baseX, r.baseY + Math.sin(t * 0.8 + r.phase) * 1.2, r.baseZ)
+      dummy.rotation.set(0, rotYArr.current[i], Math.sin(t * 0.3 + r.phase) * 0.15)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {runes.map((r, i) => (
-        <group key={`rune${i}`}>
-          <mesh
-            ref={(el) => { meshRefs.current[i] = el }}
-            position={[r.baseX, r.baseY, r.baseZ]}
-          >
-            <boxGeometry args={[0.8, 1.2, 0.05]} />
-            <meshStandardMaterial
-              color="#330066"
-              emissive="#aa44ff"
-              emissiveIntensity={3}
-              transparent
-              opacity={0.85}
-            />
-          </mesh>
-          <pointLight
-            ref={(el) => { lightRefs.current[i] = el }}
-            color="#aa44ff"
-            intensity={2}
-            distance={8}
-            decay={2}
-            position={[r.baseX, r.baseY, r.baseZ]}
-          />
-        </group>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, RUNE_COUNT]} frustumCulled={false}>
+      <boxGeometry args={[0.8, 1.2, 0.05]} />
+      <meshStandardMaterial
+        color="#330066"
+        emissive="#aa44ff"
+        emissiveIntensity={3}
+        transparent
+        opacity={0.85}
+      />
+    </instancedMesh>
   )
 }
 
@@ -1485,58 +1468,68 @@ function MoonPortal() {
 // ─── BatSwarm — 18 animated bats flying erratically in the night sky ─────────
 function BatSwarm() {
   const COUNT = 18
-  const refs = useRef<(THREE.Group | null)[]>([])
+  const bodyRef = useRef<THREE.InstancedMesh>(null!)
+  const leftRef = useRef<THREE.InstancedMesh>(null!)
+  const rightRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() => Array.from({ length: COUNT }, (_, i) => ({
-    cx: (Math.random() - 0.5) * 30,
-    cy: 10 + Math.random() * 12,
-    cz: (Math.random() - 0.5) * 30,
-    radius: 4 + Math.random() * 8,
-    speed: 0.8 + Math.random() * 1.2,
+    cx: (i % 6 - 2.5) * 5,
+    cy: 10 + (i % 5) * 2.4,
+    cz: (Math.floor(i / 6) - 1.5) * 8,
+    radius: 4 + (i % 4) * 2,
+    speed: 0.8 + (i % 5) * 0.24,
     phase: (i / COUNT) * Math.PI * 2,
-    wingPhase: Math.random() * Math.PI * 2,
+    wingPhase: (i / COUNT) * Math.PI * 1.618,
   })), [])
 
   useFrame(({ clock }) => {
+    if (!bodyRef.current) return
     const t = clock.elapsedTime
-    refs.current.forEach((grp, i) => {
-      if (!grp) return
+    for (let i = 0; i < COUNT; i++) {
       const d = data[i]!
       const angle = t * d.speed + d.phase
-      grp.position.set(
-        d.cx + Math.cos(angle) * d.radius + Math.sin(t * 2.1 + d.phase) * 1.5,
-        d.cy + Math.sin(t * 0.7 + d.phase) * 2,
-        d.cz + Math.sin(angle) * d.radius,
-      )
-      grp.rotation.y = -angle
+      const bx = d.cx + Math.cos(angle) * d.radius + Math.sin(t * 2.1 + d.phase) * 1.5
+      const by = d.cy + Math.sin(t * 0.7 + d.phase) * 2
+      const bz = d.cz + Math.sin(angle) * d.radius
+      const batRotY = -angle
       const wing = Math.sin(t * 4 + d.wingPhase) * 0.6
-      const leftWing = grp.children[0] as THREE.Mesh | undefined
-      const rightWing = grp.children[1] as THREE.Mesh | undefined
-      if (leftWing) leftWing.rotation.z = wing
-      if (rightWing) rightWing.rotation.z = -wing
-    })
+      const cosA = Math.cos(angle)
+      const sinA = Math.sin(angle)
+
+      dummy.position.set(bx, by, bz)
+      dummy.rotation.set(0, batRotY, 0)
+      dummy.updateMatrix()
+      bodyRef.current.setMatrixAt(i, dummy.matrix)
+
+      dummy.position.set(bx - 0.28 * cosA, by, bz - 0.28 * sinA)
+      dummy.rotation.set(0, batRotY, wing)
+      dummy.updateMatrix()
+      leftRef.current.setMatrixAt(i, dummy.matrix)
+
+      dummy.position.set(bx + 0.28 * cosA, by, bz + 0.28 * sinA)
+      dummy.rotation.set(0, batRotY, -wing)
+      dummy.updateMatrix()
+      rightRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    bodyRef.current.instanceMatrix.needsUpdate = true
+    leftRef.current.instanceMatrix.needsUpdate = true
+    rightRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
     <>
-      {data.map((_, i) => (
-        <group key={i} ref={el => { refs.current[i] = el }}>
-          {/* Left wing */}
-          <mesh position={[-0.28, 0, 0]}>
-            <planeGeometry args={[0.55, 0.25]} />
-            <meshBasicMaterial color="#110011" side={THREE.DoubleSide} />
-          </mesh>
-          {/* Right wing */}
-          <mesh position={[0.28, 0, 0]}>
-            <planeGeometry args={[0.55, 0.25]} />
-            <meshBasicMaterial color="#110011" side={THREE.DoubleSide} />
-          </mesh>
-          {/* Body */}
-          <mesh>
-            <sphereGeometry args={[0.08, 5, 5]} />
-            <meshBasicMaterial color="#220022" />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={bodyRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+        <sphereGeometry args={[0.08, 5, 5]} />
+        <meshBasicMaterial color="#220022" />
+      </instancedMesh>
+      <instancedMesh ref={leftRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+        <planeGeometry args={[0.55, 0.25]} />
+        <meshBasicMaterial color="#110011" side={THREE.DoubleSide} />
+      </instancedMesh>
+      <instancedMesh ref={rightRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+        <planeGeometry args={[0.55, 0.25]} />
+        <meshBasicMaterial color="#110011" side={THREE.DoubleSide} />
+      </instancedMesh>
     </>
   )
 }

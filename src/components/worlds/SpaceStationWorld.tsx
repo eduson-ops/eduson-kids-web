@@ -512,6 +512,12 @@ const DEBRIS_COUNT = 40
 function DebrisField() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
 
+  // Pre-allocated temporaries — reused every frame, no per-frame GC pressure
+  const _mat = useRef(new THREE.Matrix4())
+  const _pos = useRef(new THREE.Vector3())
+  const _quat = useRef(new THREE.Quaternion())
+  const _scl = useRef(new THREE.Vector3())
+
   // Per-instance data: angular velocity + initial matrix
   const instanceData = useMemo(() => {
     const seed = (n: number) => ((Math.sin(n) * 43758.5453) % 1 + 1) % 1
@@ -553,10 +559,10 @@ function DebrisField() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
-    const mat = new THREE.Matrix4()
-    const pos = new THREE.Vector3()
-    const quat = new THREE.Quaternion()
-    const scl = new THREE.Vector3()
+    const mat = _mat.current
+    const pos = _pos.current
+    const quat = _quat.current
+    const scl = _scl.current
     instanceData.forEach((d, i) => {
       d.euler.x += d.rotX * dt
       d.euler.y += d.rotY * dt

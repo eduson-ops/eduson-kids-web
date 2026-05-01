@@ -213,13 +213,31 @@ function TowerWalls() {
 // ─── Storm Crown (apex rotating ring with lightning bolts) ────────
 function StormCrown() {
   const grpRef = useRef<THREE.Group>(null!)
-  useFrame(({ clock }, dt) => {
-    if (grpRef.current) grpRef.current.rotation.y += dt * 0.4
-  })
+  const spikesRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const spikes = useMemo(() => Array.from({ length: 8 }, (_, i) => ({
     angle: (i / 8) * Math.PI * 2,
     len: 6 + Math.random() * 4,
   })), [])
+
+  // Initialise spike matrices once (static relative to the rotating group)
+  useMemo(() => {
+    // matrices are set in useFrame after mount, nothing to do here
+  }, [])
+
+  useFrame((_, dt) => {
+    if (grpRef.current) grpRef.current.rotation.y += dt * 0.4
+    if (!spikesRef.current) return
+    spikes.forEach((s, i) => {
+      dummy.position.set(Math.cos(s.angle) * 14, 0, Math.sin(s.angle) * 14)
+      dummy.rotation.set(0, 0, Math.PI / 2)
+      dummy.scale.set(1, s.len, 1)
+      dummy.updateMatrix()
+      spikesRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    spikesRef.current.instanceMatrix.needsUpdate = true
+  })
+
   return (
     <group ref={grpRef} position={[0, 88, 0]}>
       {/* Rotating torus base */}
@@ -227,16 +245,11 @@ function StormCrown() {
         <torusGeometry args={[14, 0.6, 8, 48]} />
         <meshStandardMaterial color="#440088" emissive="#aa00ff" emissiveIntensity={2.0} />
       </mesh>
-      {/* Lightning spikes */}
-      {spikes.map((s, i) => (
-        <mesh key={i}
-          position={[Math.cos(s.angle) * 14, 0, Math.sin(s.angle) * 14]}
-          rotation={[0, 0, Math.PI / 2]}
-        >
-          <coneGeometry args={[0.18, s.len, 4]} />
-          <meshStandardMaterial color="#cc44ff" emissive="#ff88ff" emissiveIntensity={3.0} />
-        </mesh>
-      ))}
+      {/* Lightning spikes — single InstancedMesh (cone r=0.18, h=1 → scaled by len) */}
+      <instancedMesh ref={spikesRef} args={[undefined, undefined, spikes.length]} frustumCulled={false}>
+        <coneGeometry args={[0.18, 1, 4]} />
+        <meshStandardMaterial color="#cc44ff" emissive="#ff88ff" emissiveIntensity={3.0} />
+      </instancedMesh>
       <pointLight color="#aa00ff" intensity={6} distance={40} />
     </group>
   )
@@ -288,28 +301,27 @@ const orbData: { x: number; y: number; z: number; phase: number }[] = Array.from
   phase: Math.random() * Math.PI * 2,
 }))
 
-function EnergyOrb({ x, y, z, phase }: { x: number; y: number; z: number; phase: number }) {
-  const meshRef = useRef<THREE.Mesh>(null!)
+function EnergyOrbs() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   useFrame(({ clock }) => {
     if (!meshRef.current) return
-    const s = 0.85 + 0.35 * Math.sin(clock.elapsedTime * 1.8 + phase)
-    meshRef.current.scale.setScalar(s)
+    const t = clock.elapsedTime
+    for (let i = 0; i < ORB_COUNT; i++) {
+      const o = orbData[i]!
+      const s = 0.85 + 0.35 * Math.sin(t * 1.8 + o.phase)
+      dummy.position.set(o.x, o.y, o.z)
+      dummy.scale.setScalar(s)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
   return (
-    <mesh ref={meshRef} position={[x, y, z]}>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, ORB_COUNT]} frustumCulled={false}>
       <sphereGeometry args={[0.15, 8, 8]} />
       <meshBasicMaterial color="#8844ff" />
-    </mesh>
-  )
-}
-
-function EnergyOrbs() {
-  return (
-    <>
-      {orbData.map((o, i) => (
-        <EnergyOrb key={i} x={o.x} y={o.y} z={o.z} phase={o.phase} />
-      ))}
-    </>
+    </instancedMesh>
   )
 }
 
@@ -393,44 +405,57 @@ function FloatingPinnacles() {
 
 // ─── Storm Clouds ────────────────────────────────────────────────
 function StormClouds() {
-  const groupRef = useRef<THREE.Group>(null!)
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameCount = useRef(0)
 
-  const puffs = useMemo(() => {
-    return Array.from({ length: 8 }, (_, i) => {
+  // Build all sphere world-positions once: 8 clouds × 3 puffs = 24 instances
+  const spheres = useMemo(() => {
+    const result: { x: number; y: number; z: number; r: number }[] = []
+    for (let i = 0; i < 8; i++) {
       const angle = (i / 8) * Math.PI * 2
       const radius = 18 + Math.random() * 10
       const baseY = 52 + Math.random() * 8
-      return {
-        x: Math.cos(angle) * radius,
-        y: baseY,
-        z: Math.sin(angle) * radius,
-        spheres: Array.from({ length: 3 }, () => ({
-          ox: (Math.random() - 0.5) * 5,
-          oy: (Math.random() - 0.5) * 3,
-          oz: (Math.random() - 0.5) * 5,
+      const cx = Math.cos(angle) * radius
+      const cz = Math.sin(angle) * radius
+      for (let j = 0; j < 3; j++) {
+        result.push({
+          x: cx + (Math.random() - 0.5) * 5,
+          y: baseY + (Math.random() - 0.5) * 3,
+          z: cz + (Math.random() - 0.5) * 5,
           r: 3 + Math.random() * 3,
-        })),
+        })
       }
-    })
+    }
+    return result
   }, [])
 
+  // Rotation state stored as ref so we don't re-create spheres
+  const rotY = useRef(0)
+
   useFrame((_, dt) => {
-    if (groupRef.current) groupRef.current.rotation.y += dt * 0.015
+    if (++frameCount.current % 2 !== 0) return  // 30 fps for clouds
+    if (!meshRef.current) return
+    rotY.current += dt * 0.015
+    const cos = Math.cos(rotY.current)
+    const sin = Math.sin(rotY.current)
+    spheres.forEach((s, i) => {
+      // Rotate the position around Y manually (avoids a parent Group)
+      const rx = s.x * cos - s.z * sin
+      const rz = s.x * sin + s.z * cos
+      dummy.position.set(rx, s.y, rz)
+      dummy.scale.setScalar(s.r)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <group ref={groupRef}>
-      {puffs.map((puff, pi) => (
-        <group key={pi} position={[puff.x, puff.y, puff.z]}>
-          {puff.spheres.map((s, si) => (
-            <mesh key={si} position={[s.ox, s.oy, s.oz]}>
-              <sphereGeometry args={[s.r, 6, 5]} />
-              <meshBasicMaterial color="#1a1a2e" transparent opacity={0.6} depthWrite={false} />
-            </mesh>
-          ))}
-        </group>
-      ))}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, spheres.length]} frustumCulled={false}>
+      <sphereGeometry args={[1, 7, 7]} />
+      <meshBasicMaterial color="#1a1a2e" transparent opacity={0.6} depthWrite={false} />
+    </instancedMesh>
   )
 }
 
@@ -601,34 +626,53 @@ function TorchRing() {
     [],
   )
 
+  const polesRef = useRef<THREE.InstancedMesh>(null!)
+  const flamesRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+
+  // Set static matrices once on first frame
+  const initialised = useRef(false)
+  useFrame(() => {
+    if (initialised.current) return
+    initialised.current = true
+    torches.forEach(({ x, z }, i) => {
+      // Pole: centred at y=2
+      dummy.position.set(x, 2, z)
+      dummy.scale.setScalar(1)
+      dummy.rotation.set(0, 0, 0)
+      dummy.updateMatrix()
+      polesRef.current?.setMatrixAt(i, dummy.matrix)
+      // Flame: centred at y=4.3
+      dummy.position.set(x, 4.3, z)
+      dummy.updateMatrix()
+      flamesRef.current?.setMatrixAt(i, dummy.matrix)
+    })
+    if (polesRef.current) polesRef.current.instanceMatrix.needsUpdate = true
+    if (flamesRef.current) flamesRef.current.instanceMatrix.needsUpdate = true
+  })
+
   return (
     <>
+      {/* Wooden poles — one InstancedMesh */}
+      <instancedMesh ref={polesRef} args={[undefined, undefined, TORCH_COUNT]} frustumCulled={false}>
+        <cylinderGeometry args={[0.15, 0.15, 4, 8]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.95} metalness={0.0} />
+      </instancedMesh>
+      {/* Fire heads — one InstancedMesh */}
+      <instancedMesh ref={flamesRef} args={[undefined, undefined, TORCH_COUNT]} frustumCulled={false}>
+        <coneGeometry args={[0.4, 0.8, 8]} />
+        <meshStandardMaterial color="#ff9900" emissive="#ff6600" emissiveIntensity={4} roughness={0.6} />
+      </instancedMesh>
+      {/* Point lights must stay individual — one per torch */}
       {torches.map(({ x, z }, i) => (
-        <group key={i} position={[x, 0, z]}>
-          {/* Wooden pole */}
-          <mesh position={[0, 2, 0]}>
-            <cylinderGeometry args={[0.15, 0.15, 4, 8]} />
-            <meshStandardMaterial color="#8B4513" roughness={0.95} metalness={0.0} />
-          </mesh>
-          {/* Fire head */}
-          <mesh position={[0, 4.3, 0]}>
-            <coneGeometry args={[0.4, 0.8, 8]} />
-            <meshStandardMaterial
-              color="#ff9900"
-              emissive="#ff6600"
-              emissiveIntensity={4}
-              roughness={0.6}
-            />
-          </mesh>
-          {/* Warm point light */}
-          <pointLight
-            color="#ff8800"
-            intensity={3}
-            distance={10}
-            decay={2}
-            position={[0, 4.5, 0]}
-          />
-        </group>
+        <pointLight
+          key={i}
+          color="#ff8800"
+          intensity={3}
+          distance={10}
+          decay={2}
+          position={[x, 4.5, z]}
+        />
       ))}
     </>
   )

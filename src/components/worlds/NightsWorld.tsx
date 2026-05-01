@@ -129,23 +129,26 @@ function Moon({ phase }: { phase: 'day' | 'night' }) {
 // ─── Bioluminescent ground patches ──────────────────────────────────────────
 
 const BIOLUMIN_VSHADER = `
+  attribute vec3 aColor;
   varying vec2 vUv;
+  varying vec3 vColor;
   void main() {
     vUv = uv;
+    vColor = aColor;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `
 
 const BIOLUMIN_FSHADER = `
-  uniform vec3 uColor;
   uniform float uTime;
   varying vec2 vUv;
+  varying vec3 vColor;
   void main() {
     float d = length(vUv - 0.5) * 2.0;
     float alpha = clamp(1.0 - d, 0.0, 1.0);
     // subtle pulse
     float pulse = 0.75 + 0.25 * sin(uTime * 1.8);
-    gl_FragColor = vec4(uColor * pulse, alpha * 0.82);
+    gl_FragColor = vec4(vColor * pulse, alpha * 0.82);
   }
 `
 
@@ -170,55 +173,66 @@ const PATCH_POSITIONS: [number, number, number, number, number][] = [
 // alternating cyan / purple
 const PATCH_COLORS = ['#00ffcc', '#aa00ff']
 
+const PATCH_COUNT = PATCH_POSITIONS.length
+
 function BioluminescentPatches({ phase }: { phase: 'day' | 'night' }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const matRef = useRef<THREE.ShaderMaterial>(null!)
   const timeRef = useRef(0)
 
-  // We hold one ref array of ShaderMaterial per patch
-  const matsRef = useRef<(THREE.ShaderMaterial | null)[]>(
-    Array(PATCH_POSITIONS.length).fill(null)
-  )
+  // Per-instance color buffer (3 floats per instance)
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(PATCH_COUNT * 3)
+    PATCH_POSITIONS.forEach((_, i) => {
+      const c = new THREE.Color(PATCH_COLORS[i % 2])
+      arr[i * 3 + 0] = c.r
+      arr[i * 3 + 1] = c.g
+      arr[i * 3 + 2] = c.b
+    })
+    return arr
+  }, [])
+
+  // Set instance matrices once on mount (static patches)
+  const matrices = useMemo(() => {
+    const result: THREE.Matrix4[] = []
+    PATCH_POSITIONS.forEach(([x, z, rotY, sx, sz]) => {
+      dummy.position.set(x, 0.02, z)
+      dummy.rotation.set(-Math.PI / 2, 0, rotY)
+      dummy.scale.set(sx, sz, 1)
+      dummy.updateMatrix()
+      result.push(dummy.matrix.clone())
+    })
+    return result
+  }, [dummy])
 
   useFrame((_, dt) => {
+    if (!meshRef.current) return
     if (phase !== 'night') return
     timeRef.current += dt
-    matsRef.current.forEach((mat) => {
-      if (mat) mat.uniforms.uTime!.value = timeRef.current
-    })
+    if (matRef.current) matRef.current.uniforms.uTime!.value = timeRef.current
+    // Apply static matrices (only needed once, but safe to set here)
+    matrices.forEach((m, i) => meshRef.current.setMatrixAt(i, m))
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   if (phase !== 'night') return null
 
   return (
-    <>
-      {PATCH_POSITIONS.map((entry, i) => {
-        const [x, z, rotY, sx, sz] = entry
-        const hexColor = PATCH_COLORS[i % 2]
-        const color = new THREE.Color(hexColor)
-
-        return (
-          <mesh
-            key={i}
-            position={[x, 0.02, z]}
-            rotation={[-Math.PI / 2, 0, rotY]}
-            scale={[sx, sz, 1]}
-          >
-            <planeGeometry args={[1, 1]} />
-            <shaderMaterial
-              ref={(mat) => { matsRef.current[i] = mat }}
-              vertexShader={BIOLUMIN_VSHADER}
-              fragmentShader={BIOLUMIN_FSHADER}
-              uniforms={{
-                uColor: { value: color },
-                uTime: { value: 0 },
-              }}
-              transparent
-              depthWrite={false}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-        )
-      })}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PATCH_COUNT]} frustumCulled={false}>
+      <planeGeometry args={[1, 1]}>
+        <instancedBufferAttribute attach="attributes-aColor" args={[colorArray, 3]} />
+      </planeGeometry>
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={BIOLUMIN_VSHADER}
+        fragmentShader={BIOLUMIN_FSHADER}
+        uniforms={{ uTime: { value: 0 } }}
+        transparent
+        depthWrite={false}
+        side={THREE.DoubleSide}
+      />
+    </instancedMesh>
   )
 }
 
@@ -252,36 +266,55 @@ const fireflyData: FireflyData[] = Array.from({ length: FIREFLY_COUNT }, (_, i) 
 })
 
 function Fireflies({ phase }: { phase: 'day' | 'night' }) {
-  const groupRef = useRef<THREE.Group>(null!)
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(FIREFLY_COUNT * 3)
+    const baseColor = new THREE.Color('#ffffaa')
+    for (let i = 0; i < FIREFLY_COUNT; i++) {
+      // slight hue variation: some more yellow, some more green
+      const pseudo = (n: number) => ((Math.sin(n) * 43758.5453) % 1 + 1) % 1
+      const hueShift = (pseudo(i * 137.508 + 10) - 0.5) * 0.08
+      const c = baseColor.clone().offsetHSL(hueShift, 0, 0)
+      arr[i * 3 + 0] = c.r
+      arr[i * 3 + 1] = c.g
+      arr[i * 3 + 2] = c.b
+    }
+    return arr
+  }, [])
 
   useFrame(({ clock }) => {
-    if (!groupRef.current || phase !== 'night') return
+    if (!meshRef.current || phase !== 'night') return
     const t = clock.getElapsedTime()
-    const children = groupRef.current.children
     fireflyData.forEach((fd, i) => {
-      const mesh = children[i]
-      if (!mesh) return
       const angle = t * fd.speed + fd.phase
-      mesh.position.x = fd.cx + Math.cos(angle) * fd.radius
-      mesh.position.z = fd.cz + Math.sin(angle * 0.7) * fd.radius
-      mesh.position.y = fd.cy + Math.sin(t * 0.8 + fd.vertPhase) * 0.4
+      const x = fd.cx + Math.cos(angle) * fd.radius
+      const z = fd.cz + Math.sin(angle * 0.7) * fd.radius
+      const y = fd.cy + Math.sin(t * 0.8 + fd.vertPhase) * 0.4
+      dummy.position.set(x, y, z)
+      dummy.scale.setScalar(1)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   if (phase !== 'night') return null
 
   return (
-    <group ref={groupRef}>
-      {fireflyData.map((fd, i) => (
-        <mesh key={i} position={[fd.cx, fd.cy, fd.cz]}>
-          <sphereGeometry args={[0.06, 6, 6]} />
-          <meshBasicMaterial color="#ffffaa" />
-          {i < FIREFLY_LIGHT_COUNT && (
-            <pointLight intensity={0.3} distance={2} color="#ffffaa" />
-          )}
-        </mesh>
+    <>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, FIREFLY_COUNT]} frustumCulled={false}>
+        <sphereGeometry args={[0.06, 6, 6]}>
+          <instancedBufferAttribute attach="attributes-color" args={[colorArray, 3]} />
+        </sphereGeometry>
+        <meshBasicMaterial vertexColors toneMapped={false} />
+      </instancedMesh>
+      {/* Point lights for the first N fireflies — fixed at data positions (close enough) */}
+      {fireflyData.slice(0, FIREFLY_LIGHT_COUNT).map((fd, i) => (
+        <pointLight key={i} position={[fd.cx, fd.cy, fd.cz]} intensity={0.3} distance={2} color="#ffffaa" />
       ))}
-    </group>
+    </>
   )
 }
 
@@ -501,7 +534,7 @@ function WillOWisps() {
 
   return (
     <>
-      <instancedMesh ref={meshRef} args={[undefined, undefined, WISP_COUNT]}>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, WISP_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[0.18, 6, 6]} />
         <meshBasicMaterial color="#88ffcc" transparent opacity={0.85} depthWrite={false} />
       </instancedMesh>
@@ -609,40 +642,36 @@ const mistParticles: MistParticle[] = Array.from({ length: 30 }, (_, i) => {
 })
 
 function GroundMist({ phase }: { phase: 'day' | 'night' }) {
-  const groupRef = useRef<THREE.Group>(null!)
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   useFrame(({ clock }) => {
-    if (!groupRef.current || phase !== 'night') return
+    if (!meshRef.current || phase !== 'night') return
     const t = clock.getElapsedTime()
     mistParticles.forEach((mp, i) => {
-      const mesh = groupRef.current.children[i]
-      if (!mesh) return
       const drift = Math.sin(t * mp.driftSpeed + mp.driftPhase) * mp.driftAmp
-      mesh.position.x = mp.x + drift
-      mesh.position.y = mp.y + Math.sin(t * mp.driftSpeed * 0.5 + mp.driftPhase) * 0.15
+      const x = mp.x + drift
+      const y = mp.y + Math.sin(t * mp.driftSpeed * 0.5 + mp.driftPhase) * 0.15
+      dummy.position.set(x, y, mp.z)
+      dummy.scale.setScalar(mp.scale)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   if (phase !== 'night') return null
 
   return (
-    <group ref={groupRef}>
-      {mistParticles.map((mp, i) => (
-        <mesh
-          key={i}
-          position={[mp.x, mp.y, mp.z]}
-          scale={[mp.scale, mp.scale, mp.scale]}
-        >
-          <sphereGeometry args={[1, 7, 7]} />
-          <meshBasicMaterial
-            color="#112233"
-            opacity={0.12}
-            transparent
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, mistParticles.length]} frustumCulled={false}>
+      <sphereGeometry args={[1, 7, 7]} />
+      <meshBasicMaterial
+        color="#112233"
+        opacity={0.12}
+        transparent
+        depthWrite={false}
+      />
+    </instancedMesh>
   )
 }
 
@@ -1557,12 +1586,12 @@ function CastleBats() {
   return (
     <>
       {/* Wings: flat wide box */}
-      <instancedMesh ref={wingMeshRef} args={[undefined, undefined, BAT_COUNT]}>
+      <instancedMesh ref={wingMeshRef} args={[undefined, undefined, BAT_COUNT]} frustumCulled={false}>
         <boxGeometry args={[1.4, 0.08, 0.5]} />
         <meshBasicMaterial color="#110008" />
       </instancedMesh>
       {/* Body: tiny sphere approximated as a small box */}
-      <instancedMesh ref={bodyMeshRef} args={[undefined, undefined, BAT_COUNT]}>
+      <instancedMesh ref={bodyMeshRef} args={[undefined, undefined, BAT_COUNT]} frustumCulled={false}>
         <sphereGeometry args={[0.18, 5, 5]} />
         <meshBasicMaterial color="#1a0010" />
       </instancedMesh>
