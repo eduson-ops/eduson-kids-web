@@ -223,17 +223,23 @@ const ALL_NODES: [number, number, number][] = [...INPUT_NODES, ...HIDDEN_NODES, 
 function SynapticSparks() {
   const COUNT = 40
   const sparkData = useMemo(() => {
-    return Array.from({ length: COUNT }, (_, i) => {
-      const connIdx = Math.floor(Math.random() * ALL_CONNECTIONS.length)
-      return {
-        connIdx,
-        progress: Math.random(),
-        speed: 0.4 + Math.random() * 0.8,
-        color: i % 2 === 0 ? '#00ffcc' : '#ff44aa',
-      }
-    })
+    return Array.from({ length: COUNT }, (_, i) => ({
+      connIdx: Math.floor(Math.random() * ALL_CONNECTIONS.length),
+      progress: Math.random(),
+      speed: 0.4 + Math.random() * 0.8,
+      color: i % 2 === 0 ? '#00ffcc' : '#ff44aa',
+    }))
   }, [])
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const _av = useRef(new THREE.Vector3())
+  const _bv = useRef(new THREE.Vector3())
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(COUNT * 3)
+    const col = new THREE.Color()
+    sparkData.forEach((s, i) => { col.set(s.color); arr[i*3]=col.r; arr[i*3+1]=col.g; arr[i*3+2]=col.b })
+    return arr
+  }, [sparkData])
 
   useFrame((_, dt) => {
     sparkData.forEach((s, i) => {
@@ -242,24 +248,22 @@ function SynapticSparks() {
         s.connIdx = Math.floor(Math.random() * ALL_CONNECTIONS.length)
         s.progress = 0
       }
-      const m = meshRefs.current[i]
-      if (!m) return
       const conn = ALL_CONNECTIONS[s.connIdx]!
-      const av = new THREE.Vector3(...conn[0])
-      const bv = new THREE.Vector3(...conn[1])
-      m.position.lerpVectors(av, bv, s.progress)
+      _av.current.set(conn[0][0], conn[0][1], conn[0][2])
+      _bv.current.set(conn[1][0], conn[1][1], conn[1][2])
+      dummy.position.lerpVectors(_av.current, _bv.current, s.progress)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {sparkData.map((s, i) => (
-        <mesh key={i} ref={(el) => { meshRefs.current[i] = el }}>
-          <sphereGeometry args={[0.06, 6, 6]} />
-          <meshBasicMaterial color={s.color} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.06, 6, 6]} />
+      <meshBasicMaterial vertexColors toneMapped={false} />
+      <instancedBufferAttribute attach="geometry-attributes-color" args={[colorArray, 3]} />
+    </instancedMesh>
   )
 }
 
@@ -517,21 +521,20 @@ function StarField() {
 
 function DataParticles() {
   interface Particle { pos: THREE.Vector3; vel: THREE.Vector3 }
-  const particles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 30 }, () => ({
-      pos: new THREE.Vector3(
-        (Math.random() - 0.5) * 140,
-        0.5 + Math.random() * 5,
-        (Math.random() - 0.5) * 140
-      ),
-      vel: new THREE.Vector3(
-        (Math.random() - 0.5) * 2,
-        Math.random() * 0.5,
-        (Math.random() - 0.5) * 2
-      ),
-    }))
+  const COUNT = 30
+  const particles = useMemo<Particle[]>(() =>
+    Array.from({ length: COUNT }, () => ({
+      pos: new THREE.Vector3((Math.random()-0.5)*140, 0.5+Math.random()*5, (Math.random()-0.5)*140),
+      vel: new THREE.Vector3((Math.random()-0.5)*2, Math.random()*0.5, (Math.random()-0.5)*2),
+    })), [])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(COUNT * 3)
+    const c0 = new THREE.Color('#00ffaa'); const c1 = new THREE.Color('#00ccff')
+    for (let i = 0; i < COUNT; i++) { const c = i%2===0?c0:c1; arr[i*3]=c.r; arr[i*3+1]=c.g; arr[i*3+2]=c.b }
+    return arr
   }, [])
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
   useFrame((_, dt) => {
     particles.forEach((p, i) => {
@@ -539,20 +542,19 @@ function DataParticles() {
       if (p.pos.y > 8) p.pos.y = 0.5
       if (Math.abs(p.pos.x) > 72) p.vel.x *= -1
       if (Math.abs(p.pos.z) > 72) p.vel.z *= -1
-      const m = meshRefs.current[i]
-      if (m) m.position.copy(p.pos)
+      dummy.position.copy(p.pos)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {particles.map((p, i) => (
-        <mesh key={i} ref={(el) => { meshRefs.current[i] = el }} position={[p.pos.x, p.pos.y, p.pos.z]}>
-          <sphereGeometry args={[0.12, 6, 6]} />
-          <meshBasicMaterial color={i % 2 === 0 ? '#00ffaa' : '#00ccff'} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.12, 6, 6]} />
+      <meshBasicMaterial vertexColors toneMapped={false} />
+      <instancedBufferAttribute attach="geometry-attributes-color" args={[colorArray, 3]} />
+    </instancedMesh>
   )
 }
 

@@ -29,37 +29,29 @@ const FOG_PLANES: { pos: [number, number, number]; phase: number; speed: number 
 ]
 
 function MansionFog() {
-  const refs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameCount = useRef(0)
   useFrame(({ clock }) => {
+    if (++frameCount.current % 2 !== 0) return  // 30fps is enough for slow fog drift
     const t = clock.elapsedTime
     FOG_PLANES.forEach((fp, i) => {
-      const mesh = refs.current[i]
-      if (mesh) {
-        mesh.position.y = fp.pos[1] + Math.sin(t * fp.speed + fp.phase) * 0.18
-        mesh.position.x = fp.pos[0] + Math.sin(t * fp.speed * 0.6 + fp.phase + 1.0) * 0.25
-      }
+      dummy.position.set(
+        fp.pos[0] + Math.sin(t * fp.speed * 0.6 + fp.phase + 1.0) * 0.25,
+        fp.pos[1] + Math.sin(t * fp.speed + fp.phase) * 0.18,
+        fp.pos[2],
+      )
+      dummy.rotation.set(-Math.PI / 2, 0, fp.phase * 0.4)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
   return (
-    <>
-      {FOG_PLANES.map((fp, i) => (
-        <mesh
-          key={`fog${i}`}
-          ref={(el) => { refs.current[i] = el }}
-          position={fp.pos}
-          rotation={[-Math.PI / 2, 0, fp.phase * 0.4]}
-        >
-          <planeGeometry args={[8, 8]} />
-          <meshBasicMaterial
-            color="#221133"
-            transparent
-            opacity={0.12}
-            depthWrite={false}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, FOG_PLANES.length]} frustumCulled={false}>
+      <planeGeometry args={[8, 8]} />
+      <meshBasicMaterial color="#221133" transparent opacity={0.12} depthWrite={false} side={THREE.DoubleSide} />
+    </instancedMesh>
   )
 }
 
@@ -116,8 +108,8 @@ function CandleLights() {
 const CLUE_PARTICLE_COUNT = 30
 
 function ClueParticles() {
-  const refs = useRef<(THREE.Mesh | null)[]>([])
-  // Pre-compute per-particle orbit params
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const params = useMemo(() =>
     Array.from({ length: CLUE_PARTICLE_COUNT }, (_, i) => ({
       radius: 2 + (i % 5) * 0.45,
@@ -131,24 +123,24 @@ function ClueParticles() {
   useFrame(({ clock }) => {
     const t = clock.elapsedTime
     params.forEach((p, i) => {
-      const mesh = refs.current[i]
-      if (mesh) {
-        const angle = t * p.speed + p.phase
-        mesh.position.x = Math.cos(angle) * p.radius
-        mesh.position.z = Math.sin(angle) * p.radius
-        mesh.position.y = p.yBase + Math.sin(t * p.yFreq + p.phase) * p.yAmp
-      }
+      const angle = t * p.speed + p.phase
+      dummy.position.set(
+        Math.cos(angle) * p.radius,
+        p.yBase + Math.sin(t * p.yFreq + p.phase) * p.yAmp,
+        Math.sin(angle) * p.radius,
+      )
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
     <group position={[0, 0, 0]}>
-      {params.map((_, i) => (
-        <mesh key={`cp${i}`} ref={(el) => { refs.current[i] = el }}>
-          <sphereGeometry args={[0.05, 6, 6]} />
-          <meshBasicMaterial color="#ffcc44" />
-        </mesh>
-      ))}
+      <instancedMesh ref={meshRef} args={[undefined, undefined, CLUE_PARTICLE_COUNT]} frustumCulled={false}>
+        <sphereGeometry args={[0.05, 6, 6]} />
+        <meshBasicMaterial color="#ffcc44" toneMapped={false} />
+      </instancedMesh>
     </group>
   )
 }
