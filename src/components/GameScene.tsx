@@ -31,6 +31,7 @@ import WorldOverridesApplier from './WorldOverridesApplier'
 import ToonOverride from './ToonOverride'
 import GroundOverride from './GroundOverride'
 import PostFX from './PostFX'
+import AmbientDust from './AmbientDust'
 import ScriptGhosts from './ScriptGhosts'
 import { getWorldTargets } from './worlds/scriptableTargets'
 import type { GameMeta } from '../lib/games'
@@ -141,6 +142,7 @@ export default function GameScene({ game, avatar }: Props) {
         {/* Procedural noise-variation shader for large ground planes */}
         <GroundOverride />
         <PostFX />
+        <AmbientDust />
         <CameraController />
         <FocusedObjectIndicator />
         <AdaptiveDPR />

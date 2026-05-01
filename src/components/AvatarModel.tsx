@@ -50,8 +50,8 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
   const rootRef = useRef<THREE.Group>(null!)
   const bodyRef = useRef<THREE.Mesh>(null!)
   const headGroupRef = useRef<THREE.Group>(null!)
-  const legLRef = useRef<THREE.Mesh>(null!)
-  const legRRef = useRef<THREE.Mesh>(null!)
+  const legLRef = useRef<THREE.Group>(null!)
+  const legRRef = useRef<THREE.Group>(null!)
   const armLRef = useRef<THREE.Group>(null!)
   const armRRef = useRef<THREE.Group>(null!)
   const tailRef = useRef<THREE.Group>(null!)
@@ -96,7 +96,7 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
         const moving = speed > 0.15
         const swing = moving ? Math.sin(phase) * 0.5 * Math.min(1, speed / 4) : 0
 
-        // Ноги (противофаза)
+        // Ноги (противофаза) — pivot from hip group
         if (legLRef.current) legLRef.current.rotation.x = airborne ? -0.6 : swing
         if (legRRef.current) legRRef.current.rotation.x = airborne ? -0.3 : -swing
         // Руки (противофаза, меньше амплитуда)
@@ -148,18 +148,26 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
         <Hat style={avatar.hatStyle} color={avatar.accentColor} gradientMap={gradientMap} />
       </group>
 
-      {/* Legs — роторный оффсет сверху каждой ноги */}
-      <group position={[-bw * 0.25, legY + 0.25, 0]}>
-        <RoundedBox ref={legLRef} args={[0.32, 0.5, 0.32]} radius={0.06} smoothness={2} position={[0, -0.25, 0]} castShadow>
+      {/* Legs — pivot group at hip, ref on group for correct rotation origin */}
+      <group ref={legLRef} position={[-bw * 0.25, legY + 0.25, 0]}>
+        <RoundedBox args={[0.32, 0.5, 0.32]} radius={0.06} smoothness={2} position={[0, -0.25, 0]} castShadow>
           <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
         </RoundedBox>
         <OutlineRounded args={[0.32, 0.5, 0.32]} radius={0.06} position={[0, -0.25, 0]} />
+        {/* Shoe */}
+        <RoundedBox args={[0.36, 0.18, 0.44]} radius={0.05} smoothness={2} position={[0, -0.54, 0.07]} castShadow>
+          <meshToonMaterial color={avatar.accentColor} gradientMap={gradientMap} />
+        </RoundedBox>
       </group>
-      <group position={[bw * 0.25, legY + 0.25, 0]}>
-        <RoundedBox ref={legRRef} args={[0.32, 0.5, 0.32]} radius={0.06} smoothness={2} position={[0, -0.25, 0]} castShadow>
+      <group ref={legRRef} position={[bw * 0.25, legY + 0.25, 0]}>
+        <RoundedBox args={[0.32, 0.5, 0.32]} radius={0.06} smoothness={2} position={[0, -0.25, 0]} castShadow>
           <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
         </RoundedBox>
         <OutlineRounded args={[0.32, 0.5, 0.32]} radius={0.06} position={[0, -0.25, 0]} />
+        {/* Shoe */}
+        <RoundedBox args={[0.36, 0.18, 0.44]} radius={0.05} smoothness={2} position={[0, -0.54, 0.07]} castShadow>
+          <meshToonMaterial color={avatar.accentColor} gradientMap={gradientMap} />
+        </RoundedBox>
       </group>
 
       {/* Arms — роторные группы */}
@@ -168,12 +176,22 @@ const AvatarModel = forwardRef<AvatarModelHandle, Props>(function AvatarModel(
           <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
         </RoundedBox>
         <OutlineRounded args={[0.28, 0.55, 0.28]} radius={0.06} position={[0, -0.28, 0]} />
+        {/* Hand paw */}
+        <mesh position={[0, -0.6, 0]} castShadow>
+          <sphereGeometry args={[0.13, 8, 8]} />
+          <meshToonMaterial color={avatar.accentColor} gradientMap={gradientMap} />
+        </mesh>
       </group>
       <group ref={armRRef} position={[bw * 0.55, armY + 0.3, 0]}>
         <RoundedBox args={[0.28, 0.55, 0.28]} radius={0.06} smoothness={2} position={[0, -0.28, 0]} castShadow>
           <meshToonMaterial color={avatar.bodyColor} gradientMap={gradientMap} />
         </RoundedBox>
         <OutlineRounded args={[0.28, 0.55, 0.28]} radius={0.06} position={[0, -0.28, 0]} />
+        {/* Hand paw */}
+        <mesh position={[0, -0.6, 0]} castShadow>
+          <sphereGeometry args={[0.13, 8, 8]} />
+          <meshToonMaterial color={avatar.accentColor} gradientMap={gradientMap} />
+        </mesh>
       </group>
 
       {/* Tail */}
