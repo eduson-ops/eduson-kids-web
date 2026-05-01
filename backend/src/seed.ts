@@ -3,6 +3,12 @@
  * Usage: npx ts-node -r tsconfig-paths/register src/seed.ts
  * Or via npm: npm run seed
  *
+ * Demo credentials after seeding:
+ *   teacher@eduson.school / Teacher2024! (school code: DEMO-2024)
+ *   parent@eduson.school  / Parent2024!
+ *   child: panda42 / 123456
+ *   child: tiger99 / 654321
+ *
  * Reads env from .env or environment variables (same as app).
  */
 
@@ -90,8 +96,8 @@ async function main() {
     const enc = encryptProfile(acc.profile, piiKey);
 
     await ds.query(
-      `INSERT INTO users (id, role, login, password_hash, encrypted_profile, profile_iv, profile_auth_tag, is_active, created_at, updated_at)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, true, NOW(), NOW())`,
+      `INSERT INTO users (id, tenant_id, role, login, password_hash, encrypted_profile, profile_iv, profile_auth_tag, is_active, external_ids, created_at, updated_at)
+       VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000001', $1, $2, $3, $4, $5, $6, true, '{}', NOW(), NOW())`,
       [acc.role, acc.login.toLowerCase(), passwordHash, enc.ciphertext, enc.iv, enc.authTag]
     );
     console.log(`CREATED ${acc.role} ${acc.login}`);
