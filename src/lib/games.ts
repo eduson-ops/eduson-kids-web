@@ -10,6 +10,7 @@ export interface GameMeta {
     | 'fashion' | 'mystery' | 'nights'
     | 'tycoon' | 'ability' | 'petbrain'
     | 'temple' | 'space' | 'cyber'
+    | 'ocean' | 'desert'
   emoji: string
   color: string
   playersOnline: number
@@ -253,6 +254,42 @@ export const GAMES: GameMeta[] = [
     playersOnline: 19,
     views: 16200,
     likes: 712,
+    featured: true,
+    template: true,
+    hot: true,
+    fresh: true,
+    rank: 0,
+    scene: 'playground',
+  },
+  {
+    id: 'ocean-world',
+    title: 'Подводный Рай',
+    author: 'Эдюсон KidsStudio',
+    authorColor: '#00ccff',
+    category: 'ocean',
+    emoji: '🌊',
+    color: '#004888',
+    playersOnline: 16,
+    views: 13200,
+    likes: 589,
+    featured: true,
+    template: true,
+    hot: true,
+    fresh: true,
+    rank: 0,
+    scene: 'playground',
+  },
+  {
+    id: 'desert-world',
+    title: 'Пирамиды Фараона',
+    author: 'Эдюсон KidsStudio',
+    authorColor: '#d4a855',
+    category: 'desert',
+    emoji: '🏜️',
+    color: '#d4a855',
+    playersOnline: 14,
+    views: 11800,
+    likes: 502,
     featured: true,
     template: true,
     hot: true,

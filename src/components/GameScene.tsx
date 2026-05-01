@@ -21,6 +21,8 @@ import PetBrainWorld, { PETBRAIN_SPAWN } from './worlds/PetBrainWorld'
 import TempleWorld, { TEMPLE_SPAWN } from './worlds/TempleWorld'
 import SpaceStationWorld, { SPACE_SPAWN } from './worlds/SpaceStationWorld'
 import CyberCityWorld, { CYBER_SPAWN } from './worlds/CyberCityWorld'
+import OceanWorld, { OCEAN_SPAWN } from './worlds/OceanWorld'
+import DesertWorld, { DESERT_SPAWN } from './worlds/DesertWorld'
 import CameraController from './CameraController'
 import AdaptiveDPR from './AdaptiveDPR'
 import Scriptable from './Scriptable'
@@ -185,6 +187,10 @@ function pickWorld(cat: GameMeta['category']) {
       return { world: SpaceStationWorld, spawn: SPACE_SPAWN }
     case 'cyber':
       return { world: CyberCityWorld, spawn: CYBER_SPAWN }
+    case 'ocean':
+      return { world: OceanWorld, spawn: OCEAN_SPAWN }
+    case 'desert':
+      return { world: DesertWorld, spawn: DESERT_SPAWN }
     case 'obby':
     default:
       return { world: ObbyWorld, spawn: OBBY_SPAWN }

@@ -1,6 +1,7 @@
 import { useGLTF } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 import StaticModel from './StaticModel'
+import GltfNPC from './GltfNPC'
 import { PUBLIC_BASE } from '../lib/publicPath'
 
 // Пути к готовым паковым моделям — все CC0, лежат в public/models.
@@ -295,6 +296,302 @@ export function Cauldron({ pos, scale = 1 }: { pos: [number, number, number]; sc
   )
 }
 
+export function Bookshelf({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/bookshelf.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Gate({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/gate.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Altar({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/altar.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function GenTable({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/table.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Chair({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/chair.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Flag({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/flag.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function FlowerPot({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/flower_pot.glb`} scale={scale} /></group>
+}
+
+export function Stage({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/stage.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Podium({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/podium.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function MarketStall({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/market_stall.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Snowflake({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/snowflake.glb`} scale={scale} /></group>
+}
+
+export function Spaceship({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/spaceship.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Fountain({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/fountain.glb`} scale={scale} />
+    </RigidBody>
+  )
+}
+
+export function Trophy({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/trophy.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Ramp({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/ramp.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+// ─── Природные пропы из генерации ────────────────────────────
+
+export function IceBlock({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/ice_block.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function LavaRock({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/lava_rock.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function CrystalCluster({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/crystal_cluster.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function PalmTree({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/palm_tree.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+// ─── Боссы (анимированные) ────────────────────────────────────
+
+export function BossGolem({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><GltfNPC url={`${GEN}/boss_golem.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function BossWizard({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><GltfNPC url={`${GEN}/boss_wizard.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function BossDragon({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><GltfNPC url={`${GEN}/boss_dragon.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+// ─── Тематические декоративные объекты ───────────────────────
+
+export function Jellyfish({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/jellyfish.glb`} scale={scale} /></group>
+}
+
+export function PharaohMask({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/pharaoh_mask.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function EnergyOrb({ pos, scale = 1 }: { pos: [number, number, number]; scale?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/energy_orb.glb`} scale={scale} /></group>
+}
+
+export function CoralReef({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/coral_reef.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Obelisk({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/obelisk.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Anchor({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/anchor.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function RuinsPillar({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/ruins_pillar.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function ScifiCrate({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/scifi_crate.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function MagicPotion({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/magic_potion.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Seaweed({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/seaweed.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function PharaohStaff({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/pharaoh_staff.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function CrystalSword({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/crystal_sword.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function MagicMushroom({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/magic_mushroom.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function VikingShip({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/viking_ship.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function MagicGate({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/magic_gate.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function FairyHouse({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/fairy_house.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function UFO({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/ufo.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function DragonEgg({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/dragon_egg.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Whale({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/whale.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Meteor({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/meteor.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Submarine({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/submarine.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Cactus({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/cactus.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+export function Pumpkin({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/pumpkin.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Spider({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/spider.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function GiantClam({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/giant_clam.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function Scorpion({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><StaticModel url={`${GEN}/scorpion.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function AncientIdol({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <StaticModel url={`${GEN}/ancient_idol.glb`} scale={scale} rotY={rotY} />
+    </RigidBody>
+  )
+}
+
+// ─── NPC персонажи (анимированные) ────────────────────────────
+
+export function NpcCat({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><GltfNPC url={`${GEN}/npc_cat.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function NpcRobot({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><GltfNPC url={`${GEN}/npc_robot.glb`} scale={scale} rotY={rotY} /></group>
+}
+
+export function NpcFairy({ pos, scale = 1, rotY = 0 }: { pos: [number, number, number]; scale?: number; rotY?: number }) {
+  return <group position={pos}><GltfNPC url={`${GEN}/npc_fairy.glb`} scale={scale} rotY={rotY} /></group>
+}
+
 // Прелоад самых частых моделей — убирает pop-in при первой игре
 useGLTF.preload(TREE_VARIANTS[0].url)
 useGLTF.preload(TREE_VARIANTS[1].url)
@@ -311,3 +608,38 @@ useGLTF.preload(`${GEN}/torch.glb`)
 useGLTF.preload(`${GEN}/pillar.glb`)
 useGLTF.preload(`${GEN}/cauldron.glb`)
 useGLTF.preload(`${PUBLIC_BASE}/models/generated/penguin_hero.glb`)
+useGLTF.preload(`${GEN}/fountain.glb`)
+useGLTF.preload(`${GEN}/trophy.glb`)
+useGLTF.preload(`${GEN}/stage.glb`)
+useGLTF.preload(`${GEN}/podium.glb`)
+useGLTF.preload(`${GEN}/spaceship.glb`)
+useGLTF.preload(`${GEN}/market_stall.glb`)
+useGLTF.preload(`${GEN}/npc_cat.glb`)
+useGLTF.preload(`${GEN}/npc_robot.glb`)
+useGLTF.preload(`${GEN}/npc_fairy.glb`)
+useGLTF.preload(`${GEN}/ice_block.glb`)
+useGLTF.preload(`${GEN}/crystal_cluster.glb`)
+useGLTF.preload(`${GEN}/palm_tree.glb`)
+useGLTF.preload(`${GEN}/boss_golem.glb`)
+useGLTF.preload(`${GEN}/boss_wizard.glb`)
+useGLTF.preload(`${GEN}/boss_dragon.glb`)
+useGLTF.preload(`${GEN}/jellyfish.glb`)
+useGLTF.preload(`${GEN}/energy_orb.glb`)
+useGLTF.preload(`${GEN}/seaweed.glb`)
+useGLTF.preload(`${GEN}/pharaoh_staff.glb`)
+useGLTF.preload(`${GEN}/crystal_sword.glb`)
+useGLTF.preload(`${GEN}/magic_mushroom.glb`)
+useGLTF.preload(`${GEN}/viking_ship.glb`)
+useGLTF.preload(`${GEN}/magic_gate.glb`)
+useGLTF.preload(`${GEN}/fairy_house.glb`)
+useGLTF.preload(`${GEN}/ufo.glb`)
+useGLTF.preload(`${GEN}/dragon_egg.glb`)
+useGLTF.preload(`${GEN}/whale.glb`)
+useGLTF.preload(`${GEN}/meteor.glb`)
+useGLTF.preload(`${GEN}/submarine.glb`)
+useGLTF.preload(`${GEN}/ancient_idol.glb`)
+useGLTF.preload(`${GEN}/cactus.glb`)
+useGLTF.preload(`${GEN}/pumpkin.glb`)
+useGLTF.preload(`${GEN}/spider.glb`)
+useGLTF.preload(`${GEN}/giant_clam.glb`)
+useGLTF.preload(`${GEN}/scorpion.glb`)

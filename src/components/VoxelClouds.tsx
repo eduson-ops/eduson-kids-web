@@ -1,26 +1,31 @@
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { Group } from 'three'
 
 interface CloudDef {
-  x: number
+  ox: number  // offset from camera
   y: number
-  z: number
+  oz: number  // offset from camera
   scale: number
   drift: number
-  /** random scale multiplier 1.0–1.6 baked at definition time */
   sizeVar: number
+  driftPhase: number
 }
 
 const CLOUDS: CloudDef[] = [
-  { x: -30, y: 22, z: -20, scale: 2.0, drift: 0.4, sizeVar: 1.0 },
-  { x: 35, y: 26, z: -35, scale: 2.4, drift: 0.3, sizeVar: 1.3 },
-  { x: -10, y: 20, z: -50, scale: 1.6, drift: 0.5, sizeVar: 1.6 },
-  { x: 50, y: 24, z: 10, scale: 2.1, drift: 0.35, sizeVar: 1.1 },
-  { x: -45, y: 28, z: 25, scale: 1.8, drift: 0.45, sizeVar: 1.4 },
-  { x: 5, y: 30, z: 60, scale: 2.2, drift: 0.3, sizeVar: 1.2 },
-  { x: -60, y: 21, z: -5, scale: 1.5, drift: 0.5, sizeVar: 1.5 },
+  { ox: -30, y: 22, oz: -20, scale: 2.0, drift: 0.4, sizeVar: 1.0, driftPhase: 0.0 },
+  { ox:  35, y: 26, oz: -35, scale: 2.4, drift: 0.3, sizeVar: 1.3, driftPhase: 0.7 },
+  { ox: -10, y: 20, oz:  50, scale: 1.6, drift: 0.5, sizeVar: 1.6, driftPhase: 1.4 },
+  { ox:  50, y: 24, oz:  10, scale: 2.1, drift: 0.35, sizeVar: 1.1, driftPhase: 2.1 },
+  { ox: -45, y: 28, oz:  25, scale: 1.8, drift: 0.45, sizeVar: 1.4, driftPhase: 2.8 },
+  { ox:   5, y: 30, oz:  60, scale: 2.2, drift: 0.3, sizeVar: 1.2, driftPhase: 3.5 },
+  { ox: -60, y: 21, oz:  -5, scale: 1.5, drift: 0.5, sizeVar: 1.5, driftPhase: 4.2 },
+  { ox:  20, y: 25, oz: -60, scale: 1.9, drift: 0.4, sizeVar: 1.2, driftPhase: 4.9 },
+  { ox: -20, y: 23, oz:  40, scale: 2.3, drift: 0.35, sizeVar: 1.0, driftPhase: 5.6 },
+  { ox:  60, y: 27, oz: -40, scale: 1.7, drift: 0.45, sizeVar: 1.3, driftPhase: 0.3 },
+  { ox: -55, y: 29, oz:  55, scale: 2.0, drift: 0.3, sizeVar: 1.5, driftPhase: 1.1 },
+  { ox:  40, y: 22, oz:  45, scale: 1.6, drift: 0.5, sizeVar: 1.1, driftPhase: 1.8 },
 ]
 
 const cloudVertexShader = /* glsl */ `
@@ -39,43 +44,33 @@ const cloudFragmentShader = /* glsl */ `
   varying vec2 vUv;
   varying vec3 vWorldPos;
   void main() {
-    // Soft edge fade
     float edge = min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y)) * 4.0;
-    float alpha = smoothstep(0.0, 1.0, edge) * 0.85;
-
-    // Gentle breathing pulse
-    float pulse = sin(iTime * 0.3 + vWorldPos.x * 0.1) * 0.05 + 1.0;
+    float alpha = smoothstep(0.0, 1.0, edge) * 0.82;
+    float pulse = sin(iTime * 0.28 + vWorldPos.x * 0.1) * 0.04 + 1.0;
     alpha *= pulse;
-
-    // Slightly blue-white at bottom, pure white at top
-    vec3 col = mix(vec3(0.95, 0.97, 1.0), vec3(1.0), vUv.y * 0.3);
-
+    vec3 col = mix(vec3(0.94, 0.96, 1.0), vec3(1.0), vUv.y * 0.3);
     gl_FragColor = vec4(col, alpha);
   }
 `
 
-/**
- * Voxel-pixel облака — композиция кубов с мягкими краями через кастомный шейдер.
- * Soft fade на UV-границах, лёгкое «дыхание» через iTime, слегка варьированный размер.
- */
 export default function VoxelClouds() {
   const root = useRef<Group>(null!)
-  const timeRef = useRef(0)
-
-  // Shared uniforms object — all cloud materials share the same iTime ref
   const sharedUniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const { camera } = useThree()
 
   useFrame((state) => {
     if (!root.current) return
     const t = state.clock.elapsedTime
-    timeRef.current = t
     sharedUniforms.iTime.value = t
+    const cx = camera.position.x
+    const cz = camera.position.z
 
     root.current.children.forEach((child, i) => {
       const def = CLOUDS[i]
       if (!def) return
-      child.position.x = def.x + Math.sin(t * 0.05 + i) * 6 * def.drift
-      child.position.y = def.y + Math.sin(t * 0.15 + i * 0.8) * 0.4
+      child.position.x = cx + def.ox + Math.sin(t * 0.05 + def.driftPhase) * 7 * def.drift
+      child.position.y = def.y + Math.sin(t * 0.14 + def.driftPhase) * 0.5
+      child.position.z = cz + def.oz
     })
   })
 

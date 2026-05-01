@@ -1,446 +1,1091 @@
 import { RigidBody } from '@react-three/rapier'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useRef, useState, useMemo } from 'react'
 import * as THREE from 'three'
+import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
+import GradientSky from '../GradientSky'
+import {
+  Tree, Bush, Flowers, MushroomGlow, Crystal,
+  Lantern, FlowerPot, Flag, TreePine, TreeRound,
+  Snowflake, PalmTree, IceBlock, LavaRock, CrystalCluster,
+} from '../Scenery'
+import NPC from '../NPC'
 import { addCoin } from '../../lib/gameState'
 import { SFX } from '../../lib/audio'
-import GradientSky from '../GradientSky'
 
-/**
- * PetSimWorld — educational remake of «Pet Simulator 99» (Roblox top-6).
- *
- * Curriculum: M3 capstone «Pet Math Sim» — формула урона = base * level * rarity.
- * MVP — три зоны подряд:
- *   Zone 1: Трава (низкая награда)  — 5 блоков, coin на каждом
- *   Zone 2: Лёд (средняя)           — 5 блоков, coin на каждом
- *   Zone 3: Космос (высокая)        — 5 блоков, coin + редкий «rainbow»
- * Питомцы (GLTF-монстры) расставлены по зонам как decor.
- *
- * Python hooks для урока L14-L17:
- *   damage(base, level, rarity)  — formula
- *   rebirth()                    — reset progression
- */
+export const PETSIM_SPAWN: [number, number, number] = [0, 3, 8]
 
-const GRASS = '#6fd83e'
-const ICE = '#88d4ff'
-const SPACE = '#15142a'
+// ─── Biome ground floors ───────────────────────────────────────────────────
 
-interface ZoneDef {
-  z0: number
-  z1: number
-  color: string
-  blockColor: string
-  name: string
-  rarity: number
-}
-
-const ZONES: ZoneDef[] = [
-  { z0:  0,  z1: -20, color: GRASS, blockColor: '#3fb74d', name: 'Трава',  rarity: 1 },
-  { z0: -20, z1: -40, color: ICE,   blockColor: '#5aa9ff', name: 'Лёд',    rarity: 2 },
-  { z0: -40, z1: -60, color: SPACE, blockColor: '#6B5CE7', name: 'Космос', rarity: 5 },
-]
-
-function Zone({ z0, z1, color }: ZoneDef) {
-  const length = Math.abs(z1 - z0)
-  const centerZ = (z0 + z1) / 2
-  return (
-    <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, centerZ]}>
-      <mesh receiveShadow>
-        <boxGeometry args={[24, 0.5, length]} />
-        <meshStandardMaterial color={color} roughness={0.85} />
-      </mesh>
-    </RigidBody>
-  )
-}
-
-function BreakableBlock({
-  pos,
-  color,
-  rare,
-  reward,
+function BiomeFloor({
+  color, z0, z1, roughness = 0.85, metalness = 0,
+  emissive = '#000000', emissiveIntensity = 0,
 }: {
-  pos: [number, number, number]
-  color: string
-  rare?: boolean
-  reward: number
+  color: string; z0: number; z1: number
+  roughness?: number; metalness?: number
+  emissive?: string; emissiveIntensity?: number
 }) {
-  const meshRef = useRef<THREE.Mesh>(null!)
-  const [state, setState] = useState<'idle' | 'breaking' | 'done'>('idle')
-  const breakT = useRef(0)
-
-  // «Дышащая» анимация блока в idle
-  useFrame((_, dt) => {
-    if (state === 'idle' && meshRef.current) {
-      meshRef.current.rotation.y += dt * 0.4
-    }
-    if (state === 'breaking' && meshRef.current) {
-      breakT.current += dt
-      const p = Math.min(breakT.current / 0.35, 1)
-      meshRef.current.scale.setScalar(1 - p)
-      if (p >= 1) setState('done')
-    }
-  })
-
-  if (state === 'done') return null
-
+  const len = Math.abs(z1 - z0)
+  const cz = (z0 + z1) / 2
   return (
-    <RigidBody
-      type="fixed"
-      colliders="cuboid"
-      position={pos}
-      sensor={state === 'breaking'}
-      onIntersectionEnter={({ other }) => {
-        if (state !== 'idle') return
-        if (other.rigidBodyObject?.name === 'player') {
-          setState('breaking')
-          breakT.current = 0
-          addCoin(reward)
-          SFX.coin()
-        }
-      }}
-    >
-      <mesh ref={meshRef} castShadow receiveShadow>
-        <boxGeometry args={[1.4, 1.4, 1.4]} />
+    <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, cz]}>
+      <mesh receiveShadow>
+        <boxGeometry args={[40, 0.5, len]} />
         <meshStandardMaterial
-          color={color}
-          roughness={rare ? 0.2 : 0.7}
-          metalness={rare ? 0.9 : 0.1}
-          emissive={rare ? color : '#000'}
-          emissiveIntensity={rare ? 0.5 : 0}
+          color={color} roughness={roughness} metalness={metalness}
+          emissive={emissive} emissiveIntensity={emissiveIntensity}
         />
       </mesh>
-      {/* Трещинки-декор при rare */}
-      {rare && (
-        <mesh position={[0, 0.8, 0]}>
-          <torusGeometry args={[0.5, 0.05, 6, 14]} />
-          <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={1.2} transparent opacity={0.7} />
-        </mesh>
-      )}
     </RigidBody>
   )
 }
 
-function ZoneBlocks({ zone, i }: { zone: ZoneDef; i: number }) {
-  // Ряд из 5 блоков по центру зоны, X-шахматка. Сломал блок — получил монеты.
-  const blocks: Array<{ pos: [number, number, number]; rare: boolean }> = []
-  const zLen = Math.abs(zone.z1 - zone.z0)
-  for (let k = 0; k < 5; k++) {
-    const zFrac = (k + 0.5) / 5
-    const z = zone.z0 - zFrac * zLen
-    const x = (k % 2 === 0 ? -3 : 3)
-    const rare = k === 2 && i === 2          // центральный блок в Космосе — редкий
-    blocks.push({ pos: [x, 0.7, z], rare })
-  }
-  return (
-    <>
-      {blocks.map((b, idx) => (
-        <BreakableBlock
-          key={idx}
-          pos={b.pos}
-          color={zone.blockColor}
-          rare={b.rare}
-          reward={b.rare ? zone.rarity * 3 : zone.rarity}
-        />
-      ))}
-    </>
-  )
-}
+// ─── Lava shader for Volcano biome ────────────────────────────────────────
 
-function ZoneSign({ zone }: { zone: ZoneDef }) {
-  // Яркая вывеска на границе зоны
-  return (
-    <group position={[0, 2.5, zone.z0 - 0.5]}>
-      <mesh castShadow>
-        <boxGeometry args={[10, 1.2, 0.25]} />
-        <meshStandardMaterial color="#FFD43C" emissive="#FFD43C" emissiveIntensity={0.35} />
-      </mesh>
-      {/* Палочки-опоры */}
-      <mesh position={[-4.5, -1.8, 0]}>
-        <boxGeometry args={[0.3, 3, 0.3]} />
-        <meshStandardMaterial color="#7a4a22" />
-      </mesh>
-      <mesh position={[4.5, -1.8, 0]}>
-        <boxGeometry args={[0.3, 3, 0.3]} />
-        <meshStandardMaterial color="#7a4a22" />
-      </mesh>
-    </group>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Sparkle system — 40 tiny floating star particles
-// ─────────────────────────────────────────────
-
-interface SparkleData {
-  pos: [number, number, number]
-  phase: number
-  speed: number
-  driftX: number
-  driftZ: number
-  burstTimer: number
-  burstActive: boolean
-}
-
-function SparkleSystem() {
-  const count = 40
-
-  const sparkles = useMemo<SparkleData[]>(() => {
-    return Array.from({ length: count }, () => ({
-      pos: [
-        (Math.random() - 0.5) * 20,
-        Math.random() * 8,
-        (Math.random() - 0.5) * 20 - 30,
-      ] as [number, number, number],
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.8 + Math.random() * 1.2,
-      driftX: (Math.random() - 0.5) * 0.5,
-      driftZ: (Math.random() - 0.5) * 0.5,
-      burstTimer: 0,
-      burstActive: false,
-    }))
-  }, [])
-
-  const refs = useRef<Array<THREE.Mesh | null>>(Array(count).fill(null))
-  const timeRef = useRef(0)
-
-  // Burst cluster state — up to 4 extra sparkles at a random spot
-  const burstRef = useRef<{ active: boolean; pos: THREE.Vector3; timer: number }>({
-    active: false,
-    pos: new THREE.Vector3(),
-    timer: 0,
-  })
-  const burstMeshRefs = useRef<Array<THREE.Mesh | null>>([null, null, null, null])
-
-  useFrame((_, dt) => {
-    timeRef.current += dt
-
-    refs.current.forEach((mesh, i) => {
-      if (!mesh) return
-      const sp = sparkles[i]!
-      const t = timeRef.current * sp.speed + sp.phase
-      const opacity = (Math.sin(t) * 0.5 + 0.5)
-      ;(mesh.material as THREE.MeshBasicMaterial).opacity = opacity
-      mesh.visible = opacity > 0.05
-
-      // Gentle drift
-      mesh.position.x += sp.driftX * dt * 0.3
-      mesh.position.z += sp.driftZ * dt * 0.3
-      // Wrap around volume
-      if (mesh.position.x > 10) mesh.position.x = -10
-      if (mesh.position.x < -10) mesh.position.x = 10
-      if (mesh.position.z > 0) mesh.position.z = -60
-      if (mesh.position.z < -60) mesh.position.z = 0
-    })
-
-    // Random burst trigger
-    if (!burstRef.current.active && Math.random() < 0.005) {
-      burstRef.current.active = true
-      burstRef.current.timer = 0
-      burstRef.current.pos.set(
-        (Math.random() - 0.5) * 20,
-        Math.random() * 6 + 0.5,
-        (Math.random() - 0.5) * 20 - 30,
-      )
-    }
-
-    if (burstRef.current.active) {
-      burstRef.current.timer += dt
-      const bt = burstRef.current.timer
-      const alpha = bt < 0.4 ? bt / 0.4 : Math.max(0, 1 - (bt - 0.4) / 0.4)
-      burstMeshRefs.current.forEach((m, i) => {
-        if (!m) return
-        const angle = (i / 4) * Math.PI * 2
-        m.position.set(
-          burstRef.current.pos.x + Math.cos(angle) * bt * 1.5,
-          burstRef.current.pos.y + bt,
-          burstRef.current.pos.z + Math.sin(angle) * bt * 1.5,
-        )
-        ;(m.material as THREE.MeshBasicMaterial).opacity = alpha
-        m.visible = alpha > 0.01
-      })
-      if (bt > 0.8) {
-        burstRef.current.active = false
-        burstMeshRefs.current.forEach((m) => { if (m) m.visible = false })
-      }
-    }
-  })
-
-  return (
-    <>
-      {sparkles.map((sp, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { refs.current[i] = el }}
-          position={sp.pos}
-        >
-          <sphereGeometry args={[0.05, 4, 4]} />
-          <meshBasicMaterial color="#ffff00" transparent opacity={1} />
-        </mesh>
-      ))}
-      {/* Burst cluster meshes */}
-      {[0, 1, 2, 3].map((i) => (
-        <mesh
-          key={`burst-${i}`}
-          ref={(el) => { burstMeshRefs.current[i] = el }}
-          visible={false}
-          position={[0, -100, 0]}
-        >
-          <sphereGeometry args={[0.08, 4, 4]} />
-          <meshBasicMaterial color="#ffff44" transparent opacity={0} />
-        </mesh>
-      ))}
-    </>
-  )
-}
-
-// ─────────────────────────────────────────────
-// Paw-print light patches on ground
-// ─────────────────────────────────────────────
-
-const PAW_PATCH_POSITIONS: Array<[number, number, number]> = [
-  [-4, 0.02, -5],
-  [4, 0.02, -8],
-  [-3, 0.02, -14],
-  [5, 0.02, -18],
-  [-5, 0.02, -25],
-  [3, 0.02, -30],
-  [-4, 0.02, -38],
-  [4, 0.02, -45],
-]
-
-const pawPatchVertexShader = `
+const lavaVert = `
   varying vec2 vUv;
   void main() {
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `
-
-const pawPatchFragmentShader = `
+const lavaFrag = `
   uniform float iTime;
-  uniform float iIndex;
   varying vec2 vUv;
+
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p) {
+    vec2 i = floor(p); vec2 f = fract(p);
+    float a = hash(i), b = hash(i + vec2(1,0)), c = hash(i + vec2(0,1)), d = hash(i + vec2(1,1));
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(a,b,u.x), mix(c,d,u.x), u.y);
+  }
+  float fbm(vec2 p) {
+    float v = 0.0; float a = 0.5;
+    for (int i = 0; i < 4; i++) { v += a * noise(p); p *= 2.1; a *= 0.5; }
+    return v;
+  }
+
   void main() {
-    vec2 center = vec2(0.5, 0.5);
-    // Stretch UV to make oval shape
-    vec2 stretched = vec2((vUv.x - 0.5) * 1.0, (vUv.y - 0.5) * 1.5);
-    float dist = length(stretched);
-    float fade = 1.0 - smoothstep(0.2, 0.5, dist);
-    float pulse = sin(iTime * 1.5 + iIndex * 0.8) * 0.15 + 0.45;
-    vec3 pink = vec3(1.0, 0.667, 0.733);
-    gl_FragColor = vec4(pink, fade * pulse);
+    vec2 uv = vUv * 6.0;
+    float n = fbm(uv + vec2(iTime * 0.3, iTime * 0.2));
+    float n2 = fbm(uv * 1.3 - vec2(iTime * 0.2, iTime * 0.15) + n);
+    float lava = smoothstep(0.3, 0.7, n2);
+    vec3 hot = mix(vec3(1.0, 0.2, 0.0), vec3(1.0, 0.85, 0.0), lava);
+    vec3 dark = vec3(0.08, 0.02, 0.02);
+    vec3 col = mix(dark, hot, pow(lava, 1.5));
+    gl_FragColor = vec4(col, 1.0);
   }
 `
 
-function PawPatch({ pos, index }: { pos: [number, number, number]; index: number }) {
+function LavaFloor() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
-
-  const uniforms = useMemo(() => ({
-    iTime: { value: 0 },
-    iIndex: { value: index },
-  }), [index])
-
-  useFrame((_, dt) => {
-    if (matRef.current) {
-      matRef.current.uniforms.iTime!.value += dt
-    }
-  })
-
+  const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  useFrame((_, dt) => { if (matRef.current) matRef.current.uniforms.iTime!.value += dt })
   return (
-    <mesh position={pos} rotation={[-Math.PI / 2, 0, 0]} scale={[1.2, 0.8, 1]}>
-      <planeGeometry args={[2.5, 2.5, 1, 1]} />
-      <shaderMaterial
-        ref={matRef}
-        uniforms={uniforms}
-        vertexShader={pawPatchVertexShader}
-        fragmentShader={pawPatchFragmentShader}
-        transparent
-        depthWrite={false}
-        side={THREE.DoubleSide}
-      />
-    </mesh>
+    <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -75]}>
+      <mesh receiveShadow>
+        <boxGeometry args={[40, 0.5, 30]} />
+        <shaderMaterial ref={matRef} uniforms={uniforms} vertexShader={lavaVert} fragmentShader={lavaFrag} />
+      </mesh>
+    </RigidBody>
   )
 }
 
-// ─────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────
+// ─── Breakable block (sensor-based, with scale-out animation) ─────────────
+
+function BreakableBlock({
+  pos, color, emissive = '#000000', emissiveInt = 0, metalness = 0.1,
+}: {
+  pos: [number, number, number]
+  color: string
+  emissive?: string
+  emissiveInt?: number
+  metalness?: number
+}) {
+  const [broken, setBroken] = useState(false)
+  const meshRef = useRef<THREE.Mesh>(null!)
+  const breakT = useRef(0)
+  const breaking = useRef(false)
+
+  useFrame((_, dt) => {
+    if (breaking.current && meshRef.current) {
+      breakT.current += dt
+      const p = Math.min(breakT.current / 0.3, 1)
+      meshRef.current.scale.setScalar(1 - p)
+      if (p >= 1) setBroken(true)
+    }
+    if (!breaking.current && meshRef.current) {
+      meshRef.current.rotation.y += dt * 0.5
+    }
+  })
+
+  if (broken) return null
+
+  return (
+    <group>
+      <RigidBody
+        type="fixed"
+        colliders="cuboid"
+        position={pos}
+        sensor={breaking.current}
+        onIntersectionEnter={({ other }) => {
+          if (breaking.current) return
+          if (other.rigidBodyObject?.name === 'player') {
+            breaking.current = true
+            breakT.current = 0
+            addCoin(3)
+            SFX.coin()
+          }
+        }}
+      >
+        <mesh ref={meshRef} castShadow receiveShadow>
+          <boxGeometry args={[3, 1.5, 3]} />
+          <meshStandardMaterial
+            color={color} roughness={0.4} metalness={metalness}
+            emissive={emissive} emissiveIntensity={emissiveInt}
+          />
+        </mesh>
+      </RigidBody>
+      {/* Coin floating above block */}
+      <Coin pos={[pos[0], pos[1] + 1.8, pos[2]]} />
+    </group>
+  )
+}
+
+// ─── Snowflake particle system (Winter biome) ─────────────────────────────
+
+function SnowflakeSystem() {
+  const count = 60
+  const positions = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * 38,
+      y: Math.random() * 10 + 1,
+      z: -30 - Math.random() * 30,
+      speed: 0.3 + Math.random() * 0.7,
+      drift: (Math.random() - 0.5) * 0.4,
+      phase: Math.random() * Math.PI * 2,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+
+  useFrame((_, dt) => {
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const p = positions[i]!
+      m.position.y -= p.speed * dt
+      m.position.x += p.drift * dt * 0.5
+      if (m.position.y < 0.1) {
+        m.position.y = 10
+        m.position.x = (Math.random() - 0.5) * 38
+      }
+    })
+  })
+
+  return (
+    <>
+      {positions.map((p, i) => (
+        <mesh
+          key={i}
+          ref={el => { refs.current[i] = el }}
+          position={[p.x, p.y, p.z]}
+        >
+          <octahedronGeometry args={[0.08, 0]} />
+          <meshBasicMaterial color="#cceeff" transparent opacity={0.9} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── Sky sparkle particle system (Sky biome) ──────────────────────────────
+
+function SkySparkles() {
+  const count = 80
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * 38,
+      y: Math.random() * 8 + 0.5,
+      z: -120 - Math.random() * 30,
+      phase: Math.random() * Math.PI * 2,
+      speed: 1 + Math.random() * 2,
+      color: ['#ff88cc', '#88ffcc', '#ffcc44', '#88ccff', '#cc88ff'][Math.floor(Math.random() * 5)]!,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      const s = Math.abs(Math.sin(t.current * d.speed + d.phase))
+      m.scale.setScalar(s * 0.5 + 0.1)
+      ;(m.material as THREE.MeshBasicMaterial).opacity = s
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh
+          key={i}
+          ref={el => { refs.current[i] = el }}
+          position={[d.x, d.y, d.z]}
+        >
+          <octahedronGeometry args={[0.12, 0]} />
+          <meshBasicMaterial color={d.color} transparent opacity={1} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── ЛУГА (Meadow) — Pollen drift ────────────────────────────────────────
+
+function MeadowPollen() {
+  const count = 40
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * 24,
+      y: 1 + Math.random() * 3,
+      z: -3 - Math.random() * 22,
+      phaseX: Math.random() * Math.PI * 2,
+      phaseY: Math.random() * Math.PI * 2,
+      phaseZ: Math.random() * Math.PI * 2,
+      freqX: 0.2 + Math.random() * 0.3,
+      freqY: 0.15 + Math.random() * 0.25,
+      freqZ: 0.1 + Math.random() * 0.2,
+      ampX: 0.8 + Math.random() * 1.2,
+      ampY: 0.3 + Math.random() * 0.5,
+      ampZ: 0.5 + Math.random() * 0.8,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      m.position.x = d.x + Math.sin(t.current * d.freqX + d.phaseX) * d.ampX
+      m.position.y = d.y + Math.sin(t.current * d.freqY + d.phaseY) * d.ampY
+      m.position.z = d.z + Math.sin(t.current * d.freqZ + d.phaseZ) * d.ampZ
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
+          <sphereGeometry args={[0.04, 4, 4]} />
+          <meshBasicMaterial color="#ffe033" transparent opacity={0.85} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── ЗИМА (Winter) — Snowfall ─────────────────────────────────────────────
+
+function WinterSnow() {
+  const count = 120
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * 30,
+      y: Math.random() * 11,
+      z: -32 - Math.random() * 25,
+      speed: 0.8 + Math.random() * 1.4,
+      driftX: (Math.random() - 0.5) * 0.6,
+      driftPhase: Math.random() * Math.PI * 2,
+      driftFreq: 0.4 + Math.random() * 0.6,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      m.position.y -= d.speed * dt
+      m.position.x += d.driftX * dt + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.008
+      if (m.position.y < -1) {
+        m.position.y = 10
+        m.position.x = (Math.random() - 0.5) * 30
+      }
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
+          <sphereGeometry args={[0.05, 4, 4]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── ВУЛКАН (Volcano) — Rising embers ────────────────────────────────────
+
+const EMBER_COLORS = ['#ff4400', '#ff8800', '#ffcc00'] as const
+
+function VolcanoEmbers() {
+  const count = 60
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * 28,
+      y: 1 + Math.random() * 9,
+      z: -63 - Math.random() * 22,
+      speed: 3 + Math.random() * 3,
+      radius: 0.04 + Math.random() * 0.03,
+      color: EMBER_COLORS[Math.floor(Math.random() * 3)]!,
+      driftX: (Math.random() - 0.5) * 1.2,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+
+  useFrame((_, dt) => {
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      m.position.y += d.speed * dt
+      m.position.x += d.driftX * dt * 0.3
+      if (m.position.y > 10) {
+        m.position.y = 1
+        m.position.x = (Math.random() - 0.5) * 28
+      }
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
+          <sphereGeometry args={[d.radius, 4, 4]} />
+          <meshBasicMaterial color={d.color} transparent opacity={0.9} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── НЕБО (Sky) — Cloud wisps ─────────────────────────────────────────────
+
+function SkyCloudWisps() {
+  const count = 8
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * 30,
+      y: 4 + Math.random() * 5,
+      z: -125 - Math.random() * 25,
+      speed: (Math.random() < 0.5 ? 1 : -1) * (0.4 + Math.random() * 0.6),
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+
+  useFrame((_, dt) => {
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      m.position.x += d.speed * dt
+      if (m.position.x > 20) m.position.x = -20
+      if (m.position.x < -20) m.position.x = 20
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh
+          key={i}
+          ref={el => { refs.current[i] = el }}
+          position={[d.x, d.y, d.z]}
+          scale={[5, 1, 2]}
+        >
+          <sphereGeometry args={[1, 8, 6]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.25} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── ЛУГА (Forest/Meadow) — Forest Spores rising ─────────────────────────
+
+function ForestSpores() {
+  const count = 30
+  const { camera } = useThree()
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      ox: (Math.random() - 0.5) * 28,
+      y: Math.random() * 6 + 0.5,
+      z: -3 - Math.random() * 26,
+      speed: 0.4 + Math.random() * 0.6,
+      driftX: (Math.random() - 0.5) * 0.3,
+      driftPhase: Math.random() * Math.PI * 2,
+      driftFreq: 0.3 + Math.random() * 0.4,
+      color: Math.random() > 0.5 ? '#88ff44' : '#ccff66',
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      m.position.y += d.speed * dt
+      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.6
+      if (m.position.y > 7) {
+        m.position.y = 0.5
+        d.ox = (Math.random() - 0.5) * 28
+      }
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
+          <sphereGeometry args={[0.04, 4, 4]} />
+          <meshBasicMaterial color={d.color} transparent opacity={0.8} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── ЗИМА (Snow/Ice) — Snow Drift falling spheres ─────────────────────────
+
+function SnowDrift() {
+  const count = 50
+  const { camera } = useThree()
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      ox: (Math.random() - 0.5) * 34,
+      y: Math.random() * 9 + 1,
+      z: -31 - Math.random() * 28,
+      speed: 0.5 + Math.random() * 0.8,
+      driftX: (Math.random() - 0.5) * 0.5,
+      driftPhase: Math.random() * Math.PI * 2,
+      driftFreq: 0.2 + Math.random() * 0.3,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      m.position.y -= d.speed * dt
+      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 1.2
+      if (m.position.y < -1) {
+        m.position.y = 9
+        d.ox = (Math.random() - 0.5) * 34
+      }
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
+          <sphereGeometry args={[0.055, 4, 4]} />
+          <meshBasicMaterial color="#ddf4ff" transparent opacity={0.88} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── КРИСТАЛЛЫ (Crystal) — Crystal Sparkle motes ─────────────────────────
+
+function CrystalSparkle() {
+  const count = 40
+  const { camera } = useThree()
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      ox: (Math.random() - 0.5) * 32,
+      y: 0.5 + Math.random() * 7,
+      z: -91 - Math.random() * 28,
+      speed: 0.6 + Math.random() * 0.9,
+      driftX: (Math.random() - 0.5) * 0.4,
+      driftPhase: Math.random() * Math.PI * 2,
+      driftFreq: 0.5 + Math.random() * 0.8,
+      scalePhase: Math.random() * Math.PI * 2,
+      scaleFreq: 1.0 + Math.random() * 2.0,
+      color: ['#cc44ff', '#4488ff', '#ff44cc', '#44ffcc'][Math.floor(Math.random() * 4)]!,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      m.position.y += d.speed * dt
+      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.8
+      const s = 0.5 + Math.abs(Math.sin(t.current * d.scaleFreq + d.scalePhase)) * 0.5
+      m.scale.setScalar(s)
+      ;(m.material as THREE.MeshBasicMaterial).opacity = s * 0.85
+      if (m.position.y > 8) {
+        m.position.y = 0.5
+        d.ox = (Math.random() - 0.5) * 32
+      }
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
+          <octahedronGeometry args={[0.07, 0]} />
+          <meshBasicMaterial color={d.color} transparent opacity={0.85} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── НЕБО (Sky) — Candy Sparkle twinkling stars ───────────────────────────
+
+function CandySparkle() {
+  const count = 20
+  const { camera } = useThree()
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      ox: (Math.random() - 0.5) * 34,
+      y: 1 + Math.random() * 7,
+      z: -121 - Math.random() * 28,
+      scalePhase: Math.random() * Math.PI * 2,
+      scaleFreq: 1.5 + Math.random() * 2.5,
+      driftPhase: Math.random() * Math.PI * 2,
+      driftFreq: 0.3 + Math.random() * 0.4,
+      color: ['#ff88cc', '#ffcc44', '#88ffcc', '#ff44aa', '#44ccff', '#ffaa44'][Math.floor(Math.random() * 6)]!,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      const s = 0.3 + Math.abs(Math.sin(t.current * d.scaleFreq + d.scalePhase)) * 0.7
+      m.scale.setScalar(s)
+      ;(m.material as THREE.MeshBasicMaterial).opacity = s * 0.9
+      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 1.5
+      m.rotation.y = t.current * 1.2
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
+          <octahedronGeometry args={[0.15, 0]} />
+          <meshBasicMaterial color={d.color} transparent opacity={0.9} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── Global floating sparkles across entire map ───────────────────────────
+
+function GlobalSparkles() {
+  const count = 100
+  const data = useMemo(() =>
+    Array.from({ length: count }, () => ({
+      x: (Math.random() - 0.5) * 38,
+      y: Math.random() * 9 + 0.5,
+      z: -Math.random() * 150,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.6 + Math.random() * 1.4,
+    }))
+  , [])
+  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const t = useRef(0)
+
+  useFrame((_, dt) => {
+    t.current += dt
+    refs.current.forEach((m, i) => {
+      if (!m) return
+      const d = data[i]!
+      const s = (Math.sin(t.current * d.speed + d.phase) * 0.5 + 0.5)
+      ;(m.material as THREE.MeshBasicMaterial).opacity = s * 0.7
+      m.visible = s > 0.05
+    })
+  })
+
+  return (
+    <>
+      {data.map((d, i) => (
+        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.x, d.y, d.z]}>
+          <sphereGeometry args={[0.045, 4, 4]} />
+          <meshBasicMaterial color="#ffffaa" transparent opacity={1} />
+        </mesh>
+      ))}
+    </>
+  )
+}
+
+// ─── Biome boundary arch ──────────────────────────────────────────────────
+
+function BiomeArch({ z, color, label }: { z: number; color: string; label: string }) {
+  return (
+    <group position={[0, 0, z]}>
+      {/* Left pillar */}
+      <RigidBody type="fixed" colliders="cuboid" position={[-12, 3, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[1.2, 6, 1.2]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
+        </mesh>
+      </RigidBody>
+      {/* Right pillar */}
+      <RigidBody type="fixed" colliders="cuboid" position={[12, 3, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[1.2, 6, 1.2]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
+        </mesh>
+      </RigidBody>
+      {/* Top beam */}
+      <RigidBody type="fixed" colliders="cuboid" position={[0, 6.4, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[25, 1.0, 1.2]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} roughness={0.3} />
+        </mesh>
+      </RigidBody>
+    </group>
+  )
+}
+
+// ─── Biome 3: Volcano boulders ────────────────────────────────────────────
+
+function Boulder({ pos, sz }: { pos: [number, number, number]; sz: [number, number, number] }) {
+  return (
+    <RigidBody type="fixed" colliders="cuboid" position={pos}>
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={sz} />
+        <meshStandardMaterial color="#3a2a28" roughness={0.95} />
+      </mesh>
+    </RigidBody>
+  )
+}
+
+// ─── Sky Cloud Architecture ───────────────────────────────────────────────
+
+const CLOUD_PLATFORMS = [
+  { cx: -18, cy: 6,  cz: -126 },
+  { cx:  17, cy: 8,  cz: -131 },
+  { cx: -16, cy: 10, cz: -138 },
+  { cx:  15, cy: 7,  cz: -143 },
+  { cx:   0, cy: 12, cz: -134 },
+  { cx:  -8, cy: 9,  cz: -148 },
+] as const
+
+const CLOUD_TOWERS = [
+  { x: -22, z: -125 },
+  { x:  22, z: -125 },
+  { x: -22, z: -145 },
+  { x:  22, z: -145 },
+] as const
+
+function SkyCloudArchitecture() {
+  return (
+    <group>
+      {/* Fluffy cloud platforms */}
+      {CLOUD_PLATFORMS.map(({ cx, cy, cz }, i) => (
+        <group key={i} position={[cx, cy, cz] as [number, number, number]}>
+          {(
+            [
+              { pos: [0, 0, 0] as [number, number, number],      r: 2.5 },
+              { pos: [1.8, -0.5, 0] as [number, number, number], r: 2.0 },
+              { pos: [-1.8, -0.5, 0] as [number, number, number],r: 2.0 },
+              { pos: [0, -0.3, 1.5] as [number, number, number], r: 2.0 },
+              { pos: [0, -0.3, -1.5] as [number, number, number],r: 2.0 },
+            ] as const
+          ).map(({ pos, r }, j) => (
+            <mesh key={j} position={pos} castShadow>
+              <sphereGeometry args={[r, 14, 10]} />
+              <meshStandardMaterial
+                color="#ffffff"
+                emissive="#eeeeff"
+                emissiveIntensity={0.4}
+                roughness={0.1}
+              />
+            </mesh>
+          ))}
+          <pointLight
+            position={[0, -1, 0] as [number, number, number]}
+            color="#ffccee"
+            intensity={1.2}
+            distance={12}
+          />
+        </group>
+      ))}
+
+      {/* Corner cloud towers */}
+      {CLOUD_TOWERS.map(({ x, z }, ti) => (
+        <group key={ti}>
+          {(
+            [
+              { y: 2,  r: 2.0 },
+              { y: 5,  r: 1.8 },
+              { y: 8,  r: 1.5 },
+              { y: 11, r: 1.2 },
+            ] as const
+          ).map(({ y, r }, si) => (
+            <mesh key={si} position={[x, y, z] as [number, number, number]} castShadow>
+              <sphereGeometry args={[r, 12, 8]} />
+              <meshStandardMaterial
+                color="#f0f8ff"
+                emissive="#ddeeff"
+                emissiveIntensity={0.3}
+                roughness={0.1}
+              />
+            </mesh>
+          ))}
+        </group>
+      ))}
+    </group>
+  )
+}
+
+// ─── Main world component ──────────────────────────────────────────────────
 
 export default function PetSimWorld() {
   return (
     <>
-      {/* Cheerful rainbow sky */}
-      <GradientSky top="#87ceeb" bottom="#ffe4b5" radius={440} />
+      {/* Sky */}
+      <GradientSky top="#1a2a60" bottom="#4060c0" />
 
-      {/* Pet area soft lighting */}
-      <pointLight color="#ffaacc" intensity={0.5} distance={8} position={[-4, 3, -10]} />
-      <pointLight color="#aaffcc" intensity={0.5} distance={8} position={[4, 3, -20]} />
-      <pointLight color="#ffffaa" intensity={0.5} distance={8} position={[-4, 3, -35]} />
-      <pointLight color="#ffaacc" intensity={0.5} distance={8} position={[4, 3, -50]} />
+      {/* Ambient + sun */}
+      <ambientLight intensity={0.55} color="#c8d8ff" />
+      <directionalLight castShadow position={[20, 40, 10]} intensity={1.1} color="#fff8e0" />
 
-      {ZONES.map((z, i) => (
-        <Zone key={`z${i}`} {...z} />
-      ))}
+      {/* ── Biome 1: ЛУГА (z: 0 → -30) ─────────────────────────────────── */}
+      <BiomeFloor color="#5dcf2a" z0={0} z1={-30} />
+      <BiomeArch z={-0.5} color="#ffd43b" label="ЛУГА" />
+      <pointLight color="#aaff44" intensity={0.8} distance={30} position={[-10, 5, -15]} />
+      <pointLight color="#ffee88" intensity={0.6} distance={20} position={[10, 4, -10]} />
 
-      {/* Стартовая платформа-«портал» */}
-      <RigidBody type="fixed" colliders="cuboid" position={[0, 0.1, 5]}>
-        <mesh receiveShadow castShadow>
-          <cylinderGeometry args={[3, 3, 0.4, 24]} />
-          <meshStandardMaterial color="#9FE8C7" emissive="#9FE8C7" emissiveIntensity={0.3} />
+      {/* Луга decorations */}
+      <Tree pos={[-15, 0, -5]} variant={0} rotY={0.3} />
+      <Tree pos={[15, 0, -8]} variant={1} rotY={1.2} />
+      <Tree pos={[-17, 0, -18]} variant={2} rotY={2.0} />
+      <Tree pos={[16, 0, -22]} variant={3} rotY={0.7} />
+      <TreeRound pos={[-14, 0, -25]} scale={1.1} />
+      <TreeRound pos={[14, 0, -14]} scale={0.9} />
+      <Bush pos={[-8, 0, -6]} variant={1} scale={1.2} />
+      <Bush pos={[8, 0, -12]} variant={0} scale={1.0} />
+      <Bush pos={[-6, 0, -20]} variant={1} scale={1.3} />
+      <Flowers pos={[-4, 0, -4]} scale={1.1} />
+      <Flowers pos={[5, 0, -9]} scale={1.0} />
+      <Flowers pos={[-7, 0, -16]} scale={1.2} />
+      <Flowers pos={[9, 0, -24]} scale={0.9} />
+      <FlowerPot pos={[-3, 0, -7]} scale={1.0} />
+      <FlowerPot pos={[4, 0, -19]} scale={1.1} />
+      <Flag pos={[-13, 0, -13]} scale={1.2} rotY={0} />
+      <Flag pos={[13, 0, -13]} scale={1.2} rotY={Math.PI} />
+
+      {/* Луга palm trees */}
+      <PalmTree pos={[-10, 0, -3]} scale={1.1} rotY={0.4} />
+      <PalmTree pos={[11, 0, -11]} scale={1.0} rotY={2.1} />
+      <PalmTree pos={[-12, 0, -21]} scale={1.2} rotY={1.0} />
+      <PalmTree pos={[10, 0, -27]} scale={0.9} rotY={3.2} />
+
+      {/* Луга breakable blocks */}
+      <BreakableBlock pos={[-9, 0.75, -5]} color="#4caf50" emissive="#4caf50" emissiveInt={0.2} />
+      <BreakableBlock pos={[9, 0.75, -10]} color="#66bb6a" emissive="#66bb6a" emissiveInt={0.2} />
+      <BreakableBlock pos={[-6, 0.75, -15]} color="#81c784" emissive="#81c784" emissiveInt={0.15} />
+      <BreakableBlock pos={[7, 0.75, -20]} color="#4caf50" emissive="#4caf50" emissiveInt={0.2} />
+      <BreakableBlock pos={[0, 0.75, -26]} color="#66bb6a" emissive="#66bb6a" emissiveInt={0.25} />
+
+      {/* Extra coins in луга */}
+      <Coin pos={[-12, 1, -8]} />
+      <Coin pos={[11, 1, -17]} />
+      <Coin pos={[0, 1, -12]} />
+
+      {/* Meadow pollen drift */}
+      <MeadowPollen />
+      {/* Forest spores rising */}
+      <ForestSpores />
+
+      {/* Bunny pet */}
+      <GltfMonster which="bunny" pos={[-11, 0, -18]} scale={1.2} animation="Yes" />
+
+      {/* NPC trainer at start */}
+      <NPC pos={[0, 0, 5]} label="ТРЕНЕР" bodyColor="#ffd644" />
+
+      {/* ── Biome 2: ЗИМА (z: -30 → -60) ───────────────────────────────── */}
+      <BiomeFloor color="#ddeeff" z0={-30} z1={-60} roughness={0.3} metalness={0.15}
+        emissive="#aaccff" emissiveIntensity={0.08} />
+      <BiomeArch z={-30} color="#88ccff" label="ЗИМА" />
+      <pointLight color="#aaddff" intensity={1.0} distance={35} position={[0, 8, -45]} />
+      <pointLight color="#cceeff" intensity={0.7} distance={20} position={[-12, 5, -35]} />
+      <pointLight color="#aabbff" intensity={0.6} distance={20} position={[12, 5, -55]} />
+
+      {/* Snow piles */}
+      <RigidBody type="fixed" colliders="cuboid" position={[-14, 0.8, -33]}>
+        <mesh castShadow><boxGeometry args={[3, 1.6, 2.5]} /><meshStandardMaterial color="#eef4ff" roughness={0.95} /></mesh>
+      </RigidBody>
+      <RigidBody type="fixed" colliders="cuboid" position={[13, 1.0, -40]}>
+        <mesh castShadow><boxGeometry args={[4, 2, 3]} /><meshStandardMaterial color="#ddeeff" roughness={0.9} /></mesh>
+      </RigidBody>
+      <RigidBody type="fixed" colliders="cuboid" position={[-10, 0.6, -50]}>
+        <mesh castShadow><boxGeometry args={[2.5, 1.2, 2]} /><meshStandardMaterial color="#e8f4ff" roughness={0.9} /></mesh>
+      </RigidBody>
+      <RigidBody type="fixed" colliders="cuboid" position={[11, 0.7, -57]}>
+        <mesh castShadow><boxGeometry args={[3.5, 1.4, 2.5]} /><meshStandardMaterial color="#eef4ff" roughness={0.95} /></mesh>
+      </RigidBody>
+      <RigidBody type="fixed" colliders="cuboid" position={[-16, 1.2, -44]}>
+        <mesh castShadow><boxGeometry args={[2, 2.4, 2]} /><meshStandardMaterial color="#d8eeff" roughness={0.85} /></mesh>
+      </RigidBody>
+
+      {/* Зима breakable blocks */}
+      <BreakableBlock pos={[-8, 0.75, -34]} color="#88ccff" emissive="#88ccff" emissiveInt={0.3} metalness={0.2} />
+      <BreakableBlock pos={[8, 0.75, -40]} color="#aaddff" emissive="#aaddff" emissiveInt={0.3} metalness={0.2} />
+      <BreakableBlock pos={[-5, 0.75, -46]} color="#bbddff" emissive="#bbddff" emissiveInt={0.25} metalness={0.2} />
+      <BreakableBlock pos={[6, 0.75, -52]} color="#88ccff" emissive="#88ccff" emissiveInt={0.3} metalness={0.25} />
+      <BreakableBlock pos={[0, 0.75, -57]} color="#aaddff" emissive="#aaddff" emissiveInt={0.35} metalness={0.3} />
+
+      {/* Extra coins in winter */}
+      <Coin pos={[-13, 1, -38]} />
+      <Coin pos={[12, 1, -49]} />
+
+      {/* Snowflakes */}
+      <SnowflakeSystem />
+      {/* Winter snowfall spheres */}
+      <WinterSnow />
+      {/* Snow drift — horizontal drift particles */}
+      <SnowDrift />
+
+      {/* Snowflake props — winter/ice biome zone */}
+      <Snowflake pos={[-15, 2, -35]} scale={1.5} />
+      <Snowflake pos={[12, 3, -40]} scale={2.0} />
+      <Snowflake pos={[-8, 1.5, -45]} scale={1.2} />
+      <Snowflake pos={[18, 4, -50]} scale={1.8} />
+      <Snowflake pos={[-16, 2, -55]} scale={1.4} />
+      <Snowflake pos={[5, 2.5, -58]} scale={1.6} />
+      <Snowflake pos={[-3, 3, -42]} scale={2.2} />
+      <Snowflake pos={[14, 1.5, -48]} scale={1.3} />
+
+      {/* Зима ice blocks */}
+      <IceBlock pos={[-13, 0, -32]} scale={1.3} rotY={0.2} />
+      <IceBlock pos={[10, 0, -38]} scale={1.5} rotY={1.5} />
+      <IceBlock pos={[-11, 0, -43]} scale={1.1} rotY={0.8} />
+      <IceBlock pos={[14, 0, -50]} scale={1.4} rotY={2.3} />
+      <IceBlock pos={[-8, 0, -56]} scale={1.2} rotY={3.0} />
+      <IceBlock pos={[5, 0, -59]} scale={1.0} rotY={1.1} />
+
+      {/* Cactoro in winter */}
+      <GltfMonster which="cactoro" pos={[10, 0, -43]} scale={1.1} animation="Idle" />
+
+      {/* ── Biome 3: ВУЛКАН (z: -60 → -90) ─────────────────────────────── */}
+      <LavaFloor />
+      {/* Dark rock border strips */}
+      <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -72]}>
+        <mesh receiveShadow>
+          <boxGeometry args={[40, 0.5, 6]} />
+          <meshStandardMaterial color="#1a0a08" roughness={0.98} />
+        </mesh>
+      </RigidBody>
+      <BiomeArch z={-60} color="#ff4400" label="ВУЛКАН" />
+      <pointLight color="#ff3300" intensity={2.5} distance={25} position={[-8, 4, -68]} />
+      <pointLight color="#ff6600" intensity={2.0} distance={25} position={[8, 4, -78]} />
+      <pointLight color="#ff2200" intensity={1.8} distance={20} position={[0, 6, -85]} />
+
+      {/* Boulders */}
+      <Boulder pos={[-14, 1.5, -64]} sz={[3, 3, 2.5]} />
+      <Boulder pos={[13, 2.0, -72]} sz={[4, 4, 3]} />
+      <Boulder pos={[-12, 1.0, -80]} sz={[2.5, 2, 2]} />
+      <Boulder pos={[15, 1.5, -87]} sz={[3.5, 3, 3]} />
+      <Boulder pos={[-15, 2.5, -85]} sz={[3, 5, 3]} />
+      <Boulder pos={[0, 1.0, -68]} sz={[2, 2, 2]} />
+
+      {/* Volcano lava rocks */}
+      <LavaRock pos={[-11, 0, -63]} scale={1.2} rotY={0.5} />
+      <LavaRock pos={[10, 0, -69]} scale={1.4} rotY={2.0} />
+      <LavaRock pos={[-13, 0, -76]} scale={1.1} rotY={1.3} />
+      <LavaRock pos={[11, 0, -82]} scale={1.3} rotY={0.9} />
+      <LavaRock pos={[-7, 0, -86]} scale={1.5} rotY={3.1} />
+      <LavaRock pos={[6, 0, -73]} scale={1.0} rotY={1.7} />
+
+      {/* Volcano breakable blocks */}
+      <BreakableBlock pos={[-9, 0.75, -63]} color="#cc2200" emissive="#ff3300" emissiveInt={0.5} metalness={0.3} />
+      <BreakableBlock pos={[9, 0.75, -70]} color="#dd3300" emissive="#ff4400" emissiveInt={0.5} metalness={0.3} />
+      <BreakableBlock pos={[-7, 0.75, -76]} color="#cc2200" emissive="#ff3300" emissiveInt={0.6} metalness={0.35} />
+      <BreakableBlock pos={[8, 0.75, -82]} color="#dd3300" emissive="#ff5500" emissiveInt={0.5} metalness={0.3} />
+      <BreakableBlock pos={[0, 0.75, -87]} color="#ff4400" emissive="#ff6600" emissiveInt={0.7} metalness={0.4} />
+
+      <Coin pos={[-11, 1, -73]} />
+      <Coin pos={[11, 1, -81]} />
+
+      {/* Rising embers */}
+      <VolcanoEmbers />
+
+      {/* BlueDemon in volcano */}
+      <GltfMonster which="blueDemon" pos={[0, 0, -74]} scale={1.4} animation="Wave" />
+
+      {/* ── Biome 4: КРИСТАЛЛЫ (z: -90 → -120) ─────────────────────────── */}
+      <BiomeFloor color="#1a0a2e" z0={-90} z1={-120} roughness={0.2} metalness={0.6}
+        emissive="#220044" emissiveIntensity={0.3} />
+      <BiomeArch z={-90} color="#aa44ff" label="КРИСТАЛЛЫ" />
+      <pointLight color="#8800ff" intensity={2.0} distance={30} position={[-10, 6, -100]} />
+      <pointLight color="#00ccff" intensity={1.8} distance={25} position={[10, 5, -110]} />
+      <pointLight color="#cc44ff" intensity={1.5} distance={20} position={[0, 8, -105]} />
+      <pointLight color="#4400cc" intensity={1.2} distance={18} position={[-15, 4, -115]} />
+
+      {/* Crystal formations */}
+      <Crystal pos={[-14, 0, -93]} scale={2.0} rotY={0.5} />
+      <Crystal pos={[13, 0, -96]} scale={2.5} rotY={1.8} />
+      <Crystal pos={[-11, 0, -103]} scale={1.8} rotY={0.9} />
+      <Crystal pos={[12, 0, -108]} scale={2.2} rotY={2.3} />
+      <Crystal pos={[-13, 0, -114]} scale={1.6} rotY={1.1} />
+      <Crystal pos={[15, 0, -118]} scale={2.0} rotY={3.0} />
+      <Crystal pos={[0, 0, -95]} scale={3.0} rotY={0.0} />
+      <Crystal pos={[-7, 0, -112]} scale={1.4} rotY={2.7} />
+
+      {/* Crystal clusters — extra density */}
+      <CrystalCluster pos={[-16, 0, -92]} scale={1.8} rotY={0.3} />
+      <CrystalCluster pos={[11, 0, -98]} scale={2.0} rotY={1.4} />
+      <CrystalCluster pos={[-9, 0, -104]} scale={1.5} rotY={2.7} />
+      <CrystalCluster pos={[16, 0, -109]} scale={1.7} rotY={0.8} />
+      <CrystalCluster pos={[-14, 0, -116]} scale={2.2} rotY={1.9} />
+      <CrystalCluster pos={[7, 0, -119]} scale={1.6} rotY={3.3} />
+      <CrystalCluster pos={[0, 0, -101]} scale={1.3} rotY={0.6} />
+      <CrystalCluster pos={[-5, 0, -111]} scale={1.9} rotY={2.2} />
+
+      {/* Glowing mushrooms */}
+      <MushroomGlow pos={[-10, 0, -97]} scale={1.5} />
+      <MushroomGlow pos={[9, 0, -102]} scale={1.8} />
+      <MushroomGlow pos={[-8, 0, -108]} scale={1.3} />
+      <MushroomGlow pos={[11, 0, -116]} scale={1.6} />
+      <MushroomGlow pos={[0, 0, -119]} scale={2.0} />
+
+      {/* Crystal breakable blocks */}
+      <BreakableBlock pos={[-9, 0.75, -93]} color="#6600cc" emissive="#9900ff" emissiveInt={0.6} metalness={0.7} />
+      <BreakableBlock pos={[9, 0.75, -100]} color="#4400aa" emissive="#7700ee" emissiveInt={0.7} metalness={0.7} />
+      <BreakableBlock pos={[-8, 0.75, -107]} color="#0044cc" emissive="#0088ff" emissiveInt={0.6} metalness={0.6} />
+      <BreakableBlock pos={[8, 0.75, -113]} color="#6600cc" emissive="#9900ff" emissiveInt={0.7} metalness={0.75} />
+      <BreakableBlock pos={[0, 0.75, -118]} color="#cc00ff" emissive="#ff44ff" emissiveInt={0.8} metalness={0.8} />
+
+      <Coin pos={[-12, 1, -105]} />
+      <Coin pos={[12, 1, -115]} />
+      <Coin pos={[0, 1, -99]} />
+
+      {/* Crystal sparkle motes */}
+      <CrystalSparkle />
+
+      {/* Alien in crystal zone */}
+      <GltfMonster which="alien" pos={[-10, 0, -110]} scale={1.2} animation="Idle" />
+
+      {/* ── Biome 5: НЕБО (z: -120 → -150) ─────────────────────────────── */}
+      <BiomeFloor color="#f0f8ff" z0={-120} z1={-150} roughness={0.05} metalness={0.1}
+        emissive="#ffffff" emissiveIntensity={0.15} />
+      <BiomeArch z={-120} color="#ffaacc" label="НЕБО" />
+      <pointLight color="#ffaaee" intensity={1.5} distance={35} position={[-10, 7, -130]} />
+      <pointLight color="#aaffee" intensity={1.5} distance={30} position={[10, 6, -140]} />
+      <pointLight color="#ffddaa" intensity={1.2} distance={25} position={[0, 10, -135]} />
+      <pointLight color="#ccaaff" intensity={1.0} distance={20} position={[-15, 5, -145]} />
+
+      {/* Cloud-like pillars */}
+      <RigidBody type="fixed" colliders="cuboid" position={[-15, 2, -125]}>
+        <mesh castShadow>
+          <sphereGeometry args={[2.5, 12, 8]} />
+          <meshStandardMaterial color="#ffffff" emissive="#eeeeff" emissiveIntensity={0.3} roughness={0.1} />
+        </mesh>
+      </RigidBody>
+      <RigidBody type="fixed" colliders="cuboid" position={[14, 3, -132]}>
+        <mesh castShadow>
+          <sphereGeometry args={[3, 12, 8]} />
+          <meshStandardMaterial color="#ffffff" emissive="#ffeeff" emissiveIntensity={0.3} roughness={0.1} />
+        </mesh>
+      </RigidBody>
+      <RigidBody type="fixed" colliders="cuboid" position={[-13, 2.5, -142]}>
+        <mesh castShadow>
+          <sphereGeometry args={[2.8, 12, 8]} />
+          <meshStandardMaterial color="#ffffff" emissive="#eeffee" emissiveIntensity={0.3} roughness={0.1} />
         </mesh>
       </RigidBody>
 
-      {/* Вывески-разделители зон */}
-      {ZONES.map((z, i) => (
-        <ZoneSign key={`s${i}`} zone={z} />
-      ))}
+      {/* Rich cloud platforms and corner towers */}
+      <SkyCloudArchitecture />
 
-      {/* Блоки + монеты в каждой зоне */}
-      {ZONES.map((z, i) => (
-        <ZoneBlocks key={`b${i}`} zone={z} i={i} />
-      ))}
+      {/* Flower pots and lanterns */}
+      <FlowerPot pos={[-7, 0, -123]} scale={1.3} />
+      <FlowerPot pos={[7, 0, -128]} scale={1.4} />
+      <FlowerPot pos={[-6, 0, -136]} scale={1.2} />
+      <FlowerPot pos={[8, 0, -143]} scale={1.3} />
+      <FlowerPot pos={[0, 0, -138]} scale={1.5} />
+      <Lantern pos={[-11, 0, -126]} scale={1.2} />
+      <Lantern pos={[11, 0, -133]} scale={1.1} />
+      <Lantern pos={[-9, 0, -140]} scale={1.3} />
+      <Lantern pos={[10, 0, -147]} scale={1.2} />
+      <Lantern pos={[0, 0, -124]} scale={1.0} />
 
-      {/* Sparkle particles */}
-      <SparkleSystem />
-
-      {/* Paw-print light patches */}
-      {PAW_PATCH_POSITIONS.map((pos, i) => (
-        <PawPatch key={`paw${i}`} pos={pos} index={i} />
-      ))}
-
-      {/* Питомцы — GltfMonsters по зонам */}
-      <GltfMonster which="bunny" pos={[-7, 0, -8]}   scale={1.0} animation="Yes" />
-      <GltfMonster which="cactoro" pos={[7, 0, -10]} scale={1.1} animation="Wave" />
-      <GltfMonster which="alien" pos={[-7, 0, -28]}  scale={1.1} />
-      <GltfMonster which="birb" pos={[7, 2, -32]}    scale={0.8} patrolX={3} sensor animation="Run" />
-      <GltfMonster which="blueDemon" pos={[0, 0, -50]} scale={1.4} animation="Wave" />
-
-      {/* Финиш — звёздный трон в конце космоса */}
-      <RigidBody type="fixed" colliders="cuboid" position={[0, 1, -62]}>
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[5, 2, 3]} />
-          <meshStandardMaterial
-            color="#c879ff"
-            emissive="#c879ff"
-            emissiveIntensity={0.5}
-            roughness={0.4}
-            metalness={0.5}
+      {/* Rainbow arches */}
+      {[0, 1, 2, 3, 4].map(i => (
+        <mesh key={i} position={[0, 4 + i * 0.5, -130 - i * 4]} rotation={[0, Math.PI / 2, 0]}>
+          <torusGeometry args={[8 + i, 0.25, 8, 40, Math.PI]} />
+          <meshBasicMaterial
+            color={['#ff4444', '#ff9900', '#ffee00', '#44ff44', '#4488ff'][i]!}
+            transparent opacity={0.7}
           />
         </mesh>
-      </RigidBody>
+      ))}
+
+      {/* Sky breakable blocks */}
+      <BreakableBlock pos={[-9, 0.75, -123]} color="#ffbbee" emissive="#ffaacc" emissiveInt={0.5} metalness={0.1} />
+      <BreakableBlock pos={[9, 0.75, -129]} color="#aaffee" emissive="#88ffdd" emissiveInt={0.5} metalness={0.1} />
+      <BreakableBlock pos={[-7, 0.75, -136]} color="#ffeeaa" emissive="#ffdd88" emissiveInt={0.5} metalness={0.1} />
+      <BreakableBlock pos={[8, 0.75, -143]} color="#bbaaff" emissive="#aa88ff" emissiveInt={0.6} metalness={0.1} />
+      <BreakableBlock pos={[0, 0.75, -147]} color="#ffccff" emissive="#ff88ff" emissiveInt={0.7} metalness={0.2} />
+
+      <Coin pos={[-12, 1, -130]} />
+      <Coin pos={[12, 1, -138]} />
+      <Coin pos={[0, 1, -126]} />
+      <Coin pos={[-5, 1, -145]} />
+
+      {/* Sky sparkle system */}
+      <SkySparkles />
+      {/* Cloud wisps drifting overhead */}
+      <SkyCloudWisps />
+      {/* Candy sparkle twinkling stars */}
+      <CandySparkle />
+
+      {/* Boss birb at the end */}
+      <GltfMonster which="birb" pos={[0, 0, -144]} scale={2.0} animation="Wave" />
+
+      {/* ── Global particles ─────────────────────────────────────────────── */}
+      <GlobalSparkles />
+
+      {/* ── GOAL trigger ─────────────────────────────────────────────────── */}
       <GoalTrigger
-        pos={[0, 2.5, -62]}
-        size={[5, 4, 3]}
+        pos={[0, 2, -148]}
+        size={[40, 8, 4]}
         result={{
           kind: 'win',
-          label: 'МАКС УРОВЕНЬ!',
-          subline: 'Ты прошёл все зоны: Трава → Лёд → Космос.',
+          label: 'ПИТОМЦЫ СОБРАНЫ!',
+          subline: 'Ты прошёл все биомы!',
         }}
       />
     </>
   )
 }
-
-export const PETSIM_SPAWN: [number, number, number] = [0, 3, 8]
