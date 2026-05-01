@@ -874,10 +874,8 @@ const ORCHARD_TREE_DATA: Array<{
 
 // 4 warm canopy point-light positions inside the orchard
 const ORCHARD_POINT_LIGHTS: Array<[number, number, number]> = [
-  [-12, 5, -62],
-  [ 12, 5, -62],
-  [-12, 5, -74],
-  [ 12, 5, -74],
+  [0, 5, -62],
+  [0, 5, -74],
 ]
 
 function AppleTree({

@@ -2,6 +2,8 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame, useThree } from '@react-three/fiber'
 import { useRef, useState, useMemo } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
@@ -201,6 +203,7 @@ function SkySparkles() {
   const COUNT = 80
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 38,
@@ -215,7 +218,8 @@ function SkySparkles() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    t.current += _isLow ? dt * 2 : dt
     data.forEach((d, i) => {
       const s = Math.abs(Math.sin(t.current * d.speed + d.phase))
       const sc = s * 0.5 + 0.1
@@ -289,6 +293,7 @@ function WinterSnow() {
   const COUNT = 120
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 30,
@@ -304,10 +309,12 @@ function WinterSnow() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    t.current += step
     data.forEach((d, i) => {
-      d.y -= d.speed * dt
-      d.x += d.driftX * dt + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.008
+      d.y -= d.speed * step
+      d.x += d.driftX * step + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.008
       if (d.y < -1) {
         d.y = 10
         d.x = (Math.random() - 0.5) * 30
@@ -608,6 +615,7 @@ function GlobalSparkles() {
   const COUNT = 100
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 38,
@@ -621,7 +629,8 @@ function GlobalSparkles() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    t.current += _isLow ? dt * 2 : dt
     data.forEach((d, i) => {
       const s = Math.sin(t.current * d.speed + d.phase) * 0.5 + 0.5
       // Encode opacity via scale (s > 0.05 → visible, else scale=0)

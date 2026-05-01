@@ -2,6 +2,7 @@ import { RigidBody, RapierRigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -82,6 +83,8 @@ function StarField() {
 function RainParticles() {
   const ref = useRef<THREE.InstancedMesh>(null!)
   const COUNT = 600
+  const isLow = detectDeviceTier() === 'low'
+  const frameSkip = useRef(0)
   const data = useMemo(() => {
     return Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 80,
@@ -94,9 +97,10 @@ function RainParticles() {
 
   useFrame((_, dt) => {
     if (!ref.current) return
+    if (isLow && (frameSkip.current++ & 1)) return
     for (let i = 0; i < COUNT; i++) {
       const p = data[i]!
-      p.y -= p.speed * dt
+      p.y -= p.speed * (isLow ? dt * 2 : dt)
       if (p.y < -2) p.y = 110
       dummy.position.set(p.x, p.y, p.z)
       dummy.updateMatrix()

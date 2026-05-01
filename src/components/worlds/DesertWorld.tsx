@@ -2,6 +2,7 @@ import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -254,6 +255,8 @@ function Oasis() {
 // ─── Sandstorm Particles ─────────────────────────────────────────────────────
 function SandstormParticles() {
   const ref = useRef<THREE.InstancedMesh>(null!)
+  const isLow = detectDeviceTier() === 'low'
+  const frameSkip = useRef(0)
   const COUNT = 300
   const data = useMemo(() => Array.from({ length: COUNT }, () => ({
     x: (Math.random() - 0.5) * 140,
@@ -267,10 +270,12 @@ function SandstormParticles() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   useFrame(({ clock }, dt) => {
     if (!ref.current) return
+    if (isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
+    const step = isLow ? dt * 2 : dt
     for (let i = 0; i < COUNT; i++) {
       const d = data[i]!
-      d.x += d.speed * dt
+      d.x += d.speed * step
       if (d.x > 70) d.x = -70
       dummy.position.set(
         d.x,
@@ -678,6 +683,8 @@ function SandStorm() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const COUNT = 300
   const ref = useRef<THREE.InstancedMesh>(null!)
+  const isLow = detectDeviceTier() === 'low'
+  const frameSkip = useRef(0)
   const particles = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 200,
@@ -689,11 +696,12 @@ function SandStorm() {
     })), [])
 
   useFrame((_, dt) => {
+    if (isLow && (frameSkip.current++ & 1)) return
     particles.forEach((p, i) => {
       p.x += p.speed
       p.y += Math.sin(p.phase + p.x * 0.1) * 0.02
       p.z += p.drift
-      p.phase += dt * 0.5
+      p.phase += dt * (isLow ? 1 : 0.5)
       if (p.x > 100) p.x = -100
       dummy.position.set(p.x, p.y, p.z)
       dummy.scale.setScalar(Math.random() * 0.08 + 0.04)
