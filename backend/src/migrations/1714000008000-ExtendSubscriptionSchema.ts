@@ -8,6 +8,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  */
 export class ExtendSubscriptionSchema1714000008000 implements MigrationInterface {
   name = 'ExtendSubscriptionSchema1714000008000';
+  // ALTER TYPE ... ADD VALUE cannot run inside a transaction block in PostgreSQL.
+  transaction = false;
 
   async up(queryRunner: QueryRunner): Promise<void> {
     // Add new plan enum values (PostgreSQL requires ALTER TYPE ... ADD VALUE)

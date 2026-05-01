@@ -13,6 +13,8 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  */
 export class AddUserExternalIdsAndConsent1714000003000 implements MigrationInterface {
   name = 'AddUserExternalIdsAndConsent1714000003000';
+  // ALTER TYPE ... ADD VALUE cannot run inside a transaction block in PostgreSQL.
+  transaction = false;
 
   public async up(qr: QueryRunner): Promise<void> {
     // Extend user_role_enum with the 5 admin/staff roles introduced in Phase 2+
