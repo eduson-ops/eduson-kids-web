@@ -5,6 +5,14 @@ import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+
+const _sbGroup = new THREE.Object3D()
+const _sbPart  = new THREE.Object3D()
+const _sbMat   = new THREE.Matrix4()
+const _BEAM_POS: Array<[number,number,number]> = [
+  [-20, 18, -40], [20, 18, -40], [-15, 18, -80], [15, 18, -80], [-20, 18, -120], [20, 18, -120]
+]
+
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
@@ -100,32 +108,42 @@ function DiscoBall({ position }: { position: [number,number,number] }) {
 
 const BEAM_COLORS = ['#ff00ff', '#00ffff', '#ff8800', '#00ff00', '#ff0088', '#8800ff']
 
+// 6 cone meshes → 1 IM with instanceColor + per-frame matrix update
 function SweepingBeams() {
-  const refs = useRef<Array<THREE.Group | null>>([])
+  const beamIM = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
+
+  useEffect(() => {
+    const col = new THREE.Color()
+    BEAM_COLORS.forEach((c, i) => {
+      beamIM.current.setColorAt(i, col.set(c))
+    })
+    if (beamIM.current.instanceColor) beamIM.current.instanceColor.needsUpdate = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    refs.current.forEach((g, i) => {
-      if (!g) return
-      g.rotation.z = Math.sin(t * 0.6 + i * 1.1) * 0.5
-      g.rotation.x = Math.cos(t * 0.4 + i * 0.9) * 0.3
+    _BEAM_POS.forEach((pos, i) => {
+      _sbGroup.position.set(pos[0], pos[1], pos[2])
+      _sbGroup.rotation.set(Math.cos(t * 0.4 + i * 0.9) * 0.3, 0, Math.sin(t * 0.6 + i * 1.1) * 0.5)
+      _sbGroup.scale.setScalar(1); _sbGroup.updateMatrix()
+      _sbPart.position.set(0, 0, 0); _sbPart.rotation.set(Math.PI, 0, 0); _sbPart.scale.setScalar(1); _sbPart.updateMatrix()
+      _sbMat.multiplyMatrices(_sbGroup.matrix, _sbPart.matrix)
+      beamIM.current.setMatrixAt(i, _sbMat)
     })
+    beamIM.current.instanceMatrix.needsUpdate = true
   })
-  const positions: Array<[number,number,number]> = [
-    [-20, 18, -40], [20, 18, -40], [-15, 18, -80], [15, 18, -80], [-20, 18, -120], [20, 18, -120]
-  ]
+
   return (
     <>
-      {positions.map((pos, i) => (
-        <group key={i} position={pos} ref={(el) => { refs.current[i] = el }}>
-          <pointLight color={BEAM_COLORS[i]} intensity={6} distance={60} decay={2} />
-          <mesh rotation={[Math.PI, 0, 0]}>
-            <coneGeometry args={[4, 30, 12, 1, true]} />
-            <meshBasicMaterial color={BEAM_COLORS[i]} transparent opacity={0.07} side={THREE.DoubleSide} depthWrite={false} />
-          </mesh>
-        </group>
+      {_BEAM_POS.map((pos, i) => (
+        <pointLight key={i} position={pos} color={BEAM_COLORS[i]} intensity={6} distance={60} decay={2} />
       ))}
+      <instancedMesh ref={beamIM} args={[undefined, undefined, 6]}>
+        <coneGeometry args={[4, 30, 12, 1, true]} />
+        <meshBasicMaterial vertexColors transparent opacity={0.07} side={THREE.DoubleSide} depthWrite={false} />
+      </instancedMesh>
     </>
   )
 }

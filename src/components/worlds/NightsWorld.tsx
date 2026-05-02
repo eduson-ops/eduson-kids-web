@@ -1,11 +1,26 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+
+const _nwDummy = new THREE.Object3D()
+const _nwCol   = new THREE.Color()
+
+const _HM_WIN_POS: Array<[number, number, number]> = [
+  [-5, 9, -83.9], [-2, 9, -83.9], [ 2, 9, -83.9], [ 5, 9, -83.9],
+  [-5, 5, -83.9], [-2, 5, -83.9], [ 2, 5, -83.9], [ 5, 5, -83.9],
+]
+
+const _VC_WIN_POS: Array<[number, number, number]> = [
+  [-4.5, 14, -113.9], [-1.5, 14, -113.9], [ 1.5, 14, -113.9], [ 4.5, 14, -113.9],
+  [-4.5, 10, -113.9], [-1.5, 10, -113.9], [ 1.5, 10, -113.9], [ 4.5, 10, -113.9],
+  [-4.5,  6, -113.9], [-1.5,  6, -113.9], [ 1.5,  6, -113.9], [ 4.5,  6, -113.9],
+]
+
 import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
@@ -909,10 +924,19 @@ function DeepForestDecor() {
 
 // ─── HauntedMansion ──────────────────────────────────────────────────────────
 
+// 8 windows �� 1 IM with instanceColor flicker
 function HauntedMansion() {
-  // 8 window refs for flicker animation
-  const winRefs = useRef<(THREE.MeshStandardMaterial | null)[]>(Array(8).fill(null))
+  const winIM  = useRef<THREE.InstancedMesh>(null!)
   const timeRef = useRef(0)
+
+  useEffect(() => {
+    _HM_WIN_POS.forEach((pos, i) => {
+      _nwDummy.position.set(pos[0], pos[1], pos[2])
+      _nwDummy.rotation.set(0, 0, 0); _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      winIM.current.setMatrixAt(i, _nwDummy.matrix)
+    })
+    winIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
@@ -920,25 +944,13 @@ function HauntedMansion() {
     const step = _isLow ? dt * 2 : dt
     timeRef.current += step
     const t = timeRef.current
-    winRefs.current.forEach((mat, i) => {
-      if (!mat) return
-      // Each window flickers at a slightly different freq and phase
+    _HM_WIN_POS.forEach((_, i) => {
       const noise = Math.sin(t * 3.1 + i * 1.73) * Math.sin(t * 1.7 + i * 0.91)
-      mat.emissiveIntensity = 2.0 + noise * 1.0
+      const intensity = 2.0 + noise * 1.0
+      winIM.current.setColorAt(i, _nwCol.set('#ffaa00').multiplyScalar(intensity / 3.0))
     })
+    if (winIM.current.instanceColor) winIM.current.instanceColor.needsUpdate = true
   })
-
-  // 8 window positions on the facade (z face at z = -90 + 6 = -84)
-  const windowPositions: [number, number, number][] = [
-    [-5, 9, -83.9],
-    [-2, 9, -83.9],
-    [ 2, 9, -83.9],
-    [ 5, 9, -83.9],
-    [-5, 5, -83.9],
-    [-2, 5, -83.9],
-    [ 2, 5, -83.9],
-    [ 5, 5, -83.9],
-  ]
 
   return (
     <group>
@@ -976,18 +988,11 @@ function HauntedMansion() {
         <meshStandardMaterial color="#1a0a1a" roughness={0.95} />
       </mesh>
 
-      {/* 8 flickering candle windows */}
-      {windowPositions.map(([x, y, z], i) => (
-        <mesh key={i} position={[x, y, z]}>
-          <boxGeometry args={[1.2, 1.8, 0.2]} />
-          <meshStandardMaterial
-            ref={(mat) => { winRefs.current[i] = mat }}
-            color="#ffaa00"
-            emissive="#ffaa00"
-            emissiveIntensity={2}
-          />
-        </mesh>
-      ))}
+      {/* 8 flickering windows — 1 IM */}
+      <instancedMesh ref={winIM} args={[undefined, undefined, 8]}>
+        <boxGeometry args={[1.2, 1.8, 0.2]} />
+        <meshBasicMaterial vertexColors toneMapped={false} />
+      </instancedMesh>
 
       {/* Eerie green point light at mansion base */}
       <pointLight
@@ -1632,10 +1637,23 @@ function CastleBats() {
   )
 }
 
+// 12 window rects + 12 arch tops → 2 IMs (save 22 draw calls)
 function VampireCastleRuins({ phase }: { phase: 'day' | 'night' }) {
-  // 12 arch windows: some flicker between intensity 1–3
-  const winRefs = useRef<(THREE.MeshStandardMaterial | null)[]>(Array(12).fill(null))
+  const winIM  = useRef<THREE.InstancedMesh>(null!)
+  const archIM = useRef<THREE.InstancedMesh>(null!)
   const timeRef = useRef(0)
+
+  useEffect(() => {
+    _VC_WIN_POS.forEach((pos, i) => {
+      _nwDummy.position.set(pos[0], pos[1], pos[2])
+      _nwDummy.rotation.set(0, 0, 0); _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      winIM.current.setMatrixAt(i, _nwDummy.matrix)
+      _nwDummy.position.set(pos[0], pos[1] + 0.7, pos[2]); _nwDummy.updateMatrix()
+      archIM.current.setMatrixAt(i, _nwDummy.matrix)
+    })
+    winIM.current.instanceMatrix.needsUpdate  = true
+    archIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
@@ -1643,32 +1661,13 @@ function VampireCastleRuins({ phase }: { phase: 'day' | 'night' }) {
     const step = _isLow ? dt * 2 : dt
     timeRef.current += step
     const t = timeRef.current
-    winRefs.current.forEach((mat, i) => {
-      if (!mat) return
-      const noise =
-        Math.sin(t * 2.7 + i * 1.33) * Math.sin(t * 4.1 + i * 2.07)
-      mat.emissiveIntensity = 2.0 + noise * 1.0  // 1.0 – 3.0
+    _VC_WIN_POS.forEach((_, i) => {
+      const noise = Math.sin(t * 2.7 + i * 1.33) * Math.sin(t * 4.1 + i * 2.07)
+      const intensity = 2.0 + noise * 1.0
+      winIM.current.setColorAt(i, _nwCol.set('#990033').multiplyScalar(intensity / 3.0))
     })
+    if (winIM.current.instanceColor) winIM.current.instanceColor.needsUpdate = true
   })
-
-  // 12 window positions on the front face (z = -120 + 6 = -114)
-  const windowPositions: [number, number, number][] = [
-    // Upper row — 4 windows
-    [-4.5, 14, -113.9],
-    [-1.5, 14, -113.9],
-    [ 1.5, 14, -113.9],
-    [ 4.5, 14, -113.9],
-    // Middle row — 4 windows
-    [-4.5, 10, -113.9],
-    [-1.5, 10, -113.9],
-    [ 1.5, 10, -113.9],
-    [ 4.5, 10, -113.9],
-    // Lower row — 4 windows
-    [-4.5,  6, -113.9],
-    [-1.5,  6, -113.9],
-    [ 1.5,  6, -113.9],
-    [ 4.5,  6, -113.9],
-  ]
 
   return (
     <group>
@@ -1749,30 +1748,15 @@ function VampireCastleRuins({ phase }: { phase: 'day' | 'night' }) {
         )
       })}
 
-      {/* ── 12 arch windows — box + half-sphere arch top ── */}
-      {windowPositions.map(([wx, wy, wz], i) => (
-        <group key={i} position={[wx, wy, wz]}>
-          {/* Window rect */}
-          <mesh>
-            <boxGeometry args={[0.9, 1.4, 0.2]} />
-            <meshStandardMaterial
-              ref={(mat) => { winRefs.current[i] = mat }}
-              color="#550022"
-              emissive="#990033"
-              emissiveIntensity={2}
-            />
-          </mesh>
-          {/* Arch top — half-sphere */}
-          <mesh position={[0, 0.7, 0]}>
-            <sphereGeometry args={[0.45, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <meshStandardMaterial
-              color="#550022"
-              emissive="#990033"
-              emissiveIntensity={2}
-            />
-          </mesh>
-        </group>
-      ))}
+      {/* ── 12 arch windows — 2 IMs (winIM + archIM) ── */}
+      <instancedMesh ref={winIM} args={[undefined, undefined, 12]}>
+        <boxGeometry args={[0.9, 1.4, 0.2]} />
+        <meshBasicMaterial vertexColors toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh ref={archIM} args={[undefined, undefined, 12]}>
+        <sphereGeometry args={[0.45, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshBasicMaterial color="#990033" toneMapped={false} />
+      </instancedMesh>
 
       {/* Red ambient glow inside castle */}
       {phase === 'night' && (
