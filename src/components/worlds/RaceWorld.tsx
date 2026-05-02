@@ -456,6 +456,41 @@ function Stars() {
 }
 
 // ─── Floodlight pole ────────────────────────────────────────────────────────
+function FloodlightBatch() {
+  const poleIM    = useRef<THREE.InstancedMesh>(null!)
+  const armIM     = useRef<THREE.InstancedMesh>(null!)
+  const housingIM = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _ALL_FLOOD_POS.forEach(([fx, fy, fz], i) => {
+      _flDummy.position.set(fx, fy, fz);       _flDummy.rotation.set(0,0,0); _flDummy.scale.setScalar(1); _flDummy.updateMatrix(); poleIM.current.setMatrixAt(i, _flDummy.matrix)
+      _flDummy.position.set(fx, fy+7.2, fz);   _flDummy.updateMatrix(); armIM.current.setMatrixAt(i, _flDummy.matrix)
+      _flDummy.position.set(fx, fy+7.5, fz);   _flDummy.updateMatrix(); housingIM.current.setMatrixAt(i, _flDummy.matrix)
+    })
+    poleIM.current.instanceMatrix.needsUpdate    = true
+    armIM.current.instanceMatrix.needsUpdate     = true
+    housingIM.current.instanceMatrix.needsUpdate = true
+  }, [])
+  return (
+    <>
+      <instancedMesh ref={poleIM} args={[undefined, undefined, _ALL_FLOOD_POS.length]} castShadow>
+        <boxGeometry args={[0.4, 14, 0.4]} />
+        <meshStandardMaterial color="#888899" metalness={0.7} roughness={0.3} />
+      </instancedMesh>
+      <instancedMesh ref={armIM} args={[undefined, undefined, _ALL_FLOOD_POS.length]}>
+        <boxGeometry args={[2.5, 0.3, 0.3]} />
+        <meshStandardMaterial color="#aaaacc" metalness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={housingIM} args={[undefined, undefined, _ALL_FLOOD_POS.length]}>
+        <boxGeometry args={[1.2, 0.5, 0.8]} />
+        <meshStandardMaterial color="#ffffe0" emissive="#ffff88" emissiveIntensity={2} />
+      </instancedMesh>
+      {_ALL_FLOOD_POS.map(([fx, fy, fz], i) => (
+        <pointLight key={i} position={[fx, fy+7.8, fz]} intensity={8} distance={40} color="#fffde8" castShadow />
+      ))}
+    </>
+  )
+}
+
 function Floodlight({ pos }: { pos: [number, number, number] }) {
   return (
     <group position={pos}>
@@ -1267,51 +1302,46 @@ const FLAG_POLE_POSITIONS: [number, number, number][] = [
 ]
 
 function CheckeredFlag({ pos }: { pos: [number, number, number] }) {
-  const flagRef = useRef<THREE.Group>(null)
-
+  const flagRef  = useRef<THREE.Group>(null)
+  const blackIM  = useRef<THREE.InstancedMesh>(null!)
+  const whiteIM  = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
+
+  useEffect(() => {
+    const cols = 4, rows = 3, cellW = 0.5, cellH = 0.5
+    let bi = 0, wi = 0
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        _flDummy.position.set(-((cols-1)*cellW)/2 + c*cellW, -((rows-1)*cellH)/2 + r*cellH, 0)
+        _flDummy.rotation.set(0,0,0); _flDummy.scale.setScalar(1); _flDummy.updateMatrix()
+        if ((r+c)%2===0) { blackIM.current.setMatrixAt(bi++, _flDummy.matrix) }
+        else              { whiteIM.current.setMatrixAt(wi++, _flDummy.matrix) }
+      }
+    }
+    blackIM.current.instanceMatrix.needsUpdate = true
+    whiteIM.current.instanceMatrix.needsUpdate = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (flagRef.current) {
-      flagRef.current.rotation.z = Math.sin(clock.elapsedTime * 2) * 0.3
-    }
+    if (flagRef.current) flagRef.current.rotation.z = Math.sin(clock.elapsedTime * 2) * 0.3
   })
-
-  // 4×3 checkerboard sub-boxes
-  const checks: JSX.Element[] = []
-  const cols = 4
-  const rows = 3
-  const cellW = 0.5
-  const cellH = 0.5
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const isBlack = (r + c) % 2 === 0
-      checks.push(
-        <mesh
-          key={`${r}-${c}`}
-          position={[
-            -((cols - 1) * cellW) / 2 + c * cellW,
-            -((rows - 1) * cellH) / 2 + r * cellH,
-            0,
-          ]}
-        >
-          <boxGeometry args={[cellW, cellH, 0.06]} />
-          <meshStandardMaterial color={isBlack ? '#111111' : '#ffffff'} />
-        </mesh>
-      )
-    }
-  }
 
   return (
     <group position={pos}>
-      {/* Pole */}
       <mesh position={[0, 2.5, 0]} castShadow>
         <cylinderGeometry args={[0.1, 0.1, 5, 6]} />
         <meshStandardMaterial color="#cccccc" metalness={0.6} roughness={0.4} />
       </mesh>
-      {/* Animated flag group anchored at pole top */}
       <group ref={flagRef} position={[1.0, 5.0, 0]}>
-        {checks}
+        <instancedMesh ref={blackIM} args={[undefined, undefined, 6]}>
+          <boxGeometry args={[0.5, 0.5, 0.06]} />
+          <meshStandardMaterial color="#111111" />
+        </instancedMesh>
+        <instancedMesh ref={whiteIM} args={[undefined, undefined, 6]}>
+          <boxGeometry args={[0.5, 0.5, 0.06]} />
+          <meshStandardMaterial color="#ffffff" />
+        </instancedMesh>
       </group>
     </group>
   )
@@ -1594,6 +1624,13 @@ const _FLAG_DATA = (() => {
 
 const _cfDummy = new THREE.Object3D()
 const _cfCol   = new THREE.Color()
+const _flDummy = new THREE.Object3D()
+const _ALL_FLOOD_POS: [number,number,number][] = [
+  [-60,0,64],[-30,0,64],[0,0,64],[30,0,64],[60,0,64],
+  [-60,0,28],[-30,0,28],[0,0,28],[30,0,28],[60,0,28],
+  [-60,0,-64],[-30,0,-64],[0,0,-64],[30,0,-64],[60,0,-64],
+  [92,0,0],[-92,0,0],
+]
 
 function CelebrationFlags() {
   const poleIM   = useRef<THREE.InstancedMesh>(null!)
@@ -2198,21 +2235,8 @@ export default function RaceWorld() {
         />
       ))}
 
-      {/* ── 20 Floodlight poles around circuit ── */}
-      {/* Along Start straight */}
-      {[-60, -30, 0, 30, 60].map((x, i) => (
-        <Floodlight key={`fl_n${i}`} pos={[x, 0, 64]} />
-      ))}
-      {[-60, -30, 0, 30, 60].map((x, i) => (
-        <Floodlight key={`fl_s${i}`} pos={[x, 0, 28]} />
-      ))}
-      {/* Back straight */}
-      {[-60, -30, 0, 30, 60].map((x, i) => (
-        <Floodlight key={`fl_bk${i}`} pos={[x, 0, -64]} />
-      ))}
-      {/* Turn apex lights */}
-      <Floodlight pos={[92, 0, 0]} />
-      <Floodlight pos={[-92, 0, 0]} />
+      {/* ── 17 Floodlight poles around circuit — batched IM ── */}
+      <FloodlightBatch />
 
       {/* ── TreePine — outside circuit ── */}
       {[
