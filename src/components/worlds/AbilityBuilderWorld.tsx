@@ -6,7 +6,8 @@ import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
 
-const _abDummy2 = new THREE.Object3D()
+const _abDummy2    = new THREE.Object3D()
+const _abLightDummy = new THREE.Object3D()
 
 import Coin from '../Coin'
 import Enemy from '../Enemy'
@@ -1214,6 +1215,29 @@ function ArenaLights() {
   const _col = useRef(new THREE.Color())
   const frameSkip = useRef(0)
 
+  // InstancedMesh refs for the 4 corner light towers
+  const towerPoleIM  = useRef<THREE.InstancedMesh>(null!)
+  const towerWhiteIM = useRef<THREE.InstancedMesh>(null!)
+  const towerWarmIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    TOWER_CORNERS.forEach(([tx, , tz], i) => {
+      // Pole: world pos [tx, 10, tz]
+      _abLightDummy.position.set(tx, 10, tz); _abLightDummy.rotation.set(0,0,0); _abLightDummy.scale.setScalar(1); _abLightDummy.updateMatrix()
+      towerPoleIM.current.setMatrixAt(i, _abLightDummy.matrix)
+      // White box left: [tx-0.6, 20.5, tz] and right: [tx+0.6, 20.5, tz]
+      _abLightDummy.position.set(tx - 0.6, 20.5, tz); _abLightDummy.updateMatrix()
+      towerWhiteIM.current.setMatrixAt(i * 2, _abLightDummy.matrix)
+      _abLightDummy.position.set(tx + 0.6, 20.5, tz); _abLightDummy.updateMatrix()
+      towerWhiteIM.current.setMatrixAt(i * 2 + 1, _abLightDummy.matrix)
+      // Warm box center: [tx, 21.2, tz]
+      _abLightDummy.position.set(tx, 21.2, tz); _abLightDummy.updateMatrix()
+      towerWarmIM.current.setMatrixAt(i, _abLightDummy.matrix)
+    })
+    towerPoleIM.current.instanceMatrix.needsUpdate  = true
+    towerWhiteIM.current.instanceMatrix.needsUpdate = true
+    towerWarmIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
@@ -1226,59 +1250,25 @@ function ArenaLights() {
 
   return (
     <>
-      {/* 4 light towers at corners */}
+      {/* 4 corner tower poles ×4 + white housing ×8 + warm housing ×4 as InstancedMeshes */}
+      <instancedMesh ref={towerPoleIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[0.8, 20, 0.8]} />
+        <meshStandardMaterial color="#444444" roughness={0.8} metalness={0.5} />
+      </instancedMesh>
+      <instancedMesh ref={towerWhiteIM} args={[undefined, undefined, 8]}>
+        <boxGeometry args={[0.5, 0.5, 0.5]} />
+        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={5} roughness={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={towerWarmIM} args={[undefined, undefined, 4]}>
+        <boxGeometry args={[0.5, 0.5, 0.5]} />
+        <meshStandardMaterial color="#ffffcc" emissive="#ffffcc" emissiveIntensity={5} roughness={0.1} />
+      </instancedMesh>
+      {/* SpotLights can't be batched — 4 individual */}
       {TOWER_CORNERS.map(([tx, , tz], i) => (
-        <group key={`ltower-${i}`} position={[tx, 0, tz]}>
-          {/* Tower pole */}
-          <mesh position={[0, 10, 0]} castShadow>
-            <boxGeometry args={[0.8, 20, 0.8]} />
-            <meshStandardMaterial color="#444444" roughness={0.8} metalness={0.5} />
-          </mesh>
-
-          {/* 3 light housing boxes at tower top */}
-          <mesh position={[-0.6, 20.5, 0]}>
-            <boxGeometry args={[0.5, 0.5, 0.5]} />
-            <meshStandardMaterial
-              color="#ffffff"
-              emissive="#ffffff"
-              emissiveIntensity={5}
-              roughness={0.1}
-            />
-          </mesh>
-          <mesh position={[0, 21.2, 0]}>
-            <boxGeometry args={[0.5, 0.5, 0.5]} />
-            <meshStandardMaterial
-              color="#ffffcc"
-              emissive="#ffffcc"
-              emissiveIntensity={5}
-              roughness={0.1}
-            />
-          </mesh>
-          <mesh position={[0.6, 20.5, 0]}>
-            <boxGeometry args={[0.5, 0.5, 0.5]} />
-            <meshStandardMaterial
-              color="#ffffff"
-              emissive="#ffffff"
-              emissiveIntensity={5}
-              roughness={0.1}
-            />
-          </mesh>
-
-          {/* SpotLight aimed at arena center */}
-          <spotLight
-            position={[0, 21, 0]}
-            target-position={[0, 0, 0]}
-            angle={0.55}
-            penumbra={0.35}
-            intensity={60}
-            distance={120}
-            color="#ffffff"
-            castShadow={false}
-          />
-        </group>
+        <spotLight key={i} position={[tx, 21, tz]} target-position={[0, 0, 0]}
+          angle={0.55} penumbra={0.35} intensity={60} distance={120} color="#ffffff" castShadow={false} />
       ))}
-
-      {/* 12 colored point lights in a ring at r=70, y=25 */}
+      {/* 6 colored point lights in a ring at r=70, y=25 */}
       {RING_LIGHT_ANGLES.map((a, i) => (
         <pointLight
           key={`ring-light-${i}`}
@@ -1287,11 +1277,7 @@ function ArenaLights() {
           intensity={12}
           distance={60}
           decay={2}
-          position={[
-            Math.cos(a) * 70,
-            25,
-            Math.sin(a) * 70,
-          ]}
+          position={[Math.cos(a) * 70, 25, Math.sin(a) * 70]}
         />
       ))}
     </>

@@ -6,6 +6,7 @@ import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
 const _FLASH_RAND = Array.from({ length: 32 }, () => Math.random())
+const _twDummy = new THREE.Object3D()
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -1230,9 +1231,8 @@ function DungeonChamber() {
 
 // ─── Dragon Bones ────────────────────────────────────────────────
 function DragonBones() {
-  // Spine vertebrae: curved arc across the chamber
   const vertebrae = Array.from({ length: 8 }, (_, i) => {
-    const t = i / 7  // 0 → 1
+    const t = i / 7
     return {
       x: -6 + t * 12,
       y: -9.0 + Math.sin(t * Math.PI) * 1.2,
@@ -1240,41 +1240,52 @@ function DragonBones() {
       ry: Math.atan2(1, (t - 0.5) * 12) * 0.3,
     }
   })
-
-  // 12 ribs — 6 per side arching outward from vertebrae
-  const ribs: { px: number; py: number; pz: number; rx: number; rz: number; side: number }[] = []
+  const ribs: { px: number; py: number; pz: number; rx: number; rz: number }[] = []
   for (let i = 0; i < 6; i++) {
     const v = vertebrae[i + 1]!
     const arch = 0.3 + i * 0.08
     for (const side of [-1, 1]) {
-      ribs.push({
-        px: v.x + side * 0.6,
-        py: v.y + 0.5,
-        pz: v.z,
-        rx: side * arch,
-        rz: side * 0.6,
-        side,
-      })
+      ribs.push({ px: v.x + side * 0.6, py: v.y + 0.5, pz: v.z, rx: side * arch, rz: side * 0.6 })
     }
   }
+  const wingOrigins: [number, number, number, number][] = [[-3, -7.5, 32, -1], [3, -7.5, 32, 1]]
+  const wingRays = Array.from({ length: 5 }, (_, i) => -0.6 + i * 0.3)
+  const clawSets: [number, number, number][] = [[-7, -9.0, 27], [7, -9.0, 27], [-5, -9.0, 34], [5, -9.0, 34]]
 
-  // Wing bone fans — radiating cylinders from shoulder area
-  const wingOrigins: [number, number, number, number][] = [
-    [-3, -7.5, 32, -1],
-    [ 3, -7.5, 32,  1],
-  ]
-  const wingRays = Array.from({ length: 5 }, (_, i) => {
-    const spread = -0.6 + i * 0.3  // angle spread
-    return spread
-  })
-
-  // 4 sets of 3 claws
-  const clawSets: [number, number, number][] = [
-    [-7, -9.0, 27],
-    [ 7, -9.0, 27],
-    [-5, -9.0, 34],
-    [ 5, -9.0, 34],
-  ]
+  const vertebraeIM = useRef<THREE.InstancedMesh>(null!)
+  const ribsIM      = useRef<THREE.InstancedMesh>(null!)
+  const wingsIM     = useRef<THREE.InstancedMesh>(null!)
+  const clawsIM     = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    vertebrae.forEach((v, i) => {
+      _twDummy.position.set(v.x, v.y, v.z); _twDummy.rotation.set(0, v.ry, 0); _twDummy.scale.setScalar(1); _twDummy.updateMatrix()
+      vertebraeIM.current.setMatrixAt(i, _twDummy.matrix)
+    })
+    vertebraeIM.current.instanceMatrix.needsUpdate = true
+    ribs.forEach((r, i) => {
+      _twDummy.position.set(r.px, r.py, r.pz); _twDummy.rotation.set(r.rx, 0, r.rz); _twDummy.scale.setScalar(1); _twDummy.updateMatrix()
+      ribsIM.current.setMatrixAt(i, _twDummy.matrix)
+    })
+    ribsIM.current.instanceMatrix.needsUpdate = true
+    let wi = 0
+    wingOrigins.forEach(([wx, wy, wz, side]) => {
+      wingRays.forEach((spread, ri) => {
+        _twDummy.position.set(wx + side * (1 + ri * 0.6), wy + spread * 0.8, wz + ri * 0.5)
+        _twDummy.rotation.set(spread * 0.6, 0, side * (0.5 + ri * 0.15))
+        _twDummy.scale.set(1, 3 + ri * 0.4, 1); _twDummy.updateMatrix()
+        wingsIM.current.setMatrixAt(wi++, _twDummy.matrix)
+      })
+    })
+    wingsIM.current.instanceMatrix.needsUpdate = true
+    let ci = 0
+    clawSets.forEach(([cx, cy, cz]) => {
+      ;[-0.3, 0, 0.3].forEach((offset) => {
+        _twDummy.position.set(cx + offset, cy, cz); _twDummy.rotation.set(0.5, 0, offset); _twDummy.scale.setScalar(1); _twDummy.updateMatrix()
+        clawsIM.current.setMatrixAt(ci++, _twDummy.matrix)
+      })
+    })
+    clawsIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   return (
     <group position={[5, 0, 0]}>
@@ -1293,50 +1304,23 @@ function DragonBones() {
         <boxGeometry args={[2.8, 0.6, 2.2]} />
         <meshStandardMaterial color="#ccbbaa" roughness={0.88} metalness={0.05} />
       </mesh>
-
-      {/* ── Spine vertebrae ── */}
-      {vertebrae.map((v, i) => (
-        <mesh key={i} position={[v.x, v.y, v.z]} rotation={[0, v.ry, 0]}>
-          <cylinderGeometry args={[0.4, 0.4, 0.6, 10]} />
-          <meshStandardMaterial color="#ccbbaa" roughness={0.88} metalness={0.05} />
-        </mesh>
-      ))}
-
-      {/* ── Ribs ── */}
-      {ribs.map((r, i) => (
-        <mesh key={i} position={[r.px, r.py, r.pz]} rotation={[r.rx, 0, r.rz]}>
-          <cylinderGeometry args={[0.09, 0.05, 3.5, 6]} />
-          <meshStandardMaterial color="#ccbbaa" roughness={0.9} metalness={0.04} />
-        </mesh>
-      ))}
-
-      {/* ── Wing bones ── radiating fans */}
-      {wingOrigins.map(([wx, wy, wz, side], wi) => (
-        <group key={wi}>
-          {wingRays.map((spread, ri) => (
-            <mesh
-              key={ri}
-              position={[wx + side * (1 + ri * 0.6), wy + spread * 0.8, wz + ri * 0.5]}
-              rotation={[spread * 0.6, 0, side * (0.5 + ri * 0.15)]}
-            >
-              <cylinderGeometry args={[0.06, 0.03, 3 + ri * 0.4, 6]} />
-              <meshStandardMaterial color="#bbaa99" roughness={0.9} metalness={0.04} />
-            </mesh>
-          ))}
-        </group>
-      ))}
-
-      {/* ── Claws — 4 sets of 3 curved claw bones ── */}
-      {clawSets.map(([cx, cy, cz], si) => (
-        <group key={si} position={[cx, cy, cz]}>
-          {[-0.3, 0, 0.3].map((offset, ci) => (
-            <mesh key={ci} position={[offset, 0, 0]} rotation={[0.5, 0, offset]}>
-              <cylinderGeometry args={[0.07, 0.02, 0.9, 6]} />
-              <meshStandardMaterial color="#bbaa88" roughness={0.88} metalness={0.06} />
-            </mesh>
-          ))}
-        </group>
-      ))}
+      {/* Spine ×8, ribs ×12, wing rays ×10, claws ×12 — all as InstancedMeshes */}
+      <instancedMesh ref={vertebraeIM} args={[undefined, undefined, 8]}>
+        <cylinderGeometry args={[0.4, 0.4, 0.6, 10]} />
+        <meshStandardMaterial color="#ccbbaa" roughness={0.88} metalness={0.05} />
+      </instancedMesh>
+      <instancedMesh ref={ribsIM} args={[undefined, undefined, 12]}>
+        <cylinderGeometry args={[0.09, 0.05, 3.5, 6]} />
+        <meshStandardMaterial color="#ccbbaa" roughness={0.9} metalness={0.04} />
+      </instancedMesh>
+      <instancedMesh ref={wingsIM} args={[undefined, undefined, 10]}>
+        <cylinderGeometry args={[0.06, 0.03, 1, 6]} />
+        <meshStandardMaterial color="#bbaa99" roughness={0.9} metalness={0.04} />
+      </instancedMesh>
+      <instancedMesh ref={clawsIM} args={[undefined, undefined, 12]}>
+        <cylinderGeometry args={[0.07, 0.02, 0.9, 6]} />
+        <meshStandardMaterial color="#bbaa88" roughness={0.88} metalness={0.06} />
+      </instancedMesh>
     </group>
   )
 }
