@@ -29,6 +29,11 @@ const _rfPartMat = {
   antennaTip:   _mkPartMat(0,    2.48,  0),
 }
 
+const _btDummy = new THREE.Object3D()
+const _btCol   = new THREE.Color()
+const _CONDUIT_COLORS = ['#00aaff', '#ff4400', '#ffcc00', '#00ff88', '#ff00ff', '#44ffff'] as const
+const _WARN_POS: [number, number, number][] = [[-4.8, 3, -3.8], [4.8, 3, -3.8], [-4.8, 3, 3.8], [4.8, 3, 3.8]]
+
 const _WIN_FLIP = Array.from({ length: 12 }, () =>
   Array.from({ length: 32 }, () => Math.random() < 0.005)
 )
@@ -668,11 +673,19 @@ const POST_COUNT = 5
 
 function BridgeCatwalk({ cfg }: { cfg: BridgeConfig }) {
   const { cx, cy, cz, width, rotY } = cfg
+  const postIM = useRef<THREE.InstancedMesh>(null!)
 
-  // Evenly spaced post offsets along the bridge (local X before rotation)
-  const postOffsets = Array.from({ length: POST_COUNT }, (_, i) =>
-    -width / 2 + (width / (POST_COUNT - 1)) * i
-  )
+  useEffect(() => {
+    const step = width / (POST_COUNT - 1)
+    for (let i = 0; i < POST_COUNT; i++) {
+      const ox = -width / 2 + step * i
+      _btDummy.position.set(ox, 0.9,  0.55); _btDummy.rotation.set(0,0,0); _btDummy.scale.setScalar(1); _btDummy.updateMatrix()
+      postIM.current.setMatrixAt(i, _btDummy.matrix)
+      _btDummy.position.set(ox, 0.9, -0.55); _btDummy.updateMatrix()
+      postIM.current.setMatrixAt(POST_COUNT + i, _btDummy.matrix)
+    }
+    postIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   return (
     <group position={[cx, cy, cz]} rotation={[0, rotY, 0]}>
@@ -682,19 +695,11 @@ function BridgeCatwalk({ cfg }: { cfg: BridgeConfig }) {
         <meshStandardMaterial color="#1a1a2e" metalness={0.7} roughness={0.3} />
       </mesh>
 
-      {/* Railing posts */}
-      {postOffsets.map((ox, i) => (
-        <mesh key={i} position={[ox, 0.9, 0.55]} castShadow>
-          <cylinderGeometry args={[0.06, 0.06, 1.5, 5]} />
-          <meshStandardMaterial color="#2a2a3e" metalness={0.5} roughness={0.4} />
-        </mesh>
-      ))}
-      {postOffsets.map((ox, i) => (
-        <mesh key={`b${i}`} position={[ox, 0.9, -0.55]} castShadow>
-          <cylinderGeometry args={[0.06, 0.06, 1.5, 5]} />
-          <meshStandardMaterial color="#2a2a3e" metalness={0.5} roughness={0.4} />
-        </mesh>
-      ))}
+      {/* 10 railing posts (5 front + 5 back) → 1 IM */}
+      <instancedMesh ref={postIM} args={[undefined, undefined, POST_COUNT * 2]} castShadow>
+        <cylinderGeometry args={[0.06, 0.06, 1.5, 5]} />
+        <meshStandardMaterial color="#2a2a3e" metalness={0.5} roughness={0.4} />
+      </instancedMesh>
 
       {/* Horizontal railing bars at top of posts */}
       <mesh position={[0, 1.62, 0.55]}>
@@ -1447,31 +1452,78 @@ function TowerSteam({ cx, cz }: { cx: number; cz: number }) {
 }
 
 function PowerStation() {
-  // pulse ring animation
-  const pulseRef = useRef<THREE.Mesh>(null!)
-  // warning lights blinking
-  const warnRefs = useRef<THREE.Mesh[]>([])
+  const pulseRef    = useRef<THREE.Mesh>(null!)
+  const conduitIM   = useRef<THREE.InstancedMesh>(null!)
+  const warnIM      = useRef<THREE.InstancedMesh>(null!)
+  const fencePostIM = useRef<THREE.InstancedMesh>(null!)
+  const fenceRailIM = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip   = useRef(0)
 
-  const frameSkip = useRef(0)
+  useEffect(() => {
+    // Conduits — 6 radial cylinders with different colors
+    const len = 7
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2
+      const cx2 = Math.cos(angle) * (len / 2)
+      const cz2 = Math.sin(angle) * (len / 2)
+      _btDummy.position.set(cx2, 3, cz2); _btDummy.rotation.set(0, -angle, Math.PI / 2); _btDummy.scale.setScalar(1); _btDummy.updateMatrix()
+      conduitIM.current.setMatrixAt(i, _btDummy.matrix)
+      conduitIM.current.setColorAt(i, _btCol.set(_CONDUIT_COLORS[i]!))
+    }
+    conduitIM.current.instanceMatrix.needsUpdate = true
+    conduitIM.current.instanceColor!.needsUpdate = true
+    // Warning lights — 4 corner spheres
+    _WARN_POS.forEach((wp, i) => {
+      _btDummy.position.set(wp[0], wp[1], wp[2]); _btDummy.rotation.set(0,0,0); _btDummy.scale.setScalar(1); _btDummy.updateMatrix()
+      warnIM.current.setMatrixAt(i, _btDummy.matrix)
+      warnIM.current.setColorAt(i, _btCol.set('#110000'))
+    })
+    warnIM.current.instanceMatrix.needsUpdate = true
+    warnIM.current.instanceColor!.needsUpdate = true
+    // Security fence posts — 12 evenly around r=10
+    for (let i = 0; i < 12; i++) {
+      const fAngle = (i / 12) * Math.PI * 2
+      const fr = 10
+      _btDummy.position.set(Math.cos(fAngle) * fr, 1.2, Math.sin(fAngle) * fr); _btDummy.rotation.set(0,0,0); _btDummy.scale.setScalar(1); _btDummy.updateMatrix()
+      fencePostIM.current.setMatrixAt(i, _btDummy.matrix)
+    }
+    fencePostIM.current.instanceMatrix.needsUpdate = true
+    // Security fence rails — 12 connecting adjacent posts
+    for (let i = 0; i < 12; i++) {
+      const a1 = (i / 12) * Math.PI * 2; const a2 = ((i + 1) / 12) * Math.PI * 2; const fr = 10
+      const x1 = Math.cos(a1) * fr; const z1 = Math.sin(a1) * fr
+      const x2 = Math.cos(a2) * fr; const z2 = Math.sin(a2) * fr
+      const mx = (x1 + x2) / 2; const mz = (z1 + z2) / 2
+      const dx = x2 - x1; const dz = z2 - z1
+      const len2 = Math.sqrt(dx * dx + dz * dz)
+      _btDummy.position.set(mx, 1.8, mz); _btDummy.rotation.set(0, -Math.atan2(dz, dx), 0); _btDummy.scale.setScalar(1); _btDummy.updateMatrix()
+      fenceRailIM.current.setMatrixAt(i, _btDummy.matrix)
+      // store the rail length for geometry via scale.x  — use scale instead
+      // NOTE: the rail boxGeometry is [len, 0.06, 0.06] with len = chord length ~5.23
+      // We precompute each scale.x to match the chord
+      _btDummy.scale.set(len2, 1, 1); _btDummy.updateMatrix()
+      fenceRailIM.current.setMatrixAt(i, _btDummy.matrix)
+    }
+    fenceRailIM.current.instanceMatrix.needsUpdate = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    // Pulsing scale on the core ring
     if (pulseRef.current) {
       const s = 1 + 0.18 * Math.sin(t * 3.5)
       pulseRef.current.scale.setScalar(s)
     }
-    // Alternating warning lights: lights 0,2 vs 1,3
-    warnRefs.current.forEach((m, i) => {
-      if (!m) return
-      const phase = (i % 2) * Math.PI
-      const on = Math.sin(t * 4 + phase) > 0
-      ;(m.material as THREE.MeshStandardMaterial).emissiveIntensity = on ? 6 : 0.05
-    })
+    // Warning lights (0,2 vs 1,3) via instanceColor
+    if (warnIM.current) {
+      for (let i = 0; i < 4; i++) {
+        const phase = (i % 2) * Math.PI
+        const on = Math.sin(t * 4 + phase) > 0
+        warnIM.current.setColorAt(i, _btCol.set(on ? '#ff0000' : '#110000'))
+      }
+      warnIM.current.instanceColor!.needsUpdate = true
+    }
   })
-
-  // conduit colors for 6 energy conduits
-  const conduitColors = ['#00aaff', '#ff4400', '#ffcc00', '#00ff88', '#ff00ff', '#44ffff']
 
   return (
     <group position={[-50, 0, 0]}>
@@ -1517,83 +1569,28 @@ function PowerStation() {
       <TowerSteam cx={-7} cz={0} />
       <TowerSteam cx={7}  cz={0} />
 
-      {/* ---- 6 energy conduits from reactor outward ---- */}
-      {conduitColors.map((color, i) => {
-        const angle = (i / conduitColors.length) * Math.PI * 2
-        const len = 7
-        const cx2 = Math.cos(angle) * (len / 2)
-        const cz2 = Math.sin(angle) * (len / 2)
-        return (
-          <mesh
-            key={i}
-            position={[cx2, 3, cz2]}
-            rotation={[0, -angle, Math.PI / 2]}
-          >
-            <cylinderGeometry args={[0.3, 0.3, len, 8]} />
-            <meshStandardMaterial
-              color={color}
-              emissive={color}
-              emissiveIntensity={1.5}
-              roughness={0.3}
-              metalness={0.5}
-            />
-          </mesh>
-        )
-      })}
+      {/* 6 energy conduits → 1 IM with instanceColor */}
+      <instancedMesh ref={conduitIM} args={[undefined, undefined, 6]}>
+        <cylinderGeometry args={[0.3, 0.3, 7, 8]} />
+        <meshBasicMaterial vertexColors />
+      </instancedMesh>
 
-      {/* ---- 4 warning lights at building corners ---- */}
-      {([[-4.8, 3, -3.8], [4.8, 3, -3.8], [-4.8, 3, 3.8], [4.8, 3, 3.8]] as [number, number, number][]).map(
-        ([wx, wy, wz], i) => (
-          <mesh
-            key={i}
-            ref={(el) => { if (el) warnRefs.current[i] = el }}
-            position={[wx, wy, wz]}
-          >
-            <sphereGeometry args={[0.2, 8, 8]} />
-            <meshStandardMaterial
-              color="#ff0000"
-              emissive="#ff0000"
-              emissiveIntensity={0.05}
-            />
-          </mesh>
-        )
-      )}
+      {/* 4 warning lights → 1 IM with instanceColor (animated) */}
+      <instancedMesh ref={warnIM} args={[undefined, undefined, 4]}>
+        <sphereGeometry args={[0.2, 8, 8]} />
+        <meshBasicMaterial vertexColors />
+      </instancedMesh>
 
-      {/* ---- Security fence: 12 posts + horizontal connecting bars ---- */}
-      {Array.from({ length: 12 }, (_, i) => {
-        const fAngle = (i / 12) * Math.PI * 2
-        const fr = 10
-        const fx = Math.cos(fAngle) * fr
-        const fz = Math.sin(fAngle) * fr
-        return (
-          <mesh key={i} position={[fx, 1.2, fz]}>
-            <cylinderGeometry args={[0.08, 0.08, 2.4, 5]} />
-            <meshStandardMaterial color="#445566" roughness={0.7} metalness={0.5} />
-          </mesh>
-        )
-      })}
-      {/* Horizontal fence rail connecting adjacent posts */}
-      {Array.from({ length: 12 }, (_, i) => {
-        const a1 = (i / 12) * Math.PI * 2
-        const a2 = ((i + 1) / 12) * Math.PI * 2
-        const fr = 10
-        const x1 = Math.cos(a1) * fr
-        const z1 = Math.sin(a1) * fr
-        const x2 = Math.cos(a2) * fr
-        const z2 = Math.sin(a2) * fr
-        const mx = (x1 + x2) / 2
-        const mz = (z1 + z2) / 2
-        const dx = x2 - x1
-        const dz = z2 - z1
-        const len = Math.sqrt(dx * dx + dz * dz)
-        const rotY = -Math.atan2(dz, dx)
-        return (
-          <mesh key={i} position={[mx, 1.8, mz]} rotation={[0, rotY, 0]}>
-            <boxGeometry args={[len, 0.06, 0.06]} />
-            <meshStandardMaterial color="#445566" roughness={0.7} metalness={0.5} />
-          </mesh>
-        )
-      })}
+      {/* 12 fence posts → 1 IM */}
+      <instancedMesh ref={fencePostIM} args={[undefined, undefined, 12]}>
+        <cylinderGeometry args={[0.08, 0.08, 2.4, 5]} />
+        <meshStandardMaterial color="#445566" roughness={0.7} metalness={0.5} />
+      </instancedMesh>
+      {/* 12 fence rails → 1 IM (unit-width geo, scale.x per chord) */}
+      <instancedMesh ref={fenceRailIM} args={[undefined, undefined, 12]}>
+        <boxGeometry args={[1, 0.06, 0.06]} />
+        <meshStandardMaterial color="#445566" roughness={0.7} metalness={0.5} />
+      </instancedMesh>
 
       {/* Station point light for ambient glow */}
       <pointLight color="#0088ff" intensity={3} distance={25} position={[0, 13, 0]} />
