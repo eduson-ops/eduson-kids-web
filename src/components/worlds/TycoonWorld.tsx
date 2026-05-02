@@ -36,7 +36,9 @@ const SHIMMER_FRAG = `
 function GoldShimmerGround() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
   return (
@@ -56,7 +58,9 @@ function GoldShimmerGround() {
 // ─── Rotating golden ring ────────────────────────────────────────────────────
 function GoldenRing({ posY, radius, speed, phase }: { posY: number; radius: number; speed: number; phase: number }) {
   const ref = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (ref.current) ref.current.rotation.y = clock.getElapsedTime() * speed + phase
   })
   return (
@@ -70,7 +74,9 @@ function GoldenRing({ posY, radius, speed, phase }: { posY: number; radius: numb
 // ─── Revenue counter display ─────────────────────────────────────────────────
 function RevenueDisplay() {
   const ref = useRef<THREE.MeshStandardMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (ref.current) ref.current.emissiveIntensity = 0.6 + Math.sin(clock.getElapsedTime() * 2.5) * 0.4
   })
   return (
@@ -94,7 +100,9 @@ function RevenueDisplay() {
 // ─── Animated stock ticker ────────────────────────────────────────────────────
 function StockTicker() {
   const ref = useRef<THREE.MeshStandardMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (ref.current) ref.current.emissiveIntensity = 0.4 + Math.sin(clock.getElapsedTime() * 4) * 0.35
   })
   return (
@@ -218,10 +226,13 @@ function ChimneySmoke() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const matRef = useRef<THREE.MeshBasicMaterial>(null!)
   const _col = useRef(new THREE.Color())
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     states.forEach((s, i) => {
-      s.y += s.speed * dt
+      s.y += s.speed * step
       const progress = Math.min((s.y - 8) / 17, 1)
       const sc = s.baseScale + progress * 0.6
       const opacity = 0.15 + progress * 0.15
@@ -256,6 +267,7 @@ function SmokeStacks() {
   const PER = 40
   const COUNT = CHIMNEYS.length * PER
   const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip = useRef(0)
   const particles = useMemo(() =>
     Array.from({ length: COUNT }, (_, i) => {
       const ci = Math.floor(i / PER)
@@ -269,10 +281,12 @@ function SmokeStacks() {
       }
     }), []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useFrame(() => {
+  useFrame((_, dt) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     particles.forEach((p, i) => {
-      p.y += p.speed
+      p.y += p.speed * step
       const t = Math.min((p.y - 12) / 14, 1)
       if (t >= 1) {
         p.y = 12
@@ -340,7 +354,9 @@ function ProductBoxes() {
 // ─── FactoryWindows — glowing window panels on factory walls ──────────────────
 function FactoryWindows() {
   const refs = useRef<(THREE.MeshStandardMaterial | null)[]>([])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     refs.current.forEach((mat, i) => {
       if (mat) mat.emissiveIntensity = 1.6 + Math.sin(t * 1.8 + i * 0.7) * 0.5
@@ -482,8 +498,10 @@ const BELT_POSITIONS: [number, number, number][] = [
 function ConveyorBelts() {
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
   const matRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     matRefs.current.forEach(mat => {
       if (mat) mat.uniforms.iTime!.value = t
@@ -526,8 +544,10 @@ const ARM_CONFIGS: { pos: [number, number, number]; phase: number }[] = [
 
 function FactoryArm() {
   const armRefs = useRef<(THREE.Group | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     armRefs.current.forEach((arm, i) => {
       if (arm) arm.rotation.x = Math.sin(t * 1.2 + ARM_CONFIGS[i].phase) * 0.4
@@ -569,7 +589,9 @@ const NEON_POSITIONS: [number, number, number][] = [
 ]
 function MarketNeonSigns() {
   const refs = useRef<(THREE.MeshStandardMaterial | null)[]>([])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     refs.current.forEach((mat, i) => {
       if (mat) mat.emissiveIntensity = 2.5 + Math.sin(t * 2.5 + i * 1.1) * 0.5
@@ -598,8 +620,11 @@ function BusinessCar() {
   const ref = useRef<THREE.Group>(null!)
   const dir = useRef(1)
   const pos = useRef(40)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
-    pos.current += dir.current * 8 * dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    pos.current += dir.current * 8 * step
     if (pos.current > 110) dir.current = -1
     if (pos.current < 45) dir.current = 1
     if (ref.current) {
@@ -652,7 +677,9 @@ function FactoryBuilding({ pos }: { pos: [number, number, number] }) {
 // ─── Chimney ──────────────────────────────────────────────────────────────────
 function Chimney({ pos }: { pos: [number, number, number] }) {
   const tipRef = useRef<THREE.MeshStandardMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (tipRef.current) tipRef.current.emissiveIntensity = 0.6 + Math.sin(clock.getElapsedTime() * 3) * 0.3
   })
   return (
@@ -754,8 +781,10 @@ function Helipad() {
   const lightRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([])
   // Wind sock rotation
   const sockRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Alternate two groups: even indices flash at one phase, odd at opposite
     lightRefs.current.forEach((mat, i) => {
@@ -842,7 +871,9 @@ function Helipad() {
 // ─── CEOOffice ────────────────────────────────────────────────────────────────
 function CEOOffice() {
   const monitorRef = useRef<THREE.MeshStandardMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (monitorRef.current) {
       monitorRef.current.emissiveIntensity = 1.5 + Math.sin(clock.getElapsedTime() * 1.8) * 0.5
     }
@@ -963,8 +994,10 @@ function TradingFloor() {
   const tickerRef = useRef<THREE.Group>(null!)
   // Flashing screen intensities
   const screenRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // scroll ticker tape along Z
     if (tickerRef.current) {
@@ -1130,8 +1163,10 @@ function TradingFloor() {
 function Boardroom() {
   const screenRef = useRef<THREE.MeshStandardMaterial>(null!)
   const chandelierRef = useRef<(THREE.MeshStandardMaterial | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (screenRef.current) {
       screenRef.current.emissiveIntensity = 1.2 + Math.sin(t * 1.5) * 0.3
@@ -1429,8 +1464,10 @@ function WorkerRobot({ cfg }: { cfg: WorkerConfig }) {
   const rightArmRef = useRef<THREE.Group>(null!)
   const bodyRef     = useRef<THREE.Group>(null!)
   const sparkRef    = useRef<THREE.MeshStandardMaterial>(null!)
+  const frameSkip   = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime() + cfg.phase
     const bob  = Math.sin(t * 1.8) * 0.25
     const sway = Math.sin(t * 0.9) * 0.04
@@ -1650,13 +1687,16 @@ function ForkliftRobot() {
   const wheel1Ref  = useRef<THREE.Mesh>(null!)
   const wheel2Ref  = useRef<THREE.Mesh>(null!)
   const wheel3Ref  = useRef<THREE.Mesh>(null!)
+  const frameSkip  = useRef(0)
   const dirRef     = useRef(1)
   const posXRef    = useRef(-90)
 
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const t = performance.now() / 1000
     // drive back and forth
-    posXRef.current += dirRef.current * 4 * dt
+    posXRef.current += dirRef.current * 4 * step
     if (posXRef.current > -72) dirRef.current = -1
     if (posXRef.current < -108) dirRef.current = 1
 
@@ -1671,7 +1711,7 @@ function ForkliftRobot() {
     }
 
     // spin wheels
-    const wSpin = dirRef.current * dt * 4
+    const wSpin = dirRef.current * step * 4
     if (wheel0Ref.current) wheel0Ref.current.rotation.z += wSpin
     if (wheel1Ref.current) wheel1Ref.current.rotation.z += wSpin
     if (wheel2Ref.current) wheel2Ref.current.rotation.z += wSpin
@@ -1797,6 +1837,7 @@ function RooftopMoneyRain() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const timeRef = useRef(0)
+  const frameSkip = useRef(0)
 
   const states = useMemo<RMoneyState[]>(() =>
     Array.from({ length: RMONEY_COUNT }, (_, i) => ({
@@ -1813,7 +1854,9 @@ function RooftopMoneyRain() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
-    timeRef.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    timeRef.current += step
     const cycleT = timeRef.current % RMONEY_CYCLE
 
     states.forEach((s, i) => {
@@ -1831,9 +1874,9 @@ function RooftopMoneyRain() {
       if (cycleT >= RMONEY_CYCLE * 0.5) s.active = false
 
       if (s.active) {
-        s.y += s.vy * dt
-        s.x += s.vx * dt
-        s.rotZ += s.rotVZ * dt
+        s.y += s.vy * step
+        s.x += s.vx * step
+        s.rotZ += s.rotVZ * step
         if (s.y < ROOFTOP_Y - 2) {
           // Landed — reset
           s.y = RMONEY_SPAWN_Y + Math.random() * 4

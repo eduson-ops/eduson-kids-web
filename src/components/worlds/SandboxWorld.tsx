@@ -123,7 +123,9 @@ const WATER_FRAG = `
 function AnimatedSun() {
   const lightRef = useRef<THREE.PointLight>(null!)
   const meshRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime() * 0.08
     const x = Math.cos(t) * 120
     const z = Math.sin(t) * 120
@@ -170,7 +172,9 @@ function Stars() {
 // ─── Grid overlay ────────────────────────────────────────────────
 function GridOverlay() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime.value = clock.getElapsedTime()
   })
   return (
@@ -191,7 +195,9 @@ function GridOverlay() {
 // ─── Fountain water disc ────────────────────────────────────────
 function FountainWater({ y }: { y: number }) {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime.value = clock.getElapsedTime()
   })
   return (
@@ -334,6 +340,7 @@ function OceanPlane() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime.value = clock.getElapsedTime()
   })
   return (
@@ -366,7 +373,9 @@ function BeachWaves() {
   const mat1 = useRef<THREE.ShaderMaterial>(null!)
   const mat2 = useRef<THREE.ShaderMaterial>(null!)
   const mat3 = useRef<THREE.ShaderMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (mat1.current) mat1.current.uniforms.iTime.value = t
     if (mat2.current) mat2.current.uniforms.iTime.value = t + 1.0
@@ -512,7 +521,9 @@ function FactorySmoke() {
       phase: (i / COUNT) * Math.PI * 2,
     }))
   ), [])  // eslint-disable-line react-hooks/exhaustive-deps
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     data.forEach((d, i) => {
       const m = refs.current[i]
@@ -961,7 +972,9 @@ function BeachBonfire() {
   const dummyMatrix = useMemo(() => new THREE.Matrix4(), [])
   const dummyColor  = useMemo(() => new THREE.Color('#ffaa44'), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     const phases = [0, 1.1, 2.3]
     fireConeRefs.current.forEach((m, i) => {
@@ -1341,7 +1354,9 @@ function WaterSlide() {
     }
   }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     splashData.forEach((d, i) => {
       const m = splashRefs.current[i]
@@ -1462,7 +1477,9 @@ function WavePool() {
     speed: 0.6 + Math.random() * 0.5,
   })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     // Move wave crests from z=-9 to z=+9, wrapping
@@ -1681,7 +1698,9 @@ function ConstructionCrane() {
   const craneRef = useRef<THREE.Group>(null!)
   const hookRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (craneRef.current) craneRef.current.rotation.y += 0.002
     if (hookRef.current) hookRef.current.rotation.x = Math.sin(t * 0.4) * 0.15
@@ -1770,7 +1789,9 @@ function ConstructionCrane() {
 function Scaffolding() {
   const warningRef = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (warningRef.current) {
       const mat = warningRef.current.material as THREE.MeshStandardMaterial
@@ -1876,7 +1897,9 @@ function CementMixer() {
   const drumRef = useRef<THREE.Mesh>(null!)
   const wheelRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (drumRef.current) drumRef.current.rotation.z += 0.05
     wheelRefs.current.forEach(w => {
       if (w) w.rotation.x += 0.08
@@ -1970,7 +1993,9 @@ function SeagullFlock() {
     wingSpeed: 2.5 + Math.random() * 2,
   })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     refs.current.forEach((grp, i) => {
       if (!grp) return

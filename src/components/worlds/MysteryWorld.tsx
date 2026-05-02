@@ -6,6 +6,9 @@ import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+const _CANDLE_JITTER = Array.from({ length: 10 }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.04 ? (Math.random() - 0.5) * 0.6 : 0)
+)
 
 // ─── MansionFog — 20 drifting semi-transparent planes creating eerie mist ───
 const FOG_PLANES: { pos: [number, number, number]; phase: number; speed: number }[] = [
@@ -35,7 +38,9 @@ function MansionFog() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const frameCount = useRef(0)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (++frameCount.current % 2 !== 0) return  // 30fps is enough for slow fog drift
     const t = clock.elapsedTime
     FOG_PLANES.forEach((fp, i) => {
@@ -74,13 +79,17 @@ const CANDLE_POSITIONS: [number, number, number][] = [
 
 function CandleLights() {
   const lightRefs = useRef<(THREE.PointLight | null)[]>([])
+  const frameSkip = useRef(0)
+  const jitterPtr = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
+    const ptr = jitterPtr.current++ % 32
     CANDLE_POSITIONS.forEach((_pos, i) => {
       const light = lightRefs.current[i]
       if (light) {
         const base = 0.8 + 0.5 * Math.sin(t * 3.1 + i * 1.7)
-        const jitter = Math.random() < 0.04 ? (Math.random() - 0.5) * 0.6 : 0
+        const jitter = _CANDLE_JITTER[i]![ptr]!
         light.intensity = Math.max(0.3, Math.min(1.8, base + jitter))
       }
     })
@@ -225,7 +234,9 @@ function GhostFootprints() {
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
   const frameCount = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (++frameCount.current % 2 !== 0) return
     const t = clock.elapsedTime
     GHOST_FOOTPRINT_DEFS.forEach((fp, i) => {
@@ -283,7 +294,9 @@ function GhostApparition() {
   const bufHead = useRef(0)
   const lastPos = useRef(new THREE.Vector3(0, 1.5, -5))
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime() * 0.25
     const x = Math.sin(t) * 12
     const z = Math.cos(t * 2) * 8 - 5
@@ -512,7 +525,9 @@ function RoomAccent({ room }: { room: RoomDef }) {
 function ClueOrb({ pos }: { pos: [number, number, number] }) {
   // Декоративная сфера с парящим «облачком» вокруг — визуальный маркер улики
   const orb = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (orb.current) {
       orb.current.position.y = pos[1] + Math.sin(clock.elapsedTime * 1.8) * 0.12
     }
@@ -584,7 +599,9 @@ function MysteryOrb({ basePos }: { basePos: [number, number, number] }) {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0.0 } }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     if (meshRef.current) {
       meshRef.current.position.y = basePos[1] + Math.sin(t * 1.2 + basePos[0]) * 0.18
@@ -666,7 +683,9 @@ function MysteryRing() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0.0 } }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) {
       groupRef.current.rotation.y = clock.elapsedTime * 0.3
     }
@@ -713,7 +732,9 @@ function FloatingRunes() {
       }
     }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
     const t = clock.elapsedTime
     runes.forEach((r, i) => {
@@ -1024,7 +1045,9 @@ function SwampZone() {
 function SpectralText() {
   const groupRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     if (groupRef.current) {
       groupRef.current.position.y = 20 + Math.sin(t * 0.6) * 0.8
@@ -1101,7 +1124,9 @@ function WizardWorkshop() {
       speed: 0.4 + Math.random() * 0.3,
     })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     // bubbling particles from cauldron
     bubbleData.forEach((b, i) => {
@@ -1301,7 +1326,9 @@ function FlyingBroomstick() {
   const groupRef = useRef<THREE.Group>(null!)
   const broomRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     const radius = 8
     const angle = t * 0.7
@@ -1380,7 +1407,9 @@ function MagicMirror() {
       }
     }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     if (mirrorMatRef.current) {
       mirrorMatRef.current.emissiveIntensity = 1 + Math.sin(t * 0.7) * 0.6
@@ -1432,7 +1461,9 @@ function MagicMirror() {
 function MoonPortal() {
   const groupRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) {
       groupRef.current.rotation.z += 0.005
     }
@@ -1489,7 +1520,9 @@ function BatSwarm() {
     wingPhase: (i / COUNT) * Math.PI * 1.618,
   })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!bodyRef.current) return
     const t = clock.elapsedTime
     for (let i = 0; i < COUNT; i++) {
@@ -1544,7 +1577,9 @@ function BatSwarm() {
 // ─── HauntedMoon — large glowing moon in the sky ─────────────────────────────
 function HauntedMoon() {
   const ref = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!ref.current) return
     const mat = ref.current.material as THREE.MeshBasicMaterial
     mat.opacity = 0.85 + 0.1 * Math.sin(clock.elapsedTime * 0.2)
@@ -1685,7 +1720,9 @@ function DragonSkeleton() {
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     mistData.forEach((m, i) => {
       const cycleT = (t * m.speed + m.phase) % 4.0
@@ -1980,7 +2017,9 @@ function DragonAura() {
 
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
 
     // Orbit ring circles around skull at [50,0,20] local origin at [0,0,0]

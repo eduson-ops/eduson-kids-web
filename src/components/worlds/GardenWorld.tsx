@@ -93,7 +93,9 @@ function Bed({
   const [stage, setStage] = useState<'empty' | 'growing' | 'ripe'>(initialRipe ? 'ripe' : 'empty')
   const growT = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt
     if (plantRef.current) {
       plantRef.current.rotation.z = Math.sin(phase.current * 1.5) * 0.05
@@ -284,7 +286,9 @@ function GrassGlowPatches() {
   const timeRef = useRef(0)
   const materialRefs = useRef<THREE.ShaderMaterial[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     timeRef.current = clock.getElapsedTime()
     materialRefs.current.forEach((mat) => {
       if (mat && mat.uniforms) {
@@ -399,7 +403,9 @@ function ButterflyMesh({ cfg }: { cfg: typeof BUTTERFLY_CONFIG[0] }) {
   const leftWingRef = useRef<THREE.Mesh>(null!)
   const rightWingRef = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Lissajous path around home
     const x = cfg.home[0] + Math.cos(t * cfg.orbitSpeedA + cfg.phase) * cfg.orbitA
@@ -550,7 +556,9 @@ function BeeMesh({ cfg }: { cfg: typeof BEE_CONFIG[0] }) {
   const leftWingRef  = useRef<THREE.Mesh>(null!)
   const rightWingRef = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Figure-8: parametric (cos, sin*cos) scaled
     const u = t * cfg.fig8Speed + cfg.phase
@@ -631,7 +639,9 @@ function SprinklerUnit({ pos }: { pos: [number, number, number] }) {
     [],
   )
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Rotate arm
     armRef.current.rotation.y = t * 1.2
@@ -711,7 +721,9 @@ const SUN_RAY_POSITIONS: Array<[number, number, number]> = [
 function GardenSunRays() {
   const meshRefs = useRef<THREE.Mesh[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     meshRefs.current.forEach((mesh, i) => {
       if (!mesh) return
@@ -1008,7 +1020,9 @@ function PickedBaskets() {
 function Windmill() {
   const sailRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (sailRef.current) {
       sailRef.current.rotation.z += 0.008
     }
@@ -1206,7 +1220,9 @@ function ChickenMesh({ cfg }: { cfg: typeof CHICKEN_CONFIG[0] }) {
   const groupRef   = useRef<THREE.Group>(null!)
   const headRef    = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     // Wander in an oval orbit around the home position
@@ -1335,7 +1351,9 @@ function SheepMesh({ cfg }: { cfg: typeof SHEEP_CONFIG[0] }) {
   const groupRef = useRef<THREE.Group>(null!)
   const headRef  = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     const wx = cfg.homeX + Math.cos(t * cfg.orbitSpeed + cfg.orbitPhase) * cfg.orbitA
@@ -1445,7 +1463,9 @@ const DUCK_CONFIG = Array.from({ length: 3 }, (_, i) => {
 function DuckMesh({ cfg }: { cfg: typeof DUCK_CONFIG[0] }) {
   const groupRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     const angle = t * cfg.orbitSpeed + cfg.orbitPhase
     const x = POND_CENTER[0] + Math.cos(angle) * cfg.orbitRadius
@@ -1519,7 +1539,9 @@ function DuckPondWithDucks() {
 function Scarecrow({ position }: { position: [number, number, number] }) {
   const groupRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (groupRef.current) {
       groupRef.current.rotation.z = Math.sin(t * 0.5) * 0.05
@@ -1690,7 +1712,9 @@ function BannerString({
 }) {
   const flagRefs = useRef<THREE.Mesh[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     flagRefs.current.forEach((mesh, i) => {
       if (!mesh) return

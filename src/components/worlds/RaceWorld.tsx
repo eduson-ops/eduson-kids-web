@@ -243,7 +243,9 @@ function VictoryFireworks() {
   const BURST_Y = 14
   const BURST_Z_OFFSETS = [0, 2, -2, 1, -1, 0]
 
+  const frameSkip = useRef(0)
   useFrame((_s, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const dummy = _fw_dummy.current
     for (let b = 0; b < burstCount; b++) {
       const state = burstStates.current[b]!
@@ -410,7 +412,9 @@ const heatFrag = `
 function HeatShimmer({ position, size }: { position: [number, number, number]; size: [number, number] }) {
   const matRef = useRef<THREE.ShaderMaterial>(null)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms['iTime']!.value = clock.elapsedTime
   })
   return (
@@ -486,7 +490,9 @@ function AICar({ color, speed, offset }: { color: string; speed: number; offset:
   const ref = useRef<THREE.Group>(null)
   const tRef = useRef(offset)
 
+  const frameSkip = useRef(0)
   useFrame((_s, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     tRef.current = (tRef.current + delta * speed) % 1
     const t = tRef.current
     const total = OVAL_PATH.length
@@ -908,7 +914,9 @@ function SpectatorStands() {
   const FLASH_COLOR_A = new THREE.Color('#ffffff')
   const FLASH_COLOR_B = new THREE.Color('#ffff44')
 
+  const frameSkip = useRef(0)
   useFrame((_s, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const mesh = meshRef.current
     if (!mesh) return
     timeRef.current += delta
@@ -976,7 +984,9 @@ const shimmerFragGlsl = `
 function TrackHeatShimmer() {
   const matRef = useRef<THREE.ShaderMaterial>(null)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms['iTime']!.value = clock.elapsedTime
   })
   return (
@@ -1065,7 +1075,9 @@ function CircuitBillboard({ pos, rotY, colorIdx }: { pos: [number,number,number]
     iTime: { value: colorIdx * 1.1 },
     uColor: { value: new THREE.Vector3(...color) },
   }), [color, colorIdx])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime.value = clock.elapsedTime + colorIdx * 1.1
   })
   return (
@@ -1130,7 +1142,9 @@ function PitRobot({ pos, pose, phase }: RobotDef) {
   const leftLegRef  = useRef<THREE.Mesh>(null)
   const rightLegRef = useRef<THREE.Mesh>(null)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     if (groupRef.current) {
       groupRef.current.position.y = pos[1] + Math.sin(t * 2 + phase) * 0.05
@@ -1260,7 +1274,9 @@ const FLAG_POLE_POSITIONS: [number, number, number][] = [
 function CheckeredFlag({ pos }: { pos: [number, number, number] }) {
   const flagRef = useRef<THREE.Group>(null)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (flagRef.current) {
       flagRef.current.rotation.z = Math.sin(clock.elapsedTime * 2) * 0.3
     }
@@ -1339,7 +1355,9 @@ function RainSystem() {
     }))
   , [])
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const mesh = meshRef.current
     if (!mesh) return
     const dummy = _rain_dummy.current
@@ -1387,7 +1405,9 @@ function WetTrack() {
   const rippleRefs = useRef<(THREE.Mesh | null)[]>([])
   const ringRadii = useRef<number[]>(RIPPLE_DEFS.map((r) => (r.phase / (Math.PI * 2)) * 4))
 
+  const frameSkip = useRef(0)
   useFrame((_s, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     for (let i = 0; i < RIPPLE_DEFS.length; i++) {
       const mesh = rippleRefs.current[i]
       if (!mesh) continue
@@ -1468,7 +1488,9 @@ function SprayCluster({ origin }: { origin: [number, number, number] }) {
     }))
   , [origin])
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     for (let i = 0; i < SPRAY_PER_CLUSTER; i++) {
       const p = particles[i]!
       const mesh = meshRefs.current[i]
@@ -1563,7 +1585,9 @@ function CelebrationFlags() {
     }))
   , [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     for (let i = 0; i < flagStates.length; i++) {
       const mesh = flagRefs.current[i]
@@ -1678,7 +1702,9 @@ function TVHelicopter() {
   const HEIGHT = 40
   const SPEED  = 0.15   // rad/s
 
+  const frameSkip = useRef(0)
   useFrame((_s, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     angle.current += delta * SPEED
     const a  = angle.current
     const nx = Math.cos(a + delta * SPEED)
@@ -1846,7 +1872,9 @@ function DroneMesh({ position, pathFn }: {
   const r4 = useRef<THREE.Mesh>(null)
   const tRef = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_s, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     tRef.current += delta * 0.4
     const [px, py, pz] = pathFn(tRef.current)
     if (groupRef.current) groupRef.current.position.set(px, py, pz)
@@ -1947,7 +1975,9 @@ function JumboTron({ position, rotY }: {
   const speedVal    = useRef(0)
   const liveTimer   = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_s, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     speedVal.current += delta * 18
     if (speedVal.current > 320) speedVal.current = 180
 

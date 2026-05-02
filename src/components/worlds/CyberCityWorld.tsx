@@ -4,6 +4,10 @@ import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { canPostfx, detectDeviceTier } from '../../lib/deviceTier'
 const _isLow = detectDeviceTier() === 'low'
+const _GRATE_SPIKE = Array.from({ length: 6 }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.015)
+)
+let _grateIdx = 0
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -123,7 +127,9 @@ declare module '@react-three/fiber' {
 // ─── HoloGrid component ───────────────────────────────────────────
 function HoloGrid() {
   const matRef = useRef<HoloGridMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) {
       matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
     }
@@ -174,7 +180,9 @@ function NeonRain() {
   // Apply instance colors after first render
   const colorsApplied = useRef(false)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!enabled) return
     const mesh = meshRef.current
     if (!mesh) return
@@ -218,7 +226,9 @@ function NeonRain() {
 // ─── Holographic billboard panel ──────────────────────────────────
 function HoloBillboard({ pos, rotY = 0 }: { pos: [number, number, number]; rotY?: number }) {
   const matRef = useRef<HoloBillboardMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
   return (
@@ -488,6 +498,11 @@ function SkyscraperSpiral() {
 // ─── Animated billboard / sign ────────────────────────────────────
 // Varied pulse frequencies for different sign "personalities"
 const PULSE_FREQS = [0.8, 1.3, 2.1, 0.5]
+// Pre-baked flicker pools for each sign instance (32 entries, ~0.2% true)
+const _SIGN_FLICKER = Array.from({ length: 12 }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.002)
+)
+let _signIdx = 0
 
 function NeonSign({
   pos,
@@ -505,13 +520,16 @@ function NeonSign({
   const mat = useRef<THREE.MeshStandardMaterial>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
   const freq = PULSE_FREQS[freqIdx % PULSE_FREQS.length]!
+  const flickerPool = useRef(_SIGN_FLICKER[_signIdx++ % 12]!)
+  const flickerPtr = useRef(0)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
-    phase.current += dt * freq
+    if (_isLow && (frameSkip.current++ & 1)) return
+    phase.current += dt * (_isLow ? 2 : 1) * freq
     if (mat.current) {
       const base = 1.5 + Math.sin(phase.current) * 0.6
-      // rare flicker: ~0.2% chance per frame to drop to 0
-      const intensity = Math.random() < 0.002 ? 0 : base
-      mat.current.emissiveIntensity = intensity
+      const flicker = flickerPool.current[flickerPtr.current++ % 32]
+      mat.current.emissiveIntensity = flicker ? 0 : base
     }
   })
   return (
@@ -533,6 +551,7 @@ function MovingBillboard({ startX, y, z }: { startX: number; y: number; z: numbe
   const grp = useRef<THREE.Group>(null!)
   const phase = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * 0.45
     if (grp.current) grp.current.position.x = startX + Math.sin(phase.current) * 6
   })
@@ -625,7 +644,9 @@ function SingleDrone({
   const blinkRef = useRef<THREE.MeshBasicMaterial>(null!)
   const [cx, , cz] = center
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (groupRef.current) {
       groupRef.current.position.set(
@@ -686,13 +707,22 @@ const WINDOW_LIGHTS: { pos: [number, number, number]; color: string }[] = [
   { pos: [ 20,  5, -30], color: '#ff00aa' },
 ]
 
+// Pre-baked window flicker pools (12 windows × 32 frames, ~2% true each)
+const _WIN_FLICKER = Array.from({ length: 12 }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.02)
+)
+
 function WindowPulse() {
   const refs = useRef<(THREE.Mesh | null)[]>([])
+  const flickerPtr = useRef(0)
+  const frameSkip = useRef(0)
 
   useFrame(() => {
-    refs.current.forEach((mesh) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const ptr = flickerPtr.current++ % 32
+    refs.current.forEach((mesh, i) => {
       if (!mesh) return
-      if (Math.random() < 0.02) {
+      if (_WIN_FLICKER[i % 12]![ptr]) {
         const mat = mesh.material as THREE.MeshBasicMaterial
         mat.opacity = mat.opacity > 0.5 ? 0.1 : 0.8
       }
@@ -749,7 +779,9 @@ function HoverTraffic() {
   // Mutable z positions tracked as a ref array (no re-render needed)
   const zPos = useRef<number[]>(initialZ.slice())
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     CAR_CONFIGS.forEach((c, i) => {
       const car = carRefs.current[i]
       if (!car) return
@@ -833,7 +865,9 @@ function TrafficLights() {
   )
   const iTimeRef = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     iTimeRef.current += dt
     const t = iTimeRef.current % 6
     const greenActive  = t < 2.5
@@ -969,7 +1003,9 @@ function NeonSigns() {
   const strip1Refs = useRef<(THREE.Mesh | null)[]>([])
   const strip2Refs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     NEON_SIGN_DATA.forEach((sign, i) => {
       const intensity = 2 + Math.sin(t * 2 + sign.phase) * 1.5
@@ -1030,7 +1066,9 @@ function SingleAntenna({ pos }: { pos: [number, number, number] }) {
   const blinkRef = useRef<THREE.MeshStandardMaterial>(null!)
   const blinkState = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     blinkState.current += dt
     if (blinkRef.current) {
       blinkRef.current.emissiveIntensity = blinkState.current % 0.8 < 0.4 ? 5 : 0
@@ -1128,7 +1166,9 @@ const FLYING_AD_DATA: { pos: [number, number, number]; color: string; rotPhase: 
 function FlyingAds() {
   const adRefs = useRef<(THREE.Group | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     adRefs.current.forEach((grp) => {
       if (grp) grp.rotation.y += 0.003
     })
@@ -1271,7 +1311,9 @@ function SingleHoloCop({ pos, rotYOffset }: { pos: [number, number, number]; rot
   const sweepAngle = useRef(0)
   const sweepDir   = useRef(1)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     sweepAngle.current += dt * 0.6 * sweepDir.current
     if (sweepAngle.current >  Math.PI / 4) sweepDir.current = -1
     if (sweepAngle.current < -Math.PI / 4) sweepDir.current =  1
@@ -1405,7 +1447,9 @@ const NEON_PUDDLE_DATA: Array<{
 function NeonPuddles() {
   const puddleRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     NEON_PUDDLE_DATA.forEach((pd, i) => {
       const mesh = puddleRefs.current[i]
@@ -1457,13 +1501,17 @@ const GRATE_POSITIONS: [number, number, number][] = [
 function FloorGrate({ pos }: { pos: [number, number, number] }) {
   const glowRef = useRef<THREE.PointLight>(null!)
   const flickerRef = useRef(0)
+  const spikePool = useRef(_GRATE_SPIKE[_grateIdx++ % 6]!)
+  const spikePtr = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
-    flickerRef.current += dt * 6
+    if (_isLow && (frameSkip.current++ & 1)) return
+    flickerRef.current += _isLow ? dt * 12 : dt * 6
     if (glowRef.current) {
       // Flicker: occasional drop to simulate distant race lights
       const flicker = Math.sin(flickerRef.current * 3.7) * 0.5 + 0.5
-      const spike   = Math.random() < 0.015 ? 0 : 1
+      const spike   = spikePool.current[spikePtr.current++ % 32] ? 0 : 1
       glowRef.current.intensity = 4 * flicker * spike + 1.5
     }
   })
@@ -1829,7 +1877,9 @@ function HackerLair() {
   const monRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([])
   const phases  = useRef<number[]>([0, 0.8, 1.6, 2.4, 3.2, 4.0, 4.8, 5.6])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     monRefs.current.forEach((mat, i) => {
       if (!mat) return
@@ -2066,7 +2116,9 @@ function SurveillanceDrone({ center, radius, height, speed, phase }: DroneData) 
   const lightRef  = useRef<THREE.MeshStandardMaterial>(null!)
   const [cx, , cz] = center
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Patrol position
     if (groupRef.current) {

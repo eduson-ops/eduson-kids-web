@@ -1,6 +1,6 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 const _isLow = detectDeviceTier() === 'low'
@@ -85,7 +85,11 @@ const lavaFrag = `
 function LavaFloor() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
-  useFrame((_, dt) => { if (matRef.current) matRef.current.uniforms.iTime!.value += dt })
+  const frameSkip = useRef(0)
+  useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (matRef.current) matRef.current.uniforms.iTime!.value += _isLow ? dt * 2 : dt
+  })
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -75]}>
       <mesh receiveShadow>
@@ -111,16 +115,19 @@ function BreakableBlock({
   const meshRef = useRef<THREE.Mesh>(null!)
   const breakT = useRef(0)
   const breaking = useRef(false)
+  const frameSkip = useRef(0)
 
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (breaking.current && meshRef.current) {
-      breakT.current += dt
+      breakT.current += step
       const p = Math.min(breakT.current / 0.3, 1)
       meshRef.current.scale.setScalar(1 - p)
       if (p >= 1) setBroken(true)
     }
     if (!breaking.current && meshRef.current) {
-      meshRef.current.rotation.y += dt * 0.5
+      meshRef.current.rotation.y += step * 0.5
     }
   })
 
@@ -163,6 +170,7 @@ function SnowflakeSystem() {
   const COUNT = 60
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 38,
@@ -175,9 +183,11 @@ function SnowflakeSystem() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     data.forEach((p, i) => {
-      p.y -= p.speed * dt
-      p.x += p.drift * dt * 0.5
+      p.y -= p.speed * step
+      p.x += p.drift * step * 0.5
       if (p.y < 0.1) {
         p.y = 10
         p.x = (Math.random() - 0.5) * 38
@@ -247,6 +257,7 @@ function MeadowPollen() {
   const COUNT = 40
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 24,
@@ -267,7 +278,8 @@ function MeadowPollen() {
 
   useFrame((_, dt) => {
     if (!meshRef.current) return
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    t.current += _isLow ? dt * 2 : dt
     data.forEach((d, i) => {
       dummy.position.set(
         d.x + Math.sin(t.current * d.freqX + d.phaseX) * d.ampX,
@@ -343,6 +355,7 @@ function VolcanoEmbers() {
   const COUNT = 60
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
       x: (Math.random() - 0.5) * 28,
@@ -355,11 +368,20 @@ function VolcanoEmbers() {
     }))
   , [])
 
+  useEffect(() => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    data.forEach((d, i) => mesh.setColorAt(i, d.color))
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+  }, [data])
+
   useFrame((_, dt) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     data.forEach((d, i) => {
-      d.y += d.speed * dt
-      d.x += d.driftX * dt * 0.3
+      d.y += d.speed * step
+      d.x += d.driftX * step * 0.3
       if (d.y > 10) {
         d.y = 1
         d.x = (Math.random() - 0.5) * 28
@@ -368,10 +390,8 @@ function VolcanoEmbers() {
       dummy.scale.setScalar(d.scale)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
-      meshRef.current.setColorAt(i, d.color)
     })
     meshRef.current.instanceMatrix.needsUpdate = true
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
@@ -395,12 +415,15 @@ function SkyCloudWisps() {
     }))
   , [])
   const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const frameSkip = useRef(0)
 
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     refs.current.forEach((m, i) => {
       if (!m) return
       const d = data[i]!
-      m.position.x += d.speed * dt
+      m.position.x += d.speed * step
       if (m.position.x > 20) m.position.x = -20
       if (m.position.x < -20) m.position.x = 20
     })
@@ -428,6 +451,7 @@ function SkyCloudWisps() {
 function ForestSpores() {
   const count = 30
   const { camera } = useThree()
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: count }, () => ({
       ox: (Math.random() - 0.5) * 28,
@@ -444,11 +468,13 @@ function ForestSpores() {
   const t = useRef(0)
 
   useFrame((_, dt) => {
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    t.current += step
     refs.current.forEach((m, i) => {
       if (!m) return
       const d = data[i]!
-      m.position.y += d.speed * dt
+      m.position.y += d.speed * step
       m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.6
       if (m.position.y > 7) {
         m.position.y = 0.5
@@ -474,6 +500,7 @@ function ForestSpores() {
 function SnowDrift() {
   const count = 50
   const { camera } = useThree()
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: count }, () => ({
       ox: (Math.random() - 0.5) * 34,
@@ -489,11 +516,13 @@ function SnowDrift() {
   const t = useRef(0)
 
   useFrame((_, dt) => {
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    t.current += step
     refs.current.forEach((m, i) => {
       if (!m) return
       const d = data[i]!
-      m.position.y -= d.speed * dt
+      m.position.y -= d.speed * step
       m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 1.2
       if (m.position.y < -1) {
         m.position.y = 9
@@ -519,6 +548,7 @@ function SnowDrift() {
 function CrystalSparkle() {
   const count = 40
   const { camera } = useThree()
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: count }, () => ({
       ox: (Math.random() - 0.5) * 32,
@@ -537,11 +567,13 @@ function CrystalSparkle() {
   const t = useRef(0)
 
   useFrame((_, dt) => {
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    t.current += step
     refs.current.forEach((m, i) => {
       if (!m) return
       const d = data[i]!
-      m.position.y += d.speed * dt
+      m.position.y += d.speed * step
       m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.8
       const s = 0.5 + Math.abs(Math.sin(t.current * d.scaleFreq + d.scalePhase)) * 0.5
       m.scale.setScalar(s)
@@ -570,6 +602,7 @@ function CrystalSparkle() {
 function CandySparkle() {
   const count = 20
   const { camera } = useThree()
+  const frameSkip = useRef(0)
   const data = useMemo(() =>
     Array.from({ length: count }, () => ({
       ox: (Math.random() - 0.5) * 34,
@@ -586,7 +619,9 @@ function CandySparkle() {
   const t = useRef(0)
 
   useFrame((_, dt) => {
-    t.current += dt
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
+    t.current += step
     refs.current.forEach((m, i) => {
       if (!m) return
       const d = data[i]!

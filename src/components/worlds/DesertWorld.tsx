@@ -3,6 +3,8 @@ import { RigidBody } from '@react-three/rapier'
 import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
+
+const __isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -70,7 +72,9 @@ function PyramidTier({
 // ─── Main Pyramid ────────────────────────────────────────────────────────────
 function MainPyramid() {
   const capRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (capRef.current) {
       const mat = capRef.current.material as THREE.MeshStandardMaterial
       mat.emissiveIntensity = 0.4 + Math.sin(clock.getElapsedTime() * 1.2) * 0.2
@@ -192,7 +196,9 @@ function Sphinx() {
 // ─── Oasis ───────────────────────────────────────────────────────────────────
 function Oasis() {
   const poolRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (poolRef.current) {
       const mat = poolRef.current.material as THREE.MeshStandardMaterial
       mat.emissiveIntensity = 0.2 + Math.sin(clock.getElapsedTime() * 0.8) * 0.05
@@ -255,7 +261,6 @@ function Oasis() {
 // ─── Sandstorm Particles ─────────────────────────────────────────────────────
 function SandstormParticles() {
   const ref = useRef<THREE.InstancedMesh>(null!)
-  const isLow = detectDeviceTier() === 'low'
   const frameSkip = useRef(0)
   const COUNT = 300
   const data = useMemo(() => Array.from({ length: COUNT }, () => ({
@@ -270,9 +275,9 @@ function SandstormParticles() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   useFrame(({ clock }, dt) => {
     if (!ref.current) return
-    if (isLow && (frameSkip.current++ & 1)) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
-    const step = isLow ? dt * 2 : dt
+    const step = _isLow ? dt * 2 : dt
     for (let i = 0; i < COUNT; i++) {
       const d = data[i]!
       d.x += d.speed * step
@@ -301,6 +306,7 @@ function SandstormParticles() {
 const VORTEX_COUNT = 60
 
 function SandVortex() {
+  const frameSkip = useRef(0)
   // Pre-compute per-particle constants: base radius, angular offset, vertical offset, speed
   const vortexData = useMemo(() =>
     Array.from({ length: VORTEX_COUNT }, (_, i) => ({
@@ -314,6 +320,7 @@ function SandVortex() {
   const meshRefs = useRef<THREE.Mesh[]>([])
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < VORTEX_COUNT; i++) {
       const m = meshRefs.current[i]
@@ -476,6 +483,7 @@ const HEAT_FRAG = /* glsl */ `
 
 function HeatShimmer() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const frameSkip = useRef(0)
 
   const uniforms = useMemo(
     () => ({ iTime: { value: 0 } }),
@@ -483,6 +491,7 @@ function HeatShimmer() {
   )
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) {
       matRef.current.uniforms.iTime.value = clock.getElapsedTime()
     }
@@ -562,11 +571,14 @@ const RAY_POSITIONS: [number, number, number][] = [
 
 function SunGodRay() {
   const groupRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
 
   useFrame((_state, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) {
+      const step = _isLow ? dt * 2 : dt
       groupRef.current.children.forEach(child => {
-        child.rotation.y += dt * 0.1
+        child.rotation.y += step * 0.1
       })
     }
   })
@@ -654,7 +666,9 @@ function CeremonialAvenue() {
 // ─── Hovering UFO ─────────────────────────────────────────────────────────────
 function HoveringUFO() {
   const grpRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!grpRef.current) return
     const t = clock.elapsedTime
     // Slow circular hover over the pyramid area
@@ -683,7 +697,6 @@ function SandStorm() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const COUNT = 300
   const ref = useRef<THREE.InstancedMesh>(null!)
-  const isLow = detectDeviceTier() === 'low'
   const frameSkip = useRef(0)
   const particles = useMemo(() =>
     Array.from({ length: COUNT }, () => ({
@@ -697,12 +710,12 @@ function SandStorm() {
     })), [])
 
   useFrame((_, dt) => {
-    if (isLow && (frameSkip.current++ & 1)) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     particles.forEach((p, i) => {
       p.x += p.speed
       p.y += Math.sin(p.phase + p.x * 0.1) * 0.02
       p.z += p.drift
-      p.phase += dt * (isLow ? 1 : 0.5)
+      p.phase += dt * (_isLow ? 1 : 0.5)
       if (p.x > 100) p.x = -100
       dummy.position.set(p.x, p.y, p.z)
       dummy.scale.setScalar(p.scale)
@@ -739,8 +752,10 @@ const VULTURE_CONFIGS = [
 
 function VultureGroup() {
   const refs = useRef<THREE.Group[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < VULTURE_CONFIGS.length; i++) {
       const g = refs.current[i]
@@ -986,6 +1001,7 @@ function CampFire() {
   const lightRef  = useRef<THREE.PointLight>(null!)
   const smokeRef  = useRef<THREE.InstancedMesh>(null!)
   const dummy     = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const smokeData = useMemo(() =>
     Array.from({ length: SMOKE_COUNT }, (_, i) => ({
@@ -997,6 +1013,7 @@ function CampFire() {
     })), [])
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     // Animate fire cones — scale pulsing
@@ -1267,6 +1284,7 @@ const CURSE_COUNT = 30
 function TombCurseGlow() {
   const mistRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   // Per-particle data: orbit angle offset, radius, height, speed, phase
   const mistData = useMemo(() =>
@@ -1279,6 +1297,7 @@ function TombCurseGlow() {
     })), [])
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!mistRef.current) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < CURSE_COUNT; i++) {
@@ -1357,8 +1376,10 @@ function SingleCamel({ offsetX }: CamelConfig) {
   const fl2Ref    = useRef<THREE.Mesh>(null!)  // front-right
   const rl1Ref    = useRef<THREE.Mesh>(null!)  // rear-left
   const rl2Ref    = useRef<THREE.Mesh>(null!)  // rear-right
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // leg gait
     const frontAngle = Math.sin(t * 2 + Math.PI) * 0.35
@@ -1489,8 +1510,10 @@ function CaravanRope({ fromX, toX }: { fromX: number; toX: number }) {
 // CaravanLeader — human figure walking ahead of the first camel
 function CaravanLeader() {
   const bodyRef  = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (bodyRef.current) {
       bodyRef.current.position.y = Math.sin(t * 2) * 0.04
@@ -1529,6 +1552,7 @@ function CamelCaravan() {
   const SPEED    = 2.5   // world units per second
   const X_MIN    = -80
   const X_MAX    =  80
+  const frameSkip = useRef(0)
 
   const camelConfigs = useMemo<CamelConfig[]>(
     () => [
@@ -1542,8 +1566,10 @@ function CamelCaravan() {
 
   // Caravan path is at z = -35, level with mid-desert
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (!groupRef.current) return
-    groupRef.current.position.x += SPEED * dt
+    groupRef.current.position.x += SPEED * step
     if (groupRef.current.position.x > X_MAX) {
       groupRef.current.position.x = X_MIN
     }

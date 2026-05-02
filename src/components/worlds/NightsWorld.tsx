@@ -61,7 +61,9 @@ function useDayNight(): { phase: 'day' | 'night'; t: number } {
   const [tick, setTick] = useState(0)
   const t0 = useRef(performance.now())
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const now = performance.now()
     const elapsed = (now - t0.current) / 1000
     if (Math.floor(elapsed / 2) !== tick) setTick(Math.floor(elapsed / 2))   // лёгкий throttle
@@ -85,7 +87,9 @@ function Sky({ phase }: { phase: 'day' | 'night' }) {
 
 function DynamicLighting({ phase }: { phase: 'day' | 'night' }) {
   const ref = useRef<THREE.DirectionalLight>(null!)
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!ref.current) return
     const target = phase === 'day' ? 1.3 : 0.25
     ref.current.intensity += (target - ref.current.intensity) * 0.06
@@ -209,7 +213,9 @@ function BioluminescentPatches({ phase }: { phase: 'day' | 'night' }) {
     return result
   }, [dummy])
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
     if (phase !== 'night') return
     timeRef.current += dt
@@ -328,7 +334,9 @@ function Fireflies({ phase }: { phase: 'day' | 'night' }) {
 function Campfire() {
   const flame = useRef<THREE.Group>(null!)
   const phase = useRef(0)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * 6
     if (flame.current) {
       flame.current.scale.y = 1 + Math.sin(phase.current) * 0.2
@@ -726,7 +734,9 @@ function AncientRuins() {
 
 function MagicWell() {
   const glowRef = useRef<THREE.PointLight>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (glowRef.current) {
       glowRef.current.intensity = 1.2 + Math.sin(clock.getElapsedTime() * 2.2) * 0.5
     }
@@ -787,7 +797,9 @@ const ghostOrbData: OrbData[] = Array.from({ length: 8 }, (_, i) => {
 function GhostOrbs({ phase }: { phase: 'day' | 'night' }) {
   const groupRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!groupRef.current || phase !== 'night') return
     const t = clock.getElapsedTime()
     ghostOrbData.forEach((od, i) => {
@@ -821,7 +833,9 @@ function ShootingStars() {
   const starRef = useRef<THREE.Mesh>(null!)
   const stateRef = useRef({ active: false, timer: 0, x: 0, y: 0, z: 0, vx: 0 })
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const s = stateRef.current
     s.timer += dt
     if (!s.active && s.timer > 8) {
@@ -894,7 +908,9 @@ function HauntedMansion() {
   const winRefs = useRef<(THREE.MeshStandardMaterial | null)[]>(Array(8).fill(null))
   const timeRef = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     timeRef.current += dt
     const t = timeRef.current
     winRefs.current.forEach((mat, i) => {
@@ -1117,7 +1133,9 @@ function GhostlyOrb({ data }: { data: CemeteryOrbData }) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const lightRef = useRef<THREE.PointLight>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime() * 0.6
     const x = data.cx + Math.sin(data.a * t + data.phase) * data.rx
     const z = data.cz + Math.sin(data.b * t + data.phaseZ) * data.rz
@@ -1291,7 +1309,9 @@ function WitchHut() {
   const smokeRef = useRef<THREE.Group>(null!)
   const cauldronRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     // Smoke rises from chimney [40, 0, 30] + chimney offset [1.5, 9, -1.5]
@@ -1565,7 +1585,9 @@ function CastleBats() {
   const bodyMeshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!wingMeshRef.current || !bodyMeshRef.current) return
     const t = clock.getElapsedTime()
     batData.forEach((bd, i) => {
@@ -1608,7 +1630,9 @@ function VampireCastleRuins({ phase }: { phase: 'day' | 'night' }) {
   const winRefs = useRef<(THREE.MeshStandardMaterial | null)[]>(Array(12).fill(null))
   const timeRef = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     timeRef.current += dt
     const t = timeRef.current
     winRefs.current.forEach((mat, i) => {
@@ -1873,7 +1897,9 @@ function HowlParticles({ phase }: { phase: 'day' | 'night' }) {
   const ringsRef = useRef<(THREE.Mesh | null)[]>(Array(HOWL_RING_COUNT).fill(null))
   const breathRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (phase !== 'night') return
     const t = clock.getElapsedTime()
 
@@ -1950,7 +1976,9 @@ function HowlParticles({ phase }: { phase: 'day' | 'night' }) {
 function WerewolfFigure({ phase }: { phase: 'day' | 'night' }) {
   const bodyRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!bodyRef.current) return
     const t = clock.getElapsedTime()
     bodyRef.current.rotation.x = -0.3 + Math.sin(t * 0.2) * 0.15

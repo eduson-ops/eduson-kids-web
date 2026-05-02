@@ -89,7 +89,9 @@ function MovingBlock({ pos, size, color, emissive, moveRange = 3, moveSpeed = 1.
   const next = useMemo(() => new THREE.Vector3(), [])
   const t = useRef(phase)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     t.current += dt * moveSpeed
     next.set(base.x + Math.sin(t.current) * moveRange, base.y, base.z)
     rbRef.current?.setNextKinematicTranslation(next)
@@ -129,7 +131,11 @@ const CLOUD_VERT = `varying vec2 vUv;varying vec2 vUv2;void main(){vUv=uv;vUv2=u
 function CloudGround() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uni = useMemo(() => ({ iTime: { value: 0 } }), [])
-  useFrame(({ clock }) => { if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime() })
+  const frameSkip = useRef(0)
+  useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
+  })
   return (
     <>
       <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -52]}>
@@ -207,7 +213,11 @@ const UV_VERT = `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatri
 function LavaFloor() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uni = useMemo(() => ({ iTime: { value: 0 } }), [])
-  useFrame(({ clock }) => { if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime() })
+  const frameSkip = useRef(0)
+  useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
+  })
   return (
     <mesh position={[0, 1.0, -90]} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[60, 50]} />
@@ -270,7 +280,9 @@ function CrystalMist() {
     phase: Math.random() * Math.PI * 2,
   })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     refs.current.forEach((m, i) => {
       if (!m) return
@@ -416,7 +428,9 @@ function SkyZoneDecor() {
     { x:  10, y: 17, z: -39, sx: 0.95 },
   ], [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     cloudRefs.current.forEach((g, i) => {
       if (!g) return
@@ -670,7 +684,9 @@ function FloatingOrbs() {
     color: ORB_COLORS[i % ORB_COLORS.length]!,
   })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     refs.current.forEach((m, i) => {
       if (!m) return
@@ -853,7 +869,9 @@ function ZonePortalArch({
     [color1],
   )
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
 
@@ -921,7 +939,9 @@ function ZonePortalArch({
 
 function SpinningStar({ position }: { position: [number, number, number] }) {
   const groupRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) groupRef.current.rotation.z += 0.03
   })
   return (
@@ -939,7 +959,9 @@ function SpinningStar({ position }: { position: [number, number, number] }) {
 
 function SpinningIceCrystal({ position }: { position: [number, number, number] }) {
   const groupRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) groupRef.current.rotation.y += 0.02
   })
   return (
@@ -964,7 +986,9 @@ function SpinningIceCrystal({ position }: { position: [number, number, number] }
 
 function SpinningFireRing({ position, axisTilt = 0 }: { position: [number, number, number]; axisTilt?: number }) {
   const groupRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) groupRef.current.rotation.x += 0.04
   })
   return (
@@ -1046,7 +1070,9 @@ const VOLCANO_LAVA_PLATS: { pos: [number, number, number]; phase: number }[] = [
 function CloudPlatVisual({ pos, phase }: { pos: [number, number, number]; phase: number }) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const baseY = pos[1]
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (meshRef.current) {
       meshRef.current.position.y = baseY + Math.sin(clock.getElapsedTime() + phase) * 0.8
     }
@@ -1062,7 +1088,9 @@ function CloudPlatVisual({ pos, phase }: { pos: [number, number, number]; phase:
 function IceSlabVisual({ pos, phase }: { pos: [number, number, number]; phase: number }) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const baseY = pos[1]
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
     const t = clock.getElapsedTime()
     meshRef.current.position.y = baseY + Math.sin(t + phase) * 0.8
@@ -1080,7 +1108,9 @@ function IceSlabVisual({ pos, phase }: { pos: [number, number, number]; phase: n
 function LavaPlatVisual({ pos, phase }: { pos: [number, number, number]; phase: number }) {
   const meshRef = useRef<THREE.Mesh>(null!)
   const baseY = pos[1]
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (meshRef.current) {
       meshRef.current.position.y = baseY + Math.sin(clock.getElapsedTime() + phase) * 0.8
     }
@@ -1381,7 +1411,9 @@ function StartPortal() {
   const ringRef = useRef<THREE.Mesh>(null!)
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uni = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (ringRef.current) ringRef.current.rotation.z = clock.getElapsedTime() * 0.5
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })

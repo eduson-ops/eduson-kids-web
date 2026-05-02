@@ -37,7 +37,9 @@ const WORMHOLE_FRAGMENT = `
 function Wormhole() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const grpRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.uTime!.value = clock.getElapsedTime()
     if (grpRef.current) grpRef.current.rotation.z += dt * 0.8
   })
@@ -112,7 +114,9 @@ function SpaceDebris() {
 
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     debrisData.forEach((d, i) => {
       const m = meshRefs.current[i]
       if (!m) return
@@ -358,7 +362,9 @@ function MovingPlatform({
 }) {
   const grp = useRef<THREE.Group>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * speed
     if (!grp.current) return
     const offset = Math.sin(phase.current) * travel
@@ -382,7 +388,9 @@ function MovingPlatform({
 function Beacon({ pos, color = WARN }: { pos: [number, number, number]; color?: string }) {
   const mat = useRef<THREE.MeshStandardMaterial>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * 3
     if (mat.current) mat.current.emissiveIntensity = 0.5 + Math.sin(phase.current) * 0.5
   })
@@ -484,7 +492,9 @@ const THRUSTER_POSITIONS: Array<[number, number, number]> = [
 
 function ThrusterGlowRings() {
   const ringRefs = useRef<(THREE.Mesh | null)[]>([])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     ringRefs.current.forEach((m, i) => {
       if (!m) return
@@ -837,7 +847,9 @@ function StationWarningLights() {
   const lightRefs = useRef<(THREE.PointLight | null)[]>([])
   const phase = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Blink pattern: sin(t*3) > 0.7 → visible
     WARNING_LIGHT_POSITIONS.forEach((_, i) => {
@@ -876,7 +888,9 @@ function StationWarningLights() {
 function UFOEncounter() {
   const grp1Ref = useRef<THREE.Group>(null!)
   const grp2Ref = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     // UFO 1: large slow orbit at far distance
     if (grp1Ref.current) {
@@ -921,7 +935,9 @@ function MeteorShower() {
     dz: -(0.8 + Math.random() * 0.4),
   })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     refs.current.forEach((grp, i) => {
       if (!grp) return
       const d = data[i]!
@@ -1010,7 +1026,9 @@ function StationActivity() {
     [],
   )
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     // Patrol drones
@@ -1240,7 +1258,9 @@ function SolarFlare() {
     })
   }, [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     flareData.forEach((fd, i) => {
       const mesh = flareRefs.current[i]
@@ -1314,7 +1334,9 @@ function FloatingEquipment() {
 
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     items.forEach((item, i) => {
       const m = meshRefs.current[i]
       if (!m) return
@@ -1357,7 +1379,9 @@ function AstronautFigure() {
   const grpRef = useRef<THREE.Group>(null!)
   const angle = useRef(0)
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     angle.current += dt * 0.05
     if (grpRef.current) {
       const a = angle.current
@@ -1432,7 +1456,9 @@ function AstronautFigure() {
 function StarTracker() {
   const grpRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (grpRef.current) grpRef.current.rotation.y += 0.001
   })
 
@@ -1634,7 +1660,9 @@ function DockingArmRMS() {
   const elbowRef    = useRef<THREE.Group>(null!)
   const wristRef    = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Shoulder: gentle yaw sweep ±15°
     if (shoulderRef.current) {
@@ -1743,7 +1771,9 @@ function LaunchExhaust() {
     [25.6, 8.0, -85.0],
   ]
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     coneRefs.current.forEach((mesh, i) => {
       if (!mesh) return
@@ -1823,7 +1853,9 @@ function AlienScoutShip() {
   const glyphRefs  = useRef<(THREE.Mesh | null)[]>([])
   const engineRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     const s = stateRef.current
     const grp = grpRef.current
@@ -1993,7 +2025,9 @@ function AlienSignalBeacons() {
   const sphereRefs = useRef<(THREE.Mesh | null)[]>([])
   const beamRefs   = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     BEACON_POSITIONS.forEach((_, i) => {
       const intensity = 1.5 + Math.sin(t * 2 + i * 1.3) * 1.0
@@ -2101,7 +2135,9 @@ function OuterAsteroidBelt() {
     }))
   }, [])
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
     for (let i = 0; i < OUTER_ASTEROID_COUNT; i++) {
       const a = asteroids[i]!

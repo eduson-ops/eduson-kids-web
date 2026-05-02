@@ -119,7 +119,9 @@ function cylinderBetween(
 function MatrixFloor() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.elapsedTime
   })
   return (
@@ -174,7 +176,9 @@ function NeuralNodes() {
   const hiddenRefs = useRef<(THREE.Mesh | null)[]>([])
   const outputRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     inputRefs.current.forEach((m, i) => {
       if (m) m.scale.setScalar(1 + 0.25 * Math.sin(t * 2.2 + i * 1.1))
@@ -287,7 +291,9 @@ function NodePulseRings() {
   [])
   const ringRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     ringData.forEach((r, i) => {
       r.scale += dt * r.speed
       if (r.scale >= 2) r.scale = 0
@@ -315,7 +321,9 @@ function NodePulseRings() {
 function ScanBeam() {
   const beamRef = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (beamRef.current) {
       // sweeps y from -5 to 10 and back
       beamRef.current.position.y = 2.5 + 7.5 * Math.sin(clock.elapsedTime * 0.4)
@@ -354,7 +362,9 @@ function DataPulses() {
   )
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     progressRef.current = progressRef.current.map((p, i) => {
       const next = p + dt * (0.6 + (i % 3) * 0.2)
       return next > 1 ? next - 1 : next
@@ -386,7 +396,9 @@ function FoodBowl() {
     () => Array.from({ length: 6 }, (_, i) => ({ angle: (i / 6) * Math.PI * 2, r: 0.5 + Math.random() * 0.3, speed: 1.5 + Math.random() })),
     []
   )
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     particleData.forEach((p, i) => {
       const m = particleRefs.current[i]
       if (!m) return
@@ -443,7 +455,9 @@ function PetBed() {
 
 function TrainingRing() {
   const ringRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (ringRef.current) {
       const t = clock.elapsedTime
       ;(ringRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.8 + Math.sin(t * 3) * 0.4
@@ -470,7 +484,9 @@ function BrainScanRoom() {
   const ringRef = useRef<THREE.Mesh>(null!)
   const brainUniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (brainMatRef.current) brainMatRef.current.uniforms.iTime!.value = clock.elapsedTime
     if (ringRef.current) ringRef.current.rotation.z = clock.elapsedTime * 0.6
   })
@@ -538,6 +554,7 @@ function DataParticles() {
     })), [])
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const colorArray = useMemo(() => {
     const arr = new Float32Array(COUNT * 3)
     const c0 = new THREE.Color('#00ffaa'); const c1 = new THREE.Color('#00ccff')
@@ -546,8 +563,10 @@ function DataParticles() {
   }, [])
 
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     particles.forEach((p, i) => {
-      p.pos.addScaledVector(p.vel, dt)
+      p.pos.addScaledVector(p.vel, step)
       if (p.pos.y > 8) p.pos.y = 0.5
       if (Math.abs(p.pos.x) > 72) p.vel.x *= -1
       if (Math.abs(p.pos.z) > 72) p.vel.z *= -1
@@ -571,6 +590,7 @@ function ProgressWall() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.elapsedTime
   })
   return (
@@ -593,8 +613,10 @@ function ProgressWall() {
 // 30 instanced pulses: 10 input→hidden, 10 hidden→output, 10 hidden→hidden
 function NeuralPulses() {
   const COUNT = 30
+  const POOL = 20
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const _src = useMemo(() => new THREE.Vector3(), [])
   const _dst = useMemo(() => new THREE.Vector3(), [])
 
@@ -633,6 +655,8 @@ function NeuralPulses() {
       srcIdx: number
       dstIdx: number
       pool: 0 | 1 | 2
+      nextIdxs: number[]
+      nextPtr: number
     }> = []
     for (let i = 0; i < COUNT; i++) {
       const pool: 0 | 1 | 2 = i < 10 ? 0 : i < 20 ? 1 : 2
@@ -642,6 +666,8 @@ function NeuralPulses() {
         srcIdx: 0,
         dstIdx: 0,
         pool,
+        nextIdxs: Array.from({ length: POOL }, () => Math.floor(Math.random() * 64)),
+        nextPtr: i,
       })
     }
     return arr
@@ -659,13 +685,15 @@ function NeuralPulses() {
   useFrame((_, dt) => {
     const mesh = meshRef.current
     if (!mesh) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
 
     pulses.forEach((p, i) => {
-      p.t += p.speed * dt
+      p.t += p.speed * step
       if (p.t >= 1) {
         p.t = 0
         const pool = p.pool === 0 ? inputToHidden : p.pool === 1 ? hiddenToOutput : hiddenToHidden
-        p.srcIdx = Math.floor(Math.random() * pool.length)
+        p.srcIdx = p.nextIdxs[p.nextPtr++ % POOL]! % pool.length
       }
 
       const pool = p.pool === 0 ? inputToHidden : p.pool === 1 ? hiddenToOutput : hiddenToHidden
@@ -712,6 +740,7 @@ interface SynapsePulseData {
 function SynapsePulses() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const pulseData = useMemo<SynapsePulseData[]>(() => {
     const arr: SynapsePulseData[] = []
@@ -739,6 +768,7 @@ function SynapsePulses() {
   useFrame(({ clock }) => {
     const mesh = meshRef.current
     if (!mesh) return
+    if (_isLow && (frameSkip.current++ & 1)) return
 
     // Paint instance colors on first frame
     if (!colorRef.current) {
@@ -779,8 +809,10 @@ const RING_PHASES = [0, 0.5] as const
 
 function BrainPulseRing() {
   const ringRefs = useRef<(THREE.Mesh | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     RING_PHASES.forEach((phase, i) => {
       const m = ringRefs.current[i]
@@ -819,11 +851,14 @@ const ZONE_HALO_DEFS = [
 
 function ZoneHalos() {
   const ringRefs = useRef<(THREE.Mesh | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     ZONE_HALO_DEFS.forEach((def, i) => {
       const m = ringRefs.current[i]
-      if (m) m.rotation.y += def.speed * dt
+      if (m) m.rotation.y += def.speed * step
     })
   })
 
@@ -856,6 +891,7 @@ const TOTAL_ORBIT = PER_ZONE * ZONE_ORBIT_DEFS.length  // 60
 function DataParticleRings() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   // Pre-compute per-instance phase offset so each sphere starts spread out
   const phases = useMemo(
@@ -866,6 +902,7 @@ function DataParticleRings() {
   useFrame(({ clock }) => {
     const mesh = meshRef.current
     if (!mesh) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
 
     ZONE_ORBIT_DEFS.forEach((zone, zoneIdx) => {
@@ -925,6 +962,7 @@ const DNA_CZ = -40
 
 function DNAHelix() {
   const groupRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   const strandARef = useRef<THREE.InstancedMesh>(null!)
   const strandBRef = useRef<THREE.InstancedMesh>(null!)
   const rungsRef = useRef<THREE.InstancedMesh>(null!)
@@ -991,7 +1029,8 @@ function DNAHelix() {
   }, [dummy, strandAPositions, strandBPositions, rungPositions])
 
   useFrame(() => {
-    if (groupRef.current) groupRef.current.rotation.y += 0.005
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (groupRef.current) groupRef.current.rotation.y += _isLow ? 0.01 : 0.005
   })
 
   return (
@@ -1044,8 +1083,10 @@ const DENDRITE_DIRS = Array.from({ length: 8 }, (_, i) => {
 function NeuronCell({ pos, phase }: NeuronDef) {
   const bodyRef = useRef<THREE.Mesh>(null!)
   const lightRef = useRef<THREE.PointLight>(null!)
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     const s = 1 + Math.sin(t * 1.2 + phase) * 0.1
     if (bodyRef.current) bodyRef.current.scale.setScalar(s)
@@ -1121,6 +1162,7 @@ const ARC_WINDOW = 4  // visible spheres per arc
 function MindwaveArc({ pair, arcIdx }: { pair: [[number, number, number], [number, number, number]]; arcIdx: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const av = useMemo(() => new THREE.Vector3(...pair[0]), [pair])
   const bv = useMemo(() => new THREE.Vector3(...pair[1]), [pair])
@@ -1154,6 +1196,7 @@ function MindwaveArc({ pair, arcIdx }: { pair: [[number, number, number], [numbe
   useFrame(({ clock }) => {
     const mesh = meshRef.current
     if (!mesh) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     // Spark head position along path (0..ARC_SPHERE_COUNT-1), loops
     const speed = 6 + arcIdx * 1.5
@@ -1326,7 +1369,9 @@ function DNASequencer() {
     })),
   [])
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     // Scroll data lines upward, wrap
     scrollData.forEach((sd, i) => {
       const m = scrollRefs.current[i]
@@ -1414,7 +1459,9 @@ function HoloBrainScan() {
     Array.from({ length: HOLO_SLICE_COUNT }, (_, i) => (i / HOLO_SLICE_COUNT) * Math.PI),
   [])
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) groupRef.current.rotation.y += 0.01
   })
 
@@ -1504,7 +1551,9 @@ function PetRobot({ def, petIdx }: { def: typeof PET_DEFS[0]; petIdx: number }) 
     })),
   [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     const p = def.phase
 
@@ -1691,7 +1740,9 @@ function PetPlayArea() {
     })),
   [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
 
     // Bouncing ball

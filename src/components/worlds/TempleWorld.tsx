@@ -112,7 +112,9 @@ function ApexStaircase() {
 function Brazier({ pos }: { pos: [number, number, number] }) {
   const flame = useRef<THREE.Mesh>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * 5.5
     if (!flame.current) return
     flame.current.scale.y = 0.85 + Math.sin(phase.current) * 0.28
@@ -179,7 +181,9 @@ function MovingPlatform({
 }) {
   const grp = useRef<THREE.Group>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * speed
     if (grp.current) grp.current.position.x = startPos[0] + Math.sin(phase.current) * travel
   })
@@ -198,7 +202,9 @@ function MovingPlatform({
 // ─── Rotating spinner (tier 4 obstacle) ───────────────────────────
 function Spinner({ pos, speed = 0.7 }: { pos: [number, number, number]; speed?: number }) {
   const grp = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (grp.current) grp.current.rotation.y += dt * speed
   })
   return (
@@ -434,7 +440,9 @@ const RUNE_PAD_POSITIONS: [number, number, number][] = [
 function RunePads() {
   const materialRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     materialRefs.current.forEach((mat) => {
       if (mat) mat.uniforms.iTime!.value = t
@@ -479,7 +487,9 @@ function RuneObelisks() {
     []
   )
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     materialRefs.current.forEach((mat) => {
       if (mat) mat.uniforms.iTime!.value = t
@@ -555,7 +565,9 @@ function GodRays() {
   const groupRef = useRef<THREE.Group>(null!)
   const materialRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     materialRefs.current.forEach((mat) => {
       if (mat) {
@@ -740,7 +752,9 @@ function JungleMist() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (!meshRef.current) return
     MIST_CONFIGS.forEach((cfg, i) => {
@@ -773,12 +787,18 @@ const FIREFLY_COUNT = 50
 // Split 50 fireflies evenly across 3 color groups (indices 0,1,2 cycle per firefly)
 const FIREFLY_PER_COLOR = Math.ceil(FIREFLY_COUNT / FIREFLY_COLORS.length) // 17
 
+// Pre-baked blink pool: for each firefly, pool of 32 booleans (~0.2% true each)
+const _FF_BLINK = Array.from({ length: FIREFLY_COUNT }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.002)
+)
+
 function JungleFireflies() {
   const meshRef0 = useRef<THREE.InstancedMesh>(null!)
   const meshRef1 = useRef<THREE.InstancedMesh>(null!)
   const meshRef2 = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const frameSkip = useRef(0)
+  const blinkPtr = useRef(0)
 
   const fireflies = useMemo(() =>
     Array.from({ length: FIREFLY_COUNT }, (_, i) => {
@@ -796,11 +816,12 @@ function JungleFireflies() {
   // Per-color local indices: firefly i belongs to group (i % 3), slot (Math.floor(i/3))
   useFrame(() => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const ptr = blinkPtr.current++ % 32
     const refs = [meshRef0.current, meshRef1.current, meshRef2.current]
     // Track per-color instance counter for positioning
     const counters = [0, 0, 0]
-    fireflies.forEach((f) => {
-      if (Math.random() < 0.002) f.visible = !f.visible
+    fireflies.forEach((f, fi) => {
+      if (_FF_BLINK[fi]![ptr]) f.visible = !f.visible
       const ref = refs[f.colorIdx]
       if (!ref) return
       const slot = counters[f.colorIdx]++
@@ -886,7 +907,9 @@ const EXTRA_GOD_RAY_CONFIGS: { pos: [number, number, number]; rotY: number }[] =
 
 function ExtraGodRays() {
   const materialRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     materialRefs.current.forEach((mat) => {
       if (mat) mat.uniforms.iTime!.value = t
@@ -1033,7 +1056,9 @@ function LavaRivers() {
   const matRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     matRefs.current.forEach((mat) => {
       if (mat) mat.uniforms.iTime!.value = t
@@ -1074,7 +1099,9 @@ const ALTAR_FIRE_PILLAR_POSITIONS: [number, number, number][] = [
 function AltarFirePillars() {
   const groupRefs = useRef<(THREE.Group | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     groupRefs.current.forEach((grp, i) => {
       if (!grp) return
@@ -1342,7 +1369,9 @@ function SandDriftParticles() {
     })),
   [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (!meshRef.current) return
     particles.forEach((p, i) => {
@@ -1396,7 +1425,9 @@ function platePhase(t: number, offset: number): number {
 function PressurePlates() {
   const matRefs = useRef<(THREE.MeshStandardMaterial | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     matRefs.current.forEach((mat, i) => {
       if (!mat) return
@@ -1455,7 +1486,9 @@ function DartTrap({
 
   const puffAngles = useMemo(() => [0, (Math.PI * 2) / 3, (Math.PI * 4) / 3], [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     const period = 3.3
     const local = ((t + offset) % period + period) % period
@@ -1534,7 +1567,9 @@ function DartTraps() {
 function SecretDoor() {
   const doorRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (doorRef.current) {
       doorRef.current.rotation.y = Math.sin(t * 0.3) * 0.15
@@ -1661,7 +1696,9 @@ function MummyCreature() {
       bobPhase: Math.random() * Math.PI * 2,
     })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * 0.35   // slow lurch
     const t = clock.getElapsedTime()
     const ang = phase.current
@@ -1792,7 +1829,9 @@ function CurseMist() {
       driftSpeed: 0.06 + Math.random() * 0.05,
     })), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (!meshRef.current) return
     particles.forEach((p, i) => {
@@ -2068,7 +2107,9 @@ function MovingBoulder({
 }) {
   const rbRef = useRef<RapierRigidBody>(null!)
   const phase = useRef(Math.random() * Math.PI * 2)
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     phase.current += dt * speed
     if (!rbRef.current) return
     const nx = startPos[0] + Math.sin(phase.current) * travel

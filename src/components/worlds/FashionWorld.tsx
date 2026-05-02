@@ -33,7 +33,11 @@ void main(){
 function GlitterFloor({ position, width, length }: { position: [number,number,number]; width: number; length: number }) {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
-  useFrame((_, dt) => { if (matRef.current) matRef.current.uniforms.iTime.value += dt })
+  const frameSkip = useRef(0)
+  useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (matRef.current) matRef.current.uniforms.iTime.value += _isLow ? dt * 2 : dt
+  })
   return (
     <mesh position={position} rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[width, length, 1, 1]} />
@@ -47,7 +51,11 @@ function GlitterFloor({ position, width, length }: { position: [number,number,nu
 function DiscoBall({ position }: { position: [number,number,number] }) {
   const groupRef = useRef<THREE.Group>(null!)
   const tilesRef = useRef<THREE.InstancedMesh>(null!)
-  useFrame((_, dt) => { if (groupRef.current) groupRef.current.rotation.y += dt * 0.8 })
+  const frameSkip = useRef(0)
+  useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (groupRef.current) groupRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 0.8
+  })
   const tiles = useMemo(() => {
     const out: Array<{ pos: [number,number,number]; rot: [number,number,number] }> = []
     for (let phi = 0; phi < Math.PI; phi += 0.35) {
@@ -92,7 +100,9 @@ const BEAM_COLORS = ['#ff00ff', '#00ffff', '#ff8800', '#00ff00', '#ff0088', '#88
 
 function SweepingBeams() {
   const refs = useRef<Array<THREE.Group | null>>([])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     refs.current.forEach((g, i) => {
       if (!g) return
@@ -140,7 +150,11 @@ function NeonSign({ position, text, color }: { position: [number,number,number];
 
 function Mannequin({ pos, dressColor, accent }: { pos: [number,number,number]; dressColor: string; accent: string }) {
   const spinRef = useRef<THREE.Group>(null!)
-  useFrame((_, dt) => { if (spinRef.current) spinRef.current.rotation.y += dt * 0.5 })
+  const frameSkip = useRef(0)
+  useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (spinRef.current) spinRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 0.5
+  })
   return (
     <group position={pos}>
       <RigidBody type="fixed" colliders="cuboid">
@@ -175,7 +189,11 @@ function Mannequin({ pos, dressColor, accent }: { pos: [number,number,number]; d
 
 function DJBooth({ position }: { position: [number,number,number] }) {
   const discRef = useRef<THREE.Mesh>(null!)
-  useFrame((_, dt) => { if (discRef.current) discRef.current.rotation.y += dt * 3 })
+  const frameSkip = useRef(0)
+  useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (discRef.current) discRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 3
+  })
   return (
     <group position={position}>
       <RigidBody type="fixed" colliders="cuboid">
@@ -212,7 +230,9 @@ function GlitterParticles() {
     return arr
   }, [])
   const speeds = useMemo(() => Array.from({ length: count }, () => 0.5 + Math.random() * 1.5), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
     const pos = meshRef.current.geometry.attributes.position as THREE.BufferAttribute
     const t = clock.getElapsedTime()
@@ -571,7 +591,9 @@ function ConfettiGroup({ color, pieces }: { color: string; pieces: ConfettiPiece
   const velocities = useRef<ConfettiPiece[]>(pieces.map(p => ({ ...p })))
   const rotations = useRef<number[]>(pieces.map(() => Math.random() * Math.PI * 2))
 
+  const frameSkip = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
     const vels = velocities.current
     for (let i = 0; i < PIECES_PER_COLOR; i++) {
@@ -643,7 +665,9 @@ function FinaleFireworks() {
   const nextFirework = useRef<number[]>(phases.current.slice())
   const activeUntil = useRef<number[]>([0, 0, 0, 0])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < 4; i++) {
       const light = lightRefs.current[i]
@@ -846,7 +870,9 @@ function ConfettiCannonGroup({
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy  = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < PIECES_PER_CANNON; i++) {
@@ -1292,7 +1318,9 @@ function MirrorWall() {
 function DesignStudio({ position }: { position: [number, number, number] }) {
   const needleRef = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (needleRef.current) {
       needleRef.current.position.y = Math.sin(clock.getElapsedTime() * 8) * 0.1
     }

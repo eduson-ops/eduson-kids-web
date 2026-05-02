@@ -112,7 +112,9 @@ void main() {
 function CausticFloor() {
   const enabled = canPostfx()
   const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (enabled && matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
   if (!enabled) return null
@@ -154,7 +156,9 @@ function BubbleColumn({ position }: { position: [number, number, number] }) {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() => makeBubbleColData(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     data.forEach((b, i) => {
       const y = (b.baseY + t * b.speed) % 12
@@ -209,7 +213,11 @@ function CausticsFloor() {
   const enabled = canPostfx()
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
   const matRef = useRef<THREE.ShaderMaterial>(null!)
-  useFrame((_, dt) => { if (enabled && matRef.current) matRef.current.uniforms.iTime!.value += dt })
+  const frameSkip = useRef(0)
+  useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (enabled && matRef.current) matRef.current.uniforms.iTime!.value += _isLow ? dt * 2 : dt
+  })
   if (!enabled) return null
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} renderOrder={1}>
@@ -285,7 +293,9 @@ const WATER_FRAG = `
 // ─── Water surface ────────────────────────────────────────────────────────────
 function WaterSurface() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
   return (
@@ -356,7 +366,9 @@ function KelpForest() {
 
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     kelpData.forEach((k, i) => {
       const m = meshRefs.current[i]
@@ -417,7 +429,9 @@ function OceanFish() {
     return arr
   }, [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     FISH_DATA.forEach((f, i) => {
       const angle = t * f.speed + f.phase
@@ -734,7 +748,9 @@ const SHAFT_POSITIONS: [number, number, number][] = [
 function UnderwaterLightShafts() {
   const matRefs = useRef<(THREE.MeshBasicMaterial | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     matRefs.current.forEach((mat, i) => {
       if (!mat) return
@@ -745,7 +761,9 @@ function UnderwaterLightShafts() {
 
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip2 = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip2.current++ & 1)) return
     const dt = clock.getDelta()
     meshRefs.current.forEach((m) => {
       if (!m) return
@@ -799,7 +817,9 @@ function DeepSeaFish() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     DEEP_FISH_DATA.forEach((f, i) => {
       const angle = t * f.speed + f.phase
@@ -853,7 +873,9 @@ function Bioluminescence() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     BIO_ORB_DATA.forEach((o, i) => {
       // Lazy Lissajous drift + vertical bob
@@ -893,7 +915,9 @@ function SeaAnemones() {
   // Refs for all tentacle groups — flattened: ANEMONE_COUNT * TENTACLE_COUNT entries
   const tentacleRefs = useRef<(THREE.Group | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     tentacleRefs.current.forEach((grp, idx) => {
       if (!grp) return
@@ -1007,7 +1031,9 @@ function CoralRidge() {
 // ─── Swimming whale ───────────────────────────────────────────────────────────
 function SwimmingWhale() {
   const grpRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!grpRef.current) return
     const t = clock.elapsedTime * 0.12
     // Giant lazy arc through the ocean — slow elliptical swim path
@@ -1050,7 +1076,9 @@ function FishSchool() {
   // Store previous school position to compute velocity direction
   const prevPos = useRef(new THREE.Vector3())
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     // School center orbit
@@ -1096,7 +1124,9 @@ function FishSchool() {
 function SharkSilhouette() {
   const grpRef = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t  = clock.getElapsedTime()
     const r  = 50
     const spd = 0.03
@@ -1173,7 +1203,9 @@ function CoralPolyps() {
   // Flat array: POLYP_COUNT * 6 tentacle refs
   const tentRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     tentRefs.current.forEach((m, idx) => {
       if (!m) return
@@ -1253,7 +1285,9 @@ function SunkenShipwreck() {
 
   // Set moss positions on first frame
   const mossSet = useRef(false)
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (mossSet.current || !mossRef.current) return
     mossSet.current = true
     MOSS_DATA.forEach((m, i) => {
@@ -1391,7 +1425,9 @@ function MiniSubmarine() {
   const grpRef      = useRef<THREE.Group>(null!)
   const propRef     = useRef<THREE.Group>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
     // Slow orbit around shipwreck
@@ -1514,7 +1550,9 @@ function AncientCityRuins() {
   const dummy   = useMemo(() => new THREE.Object3D(), [])
   const mossSet = useRef(false)
 
+  const frameSkip = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (mossSet.current || !mossRef.current) return
     mossSet.current = true
     RUIN_MOSS_DATA.forEach((m, i) => {
@@ -1671,7 +1709,9 @@ const GARDEN_KELP: GardenKelpData[] = (() => {
 function UnderwaterGarden() {
   const kelpRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     GARDEN_KELP.forEach((k, i) => {
       const m = kelpRefs.current[i]
@@ -1755,7 +1795,9 @@ function BioluminescentPlankton() {
   const posSet  = useRef(false)
 
   // Set static positions once
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
 
     // First frame: set base positions

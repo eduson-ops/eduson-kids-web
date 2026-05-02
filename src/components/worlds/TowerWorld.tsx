@@ -3,6 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
+const _FLASH_RAND = Array.from({ length: 32 }, () => Math.random())
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -83,7 +86,6 @@ function StarField() {
 function RainParticles() {
   const ref = useRef<THREE.InstancedMesh>(null!)
   const COUNT = 600
-  const isLow = detectDeviceTier() === 'low'
   const frameSkip = useRef(0)
   const data = useMemo(() => {
     return Array.from({ length: COUNT }, () => ({
@@ -97,10 +99,10 @@ function RainParticles() {
 
   useFrame((_, dt) => {
     if (!ref.current) return
-    if (isLow && (frameSkip.current++ & 1)) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     for (let i = 0; i < COUNT; i++) {
       const p = data[i]!
-      p.y -= p.speed * (isLow ? dt * 2 : dt)
+      p.y -= p.speed * (_isLow ? dt * 2 : dt)
       if (p.y < -2) p.y = 110
       dummy.position.set(p.x, p.y, p.z)
       dummy.updateMatrix()
@@ -148,12 +150,15 @@ function LightningFlash({ color, position, interval, prob }: {
   const lightRef = useRef<THREE.PointLight>(null!)
   const flash = useRef(0)
   const timer = useRef(0)
+  const frameSkipF = useRef(0)
+  const flashRandPtr = useRef(0)
   useFrame((_, dt) => {
+    if (_isLow && (frameSkipF.current++ & 1)) return
     timer.current += dt
     if (timer.current >= interval) {
       timer.current = 0
     }
-    if (Math.random() < prob) flash.current = 6.0
+    if (_FLASH_RAND[flashRandPtr.current++ % 32]! < prob) flash.current = 6.0
     flash.current *= 0.86
     if (lightRef.current) lightRef.current.intensity = flash.current
   })
@@ -184,7 +189,9 @@ function FogRing() {
 function TowerWalls() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.uTime.value = clock.elapsedTime
   })
   const WALL_H = 86
@@ -223,6 +230,7 @@ function StormCrown() {
     angle: (i / 8) * Math.PI * 2,
     len: 6 + Math.random() * 4,
   })), [])
+  const frameSkip = useRef(0)
 
   // Initialise spike matrices once (static relative to the rotating group)
   useMemo(() => {
@@ -230,7 +238,8 @@ function StormCrown() {
   }, [])
 
   useFrame((_, dt) => {
-    if (grpRef.current) grpRef.current.rotation.y += dt * 0.4
+    if (_isLow && (frameSkip.current++ & 1)) return
+    if (grpRef.current) grpRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 0.4
     if (!spikesRef.current) return
     spikes.forEach((s, i) => {
       dummy.position.set(Math.cos(s.angle) * 14, 0, Math.sin(s.angle) * 14)
@@ -263,6 +272,7 @@ function StormCrown() {
 function FloatingDebris() {
   const ref = useRef<THREE.InstancedMesh>(null!)
   const COUNT = 40
+  const frameSkip = useRef(0)
   const data = useMemo(() => Array.from({ length: COUNT }, () => ({
     x: (Math.random() - 0.5) * 60,
     y: 20 + Math.random() * 65,
@@ -274,6 +284,7 @@ function FloatingDebris() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
   useFrame(({ clock }) => {
     if (!ref.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     for (let i = 0; i < COUNT; i++) {
       const d = data[i]!
@@ -308,8 +319,10 @@ const orbData: { x: number; y: number; z: number; phase: number }[] = Array.from
 function EnergyOrbs() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     for (let i = 0; i < ORB_COUNT; i++) {
       const o = orbData[i]!
@@ -431,9 +444,10 @@ function StormClouds() {
   const rotY = useRef(0)
 
   useFrame((_, dt) => {
-    if (++frameCount.current % 2 !== 0) return  // 30 fps for clouds
+    const skip = _isLow ? 4 : 2
+    if (++frameCount.current % skip !== 0) return  // 30 fps (15 fps on low)
     if (!meshRef.current) return
-    rotY.current += dt * 0.015
+    rotY.current += (_isLow ? dt * 2 : dt) * 0.015
     const cos = Math.cos(rotY.current)
     const sin = Math.sin(rotY.current)
     spheres.forEach((s, i) => {
@@ -461,8 +475,10 @@ function ThunderFlash() {
   const lightRef = useRef<THREE.PointLight>(null!)
   const nextFlash = useRef<number>(3 + Math.random() * 4)
   const flashStart = useRef<number>(-1)
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     if (t >= nextFlash.current) {
       flashStart.current = t
@@ -495,6 +511,7 @@ function LightningBolt() {
   const groupRef = useRef<THREE.Group>(null!)
   const nextBoltTime = useRef<number>(3 + Math.random() * 4)
   const boltEnd = useRef<number>(-1)
+  const frameSkip = useRef(0)
 
   const segments: [number, number, number][] = [
     [0.5,  57,  0.5],
@@ -504,6 +521,7 @@ function LightningBolt() {
   ]
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     if (t >= nextBoltTime.current) {
       boltEnd.current = t + 0.12
@@ -768,8 +786,10 @@ const CHEST_DATA: { pos: [number, number, number]; phase: number }[] = [
 
 function TreasureChest({ pos, phase }: { pos: [number, number, number]; phase: number }) {
   const lidRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (!lidRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     lidRef.current.rotation.x = Math.sin(t * 0.5 + phase) * 0.3 + 0.15
   })
@@ -858,7 +878,9 @@ function RunePanel({ pos, rotY, phase, emitLight }: {
 }) {
   const hBarRef = useRef<THREE.Mesh>(null!)
   const vBarRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const intensity = 2 + Math.sin(clock.elapsedTime * 1.1 + phase) * 1
     const mat = hBarRef.current?.material as THREE.MeshStandardMaterial | undefined
     const mat2 = vBarRef.current?.material as THREE.MeshStandardMaterial | undefined
@@ -936,14 +958,16 @@ function FloatingCrystal({ orbitAngle, orbitRadius, orbitY, orbitSpeed, color, p
   phase: number
 }) {
   const groupRef = useRef<THREE.Group>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (!groupRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     const angle = orbitAngle + t * orbitSpeed
     groupRef.current.position.x = Math.cos(angle) * orbitRadius
     groupRef.current.position.y = orbitY + Math.sin(t * 0.6 + phase) * 0.8
     groupRef.current.position.z = Math.sin(angle) * orbitRadius
-    groupRef.current.rotation.y += 0.02
+    groupRef.current.rotation.y += _isLow ? 0.04 : 0.02
   })
   return (
     <group ref={groupRef}>

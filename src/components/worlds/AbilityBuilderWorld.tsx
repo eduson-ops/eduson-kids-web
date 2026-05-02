@@ -1,7 +1,10 @@
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
-import { useRef, useMemo, useState } from 'react'
+import { useRef, useMemo, useState, useEffect } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -37,7 +40,9 @@ const BARRIER_LIGHT_ANGLES = Array.from({ length: 8 }, (_, i) => (i / 8) * Math.
 function ArenaBarrier() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime.value = clock.elapsedTime
   })
   return (
@@ -120,7 +125,9 @@ function EnergySurges() {
     () => SURGE_RADII.map((r) => ({ iTime: { value: 0 }, iRadius: { value: r } })),
     []
   )
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     matRefs.current.forEach((mat) => {
       if (mat) mat.uniforms.iTime.value = t
@@ -170,8 +177,15 @@ function buildArcMatrix(a: [number,number,number], b: [number,number,number]): T
   ).scale(new THREE.Vector3(1, height, 1))
 }
 
+// Pre-baked flicker: each arc gets a pool of 32 0/1 visibility flips (~5% chance)
+const _ARC_FLICKER = Array.from({ length: 6 }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.05)
+)
+
 function LightningArcs() {
   const arcRefs = useRef<(THREE.Mesh | null)[]>([])
+  const flickerPtr = useRef(0)
+  const frameSkip = useRef(0)
 
   // Precompute positions, heights, midpoints for each arc
   const arcData = useMemo(() => ARC_PAIRS.map(([ai, bi]) => {
@@ -188,11 +202,11 @@ function LightningArcs() {
   }), [])
 
   useFrame(() => {
-    arcRefs.current.forEach((mesh) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const ptr = flickerPtr.current++ % 32
+    arcRefs.current.forEach((mesh, i) => {
       if (!mesh) return
-      if (Math.random() < 0.05) {
-        mesh.visible = !mesh.visible
-      }
+      if (_ARC_FLICKER[i]![ptr]) mesh.visible = !mesh.visible
     })
   })
 
@@ -242,46 +256,63 @@ function PowerBeamPillars() {
   )
 }
 
-// ─── ENERGY DEBRIS (25 small boxes orbiting arena) ───────────────────────────
+// ─── ENERGY DEBRIS (25 orbiting boxes → InstancedMesh) ───────────────────────
 function EnergyDebris() {
-  const count = 25
-  const debrisData = useMemo(() => Array.from({ length: count }, (_, i) => {
-    const angle = (i / count) * Math.PI * 2
-    const radius = 30 + Math.random() * 30
-    const y = 2 + Math.random() * 6
-    const size = 0.1 + Math.random() * 0.15
-    const speed = (0.08 + Math.random() * 0.12) * (Math.random() < 0.5 ? 1 : -1)
-    const phase = angle
-    return { radius, y, size, speed, phase }
+  const COUNT = 25
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
+  const rotations = useRef(Array.from({ length: COUNT }, () => ({ x: 0, y: 0, z: 0 }))).current
+
+  const debrisData = useMemo(() => Array.from({ length: COUNT }, (_, i) => {
+    const angle = (i / COUNT) * Math.PI * 2
+    return {
+      radius: 30 + Math.random() * 30,
+      y: 2 + Math.random() * 6,
+      size: 0.1 + Math.random() * 0.15,
+      speed: (0.08 + Math.random() * 0.12) * (Math.random() < 0.5 ? 1 : -1),
+      phase: angle,
+    }
   }), [])
 
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  // Set scales once
+  useEffect(() => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    debrisData.forEach((d, i) => {
+      dummy.scale.setScalar(d.size)
+      dummy.position.set(0, d.y, 0)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
+    })
+    mesh.instanceMatrix.needsUpdate = true
+  }, [debrisData, dummy])
 
   useFrame(({ clock }) => {
+    const mesh = meshRef.current
+    if (!mesh) return
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     debrisData.forEach((d, i) => {
-      const mesh = meshRefs.current[i]
-      if (!mesh) return
+      const rot = rotations[i]!
+      rot.x += _isLow ? 0.04 : 0.02
+      rot.y += _isLow ? 0.06 : 0.03
+      rot.z += _isLow ? 0.02 : 0.01
       const a = d.phase + t * d.speed
-      mesh.position.set(Math.cos(a) * d.radius, d.y + Math.sin(t * 0.7 + d.phase) * 0.8, Math.sin(a) * d.radius)
-      mesh.rotation.x += 0.02
-      mesh.rotation.y += 0.03
-      mesh.rotation.z += 0.01
+      dummy.position.set(Math.cos(a) * d.radius, d.y + Math.sin(t * 0.7 + d.phase) * 0.8, Math.sin(a) * d.radius)
+      dummy.rotation.set(rot.x, rot.y, rot.z)
+      dummy.scale.setScalar(d.size)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
     })
+    mesh.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {debrisData.map((d, i) => (
-        <mesh
-          key={`debris-${i}`}
-          ref={(el) => { meshRefs.current[i] = el }}
-        >
-          <boxGeometry args={[d.size, d.size, d.size]} />
-          <meshBasicMaterial color="#cc88ff" />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshBasicMaterial color="#cc88ff" />
+    </instancedMesh>
   )
 }
 
@@ -296,7 +327,9 @@ const RAINBOW = [
 function EnergyGridFloor() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime.value = clock.elapsedTime
   })
   return (
@@ -323,7 +356,9 @@ function PowerOrb({ index, ring, color }: OrbProps) {
   const baseY     = ring === 0 ? 3 : ring === 1 ? 5 : 7
   const speed     = ring === 0 ? 0.7 : ring === 1 ? 0.4 : 0.2
   const phaseOff  = (index / 4) * Math.PI * 2
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     const angle = t * speed + phaseOff
     const x = Math.cos(angle) * baseRadius
@@ -382,8 +417,10 @@ function TargetDummy({ pos }: { pos: [number, number, number] }) {
   const reactingRef = useRef(false)
   const playerVec = useMemo(() => new THREE.Vector3(), [])
   const dummyVec  = useMemo(() => new THREE.Vector3(...pos), [pos])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     if (!groupRef.current) return
 
@@ -455,7 +492,10 @@ function EnergyMotes() {
     return arr
   }, [data])
 
+  const frameSkip = useRef(0)
+
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     data.forEach((m, i) => {
       dummy.position.set(
@@ -514,20 +554,27 @@ const BOLT_DATA = Array.from({ length: BOLT_COUNT }, (_, i) => {
   }
 })
 
+// Pre-baked flicker pools for bolt visibility (~3% chance per frame)
+const _BOLT_FLICKER = Array.from({ length: BOLT_COUNT }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.03)
+)
+
 function ArenaLightning() {
   const boltRefs = useRef<THREE.Mesh[]>([])
   const lightRefs = useRef<THREE.PointLight[]>([])
+  const flickerPtr = useRef(0)
+  const frameSkip = useRef(0)
 
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const ptr = flickerPtr.current++ % 32
     boltRefs.current.forEach((mesh, i) => {
       if (!mesh) return
-      if (Math.random() < 0.03) {
+      if (_BOLT_FLICKER[i]![ptr]) {
         const nowVisible = !mesh.visible
         mesh.visible = nowVisible
         const light = lightRefs.current[i]
-        if (light) {
-          light.intensity = nowVisible ? 12 : 0
-        }
+        if (light) light.intensity = nowVisible ? 12 : 0
       }
     })
   })
@@ -559,10 +606,12 @@ function ArenaLightning() {
 // ─── NEBULA RING (large cosmic torus framing the arena from above) ────────────
 function NebulaRing() {
   const meshRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
 
   useFrame((_, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (meshRef.current) {
-      meshRef.current.rotation.y += 0.04 * delta
+      meshRef.current.rotation.y += 0.04 * (_isLow ? delta * 2 : delta)
     }
   })
 
@@ -646,14 +695,16 @@ const ABILITY_ORB_DATA: Array<{
 
 function AbilityOrbs() {
   const groupRefs = useRef<(THREE.Group | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     ABILITY_ORB_DATA.forEach((d, i) => {
       const g = groupRefs.current[i]
       if (!g) return
       g.position.y = d.pos[1] + Math.sin(t * 1.5 + d.phase) * 0.8
-      g.rotation.y += 0.02
+      g.rotation.y += _isLow ? 0.04 : 0.02
     })
   })
 
@@ -714,8 +765,10 @@ const TRAINING_DUMMY_DATA: Array<{
 
 function TrainingTargetDummies() {
   const groupRefs = useRef<(THREE.Group | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     TRAINING_DUMMY_DATA.forEach((d, i) => {
       const g = groupRefs.current[i]
@@ -784,8 +837,10 @@ const PLATFORM_POSITIONS: [number, number, number][] = [
 function PowerPlatforms() {
   const discRefs = useRef<(THREE.Mesh | null)[]>([])
   const _col = useRef(new THREE.Color())
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     discRefs.current.forEach((disc, i) => {
       if (!disc) return
@@ -851,8 +906,10 @@ function ArenaScoreboard() {
   const leftScoreRef  = useRef<THREE.Mesh>(null!)
   const rightScoreRef = useRef<THREE.Mesh>(null!)
   const timerRef      = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     const pulse = 2.5 + Math.sin(t * 1.8) * 0.7
     if (leftScoreRef.current)
@@ -1086,8 +1143,10 @@ const RING_LIGHT_ANGLES = Array.from({ length: 6 }, (_, i) => (i / 6) * Math.PI 
 function ArenaLights() {
   const ringLightRefs = useRef<THREE.PointLight[]>([])
   const _col = useRef(new THREE.Color())
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     ringLightRefs.current.forEach((light, i) => {
       if (!light) return
@@ -1184,8 +1243,10 @@ function AbilityCraftingForge({ position }: { position: [number, number, number]
   const sparkRef   = useRef<THREE.PointLight>(null!)
   const runeRefs   = useRef<(THREE.Mesh | null)[]>([])
   const crystalRefs = useRef<(THREE.Mesh | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     // Pulsing spark at focal point
     if (sparkRef.current) {
@@ -1193,7 +1254,7 @@ function AbilityCraftingForge({ position }: { position: [number, number, number]
     }
     // Slowly rotate each rune tile
     runeRefs.current.forEach((rune) => {
-      if (rune) rune.rotation.y += 0.005
+      if (rune) rune.rotation.y += _isLow ? 0.01 : 0.005
     })
     // Crystals lean-in wobble
     crystalRefs.current.forEach((crystal, i) => {
@@ -1342,8 +1403,10 @@ function SpellTomesLibrary({ position }: { position: [number, number, number] })
   const groupRefs  = useRef<(THREE.Group | null)[]>([])
   const leftRefs   = useRef<(THREE.Mesh | null)[]>([])
   const rightRefs  = useRef<(THREE.Mesh | null)[]>([])
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     TOME_DATA.forEach((d, i) => {
       const angle = t * 0.22 + d.phase
@@ -1414,10 +1477,13 @@ const NUM_ABILITY_SHAPES = 6
 
 function AbilityPreviewShape({ shapeIndex }: { shapeIndex: number }) {
   const meshRef = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame((_, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 1.8
-      meshRef.current.rotation.x += delta * 0.6
+      const step = _isLow ? delta * 2 : delta
+      meshRef.current.rotation.y += step * 1.8
+      meshRef.current.rotation.x += step * 0.6
     }
   })
 
@@ -1452,8 +1518,10 @@ function AbilityPreviewShape({ shapeIndex }: { shapeIndex: number }) {
 function AbilityPreview({ position }: { position: [number, number, number] }) {
   const [shapeIndex, setShapeIndex] = useState(0)
   const prevTimeRef = useRef(0)
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     const nextIndex = Math.floor(t / 2) % NUM_ABILITY_SHAPES
     if (nextIndex !== prevTimeRef.current) {

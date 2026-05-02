@@ -4,6 +4,9 @@ import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 const _isLow = detectDeviceTier() === 'low'
+const _WIN_FLIP = Array.from({ length: 12 }, () =>
+  Array.from({ length: 32 }, () => Math.random() < 0.005)
+)
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
@@ -122,7 +125,9 @@ function HoloRing({ pos }: { pos: [number, number, number] }) {
 
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (groupRef.current) groupRef.current.rotation.y = clock.getElapsedTime() * 0.8
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
@@ -178,11 +183,15 @@ function BotWindowLights() {
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   }, [dummy])
 
+  const frameSkip = useRef(0)
+  const flipPtr = useRef(0)
   useFrame(() => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!meshRef.current) return
+    const ptr = flipPtr.current++ % 32
     let changed = false
     WINDOW_LIGHTS.forEach((w, i) => {
-      if (Math.random() < 0.005) {
+      if (_WIN_FLIP[i]![ptr]) {
         visibleRef.current[i] = !visibleRef.current[i]
         dummy.position.set(w.x, w.y, w.z)
         dummy.scale.setScalar(visibleRef.current[i] ? 1 : 0)
@@ -313,7 +322,9 @@ function HoloCitySigns() {
     meshRef.current.instanceMatrix.needsUpdate = true
   }, [dummy])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     uniforms.iTime.value = clock.getElapsedTime()
   })
 
@@ -455,7 +466,9 @@ function TrafficLight({ pos }: { pos: [number, number, number] }) {
   const redRef  = useRef<THREE.Mesh>(null!)
   const yelRef  = useRef<THREE.Mesh>(null!)
   const grnRef  = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime % 8
     const red = t < 4
     const yel = t >= 4 && t < 5
@@ -487,7 +500,9 @@ const CAR_CONFIGS = [
 
 function AnimatedCars() {
   const refs = useRef<(THREE.Group | null)[]>([])
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
     CAR_CONFIGS.forEach((cfg, i) => {
       const g = refs.current[i]
@@ -561,7 +576,9 @@ function NeonGridGround() {
   const matRef = useRef<THREE.ShaderMaterial>(null!)
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (matRef.current) matRef.current.uniforms.iTime!.value = clock.getElapsedTime()
   })
 
@@ -732,7 +749,9 @@ function HolographicDisplays() {
   const uniforms = useMemo(() => ({ iTime: { value: 0 } }), [])
   const materialRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     materialRefs.current.forEach((mat) => {
       if (mat) mat.uniforms.iTime!.value = t
@@ -792,7 +811,9 @@ function SingleRobot({ cfg }: { cfg: RobotConfig }) {
   const legLRef     = useRef<THREE.Mesh>(null!)
   const legRRef     = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     const angle = t * cfg.speed + cfg.startAngle
     const x = cfg.cx + cfg.radius * Math.cos(angle)
@@ -1012,7 +1033,9 @@ const STATION_PHASES = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2] as const
 /** Tiny emissive sphere that flashes to simulate a welding spark */
 function WeldSpark({ offset }: { offset: [number, number, number] }) {
   const ref = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!ref.current) return
     const t = clock.getElapsedTime()
     ref.current.visible = Math.sin(t * 18 + offset[0] * 3) > 0.4
@@ -1031,7 +1054,9 @@ function ArmStation({ xOffset, phase }: { xOffset: number; phase: number }) {
   const forearmRef = useRef<THREE.Mesh>(null!)
   const toolRef    = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     const angle = Math.sin(t * 1.5 + phase) * 0.5
 
@@ -1118,7 +1143,9 @@ function AssemblyLine() {
   // 8 conveyor belt segment refs
   const segRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     segRefs.current.forEach((seg, i) => {
       if (!seg) return
@@ -1192,7 +1219,9 @@ const SPRAY_PARTICLES: SprayParticle[] = Array.from({ length: SPRAY_COUNT }, (_,
 function SprayParticles({ nozzleRef }: { nozzleRef: React.RefObject<THREE.Mesh | null> }) {
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     SPRAY_PARTICLES.forEach((p, i) => {
       const mesh = meshRefs.current[i]
@@ -1279,7 +1308,9 @@ function RobotPainting() {
   const sprayArmRef    = useRef<THREE.Group>(null!)
   const nozzleRef      = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     if (sprayArmRef.current) {
       sprayArmRef.current.rotation.y = Math.sin(t * 1.8) * 0.7
@@ -1374,7 +1405,9 @@ function TowerSteam({ cx, cz }: { cx: number; cz: number }) {
   const particles = useMemo(() => makeSteamParticles(cx, cz), [cx, cz])
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
+  const frameSkip = useRef(0)
   useFrame((_state, delta) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const mesh = meshRef.current
     if (!mesh) return
     particles.forEach((p, i) => {
@@ -1409,7 +1442,9 @@ function PowerStation() {
   // warning lights blinking
   const warnRefs = useRef<THREE.Mesh[]>([])
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     // Pulsing scale on the core ring
     if (pulseRef.current) {
@@ -1660,7 +1695,9 @@ function ChargingPod({ xOffset, phase }: { xOffset: number; phase: number }) {
   const arc1Ref = useRef<THREE.Mesh>(null!)
   const arc2Ref = useRef<THREE.Mesh>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime() + phase
 
     // Cycling indicator color: green (0-2s) → orange (2-3s) → red (3-4s)
@@ -1724,7 +1761,9 @@ function ChargingPod({ xOffset, phase }: { xOffset: number; phase: number }) {
 function ChargingCluster({ pos, clusterPhase }: ChargingClusterProps) {
   const lightRef = useRef<THREE.PointLight>(null!)
 
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     // Amber pointLight flickers with charging activity
     if (lightRef.current) {
       const t = clock.getElapsedTime() + clusterPhase
@@ -1779,7 +1818,9 @@ function ChargingStations() {
 
 function CityAurora() {
   const ref = useRef<THREE.Mesh>(null!)
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (!ref.current) return
     const mat = ref.current.material as THREE.MeshBasicMaterial
     mat.opacity = 0.04 + 0.02 * Math.sin(clock.elapsedTime * 0.4)
