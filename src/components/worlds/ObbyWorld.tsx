@@ -6,6 +6,8 @@ import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+const _owDummy = new THREE.Object3D()
+const _owCol   = new THREE.Color()
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -513,62 +515,48 @@ function CrystalZoneDecor() {
     { pos: [-7, 20, -67], h: 8 }, { pos: [10, 20, -71], h: 5 },
   ]
 
+  const spireMainIM = useRef<THREE.InstancedMesh>(null!)
+  const spireTipIM  = useRef<THREE.InstancedMesh>(null!)
+  const icePatchIM  = useRef<THREE.InstancedMesh>(null!)
+  const stalaIM     = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    SPIRE_POSITIONS.forEach(([sx, sy, sz], i) => {
+      _owDummy.position.set(sx, sy + 3, sz); _owDummy.rotation.set(0,0,0); _owDummy.scale.setScalar(1); _owDummy.updateMatrix()
+      spireMainIM.current.setMatrixAt(i, _owDummy.matrix)
+      _owDummy.position.set(sx, sy + 7.5, sz); _owDummy.updateMatrix()
+      spireTipIM.current.setMatrixAt(i, _owDummy.matrix)
+    })
+    spireMainIM.current.instanceMatrix.needsUpdate = true
+    spireTipIM.current.instanceMatrix.needsUpdate  = true
+    ICE_PATCHES.forEach(([px, py, pz], i) => {
+      _owDummy.position.set(px, py, pz); _owDummy.rotation.set(0,0,0); _owDummy.scale.setScalar(1); _owDummy.updateMatrix()
+      icePatchIM.current.setMatrixAt(i, _owDummy.matrix)
+    })
+    icePatchIM.current.instanceMatrix.needsUpdate = true
+    STALACTITES.forEach(({ pos: [sx, sy, sz], h }, i) => {
+      _owDummy.position.set(sx, sy, sz); _owDummy.rotation.set(Math.PI, 0, 0); _owDummy.scale.set(1, h, 1); _owDummy.updateMatrix()
+      stalaIM.current.setMatrixAt(i, _owDummy.matrix)
+    })
+    stalaIM.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
     <group>
-      {/* Ice crystal spires */}
-      {SPIRE_POSITIONS.map((pos, i) => (
-        <group key={`ice-spire-${i}`} position={pos}>
-          {/* Main cone */}
-          <mesh position={[0, 3, 0]} castShadow>
-            <coneGeometry args={[1.2, 6, 6]} />
-            <meshStandardMaterial
-              color="#aaddff"
-              emissive="#88ccff"
-              emissiveIntensity={1.5}
-              roughness={0.1}
-              transparent
-              opacity={0.85}
-            />
-          </mesh>
-          {/* Prism tip */}
-          <mesh position={[0, 7.5, 0]} castShadow>
-            <coneGeometry args={[0.5, 2.5, 6]} />
-            <meshStandardMaterial
-              color="#cceeff"
-              emissive="#aaddff"
-              emissiveIntensity={2.0}
-              roughness={0.05}
-              transparent
-              opacity={0.9}
-            />
-          </mesh>
-        </group>
-      ))}
-
-      {/* Ice floor patches */}
-      {ICE_PATCHES.map((pos, i) => (
-        <mesh key={`ice-patch-${i}`} position={pos}>
-          <boxGeometry args={[8, 0.1, 8]} />
-          <meshStandardMaterial color="#ddeeff" transparent opacity={0.6} roughness={0.1} />
-        </mesh>
-      ))}
-
-      {/* Frozen stalactites hanging from above (inverted cones) */}
-      {STALACTITES.map((s, i) => (
-        <group key={`stalactite-${i}`} position={s.pos} rotation={[Math.PI, 0, 0]}>
-          <mesh castShadow>
-            <coneGeometry args={[0.9, s.h, 6]} />
-            <meshStandardMaterial
-              color="#aaddff"
-              emissive="#88ccff"
-              emissiveIntensity={1.2}
-              roughness={0.1}
-              transparent
-              opacity={0.8}
-            />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={spireMainIM} args={[undefined, undefined, SPIRE_POSITIONS.length]} castShadow>
+        <coneGeometry args={[1.2, 6, 6]} />
+        <meshStandardMaterial color="#aaddff" emissive="#88ccff" emissiveIntensity={1.5} roughness={0.1} transparent opacity={0.85} />
+      </instancedMesh>
+      <instancedMesh ref={spireTipIM} args={[undefined, undefined, SPIRE_POSITIONS.length]} castShadow>
+        <coneGeometry args={[0.5, 2.5, 6]} />
+        <meshStandardMaterial color="#cceeff" emissive="#aaddff" emissiveIntensity={2.0} roughness={0.05} transparent opacity={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={icePatchIM} args={[undefined, undefined, ICE_PATCHES.length]}>
+        <boxGeometry args={[8, 0.1, 8]} />
+        <meshStandardMaterial color="#ddeeff" transparent opacity={0.6} roughness={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={stalaIM} args={[undefined, undefined, STALACTITES.length]} castShadow>
+        <coneGeometry args={[0.9, 1, 6]} />
+        <meshStandardMaterial color="#aaddff" emissive="#88ccff" emissiveIntensity={1.2} roughness={0.1} transparent opacity={0.8} />
+      </instancedMesh>
     </group>
   )
 }
@@ -632,28 +620,29 @@ function VolcanoZoneDecor() {
     emberRef.current.instanceMatrix.needsUpdate = true
   })
 
+  const volConeIM = useRef<THREE.InstancedMesh>(null!)
+  const lavaPoolIM = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    VOLCANO_CONES.forEach(({ pos: [vx, vy, vz], rotY }, i) => {
+      _owDummy.position.set(vx, vy, vz); _owDummy.rotation.set(0, rotY, 0); _owDummy.scale.setScalar(1); _owDummy.updateMatrix()
+      volConeIM.current.setMatrixAt(i, _owDummy.matrix)
+      _owDummy.position.set(vx, vy - 3.85, vz); _owDummy.rotation.set(0, 0, 0); _owDummy.updateMatrix()
+      lavaPoolIM.current.setMatrixAt(i, _owDummy.matrix)
+    })
+    volConeIM.current.instanceMatrix.needsUpdate  = true
+    lavaPoolIM.current.instanceMatrix.needsUpdate = true
+  }, [])
+
   return (
     <group>
-      {/* Small volcano cones */}
-      {VOLCANO_CONES.map((vc, i) => (
-        <group key={`volcone-${i}`} position={vc.pos} rotation={[0, vc.rotY, 0]}>
-          {/* Cone body: wide base (r=5) tapering to r=1 at top, height 8 */}
-          <mesh castShadow>
-            <cylinderGeometry args={[1, 5, 8, 12]} />
-            <meshStandardMaterial color="#444444" roughness={0.95} />
-          </mesh>
-          {/* Lava pool at the base */}
-          <mesh position={[0, -3.85, 0]}>
-            <cylinderGeometry args={[4, 4, 0.3, 20]} />
-            <meshStandardMaterial
-              color="#ff4400"
-              emissive="#ff2200"
-              emissiveIntensity={2}
-              roughness={0.2}
-            />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={volConeIM} args={[undefined, undefined, VOLCANO_CONES.length]} castShadow>
+        <cylinderGeometry args={[1, 5, 8, 12]} />
+        <meshStandardMaterial color="#444444" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={lavaPoolIM} args={[undefined, undefined, VOLCANO_CONES.length]}>
+        <cylinderGeometry args={[4, 4, 0.3, 20]} />
+        <meshStandardMaterial color="#ff4400" emissive="#ff2200" emissiveIntensity={2} roughness={0.2} />
+      </instancedMesh>
 
       {/* Flying embers — InstancedMesh 60 sparks */}
       <instancedMesh ref={emberRef} args={[undefined, undefined, COUNT]} frustumCulled={false}>
@@ -758,79 +747,80 @@ const LAVA_ROCKS_RIGHT: { pos: [number,number,number] }[] = [
   { pos: [20, 9.5, -103] },
 ]
 
+const _ALL_SKY_ISLANDS    = [...SKY_ISLANDS_LEFT,    ...SKY_ISLANDS_RIGHT]
+const _ALL_CRYSTAL_PILLARS = [...CRYSTAL_PILLARS_LEFT, ...CRYSTAL_PILLARS_RIGHT]
+const _ALL_LAVA_ROCKS      = [...LAVA_ROCKS_LEFT,      ...LAVA_ROCKS_RIGHT]
+const _OW_CHUNK_LOC = (() => { const o = new THREE.Object3D(); o.position.set(0.6, 0.8, 0.4); o.rotation.set(0.3, 0.5, 0.2); o.updateMatrix(); return o.matrix.clone() })()
+const _owMat = new THREE.Matrix4()
+
 function FloatingSideDecor() {
+  const islandTopIM   = useRef<THREE.InstancedMesh>(null!)
+  const islandUnderIM = useRef<THREE.InstancedMesh>(null!)
+  const pillarBodyIM  = useRef<THREE.InstancedMesh>(null!)
+  const pillarTipIM   = useRef<THREE.InstancedMesh>(null!)
+  const lavaMainIM    = useRef<THREE.InstancedMesh>(null!)
+  const lavaChunkIM   = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    // Sky islands — instanceColor for top, fixed color for underbelly
+    _ALL_SKY_ISLANDS.forEach(({ pos: [px, py, pz], color }, i) => {
+      _owDummy.position.set(px, py, pz); _owDummy.rotation.set(0,0,0); _owDummy.scale.setScalar(1); _owDummy.updateMatrix()
+      islandTopIM.current.setMatrixAt(i, _owDummy.matrix)
+      islandTopIM.current.setColorAt(i, _owCol.set(color))
+      _owDummy.position.set(px, py - 0.9, pz); _owDummy.scale.set(0.75, 1.0, 0.75); _owDummy.updateMatrix()
+      islandUnderIM.current.setMatrixAt(i, _owDummy.matrix)
+    })
+    islandTopIM.current.instanceMatrix.needsUpdate   = true
+    islandTopIM.current.instanceColor!.needsUpdate   = true
+    islandUnderIM.current.instanceMatrix.needsUpdate = true
+    // Crystal pillars — instanceColor drives both color and emission tint
+    _ALL_CRYSTAL_PILLARS.forEach(({ pos: [px, py, pz], color }, i) => {
+      _owDummy.position.set(px, py, pz); _owDummy.rotation.set(0,0,0); _owDummy.scale.setScalar(1); _owDummy.updateMatrix()
+      pillarBodyIM.current.setMatrixAt(i, _owDummy.matrix)
+      pillarBodyIM.current.setColorAt(i, _owCol.set(color))
+      _owDummy.position.set(px, py + 3.8, pz); _owDummy.updateMatrix()
+      pillarTipIM.current.setMatrixAt(i, _owDummy.matrix)
+      pillarTipIM.current.setColorAt(i, _owCol.set(color))
+    })
+    pillarBodyIM.current.instanceMatrix.needsUpdate = true
+    pillarBodyIM.current.instanceColor!.needsUpdate = true
+    pillarTipIM.current.instanceMatrix.needsUpdate  = true
+    pillarTipIM.current.instanceColor!.needsUpdate  = true
+    // Lava rocks — fixed color, secondary chunk via pre-baked local matrix
+    _ALL_LAVA_ROCKS.forEach(({ pos: [px, py, pz] }, i) => {
+      _owDummy.position.set(px, py, pz); _owDummy.rotation.set(0,0,0); _owDummy.scale.setScalar(1); _owDummy.updateMatrix()
+      lavaMainIM.current.setMatrixAt(i, _owDummy.matrix)
+      _owMat.multiplyMatrices(_owDummy.matrix, _OW_CHUNK_LOC)
+      lavaChunkIM.current.setMatrixAt(i, _owMat)
+    })
+    lavaMainIM.current.instanceMatrix.needsUpdate  = true
+    lavaChunkIM.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
     <>
-      {/* ── Zone 1 SKY: pastel mini-islands ── */}
-      {[...SKY_ISLANDS_LEFT, ...SKY_ISLANDS_RIGHT].map((item, i) => (
-        <group key={`sky-island-${i}`} position={item.pos}>
-          {/* Island top surface */}
-          <mesh castShadow>
-            <boxGeometry args={[4, 0.8, 3]} />
-            <meshStandardMaterial color={item.color} roughness={0.7} />
-          </mesh>
-          {/* Island underbelly */}
-          <mesh position={[0, -0.9, 0]} scale={[0.75, 1.0, 0.75]}>
-            <boxGeometry args={[4, 0.8, 3]} />
-            <meshStandardMaterial color="#8b6f47" roughness={0.95} />
-          </mesh>
-        </group>
-      ))}
-
-      {/* ── Zone 2 CRYSTAL: glowing pillars ── */}
-      {[...CRYSTAL_PILLARS_LEFT, ...CRYSTAL_PILLARS_RIGHT].map((item, i) => (
-        <group key={`crystal-pillar-${i}`} position={item.pos}>
-          <mesh castShadow>
-            <boxGeometry args={[1, 6, 1]} />
-            <meshStandardMaterial
-              color={item.color}
-              emissive={item.color}
-              emissiveIntensity={1.2}
-              roughness={0.15}
-              transparent
-              opacity={0.88}
-            />
-          </mesh>
-          {/* Crystal tip */}
-          <mesh position={[0, 3.8, 0]}>
-            <coneGeometry args={[0.55, 1.4, 6]} />
-            <meshStandardMaterial
-              color={item.color}
-              emissive={item.color}
-              emissiveIntensity={1.4}
-              roughness={0.1}
-              transparent
-              opacity={0.9}
-            />
-          </mesh>
-        </group>
-      ))}
-
-      {/* ── Zone 3 VOLCANO: lava rocks ── */}
-      {[...LAVA_ROCKS_LEFT, ...LAVA_ROCKS_RIGHT].map((item, i) => (
-        <group key={`lava-rock-${i}`} position={item.pos}>
-          {/* Main rock body */}
-          <mesh castShadow>
-            <boxGeometry args={[3, 2, 3]} />
-            <meshStandardMaterial
-              color="#3a1a08"
-              emissive="#ff3300"
-              emissiveIntensity={0.4}
-              roughness={0.95}
-            />
-          </mesh>
-          {/* Secondary rough chunk for irregular look */}
-          <mesh position={[0.6, 0.8, 0.4]} rotation={[0.3, 0.5, 0.2]}>
-            <boxGeometry args={[1.8, 1.4, 1.8]} />
-            <meshStandardMaterial
-              color="#2a1005"
-              emissive="#cc2200"
-              emissiveIntensity={0.3}
-              roughness={0.98}
-            />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={islandTopIM} args={[undefined, undefined, _ALL_SKY_ISLANDS.length]} castShadow>
+        <boxGeometry args={[4, 0.8, 3]} />
+        <meshStandardMaterial vertexColors roughness={0.7} />
+      </instancedMesh>
+      <instancedMesh ref={islandUnderIM} args={[undefined, undefined, _ALL_SKY_ISLANDS.length]}>
+        <boxGeometry args={[4, 0.8, 3]} />
+        <meshStandardMaterial color="#8b6f47" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={pillarBodyIM} args={[undefined, undefined, _ALL_CRYSTAL_PILLARS.length]} castShadow>
+        <boxGeometry args={[1, 6, 1]} />
+        <meshStandardMaterial vertexColors emissive="#ffffff" emissiveIntensity={0.6} roughness={0.15} transparent opacity={0.88} />
+      </instancedMesh>
+      <instancedMesh ref={pillarTipIM} args={[undefined, undefined, _ALL_CRYSTAL_PILLARS.length]}>
+        <coneGeometry args={[0.55, 1.4, 6]} />
+        <meshStandardMaterial vertexColors emissive="#ffffff" emissiveIntensity={0.7} roughness={0.1} transparent opacity={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={lavaMainIM} args={[undefined, undefined, _ALL_LAVA_ROCKS.length]} castShadow>
+        <boxGeometry args={[3, 2, 3]} />
+        <meshStandardMaterial color="#3a1a08" emissive="#ff3300" emissiveIntensity={0.4} roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={lavaChunkIM} args={[undefined, undefined, _ALL_LAVA_ROCKS.length]}>
+        <boxGeometry args={[1.8, 1.4, 1.8]} />
+        <meshStandardMaterial color="#2a1005" emissive="#cc2200" emissiveIntensity={0.3} roughness={0.98} />
+      </instancedMesh>
     </>
   )
 }
