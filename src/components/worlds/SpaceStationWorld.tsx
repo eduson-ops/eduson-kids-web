@@ -496,28 +496,28 @@ const THRUSTER_POSITIONS: Array<[number, number, number]> = [
 ]
 
 function ThrusterGlowRings() {
-  const ringRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    ringRefs.current.forEach((m, i) => {
-      if (!m) return
-      // Subtle pulse on scale
+    THRUSTER_POSITIONS.forEach((pos, i) => {
       const pulse = 1 + Math.sin(t * 2.5 + i * 1.1) * 0.06
-      m.scale.setScalar(pulse)
+      dummy.position.set(pos[0], pos[1], pos[2])
+      dummy.rotation.set(Math.PI / 2, 0, 0)
+      dummy.scale.setScalar(pulse)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
   return (
     <>
-      {THRUSTER_POSITIONS.map((pos, i) => (
-        <group key={i} position={pos}>
-          <mesh ref={(el) => { ringRefs.current[i] = el }} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[1.5, 0.15, 16, 64]} />
-            <meshBasicMaterial color="#00ffff" toneMapped={false} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={meshRef} args={[undefined, undefined, 6]} frustumCulled={false}>
+        <torusGeometry args={[1.5, 0.15, 16, 64]} />
+        <meshBasicMaterial color="#00ffff" toneMapped={false} />
+      </instancedMesh>
       {/* 2 shared lights for the whole thruster cluster */}
       <pointLight color="#00aaff" intensity={5} distance={20} position={[-6, 3.5, -149]} />
       <pointLight color="#00aaff" intensity={5} distance={20} position={[6, 3.5, -149]} />

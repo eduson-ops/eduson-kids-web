@@ -1140,20 +1140,21 @@ function RobotInProgress({ stageX, stage }: { stageX: number; stage: 1 | 2 | 3 }
 }
 
 function AssemblyLine() {
-  // 8 conveyor belt segment refs
-  const segRefs = useRef<(THREE.Mesh | null)[]>([])
+  const beltMeshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    segRefs.current.forEach((seg, i) => {
-      if (!seg) return
-      // Each segment moves along x from -10 to +10 (belt width 20), modular
-      const segSpacing = 20 / BELT_SEGMENT_COUNT
+    const segSpacing = 20 / BELT_SEGMENT_COUNT
+    for (let i = 0; i < BELT_SEGMENT_COUNT; i++) {
       const baseX = i * segSpacing - 10
-      seg.position.x = ((baseX + t * 2) % 20) - 10
-    })
+      dummy.position.set(((baseX + t * 2) % 20) - 10, 0.32, 0)
+      dummy.updateMatrix()
+      beltMeshRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    beltMeshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
@@ -1165,16 +1166,10 @@ function AssemblyLine() {
       </mesh>
 
       {/* Moving belt segments on top */}
-      {Array.from({ length: BELT_SEGMENT_COUNT }, (_, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { segRefs.current[i] = el }}
-          position={[i * (20 / BELT_SEGMENT_COUNT) - 10, 0.32, 0]}
-        >
-          <boxGeometry args={[2.3, 0.1, 2]} />
-          <meshStandardMaterial color="#333333" roughness={0.9} />
-        </mesh>
-      ))}
+      <instancedMesh ref={beltMeshRef} args={[undefined, undefined, BELT_SEGMENT_COUNT]} frustumCulled={false}>
+        <boxGeometry args={[2.3, 0.1, 2]} />
+        <meshStandardMaterial color="#333333" roughness={0.9} />
+      </instancedMesh>
 
       {/* 4 arm stations evenly spaced: x = -7.5, -2.5, 2.5, 7.5 */}
       {STATION_PHASES.map((phase, i) => (
