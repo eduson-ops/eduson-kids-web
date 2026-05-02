@@ -1705,41 +1705,51 @@ const GARDEN_KELP: GardenKelpData[] = (() => {
 })()
 
 function UnderwaterGarden() {
-  const kelpRefs = useRef<(THREE.Mesh | null)[]>([])
+  const stalkRef = useRef<THREE.InstancedMesh>(null!)
+  const frondRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  const [bx, by, bz] = GARDEN_BASE
+
+  // Set frond matrices once on mount (static)
+  const frondInitDone = useRef(false)
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     GARDEN_KELP.forEach((k, i) => {
-      const m = kelpRefs.current[i]
-      if (!m) return
-      m.rotation.z = Math.sin(t * 0.5 + k.phase) * 0.15
+      dummy.position.set(bx + k.dx, by + k.height / 2, bz + k.dz)
+      dummy.rotation.set(0, 0, Math.sin(t * 0.5 + k.phase) * 0.15)
+      dummy.scale.set(1, k.height, 1)
+      dummy.updateMatrix()
+      stalkRef.current.setMatrixAt(i, dummy.matrix)
+
+      if (!frondInitDone.current) {
+        dummy.position.set(bx + k.dx, by + k.height + 0.4, bz + k.dz)
+        dummy.rotation.set(0, 0, 0)
+        dummy.scale.set(1.8, 0.4, 1.8)
+        dummy.updateMatrix()
+        frondRef.current.setMatrixAt(i, dummy.matrix)
+      }
     })
+    stalkRef.current.instanceMatrix.needsUpdate = true
+    if (!frondInitDone.current) {
+      frondRef.current.instanceMatrix.needsUpdate = true
+      frondInitDone.current = true
+    }
   })
 
-  const [bx, by, bz] = GARDEN_BASE
-
   return (
-    <group position={[bx, by, bz]}>
-      {/* ── Kelp stalks ── */}
-      {GARDEN_KELP.map((k, i) => (
-        <group key={i} position={[k.dx, 0, k.dz]}>
-          {/* Stalk */}
-          <mesh
-            ref={(el) => { kelpRefs.current[i] = el }}
-            position={[0, k.height / 2, 0]}
-          >
-            <cylinderGeometry args={[0.15, 0.18, k.height, 6]} />
-            <meshStandardMaterial color="#336633" roughness={0.7} emissive="#1a3a1a" emissiveIntensity={0.15} />
-          </mesh>
-          {/* Frond at top */}
-          <mesh position={[0, k.height + 0.4, 0]} scale={[1.8, 0.4, 1.8]}>
-            <sphereGeometry args={[0.8, 8, 6]} />
-            <meshStandardMaterial color="#448844" roughness={0.6} emissive="#224422" emissiveIntensity={0.15} />
-          </mesh>
-        </group>
-      ))}
+    <>
+      <instancedMesh ref={stalkRef} args={[undefined, undefined, 15]} frustumCulled={false}>
+        <cylinderGeometry args={[0.15, 0.18, 1, 6]} />
+        <meshStandardMaterial color="#336633" roughness={0.7} emissive="#1a3a1a" emissiveIntensity={0.15} />
+      </instancedMesh>
+      <instancedMesh ref={frondRef} args={[undefined, undefined, 15]} frustumCulled={false}>
+        <sphereGeometry args={[0.8, 8, 6]} />
+        <meshStandardMaterial color="#448844" roughness={0.6} emissive="#224422" emissiveIntensity={0.15} />
+      </instancedMesh>
+      <group position={[bx, by, bz]}>
 
       {/* ── Giant clam (two flattened hemisphere halves) ── */}
       <group position={[0, 0, 5]}>
@@ -1768,7 +1778,8 @@ function UnderwaterGarden() {
         {/* Pearl glow */}
         <pointLight position={[0, 0.5, 0]} color="#ddeeff" intensity={4} distance={10} />
       </group>
-    </group>
+      </group>
+    </>
   )
 }
 

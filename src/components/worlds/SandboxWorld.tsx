@@ -1343,7 +1343,8 @@ function ToyBoats() {
 // ─── WaterSlide ───────────────────────────────────────────────────
 function WaterSlide() {
   // Splash particles slowly drift outward and bob
-  const splashRefs = useRef<(THREE.Mesh | null)[]>([])
+  const splashMeshRef = useRef<THREE.InstancedMesh>(null!)
+  const splashDummy = useMemo(() => new THREE.Object3D(), [])
   const splashData = useMemo(() => Array.from({ length: 20 }, (_, i) => {
     const angle = (i / 20) * Math.PI * 2
     return {
@@ -1351,6 +1352,7 @@ function WaterSlide() {
       radius: 0.5 + Math.random() * 2.2,
       speed: 0.4 + Math.random() * 0.6,
       phase: Math.random() * Math.PI * 2,
+      size: 0.07 + Math.random() * 0.06,
     }
   }), [])
 
@@ -1359,12 +1361,16 @@ function WaterSlide() {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     splashData.forEach((d, i) => {
-      const m = splashRefs.current[i]
-      if (!m) return
-      m.position.x = Math.cos(d.angle + t * 0.1) * d.radius
-      m.position.z = Math.sin(d.angle + t * 0.1) * d.radius
-      m.position.y = 0.3 + Math.abs(Math.sin(t * d.speed + d.phase)) * 0.6
+      splashDummy.position.set(
+        Math.cos(d.angle + t * 0.1) * d.radius,
+        0.3 + Math.abs(Math.sin(t * d.speed + d.phase)) * 0.6,
+        Math.sin(d.angle + t * 0.1) * d.radius,
+      )
+      splashDummy.scale.setScalar(d.size)
+      splashDummy.updateMatrix()
+      splashMeshRef.current.setMatrixAt(i, splashDummy.matrix)
     })
+    splashMeshRef.current.instanceMatrix.needsUpdate = true
   })
 
   // 11 spiral segments descending from y=10 to y=1
@@ -1445,16 +1451,10 @@ function WaterSlide() {
       </mesh>
 
       {/* Splash particles */}
-      {splashData.map((d, i) => (
-        <mesh
-          key={`splash-${i}`}
-          ref={el => { splashRefs.current[i] = el }}
-          position={[Math.cos(d.angle) * d.radius, 0.3, Math.sin(d.angle) * d.radius]}
-        >
-          <sphereGeometry args={[0.07 + Math.random() * 0.06, 5, 5]} />
-          <meshBasicMaterial color="#88ccff" transparent opacity={0.7} />
-        </mesh>
-      ))}
+      <instancedMesh ref={splashMeshRef} args={[undefined, undefined, 20]} frustumCulled={false}>
+        <sphereGeometry args={[1, 5, 5]} />
+        <meshBasicMaterial color="#88ccff" transparent opacity={0.7} />
+      </instancedMesh>
 
       {/* Point light inside pool */}
       <pointLight position={[0, 2, 0]} color="#44aaff" intensity={1.5} distance={12} />

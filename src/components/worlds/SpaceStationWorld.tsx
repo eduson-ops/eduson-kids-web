@@ -95,6 +95,9 @@ interface DebrisData {
   rotSpeedX: number
   rotSpeedY: number
   rotSpeedZ: number
+  curRotX: number
+  curRotY: number
+  curRotZ: number
 }
 
 function SpaceDebris() {
@@ -110,37 +113,35 @@ function SpaceDebris() {
       rotSpeedX: (seed(i * 7.5) - 0.5) * 0.6,
       rotSpeedY: (seed(i * 7.6) - 0.5) * 0.4,
       rotSpeedZ: (seed(i * 7.7) - 0.5) * 0.5,
+      curRotX: 0, curRotY: 0, curRotZ: 0,
     }))
   }, [])
 
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
     debrisData.forEach((d, i) => {
-      const m = meshRefs.current[i]
-      if (!m) return
-      m.rotation.x += d.rotSpeedX * step
-      m.rotation.y += d.rotSpeedY * step
-      m.rotation.z += d.rotSpeedZ * step
+      d.curRotX += d.rotSpeedX * step
+      d.curRotY += d.rotSpeedY * step
+      d.curRotZ += d.rotSpeedZ * step
+      dummy.position.set(...d.pos)
+      dummy.rotation.set(d.curRotX, d.curRotY, d.curRotZ)
+      dummy.scale.set(d.size, d.size * 0.7, d.size * 0.9)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {debrisData.map((d, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={d.pos}
-        >
-          <boxGeometry args={[d.size, d.size * 0.7, d.size * 0.9]} />
-          <meshStandardMaterial color="#556677" roughness={0.6} metalness={0.8} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 15]} frustumCulled={false}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#556677" roughness={0.6} metalness={0.8} />
+    </instancedMesh>
   )
 }
 
