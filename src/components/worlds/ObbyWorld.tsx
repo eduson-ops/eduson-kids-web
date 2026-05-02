@@ -92,7 +92,8 @@ function MovingBlock({ pos, size, color, emissive, moveRange = 3, moveSpeed = 1.
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    t.current += dt * moveSpeed
+    const step = _isLow ? dt * 2 : dt
+    t.current += step * moveSpeed
     next.set(base.x + Math.sin(t.current) * moveRange, base.y, base.z)
     rbRef.current?.setNextKinematicTranslation(next)
   })

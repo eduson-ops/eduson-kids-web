@@ -88,7 +88,8 @@ function LavaFloor() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (matRef.current) matRef.current.uniforms.iTime!.value += _isLow ? dt * 2 : dt
+    const step = _isLow ? dt * 2 : dt
+    if (matRef.current) matRef.current.uniforms.iTime!.value += step
   })
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, -0.25, -75]}>
@@ -227,9 +228,10 @@ function SkySparkles() {
   const t = useRef(0)
 
   useFrame((_, dt) => {
+    const step = _isLow ? dt * 2 : dt
     if (!meshRef.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
-    t.current += _isLow ? dt * 2 : dt
+    t.current += step
     data.forEach((d, i) => {
       const s = Math.abs(Math.sin(t.current * d.speed + d.phase))
       const sc = s * 0.5 + 0.1
@@ -277,9 +279,10 @@ function MeadowPollen() {
   const t = useRef(0)
 
   useFrame((_, dt) => {
+    const step = _isLow ? dt * 2 : dt
     if (!meshRef.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
-    t.current += _isLow ? dt * 2 : dt
+    t.current += step
     data.forEach((d, i) => {
       dummy.position.set(
         d.x + Math.sin(t.current * d.freqX + d.phaseX) * d.ampX,
@@ -664,9 +667,10 @@ function GlobalSparkles() {
   const t = useRef(0)
 
   useFrame((_, dt) => {
+    const step = _isLow ? dt * 2 : dt
     if (!meshRef.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
-    t.current += _isLow ? dt * 2 : dt
+    t.current += step
     data.forEach((d, i) => {
       const s = Math.sin(t.current * d.speed + d.phase) * 0.5 + 0.5
       // Encode opacity via scale (s > 0.05 → visible, else scale=0)

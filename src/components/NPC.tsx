@@ -5,6 +5,8 @@ import type { Group } from 'three'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { getToonGradientMap } from '../lib/toonGradient'
+import { detectDeviceTier } from '../lib/deviceTier'
+const _isLow = detectDeviceTier() === 'low'
 
 interface Props {
   pos: [number, number, number]
@@ -15,8 +17,10 @@ interface Props {
 
 function NPCImpl({ pos, modelUrl, label, bodyColor = '#ffd1e8' }: Props) {
   const bob = useRef<Group>(null!)
+  const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     if (bob.current) {
       bob.current.position.y = pos[1] + Math.sin(clock.getElapsedTime() * 1.8) * 0.06
     }

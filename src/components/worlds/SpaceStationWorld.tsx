@@ -40,8 +40,9 @@ function Wormhole() {
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (matRef.current) matRef.current.uniforms.uTime!.value = clock.getElapsedTime()
-    if (grpRef.current) grpRef.current.rotation.z += dt * 0.8
+    if (grpRef.current) grpRef.current.rotation.z += step * 0.8
   })
   return (
     <group ref={grpRef} position={[0, 15, -180]}>
@@ -117,12 +118,13 @@ function SpaceDebris() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     debrisData.forEach((d, i) => {
       const m = meshRefs.current[i]
       if (!m) return
-      m.rotation.x += d.rotSpeedX * dt
-      m.rotation.y += d.rotSpeedY * dt
-      m.rotation.z += d.rotSpeedZ * dt
+      m.rotation.x += d.rotSpeedX * step
+      m.rotation.y += d.rotSpeedY * step
+      m.rotation.z += d.rotSpeedZ * step
     })
   })
 
@@ -365,7 +367,8 @@ function MovingPlatform({
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * speed
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * speed
     if (!grp.current) return
     const offset = Math.sin(phase.current) * travel
     if (axis === 'x') grp.current.position.x = startPos[0] + offset
@@ -391,7 +394,8 @@ function Beacon({ pos, color = WARN }: { pos: [number, number, number]; color?: 
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * 3
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * 3
     if (mat.current) mat.current.emissiveIntensity = 0.5 + Math.sin(phase.current) * 0.5
   })
   return (
@@ -938,6 +942,7 @@ function MeteorShower() {
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     refs.current.forEach((grp, i) => {
       if (!grp) return
       const d = data[i]!
@@ -947,8 +952,8 @@ function MeteorShower() {
       grp.position.y = d.startY - progress * d.speed * 3
       grp.position.z = d.startZ + progress * d.dz * 180
       grp.visible = progress < 0.6
-      grp.rotation.x += dt * 1.2
-      grp.rotation.z += dt * 0.8
+      grp.rotation.x += step * 1.2
+      grp.rotation.z += step * 0.8
     })
   })
 
@@ -1029,6 +1034,7 @@ function StationActivity() {
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const t = clock.getElapsedTime()
 
     // Patrol drones
@@ -1052,7 +1058,7 @@ function StationActivity() {
         const mesh = streamRefs.current[idx]
         if (!mesh) continue
         // Advance y offset, wrap back to 0 when it exceeds STREAM_HEIGHT
-        streamOffsets[idx] = (streamOffsets[idx]! + dt * 3.5) % STREAM_HEIGHT
+        streamOffsets[idx] = (streamOffsets[idx]! + step * 3.5) % STREAM_HEIGHT
         mesh.position.set(base[0], base[1] + streamOffsets[idx]!, base[2])
         // Fade opacity: bright near top, dim near bottom
         const frac = streamOffsets[idx]! / STREAM_HEIGHT
@@ -1382,7 +1388,8 @@ function AstronautFigure() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    angle.current += dt * 0.05
+    const step = _isLow ? dt * 2 : dt
+    angle.current += step * 0.05
     if (grpRef.current) {
       const a = angle.current
       grpRef.current.position.set(
@@ -1856,6 +1863,7 @@ function AlienScoutShip() {
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const t = clock.getElapsedTime()
     const s = stateRef.current
     const grp = grpRef.current
@@ -1866,7 +1874,7 @@ function AlienScoutShip() {
       const targetX = 0
       const targetY = 15
       const targetZ = -70
-      const speed   = 8 * dt
+      const speed   = 8 * step
       const dx = targetX - grp.position.x
       const dy = targetY - grp.position.y
       const dz = targetZ - grp.position.z
@@ -1882,7 +1890,7 @@ function AlienScoutShip() {
       }
     } else {
       // Orbit at r=80 around (0,15,−70) at y=15+sin oscillation
-      s.orbitAngle += 0.006 * dt
+      s.orbitAngle += 0.006 * step
       const orbitR = 80
       const cx = 0; const cy = 15; const cz = -70
       grp.position.x = cx + Math.sin(s.orbitAngle) * orbitR
@@ -2138,13 +2146,14 @@ function OuterAsteroidBelt() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (!meshRef.current) return
     for (let i = 0; i < OUTER_ASTEROID_COUNT; i++) {
       const a = asteroids[i]!
-      a.angle += a.orbitSpeed * dt
-      a.rx    += a.selfRotSpeed * dt
-      a.ry    += a.selfRotSpeed * dt * 0.7
-      a.rz    += a.selfRotSpeed * dt * 0.5
+      a.angle += a.orbitSpeed * step
+      a.rx    += a.selfRotSpeed * step
+      a.ry    += a.selfRotSpeed * step * 0.7
+      a.rz    += a.selfRotSpeed * step * 0.5
       dummy.position.set(
         Math.cos(a.angle) * a.ringRadius,
         a.y,

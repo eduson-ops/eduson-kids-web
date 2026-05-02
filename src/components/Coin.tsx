@@ -6,6 +6,8 @@ import * as THREE from 'three'
 import { addCoin } from '../lib/gameState'
 import { SFX } from '../lib/audio'
 import SparkleBurst from './SparkleBurst'
+import { detectDeviceTier } from '../lib/deviceTier'
+const _isLow = detectDeviceTier() === 'low'
 
 interface Props {
   pos: [number, number, number]
@@ -70,6 +72,7 @@ function CoinImpl({ pos, value = 1 }: Props) {
   const [done, setDone] = useState(false)
   const [sparkling, setSparkling] = useState(false)
   const iTimeRef = useRef(0)
+  const frameSkip = useRef(0)
 
   const uniforms = useMemo(
     () => ({
@@ -81,16 +84,18 @@ function CoinImpl({ pos, value = 1 }: Props) {
 
   useFrame((_, dt) => {
     if (!visual.current || done) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
 
     // Update shader time
-    iTimeRef.current += dt
+    iTimeRef.current += step
     uniforms.iTime.value = iTimeRef.current
 
     if (collectT.current < 0) {
-      visual.current.rotation.y += dt * 2.5
+      visual.current.rotation.y += step * 2.5
       visual.current.position.y = pos[1] + Math.sin(Date.now() * 0.003) * 0.15
     } else {
-      collectT.current += dt
+      collectT.current += step
       const p = Math.min(collectT.current / COLLECT_DURATION, 1)
       const ease = 1 - p * p
       visual.current.scale.setScalar(ease)

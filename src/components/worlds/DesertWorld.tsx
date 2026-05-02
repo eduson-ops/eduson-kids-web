@@ -711,11 +711,12 @@ function SandStorm() {
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     particles.forEach((p, i) => {
       p.x += p.speed
       p.y += Math.sin(p.phase + p.x * 0.1) * 0.02
       p.z += p.drift
-      p.phase += dt * (_isLow ? 1 : 0.5)
+      p.phase += step * (_isLow ? 1 : 0.5)
       if (p.x > 100) p.x = -100
       dummy.position.set(p.x, p.y, p.z)
       dummy.scale.setScalar(p.scale)

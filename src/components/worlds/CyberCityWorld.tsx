@@ -183,6 +183,7 @@ function NeonRain() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (!enabled) return
     const mesh = meshRef.current
     if (!mesh) return
@@ -200,7 +201,7 @@ function NeonRain() {
 
     for (let i = 0; i < NEON_RAIN_COUNT; i++) {
       const b = i * 4
-      drops[b + 1]! -= drops[b + 3]! * dt
+      drops[b + 1]! -= drops[b + 3]! * step
       if (drops[b + 1]! < -5) {
         drops[b + 1] = 40
         drops[b]     = (Math.random() - 0.5) * 60
@@ -525,7 +526,8 @@ function NeonSign({
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * (_isLow ? 2 : 1) * freq
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * (_isLow ? 2 : 1) * freq
     if (mat.current) {
       const base = 1.5 + Math.sin(phase.current) * 0.6
       const flicker = flickerPool.current[flickerPtr.current++ % 32]
@@ -552,7 +554,8 @@ function MovingBillboard({ startX, y, z }: { startX: number; y: number; z: numbe
   const phase = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * 0.45
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * 0.45
     if (grp.current) grp.current.position.x = startX + Math.sin(phase.current) * 6
   })
   return (
@@ -782,11 +785,12 @@ function HoverTraffic() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     CAR_CONFIGS.forEach((c, i) => {
       const car = carRefs.current[i]
       if (!car) return
 
-      zPos.current[i]! += c.dir * c.speed * dt
+      zPos.current[i]! += c.dir * c.speed * step
 
       // Wrap around
       if (c.dir === 1 && zPos.current[i]! > 15) {
@@ -868,7 +872,8 @@ function TrafficLights() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    iTimeRef.current += dt
+    const step = _isLow ? dt * 2 : dt
+    iTimeRef.current += step
     const t = iTimeRef.current % 6
     const greenActive  = t < 2.5
     const yellowActive = t >= 2.5 && t < 3.0
@@ -1069,7 +1074,8 @@ function SingleAntenna({ pos }: { pos: [number, number, number] }) {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    blinkState.current += dt
+    const step = _isLow ? dt * 2 : dt
+    blinkState.current += step
     if (blinkRef.current) {
       blinkRef.current.emissiveIntensity = blinkState.current % 0.8 < 0.4 ? 5 : 0
     }
@@ -1314,14 +1320,15 @@ function SingleHoloCop({ pos, rotYOffset }: { pos: [number, number, number]; rot
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    sweepAngle.current += dt * 0.6 * sweepDir.current
+    const step = _isLow ? dt * 2 : dt
+    sweepAngle.current += step * 0.6 * sweepDir.current
     if (sweepAngle.current >  Math.PI / 4) sweepDir.current = -1
     if (sweepAngle.current < -Math.PI / 4) sweepDir.current =  1
     if (groupRef.current) {
       groupRef.current.rotation.y = rotYOffset + sweepAngle.current
     }
     if (scanRef.current) {
-      scanRef.current.rotation.y += dt * 1.2
+      scanRef.current.rotation.y += step * 1.2
     }
   })
 
@@ -1507,7 +1514,8 @@ function FloorGrate({ pos }: { pos: [number, number, number] }) {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    flickerRef.current += _isLow ? dt * 12 : dt * 6
+    const step = _isLow ? dt * 2 : dt
+    flickerRef.current += step * 6
     if (glowRef.current) {
       // Flicker: occasional drop to simulate distant race lights
       const flicker = Math.sin(flickerRef.current * 3.7) * 0.5 + 0.5

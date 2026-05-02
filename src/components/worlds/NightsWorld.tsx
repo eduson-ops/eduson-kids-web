@@ -216,9 +216,10 @@ function BioluminescentPatches({ phase }: { phase: 'day' | 'night' }) {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (!meshRef.current) return
     if (phase !== 'night') return
-    timeRef.current += dt
+    timeRef.current += step
     if (matRef.current) matRef.current.uniforms.uTime!.value = timeRef.current
     // Apply static matrices (only needed once, but safe to set here)
     matrices.forEach((m, i) => meshRef.current.setMatrixAt(i, m))
@@ -337,7 +338,8 @@ function Campfire() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * 6
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * 6
     if (flame.current) {
       flame.current.scale.y = 1 + Math.sin(phase.current) * 0.2
       flame.current.rotation.y = phase.current * 0.5
@@ -836,8 +838,9 @@ function ShootingStars() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const s = stateRef.current
-    s.timer += dt
+    s.timer += step
     if (!s.active && s.timer > 8) {
       // Launch a new shooting star
       s.active = true
@@ -848,7 +851,7 @@ function ShootingStars() {
       s.vx = 60 + Math.random() * 40
     }
     if (s.active) {
-      s.x += s.vx * dt
+      s.x += s.vx * step
       if (starRef.current) {
         starRef.current.position.set(s.x, s.y, s.z)
         starRef.current.visible = true
@@ -911,7 +914,8 @@ function HauntedMansion() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    timeRef.current += dt
+    const step = _isLow ? dt * 2 : dt
+    timeRef.current += step
     const t = timeRef.current
     winRefs.current.forEach((mat, i) => {
       if (!mat) return
@@ -1633,7 +1637,8 @@ function VampireCastleRuins({ phase }: { phase: 'day' | 'night' }) {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    timeRef.current += dt
+    const step = _isLow ? dt * 2 : dt
+    timeRef.current += step
     const t = timeRef.current
     winRefs.current.forEach((mat, i) => {
       if (!mat) return

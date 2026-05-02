@@ -98,11 +98,12 @@ function RainParticles() {
   const dummy = useMemo(() => new THREE.Object3D(), [])
 
   useFrame((_, dt) => {
+    const step = _isLow ? dt * 2 : dt
     if (!ref.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
     for (let i = 0; i < COUNT; i++) {
       const p = data[i]!
-      p.y -= p.speed * (_isLow ? dt * 2 : dt)
+      p.y -= p.speed * step
       if (p.y < -2) p.y = 110
       dummy.position.set(p.x, p.y, p.z)
       dummy.updateMatrix()
@@ -154,7 +155,8 @@ function LightningFlash({ color, position, interval, prob }: {
   const flashRandPtr = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkipF.current++ & 1)) return
-    timer.current += dt
+    const step = _isLow ? dt * 2 : dt
+    timer.current += step
     if (timer.current >= interval) {
       timer.current = 0
     }
@@ -239,7 +241,8 @@ function StormCrown() {
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (grpRef.current) grpRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 0.4
+    const step = _isLow ? dt * 2 : dt
+    if (grpRef.current) grpRef.current.rotation.y += step * 0.4
     if (!spikesRef.current) return
     spikes.forEach((s, i) => {
       dummy.position.set(Math.cos(s.angle) * 14, 0, Math.sin(s.angle) * 14)
@@ -445,9 +448,10 @@ function StormClouds() {
 
   useFrame((_, dt) => {
     const skip = _isLow ? 4 : 2
+    const step = _isLow ? dt * 2 : dt
     if (++frameCount.current % skip !== 0) return  // 30 fps (15 fps on low)
     if (!meshRef.current) return
-    rotY.current += (_isLow ? dt * 2 : dt) * 0.015
+    rotY.current += step * 0.015
     const cos = Math.cos(rotY.current)
     const sin = Math.sin(rotY.current)
     spheres.forEach((s, i) => {
@@ -752,7 +756,7 @@ function MovingPlatform({ y, phase, color }: { y: number; phase: number; color: 
   const t = useRef(phase)
   useFrame((_, dt) => {
     if (!rbRef.current) return
-    t.current += dt * 0.7
+    t.current += step * 0.7
     const nx = Math.sin(t.current) * 9
     rbRef.current.setNextKinematicTranslation({ x: nx, y, z: 0 })
   })

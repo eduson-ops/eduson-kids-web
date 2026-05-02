@@ -36,7 +36,8 @@ function GlitterFloor({ position, width, length }: { position: [number,number,nu
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (matRef.current) matRef.current.uniforms.iTime.value += _isLow ? dt * 2 : dt
+    const step = _isLow ? dt * 2 : dt
+    if (matRef.current) matRef.current.uniforms.iTime.value += step
   })
   return (
     <mesh position={position} rotation={[-Math.PI / 2, 0, 0]}>
@@ -54,7 +55,8 @@ function DiscoBall({ position }: { position: [number,number,number] }) {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (groupRef.current) groupRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 0.8
+    const step = _isLow ? dt * 2 : dt
+    if (groupRef.current) groupRef.current.rotation.y += step * 0.8
   })
   const tiles = useMemo(() => {
     const out: Array<{ pos: [number,number,number]; rot: [number,number,number] }> = []
@@ -153,7 +155,8 @@ function Mannequin({ pos, dressColor, accent }: { pos: [number,number,number]; d
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (spinRef.current) spinRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 0.5
+    const step = _isLow ? dt * 2 : dt
+    if (spinRef.current) spinRef.current.rotation.y += step * 0.5
   })
   return (
     <group position={pos}>
@@ -192,7 +195,8 @@ function DJBooth({ position }: { position: [number,number,number] }) {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (discRef.current) discRef.current.rotation.y += (_isLow ? dt * 2 : dt) * 3
+    const step = _isLow ? dt * 2 : dt
+    if (discRef.current) discRef.current.rotation.y += step * 3
   })
   return (
     <group position={position}>
@@ -594,15 +598,16 @@ function ConfettiGroup({ color, pieces }: { color: string; pieces: ConfettiPiece
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (!meshRef.current) return
     const vels = velocities.current
     for (let i = 0; i < PIECES_PER_COLOR; i++) {
       const v = vels[i]
       // apply gravity
-      v.vy -= 2 * dt
-      v.x += v.vx * dt
-      v.y += v.vy * dt
-      rotations.current[i] += v.rotSpeed * dt
+      v.vy -= 2 * step
+      v.x += v.vx * step
+      v.y += v.vy * step
+      rotations.current[i] += v.rotSpeed * step
       // wrap when piece falls below y = -2 relative to spawn
       if (v.y < -2) {
         v.y = 0

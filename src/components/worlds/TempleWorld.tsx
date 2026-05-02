@@ -115,7 +115,8 @@ function Brazier({ pos }: { pos: [number, number, number] }) {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * 5.5
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * 5.5
     if (!flame.current) return
     flame.current.scale.y = 0.85 + Math.sin(phase.current) * 0.28
     flame.current.scale.x = 0.85 + Math.sin(phase.current * 1.4) * 0.18
@@ -184,7 +185,8 @@ function MovingPlatform({
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * speed
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * speed
     if (grp.current) grp.current.position.x = startPos[0] + Math.sin(phase.current) * travel
   })
   return (
@@ -205,7 +207,8 @@ function Spinner({ pos, speed = 0.7 }: { pos: [number, number, number]; speed?: 
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (grp.current) grp.current.rotation.y += dt * speed
+    const step = _isLow ? dt * 2 : dt
+    if (grp.current) grp.current.rotation.y += step * speed
   })
   return (
     <group ref={grp} position={pos}>
@@ -1102,10 +1105,11 @@ function AltarFirePillars() {
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const t = clock.getElapsedTime()
     groupRefs.current.forEach((grp, i) => {
       if (!grp) return
-      grp.rotation.y += dt * 2.5 * (i % 2 === 0 ? 1 : -1)
+      grp.rotation.y += step * 2.5 * (i % 2 === 0 ? 1 : -1)
       const s = Math.sin(t * 8 + i) * 0.08 + 0.92
       grp.scale.set(s, s, s)
     })
@@ -1699,7 +1703,8 @@ function MummyCreature() {
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * 0.35   // slow lurch
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * 0.35   // slow lurch
     const t = clock.getElapsedTime()
     const ang = phase.current
 
@@ -2110,7 +2115,8 @@ function MovingBoulder({
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt * speed
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step * speed
     if (!rbRef.current) return
     const nx = startPos[0] + Math.sin(phase.current) * travel
     rbRef.current.setNextKinematicTranslation({ x: nx, y: startPos[1], z: startPos[2] })

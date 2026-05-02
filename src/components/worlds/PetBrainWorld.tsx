@@ -294,8 +294,9 @@ function NodePulseRings() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     ringData.forEach((r, i) => {
-      r.scale += dt * r.speed
+      r.scale += step * r.speed
       if (r.scale >= 2) r.scale = 0
       const m = ringRefs.current[i]
       if (!m) return
@@ -365,8 +366,9 @@ function DataPulses() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     progressRef.current = progressRef.current.map((p, i) => {
-      const next = p + dt * (0.6 + (i % 3) * 0.2)
+      const next = p + step * (0.6 + (i % 3) * 0.2)
       return next > 1 ? next - 1 : next
     })
     meshRefs.current.forEach((m, i) => {
@@ -1372,16 +1374,17 @@ function DNASequencer() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     // Scroll data lines upward, wrap
     scrollData.forEach((sd, i) => {
       const m = scrollRefs.current[i]
       if (!m) return
-      sd.baseY += dt * sd.speed
+      sd.baseY += step * sd.speed
       if (sd.baseY > 0.6) sd.baseY -= 1.3
       m.position.y = sd.baseY
     })
     // Blink status light
-    statusBlinkRef.current += dt * 3
+    statusBlinkRef.current += step * 3
     if (statusRef.current) {
       const mat = statusRef.current.material as THREE.MeshStandardMaterial
       mat.emissiveIntensity = 3 + 2 * Math.abs(Math.sin(statusBlinkRef.current))
@@ -1462,6 +1465,7 @@ function HoloBrainScan() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (groupRef.current) groupRef.current.rotation.y += 0.01
   })
 

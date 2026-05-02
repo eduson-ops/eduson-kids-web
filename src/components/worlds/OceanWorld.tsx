@@ -216,7 +216,8 @@ function CausticsFloor() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    if (enabled && matRef.current) matRef.current.uniforms.iTime!.value += _isLow ? dt * 2 : dt
+    const step = _isLow ? dt * 2 : dt
+    if (enabled && matRef.current) matRef.current.uniforms.iTime!.value += step
   })
   if (!enabled) return null
   return (
@@ -764,10 +765,11 @@ function UnderwaterLightShafts() {
   const frameSkip2 = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip2.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const dt = clock.getDelta()
     meshRefs.current.forEach((m) => {
       if (!m) return
-      m.rotation.y += dt * 0.05
+      m.rotation.y += step * 0.05
     })
   })
 

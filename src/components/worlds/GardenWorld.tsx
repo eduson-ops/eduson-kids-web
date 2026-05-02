@@ -96,12 +96,13 @@ function Bed({
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    phase.current += dt
+    const step = _isLow ? dt * 2 : dt
+    phase.current += step
     if (plantRef.current) {
       plantRef.current.rotation.z = Math.sin(phase.current * 1.5) * 0.05
     }
     if (stage === 'growing') {
-      growT.current += dt
+      growT.current += step
       if (growT.current >= GROW_SECS) setStage('ripe')
     }
   })
@@ -1023,6 +1024,7 @@ function Windmill() {
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     if (sailRef.current) {
       sailRef.current.rotation.z += 0.008
     }
