@@ -2,6 +2,9 @@ import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -20,13 +23,17 @@ type SmokeParticle = {
   scale: number
   speed: number
   visible: boolean
+  resetScales: number[]
+  resetIdx: number
 }
 
 function ExhaustSmoke() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
 
   const particles = useMemo<SmokeParticle[]>(() => {
+    const POOL = 12
     return Array.from({ length: SMOKE_COUNT }, () => ({
       x: (Math.random() - 0.5) * 30,
       baseZ: 50 + (Math.random() - 0.5) * 6,
@@ -34,19 +41,23 @@ function ExhaustSmoke() {
       scale: 0.3 + Math.random() * 0.7,
       speed: 0.3 + Math.random() * 0.5,
       visible: true,
+      resetScales: Array.from({ length: POOL }, () => 0.3 + Math.random() * 0.4) as number[],
+      resetIdx: 0,
     }))
   }, [])
 
   useFrame((_s, delta) => {
     if (!meshRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? delta * 2 : delta
     particles.forEach((p, i) => {
       if (!p.visible) {
         p.y = 0
-        p.scale = 0.3 + Math.random() * 0.4
+        p.scale = p.resetScales[p.resetIdx++ % 12]!
         p.visible = true
       }
-      p.y += delta * p.speed
-      p.scale += delta * 0.25
+      p.y += step * p.speed
+      p.scale += step * 0.25
       if (p.y >= 3) p.visible = false
       dummy.position.set(p.x, p.y, p.baseZ)
       dummy.scale.setScalar(p.visible ? p.scale : 0)

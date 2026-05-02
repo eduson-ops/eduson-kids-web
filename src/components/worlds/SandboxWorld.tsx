@@ -2,9 +2,10 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { getShadowMapSize } from '../../lib/deviceTier'
+import { getShadowMapSize, detectDeviceTier } from '../../lib/deviceTier'
 
 const SHADOW_MAP_SIZE = getShadowMapSize()
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import NPC from '../NPC'
 import Enemy from '../Enemy'
@@ -248,6 +249,7 @@ const SPARKLE_COLORS = ['#ffdd44', '#44ffcc', '#ff88cc', '#88ff88', '#aaccff']
 function ParkSparkles() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
     x: -80 + Math.random() * 80,
     z: -80 + Math.random() * 80,
@@ -262,6 +264,7 @@ function ParkSparkles() {
     return arr
   }, [data])
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     data.forEach((d, i) => {
       dummy.position.set(d.x, 1.5 + Math.sin(t * d.speed + d.phase) * 0.4, d.z)
@@ -284,6 +287,7 @@ function ParkSparkles() {
 function ParkPollen() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() => Array.from({ length: 50 }, () => ({
     x: -10 - Math.random() * 70,
     z: -10 - Math.random() * 70,
@@ -303,6 +307,7 @@ function ParkPollen() {
     return arr
   }, [data])
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     data.forEach((d, i) => {
       dummy.position.set(

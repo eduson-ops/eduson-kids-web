@@ -1,8 +1,11 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import type { RigidBody as RapierRigidBody } from '@dimforge/rapier3d-compat'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -218,6 +221,7 @@ function SkySparkles() {
   const COUNT = 60
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() => Array.from({ length: COUNT }, (_, i) => ({
     x: (Math.random() - 0.5) * 30,
     y: 3 + Math.random() * 9,
@@ -230,6 +234,7 @@ function SkySparkles() {
   })), [])
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < COUNT; i++) {
       const d = data[i]!
@@ -296,6 +301,7 @@ function CrystalDust() {
   const COUNT = 40
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() => Array.from({ length: COUNT }, (_, i) => ({
     cx: (Math.random() - 0.5) * 26,
     cy: 1 + Math.random() * 7,
@@ -307,6 +313,7 @@ function CrystalDust() {
   })), [])
 
   useFrame(({ clock }) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < COUNT; i++) {
       const d = data[i]!
@@ -334,8 +341,10 @@ function CrystalDust() {
 const EMBER_COLORS = ['#ff4400', '#ff8800', '#ffcc00']
 function VolcanoEmbers() {
   const COUNT = 50
+  const POOL = 16
   const meshRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const data = useMemo(() => Array.from({ length: COUNT }, (_, i) => ({
     x: (Math.random() - 0.5) * 24,
     z: -75 - Math.random() * 30,
@@ -346,22 +355,32 @@ function VolcanoEmbers() {
     wobbleSpeed: 1 + Math.random() * 2,
     phase: Math.random() * Math.PI * 2,
     colorIdx: i % 3,
+    resetXs: Array.from({ length: POOL }, () => (Math.random() - 0.5) * 24),
+    resetZs: Array.from({ length: POOL }, () => -75 - Math.random() * 30),
+    resetIdx: i,
   })), [])
 
-  // InstancedMesh with per-instance color requires setColorAt
   const colors = useMemo(() => {
     const col = new THREE.Color()
     return data.map(d => col.set(EMBER_COLORS[d.colorIdx]!).clone())
   }, [data])
 
+  useEffect(() => {
+    if (!meshRef.current) return
+    colors.forEach((c, i) => meshRef.current.setColorAt(i, c))
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+  }, [colors])
+
   useFrame(({ clock }, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     for (let i = 0; i < COUNT; i++) {
       const d = data[i]!
-      d.y += d.speed * dt
+      d.y += d.speed * step
       if (d.y > 12) {
         d.y = 0
-        d.x = (Math.random() - 0.5) * 24
-        d.z = -75 - Math.random() * 30
+        d.x = d.resetXs[d.resetIdx % POOL]!
+        d.z = d.resetZs[d.resetIdx++ % POOL]!
       }
       dummy.position.set(
         d.x + Math.sin(clock.getElapsedTime() * d.wobbleSpeed + d.phase) * d.wobble,
@@ -371,10 +390,8 @@ function VolcanoEmbers() {
       dummy.scale.setScalar(d.radius)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
-      meshRef.current.setColorAt(i, colors[i]!)
     }
     meshRef.current.instanceMatrix.needsUpdate = true
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
@@ -544,10 +561,12 @@ function CrystalZoneDecor() {
 // ─── VOLCANO zone decorations ─────────────────────────────────────────────────
 function VolcanoZoneDecor() {
   const COUNT = 60
+  const POOL = 16
   const emberRef = useRef<THREE.InstancedMesh>(null!)
   const dummy = useMemo(() => new THREE.Object3D(), [])
+  const frameSkip = useRef(0)
   const emberData = useMemo(() =>
-    Array.from({ length: COUNT }, () => ({
+    Array.from({ length: COUNT }, (_, j) => ({
       x: (Math.random() - 0.5) * 28,
       z: -75 - Math.random() * 30,
       y: Math.random() * 14,
@@ -555,6 +574,10 @@ function VolcanoZoneDecor() {
       wobble: (Math.random() - 0.5) * 1.0,
       wobbleSpeed: 1 + Math.random() * 2.5,
       phase: Math.random() * Math.PI * 2,
+      scale: 0.05 + Math.random() * 0.02,
+      resetXs: Array.from({ length: POOL }, () => (Math.random() - 0.5) * 28),
+      resetZs: Array.from({ length: POOL }, () => -75 - Math.random() * 30),
+      resetIdx: j,
     }))
   , [])
 
@@ -571,21 +594,23 @@ function VolcanoZoneDecor() {
 
   useFrame(({ clock }, dt) => {
     if (!emberRef.current) return
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     const t = clock.getElapsedTime()
     for (let i = 0; i < COUNT; i++) {
       const d = emberData[i]!
-      d.y += d.speed * dt
+      d.y += d.speed * step
       if (d.y > 14) {
         d.y = 0
-        d.x = (Math.random() - 0.5) * 28
-        d.z = -75 - Math.random() * 30
+        d.x = d.resetXs[d.resetIdx % POOL]!
+        d.z = d.resetZs[d.resetIdx++ % POOL]!
       }
       dummy.position.set(
         d.x + Math.sin(t * d.wobbleSpeed + d.phase) * d.wobble,
         d.y,
         d.z,
       )
-      dummy.scale.setScalar(0.05 + Math.random() * 0.02)
+      dummy.scale.setScalar(d.scale)
       dummy.updateMatrix()
       emberRef.current.setMatrixAt(i, dummy.matrix)
     }

@@ -2,6 +2,9 @@ import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useRef, useMemo, useState, useEffect } from 'react'
 import * as THREE from 'three'
+import { detectDeviceTier } from '../../lib/deviceTier'
+
+const _isLow = detectDeviceTier() === 'low'
 import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
@@ -222,15 +225,19 @@ const ALL_NODES: [number, number, number][] = [...INPUT_NODES, ...HIDDEN_NODES, 
 
 function SynapticSparks() {
   const COUNT = 40
+  const POOL = 24
   const sparkData = useMemo(() => {
     return Array.from({ length: COUNT }, (_, i) => ({
       connIdx: Math.floor(Math.random() * ALL_CONNECTIONS.length),
       progress: Math.random(),
       speed: 0.4 + Math.random() * 0.8,
       color: i % 2 === 0 ? '#00ffcc' : '#ff44aa',
+      nextConns: Array.from({ length: POOL }, () => Math.floor(Math.random() * ALL_CONNECTIONS.length)),
+      nextIdx: 0,
     }))
   }, [])
   const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip = useRef(0)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const _av = useRef(new THREE.Vector3())
   const _bv = useRef(new THREE.Vector3())
@@ -242,10 +249,12 @@ function SynapticSparks() {
   }, [sparkData])
 
   useFrame((_, dt) => {
+    if (_isLow && (frameSkip.current++ & 1)) return
+    const step = _isLow ? dt * 2 : dt
     sparkData.forEach((s, i) => {
-      s.progress += dt * s.speed
+      s.progress += step * s.speed
       if (s.progress >= 1) {
-        s.connIdx = Math.floor(Math.random() * ALL_CONNECTIONS.length)
+        s.connIdx = s.nextConns[s.nextIdx++ % POOL]!
         s.progress = 0
       }
       const conn = ALL_CONNECTIONS[s.connIdx]!
