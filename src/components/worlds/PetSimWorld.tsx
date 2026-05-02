@@ -409,43 +409,38 @@ function VolcanoEmbers() {
 
 function SkyCloudWisps() {
   const count = 8
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
     Array.from({ length: count }, () => ({
-      x: (Math.random() - 0.5) * 30,
+      curX: (Math.random() - 0.5) * 30,
       y: 4 + Math.random() * 5,
       z: -125 - Math.random() * 25,
       speed: (Math.random() < 0.5 ? 1 : -1) * (0.4 + Math.random() * 0.6),
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
   const frameSkip = useRef(0)
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      m.position.x += d.speed * step
-      if (m.position.x > 20) m.position.x = -20
-      if (m.position.x < -20) m.position.x = 20
+    data.forEach((d, i) => {
+      d.curX += d.speed * step
+      if (d.curX > 20) d.curX = -20
+      if (d.curX < -20) d.curX = 20
+      dummy.position.set(d.curX, d.y, d.z)
+      dummy.scale.set(5, 1, 2)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh
-          key={i}
-          ref={el => { refs.current[i] = el }}
-          position={[d.x, d.y, d.z]}
-          scale={[5, 1, 2]}
-        >
-          <sphereGeometry args={[1, 8, 6]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.25} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
+      <sphereGeometry args={[1, 8, 6]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.25} />
+    </instancedMesh>
   )
 }
 
@@ -455,46 +450,48 @@ function ForestSpores() {
   const count = 30
   const { camera } = useThree()
   const frameSkip = useRef(0)
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
     Array.from({ length: count }, () => ({
       ox: (Math.random() - 0.5) * 28,
-      y: Math.random() * 6 + 0.5,
+      curY: Math.random() * 6 + 0.5,
       z: -3 - Math.random() * 26,
       speed: 0.4 + Math.random() * 0.6,
-      driftX: (Math.random() - 0.5) * 0.3,
       driftPhase: Math.random() * Math.PI * 2,
       driftFreq: 0.3 + Math.random() * 0.4,
       color: Math.random() > 0.5 ? '#88ff44' : '#ccff66',
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const colorArray = useMemo(() => {
+    const arr = new Float32Array(count * 3)
+    const col = new THREE.Color()
+    data.forEach((d, i) => { col.set(d.color); arr[i*3]=col.r; arr[i*3+1]=col.g; arr[i*3+2]=col.b })
+    return arr
+  }, [data])
   const t = useRef(0)
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
     t.current += step
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      m.position.y += d.speed * step
-      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.6
-      if (m.position.y > 7) {
-        m.position.y = 0.5
-        d.ox = (Math.random() - 0.5) * 28
-      }
+    data.forEach((d, i) => {
+      d.curY += d.speed * step
+      const x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.6
+      if (d.curY > 7) { d.curY = 0.5; d.ox = (Math.random() - 0.5) * 28 }
+      dummy.position.set(x, d.curY, d.z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
-          <sphereGeometry args={[0.04, 4, 4]} />
-          <meshBasicMaterial color={d.color} transparent opacity={0.8} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
+      <sphereGeometry args={[0.04, 4, 4]} />
+      <meshBasicMaterial vertexColors transparent opacity={0.8} />
+      <instancedBufferAttribute attach="geometry-attributes-color" args={[colorArray, 3]} />
+    </instancedMesh>
   )
 }
 
@@ -504,45 +501,40 @@ function SnowDrift() {
   const count = 50
   const { camera } = useThree()
   const frameSkip = useRef(0)
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const data = useMemo(() =>
     Array.from({ length: count }, () => ({
       ox: (Math.random() - 0.5) * 34,
-      y: Math.random() * 9 + 1,
+      curY: Math.random() * 9 + 1,
       z: -31 - Math.random() * 28,
       speed: 0.5 + Math.random() * 0.8,
-      driftX: (Math.random() - 0.5) * 0.5,
       driftPhase: Math.random() * Math.PI * 2,
       driftFreq: 0.2 + Math.random() * 0.3,
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
   const t = useRef(0)
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
     t.current += step
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      m.position.y -= d.speed * step
-      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 1.2
-      if (m.position.y < -1) {
-        m.position.y = 9
-        d.ox = (Math.random() - 0.5) * 34
-      }
+    data.forEach((d, i) => {
+      d.curY -= d.speed * step
+      const x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 1.2
+      if (d.curY < -1) { d.curY = 9; d.ox = (Math.random() - 0.5) * 34 }
+      dummy.position.set(x, d.curY, d.z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
-          <sphereGeometry args={[0.055, 4, 4]} />
-          <meshBasicMaterial color="#ddf4ff" transparent opacity={0.88} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
+      <sphereGeometry args={[0.055, 4, 4]} />
+      <meshBasicMaterial color="#ddf4ff" transparent opacity={0.88} />
+    </instancedMesh>
   )
 }
 

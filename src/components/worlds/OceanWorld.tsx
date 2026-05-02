@@ -365,33 +365,29 @@ function KelpForest() {
     }))
   }, [])
 
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     kelpData.forEach((k, i) => {
-      const m = meshRefs.current[i]
-      if (!m) return
-      m.rotation.x = Math.sin(t * 0.9 + k.phase) * 0.10
-      m.rotation.z = Math.cos(t * 0.7 + k.phase) * 0.08
+      dummy.position.set(k.x, k.height / 2, k.z)
+      dummy.rotation.x = Math.sin(t * 0.9 + k.phase) * 0.10
+      dummy.rotation.z = Math.cos(t * 0.7 + k.phase) * 0.08
+      dummy.scale.set(1, k.height, 1)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {kelpData.map((k, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={[k.x, k.height / 2, k.z]}
-        >
-          <cylinderGeometry args={[0.12, 0.16, k.height, 5]} />
-          <meshStandardMaterial color="#00aa44" roughness={0.6} emissive="#005522" emissiveIntensity={0.2} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 20]} frustumCulled={false}>
+      <cylinderGeometry args={[0.12, 0.16, 1, 5]} />
+      <meshStandardMaterial color="#00aa44" roughness={0.6} emissive="#005522" emissiveIntensity={0.2} />
+    </instancedMesh>
   )
 }
 

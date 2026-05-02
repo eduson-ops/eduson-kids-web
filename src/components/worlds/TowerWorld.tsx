@@ -756,7 +756,7 @@ function MovingPlatform({ y, phase, color }: { y: number; phase: number; color: 
   const t = useRef(phase)
   useFrame((_, dt) => {
     if (!rbRef.current) return
-    t.current += step * 0.7
+    t.current += dt * 0.7
     const nx = Math.sin(t.current) * 9
     rbRef.current.setNextKinematicTranslation({ x: nx, y, z: 0 })
   })
