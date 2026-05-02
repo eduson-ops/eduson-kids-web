@@ -14,7 +14,7 @@
     <!-- Security headers via meta (GH Pages не управляет HTTP headers) -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+    <!-- X-Frame-Options must be a real HTTP header, не <meta> (browser bug 471020). Ставим на бэке через helmet. -->
     <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=(self), geolocation=()" />
 
     <!-- PWA / iOS home-screen -->
@@ -82,7 +82,7 @@
         z-index: 2;
       }
     </style>
-    <script type="module" crossorigin src="/t/assets/index-BCA4zdGP.js"></script>
+    <script type="module" crossorigin src="/t/assets/index-03gEGRTB.js"></script>
     <link rel="modulepreload" crossorigin href="/t/assets/rolldown-runtime-Bnw7wDfq.js">
     <link rel="modulepreload" crossorigin href="/t/assets/vendor-livekit-CaBMaWNx.js">
     <link rel="modulepreload" crossorigin href="/t/assets/vendor-capacitor-qb7y-bzK.js">
