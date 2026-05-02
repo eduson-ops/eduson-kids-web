@@ -9,6 +9,17 @@ const _isLow = detectDeviceTier() === 'low'
 const _sbGroup = new THREE.Object3D()
 const _sbPart  = new THREE.Object3D()
 const _sbMat   = new THREE.Matrix4()
+
+const _fwDummy = new THREE.Object3D()
+const _fwCol   = new THREE.Color()
+const _fwMat   = new THREE.Matrix4()
+// Lounge chair part matrices in chair-local space
+const _LC_SEAT_LOC  = (() => { const o = new THREE.Object3D(); o.position.set(0, 0.45, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _LC_BACK_LOC  = (() => { const o = new THREE.Object3D(); o.position.set(0, 1.0, 0.42); o.rotation.set(-0.45, 0, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _LC_ARM_L_LOC = (() => { const o = new THREE.Object3D(); o.position.set(-0.65, 0.7, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _LC_ARM_R_LOC = (() => { const o = new THREE.Object3D(); o.position.set( 0.65, 0.7, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _LC_LEG_LOC   = ([ [-0.55, 0.18, -0.5], [-0.55, 0.18, 0.5], [0.55, 0.18, -0.5], [0.55, 0.18, 0.5] ] as [number,number,number][])
+  .map(([x,y,z]) => { const o = new THREE.Object3D(); o.position.set(x,y,z); o.updateMatrix(); return o.matrix.clone() })
 const _BEAM_POS: Array<[number,number,number]> = [
   [-20, 18, -40], [20, 18, -40], [-15, 18, -80], [15, 18, -80], [-20, 18, -120], [20, 18, -120]
 ]
@@ -510,16 +521,27 @@ function StageSpotlights() {
 function WinnerPodium() {
   // Trophy positions: 2 trophies per tier
   const trophySlots: Array<{ pos: [number, number, number] }> = [
-    // Tier 1 gold top: y=1.0 + 2.0/2 = 2.0, add half trophy height (0.75) = 2.75
     { pos: [-0.8, 2.75, -172] },
     { pos: [0.8,  2.75, -172] },
-    // Tier 2 silver top: y=0.6 + 1.2/2 = 1.2, add 0.75 = 1.95
     { pos: [-6.3, 1.95, -172] },
     { pos: [-4.7, 1.95, -172] },
-    // Tier 3 bronze top: y=0.4 + 0.8/2 = 0.8, add 0.75 = 1.55
     { pos: [4.7,  1.55, -172] },
     { pos: [6.3,  1.55, -172] },
   ]
+
+  const stemIM = useRef<THREE.InstancedMesh>(null!)
+  const capIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    trophySlots.forEach((slot, i) => {
+      _fwDummy.position.set(slot.pos[0], slot.pos[1], slot.pos[2])
+      _fwDummy.rotation.set(0, 0, 0); _fwDummy.scale.setScalar(1); _fwDummy.updateMatrix()
+      stemIM.current.setMatrixAt(i, _fwDummy.matrix)
+      _fwDummy.position.set(slot.pos[0], slot.pos[1] + 1.05, slot.pos[2]); _fwDummy.updateMatrix()
+      capIM.current.setMatrixAt(i, _fwDummy.matrix)
+    })
+    stemIM.current.instanceMatrix.needsUpdate = true
+    capIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
 
   return (
     <group>
@@ -541,21 +563,15 @@ function WinnerPodium() {
         <meshStandardMaterial color="#cd7f32" metalness={0.7} roughness={0.3} />
       </mesh>
 
-      {/* ── Trophy cylinders + star caps ── */}
-      {trophySlots.map((slot, i) => (
-        <group key={`trophy-${i}`}>
-          {/* cylinder stem */}
-          <mesh position={slot.pos}>
-            <cylinderGeometry args={[0.3, 0.4, 1.5, 8]} />
-            <meshStandardMaterial color="#ffd700" emissive="#ffaa00" emissiveIntensity={0.8} metalness={0.9} roughness={0.1} />
-          </mesh>
-          {/* star cap cone on top */}
-          <mesh position={[slot.pos[0], slot.pos[1] + 0.75 + 0.3, slot.pos[2]]}>
-            <coneGeometry args={[0.5, 0.6, 5]} />
-            <meshStandardMaterial color="#ffd700" emissive="#ffcc00" emissiveIntensity={1.2} metalness={0.9} roughness={0.05} />
-          </mesh>
-        </group>
-      ))}
+      {/* ── Trophy cylinders + star caps — 6 stems + 6 caps as InstancedMeshes ── */}
+      <instancedMesh ref={stemIM} args={[undefined, undefined, 6]} frustumCulled={false}>
+        <cylinderGeometry args={[0.3, 0.4, 1.5, 8]} />
+        <meshStandardMaterial color="#ffd700" emissive="#ffaa00" emissiveIntensity={0.8} metalness={0.9} roughness={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={capIM} args={[undefined, undefined, 6]} frustumCulled={false}>
+        <coneGeometry args={[0.5, 0.6, 5]} />
+        <meshStandardMaterial color="#ffd700" emissive="#ffcc00" emissiveIntensity={1.2} metalness={0.9} roughness={0.05} />
+      </instancedMesh>
 
       {/* ── Banner arch: 2 vertical posts + horizontal bar ── */}
       {/* Left post */}
@@ -1057,6 +1073,27 @@ function BackstageArea() {
     poleCapRef.current.instanceMatrix.needsUpdate = true
   }, [poleDummy])
 
+  const lcSeatIM = useRef<THREE.InstancedMesh>(null!)
+  const lcBackIM = useRef<THREE.InstancedMesh>(null!)
+  const lcArmIM  = useRef<THREE.InstancedMesh>(null!)
+  const lcLegIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    chairConfigs.forEach((c, ci) => {
+      _fwDummy.position.set(c.x, 0, c.z)
+      _fwDummy.rotation.set(0, c.rotY, 0); _fwDummy.scale.setScalar(1); _fwDummy.updateMatrix()
+      const pm = _fwDummy.matrix
+      _fwMat.multiplyMatrices(pm, _LC_SEAT_LOC);  lcSeatIM.current.setMatrixAt(ci, _fwMat)
+      _fwMat.multiplyMatrices(pm, _LC_BACK_LOC);  lcBackIM.current.setMatrixAt(ci, _fwMat)
+      _fwMat.multiplyMatrices(pm, _LC_ARM_L_LOC); lcArmIM.current.setMatrixAt(ci * 2,     _fwMat)
+      _fwMat.multiplyMatrices(pm, _LC_ARM_R_LOC); lcArmIM.current.setMatrixAt(ci * 2 + 1, _fwMat)
+      _LC_LEG_LOC.forEach((loc, li) => { _fwMat.multiplyMatrices(pm, loc); lcLegIM.current.setMatrixAt(ci * 4 + li, _fwMat) })
+    })
+    lcSeatIM.current.instanceMatrix.needsUpdate = true
+    lcBackIM.current.instanceMatrix.needsUpdate = true
+    lcArmIM.current.instanceMatrix.needsUpdate  = true
+    lcLegIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
+
   // VIP sign star decorations (3 small spheres flanking text)
   const vipStarOffsets: Array<[number, number, number]> = [
     [-2.2, 0, 0.12], [0, 0.6, 0.12], [2.2, 0, 0.12],
@@ -1144,38 +1181,23 @@ function BackstageArea() {
         <pointLight color="#ffdd00" intensity={3} distance={8} decay={2} position={[0, 0, 0.5]} />
       </group>
 
-      {/* ── Lounge chairs ── */}
-      {chairConfigs.map((c, i) => (
-        <group key={`chair-${i}`} position={[c.x, 0, c.z]} rotation={[0, c.rotY, 0]}>
-          {/* Seat */}
-          <mesh position={[0, 0.45, 0]}>
-            <boxGeometry args={[1.4, 0.2, 1.2]} />
-            <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.05} />
-          </mesh>
-          {/* Angled back (leaning back ~25 deg) */}
-          <mesh position={[0, 1.0, 0.42]} rotation={[-0.45, 0, 0]}>
-            <boxGeometry args={[1.4, 1.1, 0.14]} />
-            <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.05} />
-          </mesh>
-          {/* Left arm */}
-          <mesh position={[-0.65, 0.7, 0]}>
-            <boxGeometry args={[0.12, 0.5, 1.0]} />
-            <meshStandardMaterial color="#eeeeee" roughness={0.5} />
-          </mesh>
-          {/* Right arm */}
-          <mesh position={[0.65, 0.7, 0]}>
-            <boxGeometry args={[0.12, 0.5, 1.0]} />
-            <meshStandardMaterial color="#eeeeee" roughness={0.5} />
-          </mesh>
-          {/* Legs */}
-          {([[-0.55, -0.5],[-0.55, 0.5],[0.55, -0.5],[0.55, 0.5]] as Array<[number,number]>).map(([lx, lz], li) => (
-            <mesh key={li} position={[lx, 0.18, lz]}>
-              <cylinderGeometry args={[0.05, 0.05, 0.38, 6]} />
-              <meshStandardMaterial color="#ddaa00" metalness={0.8} roughness={0.2} />
-            </mesh>
-          ))}
-        </group>
-      ))}
+      {/* ── Lounge chairs — seat×4, back×4, arm×8, leg×16 as InstancedMeshes ── */}
+      <instancedMesh ref={lcSeatIM} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <boxGeometry args={[1.4, 0.2, 1.2]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.05} />
+      </instancedMesh>
+      <instancedMesh ref={lcBackIM} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <boxGeometry args={[1.4, 1.1, 0.14]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.5} metalness={0.05} />
+      </instancedMesh>
+      <instancedMesh ref={lcArmIM} args={[undefined, undefined, 8]} frustumCulled={false}>
+        <boxGeometry args={[0.12, 0.5, 1.0]} />
+        <meshStandardMaterial color="#eeeeee" roughness={0.5} />
+      </instancedMesh>
+      <instancedMesh ref={lcLegIM} args={[undefined, undefined, 16]} frustumCulled={false}>
+        <cylinderGeometry args={[0.05, 0.05, 0.38, 6]} />
+        <meshStandardMaterial color="#ddaa00" metalness={0.8} roughness={0.2} />
+      </instancedMesh>
 
       {/* Ambient glow for backstage area */}
       <pointLight color="#ff4488" intensity={2} distance={20} decay={2} position={[0, 4, 30]} />
@@ -1299,42 +1321,43 @@ function MirrorWall() {
     { x:  0.6, color: '#ffd700', h: 0.22, r: 0.11 },
   ]
 
+  const mirrorPanelIM = useRef<THREE.InstancedMesh>(null!)
+  const mirrorFrameIM = useRef<THREE.InstancedMesh>(null!)
+  const vanityBulbIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    for (let i = 0; i < mirrorCount; i++) {
+      const x = mirrorStartX + i * mirrorSpacing
+      _fwDummy.position.set(x, 3, 0); _fwDummy.rotation.set(0, 0, 0); _fwDummy.scale.setScalar(1); _fwDummy.updateMatrix()
+      mirrorPanelIM.current.setMatrixAt(i, _fwDummy.matrix)
+      _fwDummy.position.set(x, 3, -0.1); _fwDummy.updateMatrix()
+      mirrorFrameIM.current.setMatrixAt(i, _fwDummy.matrix)
+      _fwDummy.position.set(x, 6.3, 0.1); _fwDummy.updateMatrix()
+      vanityBulbIM.current.setMatrixAt(i, _fwDummy.matrix)
+    }
+    mirrorPanelIM.current.instanceMatrix.needsUpdate = true
+    mirrorFrameIM.current.instanceMatrix.needsUpdate = true
+    vanityBulbIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
+
   return (
     <group position={[-40, 0, 30]}>
-      {/* ── 6 mirror panels ── */}
-      {Array.from({ length: mirrorCount }, (_, i) => {
-        const x = mirrorStartX + i * mirrorSpacing
-        return (
-          <group key={`mirror-${i}`} position={[x, 0, 0]}>
-            {/* Mirror panel */}
-            <mesh position={[0, 3, 0]}>
-              <boxGeometry args={[2.5, 6, 0.15]} />
-              <meshStandardMaterial
-                color="#ccddff"
-                metalness={0.9}
-                roughness={0.05}
-              />
-            </mesh>
-            {/* Mirror frame */}
-            <mesh position={[0, 3, -0.1]}>
-              <boxGeometry args={[2.7, 6.2, 0.08]} />
-              <meshStandardMaterial color="#ddaa00" metalness={0.7} roughness={0.3} />
-            </mesh>
-            {/* Vanity light above mirror */}
-            <mesh position={[0, 6.3, 0.1]}>
-              <sphereGeometry args={[0.15, 8, 8]} />
-              <meshStandardMaterial color="#ffeecc" emissive="#ffeecc" emissiveIntensity={3} />
-            </mesh>
-            <pointLight
-              color="#ffeecc"
-              intensity={3}
-              distance={6}
-              decay={2}
-              position={[0, 6.3, 0.5]}
-            />
-          </group>
-        )
-      })}
+      {/* ── 6 mirror panels — panelIM + frameIM + bulbIM as InstancedMeshes ── */}
+      <instancedMesh ref={mirrorPanelIM} args={[undefined, undefined, mirrorCount]}>
+        <boxGeometry args={[2.5, 6, 0.15]} />
+        <meshStandardMaterial color="#ccddff" metalness={0.9} roughness={0.05} />
+      </instancedMesh>
+      <instancedMesh ref={mirrorFrameIM} args={[undefined, undefined, mirrorCount]}>
+        <boxGeometry args={[2.7, 6.2, 0.08]} />
+        <meshStandardMaterial color="#ddaa00" metalness={0.7} roughness={0.3} />
+      </instancedMesh>
+      <instancedMesh ref={vanityBulbIM} args={[undefined, undefined, mirrorCount]}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshStandardMaterial color="#ffeecc" emissive="#ffeecc" emissiveIntensity={3} />
+      </instancedMesh>
+      {Array.from({ length: mirrorCount }, (_, i) => (
+        <pointLight key={i} color="#ffeecc" intensity={3} distance={6} decay={2}
+          position={[mirrorStartX + i * mirrorSpacing, 6.3, 0.5]} />
+      ))}
 
       {/* ── Dressing table ── */}
       <group position={[0, 0, 1.5]}>
@@ -1710,23 +1733,38 @@ function FabricRainbow({ position }: { position: [number, number, number] }) {
 function RunwayEdgeLights({ xLeft, xRight, zStart, zEnd, step = 3, colors = ['#ff44cc', '#44ffee'] }: {
   xLeft: number; xRight: number; zStart: number; zEnd: number; step?: number; colors?: string[]
 }) {
-  const lights: Array<{ pos: [number,number,number]; color: string }> = []
-  let idx = 0
-  for (let z = zStart; z >= zEnd; z -= step, idx++) {
-    const c = colors[idx % colors.length]
-    lights.push({ pos: [xLeft, 0.15, z], color: c })
-    lights.push({ pos: [xRight, 0.15, z], color: c })
-  }
+  const lights = useMemo(() => {
+    const out: Array<{ pos: [number,number,number]; color: string }> = []
+    let idx = 0
+    for (let z = zStart; z >= zEnd; z -= step, idx++) {
+      const c = colors[idx % colors.length]
+      out.push({ pos: [xLeft, 0.15, z], color: c })
+      out.push({ pos: [xRight, 0.15, z], color: c })
+    }
+    return out
+  }, [xLeft, xRight, zStart, zEnd, step])
+
+  const ballIM = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    if (!ballIM.current) return
+    lights.forEach(({ pos, color }, i) => {
+      _fwDummy.position.set(pos[0], pos[1], pos[2])
+      _fwDummy.rotation.set(0, 0, 0); _fwDummy.scale.setScalar(1); _fwDummy.updateMatrix()
+      ballIM.current.setMatrixAt(i, _fwDummy.matrix)
+      ballIM.current.setColorAt(i, _fwCol.set(color))
+    })
+    ballIM.current.instanceMatrix.needsUpdate = true
+    ballIM.current.instanceColor!.needsUpdate = true
+  }, [lights])
+
   return (
     <>
-      {lights.map(({ pos, color }, i) => (
-        <group key={i} position={pos}>
-          <mesh>
-            <sphereGeometry args={[0.1, 6, 6]} />
-            <meshBasicMaterial color={color} />
-          </mesh>
-          <pointLight color={color} intensity={0.6} distance={4} decay={2} />
-        </group>
+      <instancedMesh ref={ballIM} args={[undefined, undefined, lights.length]} frustumCulled={false}>
+        <sphereGeometry args={[0.1, 6, 6]} />
+        <meshBasicMaterial vertexColors />
+      </instancedMesh>
+      {lights.filter((_, i) => i % 8 === 0).map(({ pos, color }, i) => (
+        <pointLight key={i} color={color} intensity={0.6} distance={4} decay={2} position={pos} />
       ))}
     </>
   )
