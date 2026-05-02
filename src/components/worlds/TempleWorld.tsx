@@ -5,7 +5,26 @@ import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
 
-const _bzGroup = new THREE.Object3D()
+const _bzGroup  = new THREE.Object3D()
+const _twDummy  = new THREE.Object3D()
+const _twMat    = new THREE.Matrix4()
+// Obelisk part local matrices
+const _OB_PLINTH = (() => { const o = new THREE.Object3D(); o.position.set(0, 0.2, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _OB_SHAFT  = (() => { const o = new THREE.Object3D(); o.position.set(0, 3, 0);   o.updateMatrix(); return o.matrix.clone() })()
+const _OB_CAP    = (() => { const o = new THREE.Object3D(); o.position.set(0, 5.8, 0); o.updateMatrix(); return o.matrix.clone() })()
+// Pharaoh statue part local matrices
+const _PH_PEDESTAL = (() => { const o = new THREE.Object3D(); o.position.set(0, 1, 0);       o.updateMatrix(); return o.matrix.clone() })()
+const _PH_BODY     = (() => { const o = new THREE.Object3D(); o.position.set(0, 5, 0);        o.updateMatrix(); return o.matrix.clone() })()
+const _PH_ARM_L    = (() => { const o = new THREE.Object3D(); o.position.set(-0.6, 7, 0);     o.rotation.set(0, 0,  0.35); o.updateMatrix(); return o.matrix.clone() })()
+const _PH_ARM_R    = (() => { const o = new THREE.Object3D(); o.position.set( 0.6, 7, 0);     o.rotation.set(0, 0, -0.35); o.updateMatrix(); return o.matrix.clone() })()
+const _PH_HEAD     = (() => { const o = new THREE.Object3D(); o.position.set(0, 9, 0);        o.updateMatrix(); return o.matrix.clone() })()
+const _PH_CROWN_L  = (() => { const o = new THREE.Object3D(); o.position.set(0, 11, 0);       o.updateMatrix(); return o.matrix.clone() })()
+const _PH_CROWN_U  = (() => { const o = new THREE.Object3D(); o.position.set(0, 12.4, 0);     o.updateMatrix(); return o.matrix.clone() })()
+const _PH_EYE_L    = (() => { const o = new THREE.Object3D(); o.position.set(-0.7, 9.1, 1.52); o.updateMatrix(); return o.matrix.clone() })()
+const _PH_EYE_R    = (() => { const o = new THREE.Object3D(); o.position.set( 0.7, 9.1, 1.52); o.updateMatrix(); return o.matrix.clone() })()
+const _PH_CROOK    = (() => { const o = new THREE.Object3D(); o.position.set(-0.9, 6, 1.3); o.rotation.set(0.3, 0, -0.2); o.scale.set(1, 3.5, 1); o.updateMatrix(); return o.matrix.clone() })()
+const _PH_FLAIL    = (() => { const o = new THREE.Object3D(); o.position.set( 0.9, 6, 1.3); o.rotation.set(0.3, 0,  0.4); o.scale.set(1, 3.0, 1); o.updateMatrix(); return o.matrix.clone() })()
+const _PHARAOH_POS: [number,number,number][] = [[-20,0,10],[20,0,10],[-20,0,-50],[20,0,-50]]
 const BRAZIER_POSITIONS: Array<[number, number, number]> = [
   [-25, 7.1, 29], [25, 7.1, 29],
   [-18, 14.1, 22], [18, 14.1, 22],
@@ -507,41 +526,49 @@ const OBELISK_POSITIONS: [number, number, number][] = [
 
 function RuneObelisks() {
   const materialRefs = useRef<(THREE.ShaderMaterial | null)[]>([])
+  const uniformsList = useMemo(() => OBELISK_POSITIONS.map(() => ({ iTime: { value: 0 } })), [])
 
-  const uniformsList = useMemo(
-    () => OBELISK_POSITIONS.map(() => ({ iTime: { value: 0 } })),
-    []
-  )
+  const plinthIM = useRef<THREE.InstancedMesh>(null!)
+  const shaftIM  = useRef<THREE.InstancedMesh>(null!)
+  const capIM    = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    OBELISK_POSITIONS.forEach(([ox, oy, oz], i) => {
+      _twDummy.position.set(ox, oy, oz); _twDummy.rotation.set(0,0,0); _twDummy.scale.setScalar(1); _twDummy.updateMatrix()
+      const pm = _twDummy.matrix
+      _twMat.multiplyMatrices(pm, _OB_PLINTH); plinthIM.current.setMatrixAt(i, _twMat)
+      _twMat.multiplyMatrices(pm, _OB_SHAFT);  shaftIM.current.setMatrixAt(i, _twMat)
+      _twMat.multiplyMatrices(pm, _OB_CAP);    capIM.current.setMatrixAt(i, _twMat)
+    })
+    plinthIM.current.instanceMatrix.needsUpdate = true
+    shaftIM.current.instanceMatrix.needsUpdate  = true
+    capIM.current.instanceMatrix.needsUpdate    = true
+  }, [])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    materialRefs.current.forEach((mat) => {
-      if (mat) mat.uniforms.iTime!.value = t
-    })
+    materialRefs.current.forEach((mat) => { if (mat) mat.uniforms.iTime!.value = t })
   })
 
   return (
     <>
+      {/* Plinth ×4, shaft ×4, cap ×4 — InstancedMeshes */}
+      <instancedMesh ref={plinthIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[1.2, 0.4, 1.2]} />
+        <meshStandardMaterial color={STONE} roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={shaftIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[0.7, 5, 0.7]} />
+        <meshStandardMaterial color={DARK_STONE} roughness={0.88} />
+      </instancedMesh>
+      <instancedMesh ref={capIM} args={[undefined, undefined, 4]} castShadow>
+        <coneGeometry args={[0.5, 1.2, 4]} />
+        <meshStandardMaterial color={GOLD} emissive="#aa7700" emissiveIntensity={0.7} roughness={0.35} />
+      </instancedMesh>
+      {/* Rune faces (animated shaders) + apex lights — stay individual */}
       {OBELISK_POSITIONS.map((pos, i) => (
         <group key={i} position={pos}>
-          {/* Base plinth */}
-          <mesh position={[0, 0.2, 0]} castShadow receiveShadow>
-            <boxGeometry args={[1.2, 0.4, 1.2]} />
-            <meshStandardMaterial color={STONE} roughness={0.9} />
-          </mesh>
-          {/* Main shaft */}
-          <mesh position={[0, 3, 0]} castShadow receiveShadow>
-            <boxGeometry args={[0.7, 5, 0.7]} />
-            <meshStandardMaterial color={DARK_STONE} roughness={0.88} />
-          </mesh>
-          {/* Pyramid cap */}
-          <mesh position={[0, 5.8, 0]} castShadow>
-            <coneGeometry args={[0.5, 1.2, 4]} />
-            <meshStandardMaterial color={GOLD} emissive="#aa7700" emissiveIntensity={0.7} roughness={0.35} />
-          </mesh>
-          {/* Rune face (animated shader plane) */}
           <mesh position={[0, 3, 0.36]}>
             <planeGeometry args={[0.68, 4.8]} />
             <shaderMaterial
@@ -554,7 +581,6 @@ function RuneObelisks() {
               side={THREE.DoubleSide}
             />
           </mesh>
-          {/* Apex glow light */}
           <pointLight color={GOLD} intensity={3} distance={10} decay={2} position={[0, 6, 0]} />
         </group>
       ))}
@@ -1248,27 +1274,77 @@ function PharaohStatue({ pos }: { pos: [number, number, number] }) {
 }
 
 function PharaohStatues() {
-  // 4 statue positions: entrance pair + deep temple pair
-  const pairs: Array<{ left: [number, number, number]; right: [number, number, number] }> = [
-    { left: [-20, 0, 10],  right: [20, 0, 10]  },  // entrance
-    { left: [-20, 0, -50], right: [20, 0, -50] },  // deep temple
-  ]
+  const pedestalIM = useRef<THREE.InstancedMesh>(null!)
+  const bodyIM     = useRef<THREE.InstancedMesh>(null!)
+  const armIM      = useRef<THREE.InstancedMesh>(null!)
+  const headIM     = useRef<THREE.InstancedMesh>(null!)
+  const crownLIM   = useRef<THREE.InstancedMesh>(null!)
+  const crownUIM   = useRef<THREE.InstancedMesh>(null!)
+  const eyeIM      = useRef<THREE.InstancedMesh>(null!)
+  const rodIM      = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _PHARAOH_POS.forEach(([px, py, pz], i) => {
+      _twDummy.position.set(px, py, pz); _twDummy.rotation.set(0,0,0); _twDummy.scale.setScalar(1); _twDummy.updateMatrix()
+      const pm = _twDummy.matrix
+      _twMat.multiplyMatrices(pm, _PH_PEDESTAL); pedestalIM.current.setMatrixAt(i, _twMat)
+      _twMat.multiplyMatrices(pm, _PH_BODY);     bodyIM.current.setMatrixAt(i, _twMat)
+      _twMat.multiplyMatrices(pm, _PH_ARM_L);    armIM.current.setMatrixAt(i * 2,     _twMat)
+      _twMat.multiplyMatrices(pm, _PH_ARM_R);    armIM.current.setMatrixAt(i * 2 + 1, _twMat)
+      _twMat.multiplyMatrices(pm, _PH_HEAD);     headIM.current.setMatrixAt(i, _twMat)
+      _twMat.multiplyMatrices(pm, _PH_CROWN_L);  crownLIM.current.setMatrixAt(i, _twMat)
+      _twMat.multiplyMatrices(pm, _PH_CROWN_U);  crownUIM.current.setMatrixAt(i, _twMat)
+      _twMat.multiplyMatrices(pm, _PH_EYE_L);    eyeIM.current.setMatrixAt(i * 2,     _twMat)
+      _twMat.multiplyMatrices(pm, _PH_EYE_R);    eyeIM.current.setMatrixAt(i * 2 + 1, _twMat)
+      _twMat.multiplyMatrices(pm, _PH_CROOK);    rodIM.current.setMatrixAt(i * 2,     _twMat)
+      _twMat.multiplyMatrices(pm, _PH_FLAIL);    rodIM.current.setMatrixAt(i * 2 + 1, _twMat)
+    })
+    pedestalIM.current.instanceMatrix.needsUpdate = true
+    bodyIM.current.instanceMatrix.needsUpdate     = true
+    armIM.current.instanceMatrix.needsUpdate      = true
+    headIM.current.instanceMatrix.needsUpdate     = true
+    crownLIM.current.instanceMatrix.needsUpdate   = true
+    crownUIM.current.instanceMatrix.needsUpdate   = true
+    eyeIM.current.instanceMatrix.needsUpdate      = true
+    rodIM.current.instanceMatrix.needsUpdate      = true
+  }, [])
+
   return (
     <>
-      {pairs.map((pair, i) => (
-        <group key={i}>
-          <PharaohStatue pos={pair.left} />
-          <PharaohStatue pos={pair.right} />
-          {/* One gold point light per pair */}
-          <pointLight
-            position={[0, 6, (pair.left[2] + pair.right[2]) / 2]}
-            color="#ffd060"
-            intensity={5}
-            distance={20}
-            decay={2}
-          />
-        </group>
-      ))}
+      <instancedMesh ref={pedestalIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[4, 2, 3]} />
+        <meshStandardMaterial color="#c8a030" roughness={0.8} metalness={0.2} />
+      </instancedMesh>
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[3, 6, 2.5]} />
+        <meshStandardMaterial color="#d4ac3a" roughness={0.75} metalness={0.25} />
+      </instancedMesh>
+      <instancedMesh ref={armIM} args={[undefined, undefined, 8]} castShadow>
+        <boxGeometry args={[2.5, 0.8, 0.7]} />
+        <meshStandardMaterial color="#d4ac3a" roughness={0.75} />
+      </instancedMesh>
+      <instancedMesh ref={headIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[3, 2, 3]} />
+        <meshStandardMaterial color="#e0b840" roughness={0.7} metalness={0.3} />
+      </instancedMesh>
+      <instancedMesh ref={crownLIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[2.2, 1.2, 2.2]} />
+        <meshStandardMaterial color="#cc2200" roughness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={crownUIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[1.4, 1.4, 1.4]} />
+        <meshStandardMaterial color="#cc2200" roughness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={eyeIM} args={[undefined, undefined, 8]}>
+        <boxGeometry args={[0.6, 0.25, 0.08]} />
+        <meshStandardMaterial color="#ffcc00" emissive="#ffcc00" emissiveIntensity={2} />
+      </instancedMesh>
+      <instancedMesh ref={rodIM} args={[undefined, undefined, 8]} castShadow>
+        <cylinderGeometry args={[0.07, 0.07, 1, 6]} />
+        <meshStandardMaterial color="#b8860b" metalness={0.6} roughness={0.4} />
+      </instancedMesh>
+      {/* Two point lights (one per pair) */}
+      <pointLight position={[0, 6, 10]}  color="#ffd060" intensity={5} distance={20} decay={2} />
+      <pointLight position={[0, 6, -50]} color="#ffd060" intensity={5} distance={20} decay={2} />
     </>
   )
 }
