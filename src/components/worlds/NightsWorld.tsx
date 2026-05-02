@@ -21,6 +21,43 @@ const _VC_WIN_POS: Array<[number, number, number]> = [
   [-4.5,  6, -113.9], [-1.5,  6, -113.9], [ 1.5,  6, -113.9], [ 4.5,  6, -113.9],
 ]
 
+// ─── Cemetery pre-computed data ───────────────────────────────────
+const _cemMat  = new THREE.Matrix4()
+const _SLAB_LOC = (() => { const o = new THREE.Object3D(); o.position.set(0, 0.9, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _CAP_LOC  = (() => { const o = new THREE.Object3D(); o.position.set(0, 1.85, 0); o.updateMatrix(); return o.matrix.clone() })()
+// cPseudo is a function declaration — hoisted, available here
+const _TOMB_DATA = Array.from({ length: 12 }, (_, i) => {
+  const col = i % 4; const row = Math.floor(i / 4)
+  const baseX = (col - 1.5) * 4.0; const baseZ = -55 - row * 5.0
+  const offX = (cPseudo(i * 7.3 + 1) - 0.5) * 1.2
+  const offZ = (cPseudo(i * 7.3 + 2) - 0.5) * 1.2
+  const tiltZ = (cPseudo(i * 7.3 + 3) - 0.5) * 0.4
+  return { x: baseX + offX, z: baseZ + offZ, tiltZ, rotY: cPseudo(i * 13.7) * 0.4 - 0.2 }
+})
+const _POLE_POS: Array<[number, number, number]> = ([-8, 8] as const).flatMap(
+  fx => ([0, 0.7, 1.4, 2.1, 2.8] as const).map(px => [fx + px, 1.25, -60] as [number, number, number])
+)
+const _BAR_POS: Array<[number, number, number]> = ([-8, 8] as const).flatMap(
+  fx => [[fx + 1.4, 2.4, -60], [fx + 1.4, 0.4, -60]] as Array<[number, number, number]>
+)
+
+// ─── PumpkinPatch pre-baked local matrices ────────────────────────
+const _mkPMat = (px: number, py: number, pz: number, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1): THREE.Matrix4 => {
+  const o = new THREE.Object3D(); o.position.set(px, py, pz); o.rotation.set(rx, ry, rz); o.scale.set(sx, sy, sz); o.updateMatrix(); return o.matrix.clone()
+}
+const _PP_BODY  = _mkPMat(0, 0, 0, 0, 0, 0, 1, 0.85, 1)
+const _PP_RIDGE = Array.from({ length: 5 }, (_, ri) => {
+  const a = (ri / 5) * Math.PI * 2; return _mkPMat(Math.cos(a) * 0.95, 0, Math.sin(a) * 0.95, 0, a, 0)
+})
+const _PP_STEM  = _mkPMat(0, 1.15, 0)
+const _PP_EYE_L = _mkPMat(-0.35, 0.15, 1.1, 0.1, 0, 0)
+const _PP_EYE_R = _mkPMat( 0.35, 0.15, 1.1, 0.1, 0, 0)
+const _PP_SM1   = _mkPMat(-0.38, -0.28, 1.1,  0.1, 0, 0)
+const _PP_SM2   = _mkPMat(-0.12, -0.22, 1.12, 0.1, 0, 0)
+const _PP_SM3   = _mkPMat( 0.14, -0.22, 1.12, 0.1, 0, 0)
+const _PP_SM4   = _mkPMat( 0.39, -0.28, 1.1,  0.1, 0, 0)
+const _ppMat    = new THREE.Matrix4()
+
 import Coin from '../Coin'
 import GoalTrigger from '../GoalTrigger'
 import GltfMonster from '../GltfMonster'
@@ -1013,71 +1050,73 @@ function cPseudo(n: number): number {
   return (((Math.sin(n) * 43758.5453) % 1) + 1) % 1
 }
 
+// 12 tombstones×2 + 14 fence meshes → 4 IMs (save 34 draw calls)
 function Cemetery() {
-  // 12 tombstones in a 4×3 grid, centred around z=-60 x=0
-  const tombstones = Array.from({ length: 12 }, (_, i) => {
-    const col = i % 4       // 0-3
-    const row = Math.floor(i / 4)  // 0-2
-    const baseX = (col - 1.5) * 4.0
-    const baseZ = -55 - row * 5.0
-    const offX = (cPseudo(i * 7.3 + 1) - 0.5) * 1.2
-    const offZ = (cPseudo(i * 7.3 + 2) - 0.5) * 1.2
-    const tiltZ = (cPseudo(i * 7.3 + 3) - 0.5) * 0.4   // ±0.2 rad
-    return { x: baseX + offX, z: baseZ + offZ, tiltZ }
-  })
+  const slabIM = useRef<THREE.InstancedMesh>(null!)
+  const capIM  = useRef<THREE.InstancedMesh>(null!)
+  const poleIM = useRef<THREE.InstancedMesh>(null!)
+  const barIM  = useRef<THREE.InstancedMesh>(null!)
 
-  // 4 dead tree positions
+  useEffect(() => {
+    // Tombstones (parent-child matrix composition)
+    _TOMB_DATA.forEach((ts, i) => {
+      _nwDummy.position.set(ts.x, 0, ts.z)
+      _nwDummy.rotation.set(0, ts.rotY, ts.tiltZ)
+      _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      _cemMat.multiplyMatrices(_nwDummy.matrix, _SLAB_LOC)
+      slabIM.current.setMatrixAt(i, _cemMat)
+      _cemMat.multiplyMatrices(_nwDummy.matrix, _CAP_LOC)
+      capIM.current.setMatrixAt(i, _cemMat)
+    })
+    slabIM.current.instanceMatrix.needsUpdate = true
+    capIM.current.instanceMatrix.needsUpdate  = true
+    // Fence poles (world-space positions)
+    _POLE_POS.forEach((pos, i) => {
+      _nwDummy.position.set(pos[0], pos[1], pos[2])
+      _nwDummy.rotation.set(0, 0, 0); _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      poleIM.current.setMatrixAt(i, _nwDummy.matrix)
+    })
+    poleIM.current.instanceMatrix.needsUpdate = true
+    // Fence crossbars (horizontal)
+    _BAR_POS.forEach((pos, i) => {
+      _nwDummy.position.set(pos[0], pos[1], pos[2])
+      _nwDummy.rotation.set(0, 0, Math.PI / 2); _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      barIM.current.setMatrixAt(i, _nwDummy.matrix)
+    })
+    barIM.current.instanceMatrix.needsUpdate = true
+  }, [])
+
+  // 4 dead tree positions (kept as individual meshes — different geometry per trunk branch)
   const deadTrees: [number, number, number][] = [
-    [-14, 0, -52],
-    [ 14, 0, -58],
-    [-12, 0, -67],
-    [ 13, 0, -63],
+    [-14, 0, -52], [ 14, 0, -58], [-12, 0, -67], [ 13, 0, -63],
   ]
-
-  // Branch angles for dead trees (3 branches each)
   const branchAngles = [
-    [0.6, -0.4, 1.2],
-    [0.5, -0.6, 1.1],
-    [0.7, -0.3, 1.3],
-    [0.4, -0.7, 1.0],
+    [0.6, -0.4, 1.2], [0.5, -0.6, 1.1], [0.7, -0.3, 1.3], [0.4, -0.7, 1.0],
   ]
 
   return (
     <group>
-      {/* Tombstones */}
-      {tombstones.map((ts, i) => (
-        <group key={i} position={[ts.x, 0, ts.z]} rotation={[0, cPseudo(i * 13.7) * 0.4 - 0.2, ts.tiltZ]}>
-          {/* Slab */}
-          <mesh position={[0, 0.9, 0]} castShadow>
-            <boxGeometry args={[1, 1.8, 0.15]} />
-            <meshStandardMaterial color="#555566" roughness={0.95} />
-          </mesh>
-          {/* Rounded top — small cylinder cap */}
-          <mesh position={[0, 1.85, 0]} castShadow>
-            <cylinderGeometry args={[0.5, 0.5, 0.15, 12]} />
-            <meshStandardMaterial color="#555566" roughness={0.95} />
-          </mesh>
-        </group>
-      ))}
+      {/* Tombstones — 24→4 IMs */}
+      <instancedMesh ref={slabIM} args={[undefined, undefined, 12]} castShadow>
+        <boxGeometry args={[1, 1.8, 0.15]} />
+        <meshStandardMaterial color="#555566" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={capIM} args={[undefined, undefined, 12]} castShadow>
+        <cylinderGeometry args={[0.5, 0.5, 0.15, 12]} />
+        <meshStandardMaterial color="#555566" roughness={0.95} />
+      </instancedMesh>
 
-      {/* 4 dead trees */}
+      {/* 4 dead trees (kept individual — varied structure) */}
       {deadTrees.map(([tx, ty, tz], ti) => (
         <group key={ti} position={[tx, ty, tz]}>
-          {/* Trunk */}
           <mesh position={[0, 2.5, 0]} castShadow>
             <cylinderGeometry args={[0.3, 0.35, 5, 7]} />
             <meshStandardMaterial color="#3a2a1a" roughness={0.95} />
           </mesh>
-          {/* 3 bare branches */}
-          {branchAngles[ti].map((angle, bi) => {
+          {branchAngles[ti]!.map((angle, bi) => {
             const sign = bi % 2 === 0 ? 1 : -1
             return (
-              <mesh
-                key={bi}
-                position={[sign * 0.6, 4.0 - bi * 0.5, 0]}
-                rotation={[0, 0, angle * sign]}
-                castShadow
-              >
+              <mesh key={bi} position={[sign * 0.6, 4.0 - bi * 0.5, 0]} rotation={[0, 0, angle * sign]} castShadow>
                 <cylinderGeometry args={[0.08, 0.1, 2, 5]} />
                 <meshStandardMaterial color="#2a1a0a" roughness={0.95} />
               </mesh>
@@ -1086,28 +1125,16 @@ function Cemetery() {
         </group>
       ))}
 
-      {/* 2 wrought-iron fence sections */}
-      {([-8, 8] as const).map((fx, fi) => (
-        <group key={fi} position={[fx, 0, -60]}>
-          {/* 5 vertical poles */}
-          {[0, 0.7, 1.4, 2.1, 2.8].map((px, pi) => (
-            <mesh key={pi} position={[px, 1.25, 0]} castShadow>
-              <cylinderGeometry args={[0.05, 0.05, 2.5, 6]} />
-              <meshStandardMaterial color="#222233" roughness={0.7} metalness={0.5} />
-            </mesh>
-          ))}
-          {/* Top crossbar */}
-          <mesh position={[1.4, 2.4, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-            <cylinderGeometry args={[0.04, 0.04, 2.9, 5]} />
-            <meshStandardMaterial color="#222233" roughness={0.7} metalness={0.5} />
-          </mesh>
-          {/* Bottom crossbar */}
-          <mesh position={[1.4, 0.4, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-            <cylinderGeometry args={[0.04, 0.04, 2.9, 5]} />
-            <meshStandardMaterial color="#222233" roughness={0.7} metalness={0.5} />
-          </mesh>
-        </group>
-      ))}
+      {/* Fence poles — 10→1 IM */}
+      <instancedMesh ref={poleIM} args={[undefined, undefined, 10]} castShadow>
+        <cylinderGeometry args={[0.05, 0.05, 2.5, 6]} />
+        <meshStandardMaterial color="#222233" roughness={0.7} metalness={0.5} />
+      </instancedMesh>
+      {/* Fence crossbars — 4→1 IM */}
+      <instancedMesh ref={barIM} args={[undefined, undefined, 4]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, 2.9, 5]} />
+        <meshStandardMaterial color="#222233" roughness={0.7} metalness={0.5} />
+      </instancedMesh>
     </group>
   )
 }
@@ -1141,50 +1168,34 @@ const cemeteryOrbData: CemeteryOrbData[] = Array.from({ length: 6 }, (_, i) => {
   }
 })
 
-function GhostlyOrb({ data }: { data: CemeteryOrbData }) {
-  const meshRef = useRef<THREE.Mesh>(null!)
-  const lightRef = useRef<THREE.PointLight>(null!)
-
+// 6 orb meshes → 1 IM; pointLights stay individual
+function GhostlyOrbs() {
+  const orbIM     = useRef<THREE.InstancedMesh>(null!)
+  const lightRefs = useRef<(THREE.PointLight | null)[]>([])
   const frameSkip = useRef(0)
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime() * 0.6
-    const x = data.cx + Math.sin(data.a * t + data.phase) * data.rx
-    const z = data.cz + Math.sin(data.b * t + data.phaseZ) * data.rz
-    const y = data.cy + Math.sin(t * 1.3 + data.phase) * 0.4
-    if (meshRef.current) meshRef.current.position.set(x, y, z)
-    if (lightRef.current) lightRef.current.position.set(x, y, z)
+    cemeteryOrbData.forEach((data, i) => {
+      const x = data.cx + Math.sin(data.a * t + data.phase) * data.rx
+      const z = data.cz + Math.sin(data.b * t + data.phaseZ) * data.rz
+      const y = data.cy + Math.sin(t * 1.3 + data.phase) * 0.4
+      _nwDummy.position.set(x, y, z); _nwDummy.rotation.set(0, 0, 0); _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      orbIM.current.setMatrixAt(i, _nwDummy.matrix)
+      const light = lightRefs.current[i]; if (light) light.position.set(x, y, z)
+    })
+    orbIM.current.instanceMatrix.needsUpdate = true
   })
 
   return (
     <>
-      <mesh ref={meshRef} position={[data.cx, data.cy, data.cz]}>
+      <instancedMesh ref={orbIM} args={[undefined, undefined, 6]} frustumCulled={false}>
         <sphereGeometry args={[0.5, 10, 10]} />
-        <meshStandardMaterial
-          color="#ccffcc"
-          emissive="#88ffaa"
-          emissiveIntensity={5}
-          transparent
-          opacity={0.7}
-        />
-      </mesh>
-      <pointLight
-        ref={lightRef}
-        position={[data.cx, data.cy, data.cz]}
-        color="#aaffcc"
-        intensity={4}
-        distance={8}
-        decay={2}
-      />
-    </>
-  )
-}
-
-function GhostlyOrbs() {
-  return (
-    <>
-      {cemeteryOrbData.map((od, i) => (
-        <GhostlyOrb key={i} data={od} />
+        <meshStandardMaterial color="#ccffcc" emissive="#88ffaa" emissiveIntensity={5} transparent opacity={0.7} />
+      </instancedMesh>
+      {cemeteryOrbData.map((data, i) => (
+        <pointLight key={i} ref={(el) => { lightRefs.current[i] = el }} position={[data.cx, data.cy, data.cz]} color="#aaffcc" intensity={4} distance={8} decay={2} />
       ))}
     </>
   )
@@ -1210,72 +1221,73 @@ const pumpkinData: { x: number; z: number; rotY: number }[] = Array.from(
   }
 )
 
-function SinglePumpkin({ x, z, rotY }: { x: number; z: number; rotY: number }) {
+// 20 pumpkins × 13 meshes = 260 → 6 IMs (save 254 draw calls)
+function PumpkinGroup() {
+  const bodyIM  = useRef<THREE.InstancedMesh>(null!)
+  const ridgeIM = useRef<THREE.InstancedMesh>(null!)
+  const stemIM  = useRef<THREE.InstancedMesh>(null!)
+  const eyeIM   = useRef<THREE.InstancedMesh>(null!)
+  const smCIM   = useRef<THREE.InstancedMesh>(null!)
+  const smMIM   = useRef<THREE.InstancedMesh>(null!)
+
+  useEffect(() => {
+    pumpkinData.forEach((pd, i) => {
+      _nwDummy.position.set(pd.x, 0, pd.z)
+      _nwDummy.rotation.set(0, pd.rotY, 0)
+      _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      const pm = _nwDummy.matrix
+      _ppMat.multiplyMatrices(pm, _PP_BODY);  bodyIM.current.setMatrixAt(i, _ppMat)
+      _PP_RIDGE.forEach((rLoc, ri) => { _ppMat.multiplyMatrices(pm, rLoc); ridgeIM.current.setMatrixAt(i * 5 + ri, _ppMat) })
+      _ppMat.multiplyMatrices(pm, _PP_STEM);  stemIM.current.setMatrixAt(i, _ppMat)
+      _ppMat.multiplyMatrices(pm, _PP_EYE_L); eyeIM.current.setMatrixAt(i * 2,     _ppMat)
+      _ppMat.multiplyMatrices(pm, _PP_EYE_R); eyeIM.current.setMatrixAt(i * 2 + 1, _ppMat)
+      _ppMat.multiplyMatrices(pm, _PP_SM1);   smCIM.current.setMatrixAt(i * 2,     _ppMat)
+      _ppMat.multiplyMatrices(pm, _PP_SM4);   smCIM.current.setMatrixAt(i * 2 + 1, _ppMat)
+      _ppMat.multiplyMatrices(pm, _PP_SM2);   smMIM.current.setMatrixAt(i * 2,     _ppMat)
+      _ppMat.multiplyMatrices(pm, _PP_SM3);   smMIM.current.setMatrixAt(i * 2 + 1, _ppMat)
+    })
+    bodyIM.current.instanceMatrix.needsUpdate  = true
+    ridgeIM.current.instanceMatrix.needsUpdate = true
+    stemIM.current.instanceMatrix.needsUpdate  = true
+    eyeIM.current.instanceMatrix.needsUpdate   = true
+    smCIM.current.instanceMatrix.needsUpdate   = true
+    smMIM.current.instanceMatrix.needsUpdate   = true
+  }, [])
+
   return (
-    <group position={[x, 0, z]} rotation={[0, rotY, 0]}>
-      {/* Body — slightly flattened orange sphere */}
-      <mesh scale={[1, 0.85, 1]} castShadow>
+    <>
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, PUMPKIN_COUNT]} castShadow>
         <sphereGeometry args={[1.2, 16, 12]} />
         <meshStandardMaterial color="#ff6600" roughness={0.7} />
-      </mesh>
-
-      {/* 5 vertical ridge cylinders */}
-      {Array.from({ length: 5 }, (_, ri) => {
-        const angle = (ri / 5) * Math.PI * 2
-        const rx = Math.cos(angle) * 0.95
-        const rz = Math.sin(angle) * 0.95
-        return (
-          <mesh key={ri} position={[rx, 0, rz]} rotation={[0, angle, 0]} castShadow>
-            <cylinderGeometry args={[0.15, 0.15, 2.2, 6]} />
-            <meshStandardMaterial color="#cc5500" roughness={0.8} />
-          </mesh>
-        )
-      })}
-
-      {/* Stem */}
-      <mesh position={[0, 1.15, 0]} castShadow>
+      </instancedMesh>
+      <instancedMesh ref={ridgeIM} args={[undefined, undefined, PUMPKIN_COUNT * 5]} castShadow>
+        <cylinderGeometry args={[0.15, 0.15, 2.2, 6]} />
+        <meshStandardMaterial color="#cc5500" roughness={0.8} />
+      </instancedMesh>
+      <instancedMesh ref={stemIM} args={[undefined, undefined, PUMPKIN_COUNT]} castShadow>
         <cylinderGeometry args={[0.2, 0.15, 0.5, 6]} />
         <meshStandardMaterial color="#3a2a0a" roughness={0.9} />
-      </mesh>
-
-      {/* Carved left eye */}
-      <mesh position={[-0.35, 0.15, 1.1]} rotation={[0.1, 0, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={eyeIM} args={[undefined, undefined, PUMPKIN_COUNT * 2]}>
         <boxGeometry args={[0.32, 0.22, 0.08]} />
         <meshStandardMaterial color="#ff8800" emissive="#ffaa00" emissiveIntensity={6} />
-      </mesh>
-      {/* Carved right eye */}
-      <mesh position={[0.35, 0.15, 1.1]} rotation={[0.1, 0, 0]}>
-        <boxGeometry args={[0.32, 0.22, 0.08]} />
-        <meshStandardMaterial color="#ff8800" emissive="#ffaa00" emissiveIntensity={6} />
-      </mesh>
-
-      {/* Jagged smile — 4 tiny boxes */}
-      <mesh position={[-0.38, -0.28, 1.1]} rotation={[0.1, 0, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={smCIM} args={[undefined, undefined, PUMPKIN_COUNT * 2]}>
         <boxGeometry args={[0.18, 0.14, 0.08]} />
         <meshStandardMaterial color="#ff8800" emissive="#ffaa00" emissiveIntensity={6} />
-      </mesh>
-      <mesh position={[-0.12, -0.22, 1.12]} rotation={[0.1, 0, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={smMIM} args={[undefined, undefined, PUMPKIN_COUNT * 2]}>
         <boxGeometry args={[0.18, 0.2, 0.08]} />
         <meshStandardMaterial color="#ff8800" emissive="#ffaa00" emissiveIntensity={6} />
-      </mesh>
-      <mesh position={[0.14, -0.22, 1.12]} rotation={[0.1, 0, 0]}>
-        <boxGeometry args={[0.18, 0.2, 0.08]} />
-        <meshStandardMaterial color="#ff8800" emissive="#ffaa00" emissiveIntensity={6} />
-      </mesh>
-      <mesh position={[0.39, -0.28, 1.1]} rotation={[0.1, 0, 0]}>
-        <boxGeometry args={[0.18, 0.14, 0.08]} />
-        <meshStandardMaterial color="#ff8800" emissive="#ffaa00" emissiveIntensity={6} />
-      </mesh>
-    </group>
+      </instancedMesh>
+    </>
   )
 }
 
 function PumpkinPatch() {
   return (
     <>
-      {pumpkinData.map((pd, i) => (
-        <SinglePumpkin key={i} x={pd.x} z={pd.z} rotY={pd.rotY} />
-      ))}
+      <PumpkinGroup />
       {/* One pointLight per group of 4 pumpkins */}
       {Array.from({ length: Math.ceil(PUMPKIN_COUNT / 4) }, (_, gi) => {
         const slice = pumpkinData.slice(gi * 4, gi * 4 + 4)
