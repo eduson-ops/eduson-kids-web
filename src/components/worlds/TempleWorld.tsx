@@ -1,9 +1,19 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+
+const _bzGroup = new THREE.Object3D()
+const BRAZIER_POSITIONS: Array<[number, number, number]> = [
+  [-25, 7.1, 29], [25, 7.1, 29],
+  [-18, 14.1, 22], [18, 14.1, 22],
+  [-10, 21.1, 15], [10, 21.1, 15],
+  [-3, 28.1, 8], [3, 28.1, 8],
+  [-2.5, 36.1, 3], [2.5, 36.1, 3],
+]
+const _bzPhases = BRAZIER_POSITIONS.map(() => Math.random() * Math.PI * 2)
 import { type RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import Coin from '../Coin'
@@ -108,44 +118,57 @@ function ApexStaircase() {
   )
 }
 
-// ─── Brazier (animated fire torch) ───────────────────────────────
-function Brazier({ pos }: { pos: [number, number, number] }) {
-  const flame = useRef<THREE.Mesh>(null!)
-  const phase = useRef(Math.random() * Math.PI * 2)
+// ─── BrazierGroup — 10 braziers: 30 meshes → 3 IMs ──────────────
+function BrazierGroup() {
+  const postIM  = useRef<THREE.InstancedMesh>(null!)
+  const bowlIM  = useRef<THREE.InstancedMesh>(null!)
+  const flameIM = useRef<THREE.InstancedMesh>(null!)
+
+  useEffect(() => {
+    BRAZIER_POSITIONS.forEach((pos, i) => {
+      _bzGroup.scale.setScalar(1); _bzGroup.rotation.set(0, 0, 0)
+      _bzGroup.position.set(pos[0], pos[1] - 0.4, pos[2]); _bzGroup.updateMatrix()
+      postIM.current.setMatrixAt(i, _bzGroup.matrix)
+      _bzGroup.position.set(pos[0], pos[1] + 0.2, pos[2]); _bzGroup.updateMatrix()
+      bowlIM.current.setMatrixAt(i, _bzGroup.matrix)
+    })
+    postIM.current.instanceMatrix.needsUpdate = true
+    bowlIM.current.instanceMatrix.needsUpdate = true
+  }, [])
+
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
-    phase.current += step * 5.5
-    if (!flame.current) return
-    flame.current.scale.y = 0.85 + Math.sin(phase.current) * 0.28
-    flame.current.scale.x = 0.85 + Math.sin(phase.current * 1.4) * 0.18
+    BRAZIER_POSITIONS.forEach((pos, i) => {
+      _bzPhases[i]! += step * 5.5
+      const ph = _bzPhases[i]!
+      _bzGroup.position.set(pos[0], pos[1] + 0.72, pos[2])
+      _bzGroup.scale.set(0.85 + Math.sin(ph * 1.4) * 0.18, 0.85 + Math.sin(ph) * 0.28, 1.0)
+      _bzGroup.rotation.set(0, 0, 0); _bzGroup.updateMatrix()
+      flameIM.current.setMatrixAt(i, _bzGroup.matrix)
+    })
+    flameIM.current.instanceMatrix.needsUpdate = true
   })
+
   return (
-    <group position={pos}>
-      {/* Post */}
-      <mesh position={[0, -0.4, 0]} castShadow>
+    <>
+      <instancedMesh ref={postIM} args={[undefined, undefined, BRAZIER_POSITIONS.length]} castShadow>
         <cylinderGeometry args={[0.1, 0.14, 1.2, 7]} />
         <meshStandardMaterial color={DARK_STONE} roughness={0.9} />
-      </mesh>
-      {/* Bowl */}
-      <mesh position={[0, 0.2, 0]} castShadow>
+      </instancedMesh>
+      <instancedMesh ref={bowlIM} args={[undefined, undefined, BRAZIER_POSITIONS.length]} castShadow>
         <cylinderGeometry args={[0.36, 0.22, 0.55, 8]} />
         <meshStandardMaterial color="#5b4020" roughness={0.85} metalness={0.25} />
-      </mesh>
-      {/* Flame */}
-      <mesh ref={flame} position={[0, 0.72, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={flameIM} args={[undefined, undefined, BRAZIER_POSITIONS.length]}>
         <coneGeometry args={[0.22, 0.75, 7]} />
-        <meshStandardMaterial
-          color={LAVA}
-          emissive={FIRE}
-          emissiveIntensity={2.2}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-      <pointLight color={LAVA} intensity={1.1} distance={9} decay={2} position={[0, 0.75, 0]} />
-    </group>
+        <meshStandardMaterial color={LAVA} emissive={FIRE} emissiveIntensity={2.2} transparent opacity={0.9} />
+      </instancedMesh>
+      {BRAZIER_POSITIONS.map((pos, i) => (
+        <pointLight key={i} position={[pos[0], pos[1] + 0.75, pos[2]]} color={LAVA} intensity={1.1} distance={9} decay={2} />
+      ))}
+    </>
   )
 }
 
@@ -2190,17 +2213,8 @@ export default function TempleWorld() {
       {/* ── Apex ── */}
       <ApexFloor />
 
-      {/* ── Braziers ── */}
-      <Brazier pos={[-25, 7.1, 29]} />
-      <Brazier pos={[25, 7.1, 29]} />
-      <Brazier pos={[-18, 14.1, 22]} />
-      <Brazier pos={[18, 14.1, 22]} />
-      <Brazier pos={[-10, 21.1, 15]} />
-      <Brazier pos={[10, 21.1, 15]} />
-      <Brazier pos={[-3, 28.1, 8]} />
-      <Brazier pos={[3, 28.1, 8]} />
-      <Brazier pos={[-2.5, 36.1, 3]} />
-      <Brazier pos={[2.5, 36.1, 3]} />
+      {/* ── Braziers — 30→3 IMs ── */}
+      <BrazierGroup />
 
       {/* ── Enemies (one per tier level) ── */}
       <Enemy pos={[0, 8.5, 15]} patrolX={10} color="#ff8c1a" />

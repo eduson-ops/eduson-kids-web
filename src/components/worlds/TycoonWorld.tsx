@@ -1,9 +1,11 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
-import { useRef, useMemo, useState } from 'react'
+import { useRef, useMemo, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 const _isLow = detectDeviceTier() === 'low'
+
+const _fwGroup = new THREE.Object3D()
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -1687,22 +1689,43 @@ function FactoryWorkerRobots() {
 }
 
 // ─── ForkliftRobot ────────────────────────────────────────────────────────────
+// 4 wheels + 6 stripes → 2 IMs (save 10 draw calls)
 function ForkliftRobot() {
   const groupRef   = useRef<THREE.Group>(null!)
   const forkRef    = useRef<THREE.Group>(null!)
-  const wheel0Ref  = useRef<THREE.Mesh>(null!)
-  const wheel1Ref  = useRef<THREE.Mesh>(null!)
-  const wheel2Ref  = useRef<THREE.Mesh>(null!)
-  const wheel3Ref  = useRef<THREE.Mesh>(null!)
+  const wheelIM    = useRef<THREE.InstancedMesh>(null!)
+  const stripeIM   = useRef<THREE.InstancedMesh>(null!)
+  const wheelAngle = useRef(0)
   const frameSkip  = useRef(0)
   const dirRef     = useRef(1)
   const posXRef    = useRef(-90)
+
+  const WHEEL_POSITIONS: [number, number, number][] = [
+    [-1.1,  0,  0.85], [ 1.1,  0,  0.85],
+    [-1.1,  0, -0.85], [ 1.1,  0, -0.85],
+  ]
+  const STRIPE_COLORS = ['#ffcc00', '#111111', '#ffcc00', '#111111', '#ffcc00', '#111111'] as const
+  const STRIPE_POSITIONS: [number, number, number][] = [
+    [-1.0, 0.5, 0.76], [-0.6, 0.5, 0.76], [-0.2, 0.5, 0.76],
+    [ 0.2, 0.5, 0.76], [ 0.6, 0.5, 0.76], [ 1.0, 0.5, 0.76],
+  ]
+
+  useEffect(() => {
+    const col = new THREE.Color()
+    STRIPE_POSITIONS.forEach((sp, i) => {
+      _fwGroup.position.set(sp[0], sp[1], sp[2])
+      _fwGroup.rotation.set(0, 0, 0); _fwGroup.scale.setScalar(1); _fwGroup.updateMatrix()
+      stripeIM.current.setMatrixAt(i, _fwGroup.matrix)
+      stripeIM.current.setColorAt(i, col.set(STRIPE_COLORS[i]!))
+    })
+    stripeIM.current.instanceMatrix.needsUpdate = true
+    if (stripeIM.current.instanceColor) stripeIM.current.instanceColor.needsUpdate = true
+  }, [])
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
     const t = performance.now() / 1000
-    // drive back and forth
     posXRef.current += dirRef.current * 4 * step
     if (posXRef.current > -72) dirRef.current = -1
     if (posXRef.current < -108) dirRef.current = 1
@@ -1712,33 +1735,20 @@ function ForkliftRobot() {
       groupRef.current.rotation.y = dirRef.current > 0 ? -Math.PI / 2 : Math.PI / 2
     }
 
-    // raise / lower forks
     if (forkRef.current) {
       forkRef.current.position.y = 0.5 + Math.sin(t * 0.3) * 1.0
     }
 
-    // spin wheels
-    const wSpin = dirRef.current * step * 4
-    if (wheel0Ref.current) wheel0Ref.current.rotation.z += wSpin
-    if (wheel1Ref.current) wheel1Ref.current.rotation.z += wSpin
-    if (wheel2Ref.current) wheel2Ref.current.rotation.z += wSpin
-    if (wheel3Ref.current) wheel3Ref.current.rotation.z += wSpin
+    // spin wheel IM
+    wheelAngle.current += dirRef.current * step * 4
+    WHEEL_POSITIONS.forEach((wp, i) => {
+      _fwGroup.position.set(wp[0], wp[1], wp[2])
+      _fwGroup.rotation.set(Math.PI / 2, 0, wheelAngle.current)
+      _fwGroup.scale.setScalar(1); _fwGroup.updateMatrix()
+      wheelIM.current.setMatrixAt(i, _fwGroup.matrix)
+    })
+    wheelIM.current.instanceMatrix.needsUpdate = true
   })
-
-  const WHEEL_POSITIONS: [number, number, number][] = [
-    [-1.1,  0,  0.85],
-    [ 1.1,  0,  0.85],
-    [-1.1,  0, -0.85],
-    [ 1.1,  0, -0.85],
-  ]
-  const wheelRefs = [wheel0Ref, wheel1Ref, wheel2Ref, wheel3Ref]
-
-  // Warning stripe colors alternate yellow / black
-  const STRIPE_COLORS = ['#ffcc00', '#111111', '#ffcc00', '#111111', '#ffcc00', '#111111'] as const
-  const STRIPE_POSITIONS: [number, number, number][] = [
-    [-1.0, 0.5, 0.76], [-0.6, 0.5, 0.76], [-0.2, 0.5, 0.76],
-    [ 0.2, 0.5, 0.76], [ 0.6, 0.5, 0.76], [ 1.0, 0.5, 0.76],
-  ]
 
   return (
     <group ref={groupRef} position={[-90, 0, 8]}>
@@ -1759,13 +1769,11 @@ function ForkliftRobot() {
         <meshStandardMaterial color="#88ccff" transparent opacity={0.5} roughness={0.05} />
       </mesh>
 
-      {/* Warning stripes on front face */}
-      {STRIPE_POSITIONS.map((sp, i) => (
-        <mesh key={`stripe-${i}`} position={sp}>
-          <boxGeometry args={[0.38, 1.6, 0.06]} />
-          <meshStandardMaterial color={STRIPE_COLORS[i]} roughness={0.6} />
-        </mesh>
-      ))}
+      {/* Warning stripes — 6→1 IM */}
+      <instancedMesh ref={stripeIM} args={[undefined, undefined, 6]}>
+        <boxGeometry args={[0.38, 1.6, 0.06]} />
+        <meshStandardMaterial vertexColors roughness={0.6} />
+      </instancedMesh>
 
       {/* Mast — 2 vertical bars at front */}
       <mesh castShadow position={[-1.1, 2.2, 0.45]}>
@@ -1803,19 +1811,11 @@ function ForkliftRobot() {
         </mesh>
       </group>
 
-      {/* Wheels — 4 flat cylinders, axis along Z so they spin on Z rotation */}
-      {WHEEL_POSITIONS.map((wp, i) => (
-        <mesh
-          key={`fwheel-${i}`}
-          ref={wheelRefs[i]}
-          castShadow
-          position={wp}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <cylinderGeometry args={[0.5, 0.5, 0.3, 12]} />
-          <meshStandardMaterial color="#222222" roughness={0.9} />
-        </mesh>
-      ))}
+      {/* Wheels — 4→1 IM */}
+      <instancedMesh ref={wheelIM} args={[undefined, undefined, 4]} castShadow>
+        <cylinderGeometry args={[0.5, 0.5, 0.3, 12]} />
+        <meshStandardMaterial color="#222222" roughness={0.9} />
+      </instancedMesh>
 
       {/* Warning light on top */}
       <mesh position={[0, 2.2, 0]}>

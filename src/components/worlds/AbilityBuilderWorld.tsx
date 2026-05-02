@@ -5,6 +5,9 @@ import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+
+const _abDummy2 = new THREE.Object3D()
+
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -182,12 +185,13 @@ const _ARC_FLICKER = Array.from({ length: 6 }, () =>
   Array.from({ length: 32 }, () => Math.random() < 0.05)
 )
 
+// 6 arc meshes → 1 IM; visibility toggled via scale (scale.setScalar(0) = hidden)
 function LightningArcs() {
-  const arcRefs = useRef<(THREE.Mesh | null)[]>([])
+  const arcIM = useRef<THREE.InstancedMesh>(null!)
   const flickerPtr = useRef(0)
   const frameSkip = useRef(0)
+  const arcVisible = useRef(Array(6).fill(true))
 
-  // Precompute positions, heights, midpoints for each arc
   const arcData = useMemo(() => ARC_PAIRS.map(([ai, bi]) => {
     const a = PORTAL_POS[ai]!
     const b = PORTAL_POS[bi]!
@@ -198,35 +202,41 @@ function LightningArcs() {
     const dir = new THREE.Vector3().subVectors(bV, aV).normalize()
     const height = aV.distanceTo(bV)
     const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir)
-    return { mid: mid.toArray() as [number, number, number], height, quat }
+    return { mid, height, quat }
   }), [])
+
+  useEffect(() => {
+    arcData.forEach((arc, i) => {
+      _abDummy2.position.copy(arc.mid)
+      _abDummy2.quaternion.copy(arc.quat)
+      _abDummy2.scale.set(1, arc.height, 1); _abDummy2.updateMatrix()
+      arcIM.current.setMatrixAt(i, _abDummy2.matrix)
+    })
+    arcIM.current.instanceMatrix.needsUpdate = true
+  }, [arcData])
 
   useFrame(() => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const ptr = flickerPtr.current++ % 32
-    arcRefs.current.forEach((mesh, i) => {
-      if (!mesh) return
-      if (_ARC_FLICKER[i]![ptr]) mesh.visible = !mesh.visible
+    let changed = false
+    arcData.forEach((arc, i) => {
+      if (!_ARC_FLICKER[i]![ptr]) return
+      arcVisible.current[i] = !arcVisible.current[i]
+      _abDummy2.position.copy(arc.mid)
+      _abDummy2.quaternion.copy(arc.quat)
+      const s = arcVisible.current[i] ? 1 : 0
+      _abDummy2.scale.set(s, arc.height * (s || 0.001), s); _abDummy2.updateMatrix()
+      arcIM.current.setMatrixAt(i, _abDummy2.matrix)
+      changed = true
     })
+    if (changed) arcIM.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {arcData.map((arc, i) => {
-        const euler = new THREE.Euler().setFromQuaternion(arc.quat)
-        return (
-          <mesh
-            key={`arc-${i}`}
-            ref={(el) => { arcRefs.current[i] = el }}
-            position={arc.mid}
-            rotation={[euler.x, euler.y, euler.z]}
-          >
-            <cylinderGeometry args={[0.04, 0.04, arc.height, 5, 1]} />
-            <meshBasicMaterial color="#8844ff" />
-          </mesh>
-        )
-      })}
-    </>
+    <instancedMesh ref={arcIM} args={[undefined, undefined, 6]}>
+      <cylinderGeometry args={[0.04, 0.04, 1, 5, 1]} />
+      <meshBasicMaterial color="#8844ff" />
+    </instancedMesh>
   )
 }
 
@@ -235,22 +245,25 @@ const BEAM_CORNERS: [number, number, number][] = [
   [-45, 0, -45], [45, 0, -45], [-45, 0, 45], [45, 0, 45],
 ]
 
+// 4 cylinders → 1 IM
 function PowerBeamPillars() {
+  const beamIM = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    BEAM_CORNERS.forEach(([x, , z], i) => {
+      _abDummy2.position.set(x, 15, z)
+      _abDummy2.rotation.set(0, 0, 0); _abDummy2.scale.setScalar(1); _abDummy2.updateMatrix()
+      beamIM.current.setMatrixAt(i, _abDummy2.matrix)
+    })
+    beamIM.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
     <>
+      <instancedMesh ref={beamIM} args={[undefined, undefined, 4]}>
+        <cylinderGeometry args={[0.3, 0.3, 30, 10, 1]} />
+        <meshBasicMaterial color="#aa44ff" transparent opacity={0.2} />
+      </instancedMesh>
       {BEAM_CORNERS.map(([x, , z], i) => (
-        <group key={`beam-${i}`} position={[x, 0, z]}>
-          <mesh position={[0, 15, 0]}>
-            <cylinderGeometry args={[0.3, 0.3, 30, 10, 1]} />
-            <meshBasicMaterial color="#aa44ff" transparent opacity={0.2} />
-          </mesh>
-          <pointLight
-            color="#8800ff"
-            intensity={8}
-            distance={25}
-            position={[0, 30, 0]}
-          />
-        </group>
+        <pointLight key={`pb-${i}`} position={[x, 30, z]} color="#8800ff" intensity={8} distance={25} />
       ))}
     </>
   )
