@@ -1,1 +1,0 @@
-{"version":3,"file":"publicPath-B7demQuV.js","names":[],"sources":["../../src/lib/publicPath.ts"],"sourcesContent":["/** BASE_URL без завершающего слэша — удобно для интерполяции в шаблонах. Пустой локально, '/eduson-kids-web' на GH Pages. */\r\nexport const PUBLIC_BASE = import.meta.env.BASE_URL.replace(/\\/$/, '')\r\n"],"mappings":"AACA,IAAa,EAAA,MAAuC,QAAQ,MAAO,EAAA"}
