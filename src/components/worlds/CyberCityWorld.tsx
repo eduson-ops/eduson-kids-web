@@ -14,6 +14,17 @@ const _ccDummy  = new THREE.Object3D()
 const _ccPart   = new THREE.Object3D()
 const _ccMat    = new THREE.Matrix4()
 const _ccCol    = new THREE.Color()
+// Pre-baked local matrices for static parts
+const _HC_WHEEL_LOC = ([ [-1.1,-0.18,-1.8],[1.1,-0.18,-1.8],[-1.1,-0.18,1.8],[1.1,-0.18,1.8] ] as [number,number,number][])
+  .map(([x,y,z]) => { const o=new THREE.Object3D(); o.position.set(x,y,z); o.rotation.set(0,0,Math.PI/2); o.updateMatrix(); return o.matrix.clone() })
+const _HC_HEAD_LOC = ([[-0.7,0.1,-2.55],[0.7,0.1,-2.55]] as [number,number,number][])
+  .map(([x,y,z]) => { const o=new THREE.Object3D(); o.position.set(x,y,z); o.updateMatrix(); return o.matrix.clone() })
+const _ROTOR_LOC = ([ [-0.55,0.08,0.55],[0.55,0.08,0.55],[-0.55,0.08,-0.55],[0.55,0.08,-0.55] ] as [number,number,number][])
+  .map(([x,y,z]) => { const o=new THREE.Object3D(); o.position.set(x,y,z); o.updateMatrix(); return o.matrix.clone() })
+const _METRO_STAIR_LOC = Array.from({length:6}, (_,i) => { const o=new THREE.Object3D(); o.position.set(0, -(i*0.25)-0.125, i*0.6+0.3); o.updateMatrix(); return o.matrix.clone() })
+const _METRO_RAIL_LOC  = ([-1.3, 1.3] as number[]).map(xOff => { const o=new THREE.Object3D(); o.position.set(xOff, 0.5, 1.5); o.updateMatrix(); return o.matrix.clone() })
+const _RC_WHEEL_LOC = ([[-0.95,0.3,-1.3],[0.95,0.3,-1.3],[-0.95,0.3,1.3],[0.95,0.3,1.3]] as [number,number,number][])
+  .map(([x,y,z]) => { const o=new THREE.Object3D(); o.position.set(x,y,z); o.rotation.set(0,0,Math.PI/2); o.updateMatrix(); return o.matrix.clone() })
 
 import Coin from '../Coin'
 import Enemy from '../Enemy'
@@ -791,6 +802,38 @@ const CAR_CONFIGS: CarData[] = [
   { color: '#8800cc', laneX:  5, dir: -1, speed: 8, phase:  94 },
 ]
 
+function HoverCar({ cfg, groupRef, pos, dir }: { cfg: CarData; groupRef: (el: THREE.Group | null) => void; pos: number; dir: number }) {
+  const wheelIM = useRef<THREE.InstancedMesh>(null!)
+  const headIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _HC_WHEEL_LOC.forEach((loc, i) => wheelIM.current.setMatrixAt(i, loc))
+    wheelIM.current.instanceMatrix.needsUpdate = true
+    _HC_HEAD_LOC.forEach((loc, i) => headIM.current.setMatrixAt(i, loc))
+    headIM.current.instanceMatrix.needsUpdate = true
+  }, [])
+  return (
+    <group ref={groupRef} position={[cfg.laneX, 2.0, pos]} rotation={[0, dir === 1 ? 0 : Math.PI, 0]}>
+      <mesh><boxGeometry args={[2.5, 0.5, 5]} /><meshStandardMaterial color={cfg.color} roughness={0.3} metalness={0.6} /></mesh>
+      <mesh position={[0, 0.35, -1.4]} rotation={[0.45, 0, 0]}>
+        <boxGeometry args={[2.0, 0.3, 1.5]} />
+        <meshStandardMaterial color={GLASS} roughness={0.1} metalness={0.2} transparent opacity={0.7} />
+      </mesh>
+      <instancedMesh ref={wheelIM} args={[undefined, undefined, 4]}>
+        <cylinderGeometry args={[0.35, 0.35, 0.3, 8]} />
+        <meshStandardMaterial color="#222233" roughness={0.8} metalness={0.4} />
+      </instancedMesh>
+      <instancedMesh ref={headIM} args={[undefined, undefined, 2]}>
+        <sphereGeometry args={[0.15, 5, 4]} />
+        <meshStandardMaterial color="#ffffee" emissive="#ffffcc" emissiveIntensity={3.5} />
+      </instancedMesh>
+      <mesh position={[0, 0.1, 2.55]}>
+        <sphereGeometry args={[0.12, 5, 4]} />
+        <meshStandardMaterial color="#ff2200" emissive="#ff0000" emissiveIntensity={2.5} />
+      </mesh>
+    </group>
+  )
+}
+
 function HoverTraffic() {
   const carRefs = useRef<THREE.Group[]>([])
 
@@ -829,49 +872,13 @@ function HoverTraffic() {
   return (
     <>
       {CAR_CONFIGS.map((c, i) => (
-        <group
+        <HoverCar
           key={i}
-          ref={(el) => { if (el) carRefs.current[i] = el }}
-          position={[c.laneX, 2.0, initialZ[i]!]}
-          rotation={[0, c.dir === 1 ? 0 : Math.PI, 0]}
-        >
-          {/* Body */}
-          <mesh>
-            <boxGeometry args={[2.5, 0.5, 5]} />
-            <meshStandardMaterial color={c.color} roughness={0.3} metalness={0.6} />
-          </mesh>
-
-          {/* Windshield — slanted at top-front */}
-          <mesh position={[0, 0.35, -1.4]} rotation={[0.45, 0, 0]}>
-            <boxGeometry args={[2.0, 0.3, 1.5]} />
-            <meshStandardMaterial color={GLASS} roughness={0.1} metalness={0.2} transparent opacity={0.7} />
-          </mesh>
-
-          {/* Wheel pods: front-left, front-right, rear-left, rear-right */}
-          {([ [-1.1, -0.18, -1.8], [1.1, -0.18, -1.8], [-1.1, -0.18, 1.8], [1.1, -0.18, 1.8] ] as [number, number, number][]).map((p, wi) => (
-            <mesh key={wi} position={p} rotation={[0, 0, Math.PI / 2]}>
-              <cylinderGeometry args={[0.35, 0.35, 0.3, 8]} />
-              <meshStandardMaterial color="#222233" roughness={0.8} metalness={0.4} />
-            </mesh>
-          ))}
-
-          {/* Headlights (front = -z because car faces -z by default, rotated by dir) */}
-          <mesh position={[-0.7, 0.1, -2.55]}>
-            <sphereGeometry args={[0.15, 5, 4]} />
-            <meshStandardMaterial color="#ffffee" emissive="#ffffcc" emissiveIntensity={3.5} />
-          </mesh>
-          <mesh position={[0.7, 0.1, -2.55]}>
-            <sphereGeometry args={[0.15, 5, 4]} />
-            <meshStandardMaterial color="#ffffee" emissive="#ffffcc" emissiveIntensity={3.5} />
-          </mesh>
-
-          {/* Rear brake light */}
-          <mesh position={[0, 0.1, 2.55]}>
-            <sphereGeometry args={[0.12, 5, 4]} />
-            <meshStandardMaterial color="#ff2200" emissive="#ff0000" emissiveIntensity={2.5} />
-          </mesh>
-
-        </group>
+          cfg={c}
+          groupRef={(el) => { if (el) carRefs.current[i] = el }}
+          pos={initialZ[i]!}
+          dir={c.dir}
+        />
       ))}
     </>
   )
@@ -1246,15 +1253,21 @@ const METRO_ENTRANCE_DATA: Array<{
 ]
 
 function SingleMetroEntrance({ pos, rotY }: { pos: [number, number, number]; rotY: number }) {
+  const stairIM = useRef<THREE.InstancedMesh>(null!)
+  const railIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _METRO_STAIR_LOC.forEach((loc, i) => stairIM.current.setMatrixAt(i, loc))
+    stairIM.current.instanceMatrix.needsUpdate = true
+    _METRO_RAIL_LOC.forEach((loc, i)  => railIM.current.setMatrixAt(i, loc))
+    railIM.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
     <group position={pos} rotation={[0, rotY, 0]}>
-      {/* ── Staircase: 6 steps descending into ground ── */}
-      {Array.from({ length: 6 }, (_, i) => (
-        <mesh key={`step${i}`} position={[0, -(i * 0.25) - 0.125, i * 0.6 + 0.3]}>
-          <boxGeometry args={[3, 0.25, 0.6]} />
-          <meshStandardMaterial color="#1a1a2a" roughness={0.8} metalness={0.3} />
-        </mesh>
-      ))}
+      {/* 6 stair steps → 1 IM */}
+      <instancedMesh ref={stairIM} args={[undefined, undefined, 6]}>
+        <boxGeometry args={[3, 0.25, 0.6]} />
+        <meshStandardMaterial color="#1a1a2a" roughness={0.8} metalness={0.3} />
+      </instancedMesh>
 
       {/* ── Entry arch frame ── */}
       {/* Top bar */}
@@ -1305,12 +1318,11 @@ function SingleMetroEntrance({ pos, rotY }: { pos: [number, number, number]; rot
       <pointLight color="#0088ff" intensity={4} distance={8} position={[0, -2, 2]} />
 
       {/* ── Barrier rails: left and right ── */}
-      {([-1.3, 1.3] as number[]).map((xOff, ri) => (
-        <mesh key={`rail${ri}`} position={[xOff, 0.5, 1.5]}>
-          <cylinderGeometry args={[0.05, 0.05, 1, 6]} />
-          <meshStandardMaterial color="#334466" emissive="#0044aa" emissiveIntensity={0.8} metalness={0.6} />
-        </mesh>
-      ))}
+      {/* 2 barrier rails → 1 IM */}
+      <instancedMesh ref={railIM} args={[undefined, undefined, 2]}>
+        <cylinderGeometry args={[0.05, 0.05, 1, 6]} />
+        <meshStandardMaterial color="#334466" emissive="#0044aa" emissiveIntensity={0.8} metalness={0.6} />
+      </instancedMesh>
       {/* Rail horizontal bar */}
       <mesh position={[0, 0.95, 1.5]}>
         <boxGeometry args={[2.6, 0.05, 0.05]} />
@@ -1734,62 +1746,39 @@ function NeonRaceTrail() {
 // ─── RacingCar ────────────────────────────────────────────────────
 // Illegal street racer parked in the left alley between buildings
 function RacingCar() {
-  // Placed in the alley at x=-40, z=-46 (between left-col buildings)
-  const carX = -40
-  const carY = 0
-  const carZ = -46
-
+  const tyreIM = useRef<THREE.InstancedMesh>(null!)
+  const rimIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _RC_WHEEL_LOC.forEach((loc, i) => { tyreIM.current.setMatrixAt(i, loc); rimIM.current.setMatrixAt(i, loc) })
+    tyreIM.current.instanceMatrix.needsUpdate = true
+    rimIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
   return (
-    <group position={[carX, carY, carZ]} rotation={[0, Math.PI * 0.1, 0]}>
+    <group position={[-40, 0, -46]} rotation={[0, Math.PI * 0.1, 0]}>
       {/* ── Low body ── */}
       <mesh position={[0, 0.3, 0]}>
         <boxGeometry args={[1.8, 0.5, 4]} />
         <meshStandardMaterial color="#110011" roughness={0.9} metalness={0.3} />
       </mesh>
-
       {/* ── Roof / cabin ── */}
       <mesh position={[0, 0.7, 0.3]}>
         <boxGeometry args={[1.5, 0.4, 2]} />
         <meshStandardMaterial color="#0d000d" roughness={0.85} metalness={0.35} />
       </mesh>
-
-      {/* ── Spoiler — rear top, angled backward ── */}
+      {/* ── Spoiler ── */}
       <mesh position={[0, 0.95, -1.6]} rotation={[-0.2, 0, 0]}>
         <boxGeometry args={[2, 0.3, 0.4]} />
         <meshStandardMaterial color="#111111" roughness={0.8} metalness={0.5} />
       </mesh>
-      {/* Spoiler supports */}
-      {([-0.7, 0.7] as number[]).map((xOff, i) => (
-        <mesh key={`sp${i}`} position={[xOff, 0.7, -1.6]}>
-          <boxGeometry args={[0.08, 0.5, 0.08]} />
-          <meshStandardMaterial color="#111111" roughness={0.8} metalness={0.6} />
-        </mesh>
-      ))}
-
-      {/* ── Wheels: 4 flat cylinders with emissive rim ── */}
-      {([
-        [-0.95, 0.3, -1.3],
-        [ 0.95, 0.3, -1.3],
-        [-0.95, 0.3,  1.3],
-        [ 0.95, 0.3,  1.3],
-      ] as [number, number, number][]).map((wpos, i) => (
-        <group key={`wheel${i}`} position={wpos} rotation={[0, 0, Math.PI / 2]}>
-          {/* Tyre */}
-          <mesh>
-            <cylinderGeometry args={[0.35, 0.35, 0.25, 16]} />
-            <meshStandardMaterial color="#222222" roughness={0.95} metalness={0.1} />
-          </mesh>
-          {/* Emissive rim */}
-          <mesh>
-            <cylinderGeometry args={[0.22, 0.22, 0.27, 12]} />
-            <meshStandardMaterial
-              color="#ff0044"
-              emissive="#ff0044"
-              emissiveIntensity={3}
-            />
-          </mesh>
-        </group>
-      ))}
+      {/* 4 wheels → tyreIM + rimIM */}
+      <instancedMesh ref={tyreIM} args={[undefined, undefined, 4]}>
+        <cylinderGeometry args={[0.35, 0.35, 0.25, 16]} />
+        <meshStandardMaterial color="#222222" roughness={0.95} metalness={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={rimIM} args={[undefined, undefined, 4]}>
+        <cylinderGeometry args={[0.22, 0.22, 0.27, 12]} />
+        <meshStandardMaterial color="#ff0044" emissive="#ff0044" emissiveIntensity={3} />
+      </instancedMesh>
 
       {/* ── Underglow strip ── */}
       <mesh position={[0, 0.04, 0]}>
@@ -2142,18 +2131,19 @@ const DRONE_SWARM_CONFIG: DroneData[] = [
 
 function SurveillanceDrone({ center, radius, height, speed, phase }: DroneData) {
   const groupRef  = useRef<THREE.Group>(null!)
-  const rotor1Ref = useRef<THREE.Mesh>(null!)
-  const rotor2Ref = useRef<THREE.Mesh>(null!)
-  const rotor3Ref = useRef<THREE.Mesh>(null!)
-  const rotor4Ref = useRef<THREE.Mesh>(null!)
+  const rotorIM   = useRef<THREE.InstancedMesh>(null!)
   const lightRef  = useRef<THREE.MeshStandardMaterial>(null!)
   const [cx, , cz] = center
+
+  useEffect(() => {
+    _ROTOR_LOC.forEach((loc, i) => rotorIM.current.setMatrixAt(i, loc))
+    rotorIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    // Patrol position
     if (groupRef.current) {
       groupRef.current.position.set(
         cx + Math.cos(t * speed + phase) * radius,
@@ -2162,28 +2152,14 @@ function SurveillanceDrone({ center, radius, height, speed, phase }: DroneData) 
       )
       groupRef.current.rotation.y = -(t * speed + phase) + Math.PI / 2
     }
-    // Spin rotors fast
-    const spinDelta = 0.3
-    if (rotor1Ref.current) rotor1Ref.current.rotation.y += spinDelta
-    if (rotor2Ref.current) rotor2Ref.current.rotation.y += spinDelta
-    if (rotor3Ref.current) rotor3Ref.current.rotation.y += spinDelta
-    if (rotor4Ref.current) rotor4Ref.current.rotation.y += spinDelta
-    // Alternating red/blue light
+    // Spin all rotors as one IM
+    if (rotorIM.current) rotorIM.current.rotation.y += 0.3
     if (lightRef.current) {
       const flash = Math.floor(t / 0.4) % 2 === 0
       lightRef.current.color.set(flash ? '#ff2200' : '#0044ff')
       lightRef.current.emissive.set(flash ? '#ff2200' : '#0044ff')
     }
   })
-
-  // Rotor positions at corners of drone body
-  const ROTOR_OFFSETS: [number, number, number][] = [
-    [-0.55, 0.08,  0.55],
-    [ 0.55, 0.08,  0.55],
-    [-0.55, 0.08, -0.55],
-    [ 0.55, 0.08, -0.55],
-  ]
-  const rotorRefs = [rotor1Ref, rotor2Ref, rotor3Ref, rotor4Ref]
 
   return (
     <group ref={groupRef}>
@@ -2193,13 +2169,11 @@ function SurveillanceDrone({ center, radius, height, speed, phase }: DroneData) 
         <meshStandardMaterial color="#111122" emissive="#0033aa" emissiveIntensity={1.2} metalness={0.7} roughness={0.3} />
       </mesh>
 
-      {/* Rotors — 4 small cylinders */}
-      {ROTOR_OFFSETS.map((rpos, i) => (
-        <mesh key={`r${i}`} ref={rotorRefs[i]} position={rpos}>
-          <cylinderGeometry args={[0.2, 0.2, 0.05, 6]} />
-          <meshStandardMaterial color="#222233" roughness={0.5} metalness={0.8} />
-        </mesh>
-      ))}
+      {/* Rotors — 4 → 1 IM */}
+      <instancedMesh ref={rotorIM} args={[undefined, undefined, 4]}>
+        <cylinderGeometry args={[0.2, 0.2, 0.05, 6]} />
+        <meshStandardMaterial color="#222233" roughness={0.5} metalness={0.8} />
+      </instancedMesh>
 
       {/* Alternating red/blue blink light */}
       <mesh position={[0, 0.1, 0]}>
