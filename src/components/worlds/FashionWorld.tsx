@@ -726,6 +726,9 @@ interface FigureData {
   skinTone: string
 }
 
+const _crowdDummy = new THREE.Object3D()
+const _crowdCol   = new THREE.Color()
+
 function AudienceCrowd() {
   const figures = useMemo<FigureData[]>(() => {
     const out: FigureData[] = []
@@ -755,49 +758,78 @@ function AudienceCrowd() {
     return out
   }, [])
 
-  // One ref per figure group
-  const groupRefs = useRef<Array<THREE.Group | null>>([])
-  const crowdSkip = useRef(0)
+  const bodyIM  = useRef<THREE.InstancedMesh>(null!)
+  const headIM  = useRef<THREE.InstancedMesh>(null!)
+  const lArmIM  = useRef<THREE.InstancedMesh>(null!)
+  const rArmIM  = useRef<THREE.InstancedMesh>(null!)
+  const colorsDone = useRef(false)
 
+  const crowdSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (crowdSkip.current++ & 1)) return
+    if (!bodyIM.current) return
     const t = clock.getElapsedTime()
-    groupRefs.current.forEach((g, i) => {
-      if (!g) return
-      g.position.y = Math.sin(t * 2 + figures[i].phase) * 0.05
+
+    if (!colorsDone.current) {
+      figures.forEach((f, idx) => {
+        bodyIM.current.setColorAt(idx, _crowdCol.set(f.bodyColor))
+        headIM.current.setColorAt(idx, _crowdCol.set(f.skinTone))
+        lArmIM.current.setColorAt(idx, _crowdCol.set(f.bodyColor))
+        rArmIM.current.setColorAt(idx, _crowdCol.set(f.bodyColor))
+      })
+      for (const im of [bodyIM.current, headIM.current, lArmIM.current, rArmIM.current]) {
+        if (im.instanceColor) im.instanceColor.needsUpdate = true
+      }
+      colorsDone.current = true
+    }
+
+    figures.forEach((f, idx) => {
+      const baseY = f.y + Math.sin(t * 2 + f.phase) * 0.05
+
+      _crowdDummy.rotation.set(0, 0, 0)
+      _crowdDummy.position.set(f.x, baseY + 0.75, f.z)
+      _crowdDummy.updateMatrix()
+      bodyIM.current.setMatrixAt(idx, _crowdDummy.matrix)
+
+      _crowdDummy.position.set(f.x, baseY + 1.9, f.z)
+      _crowdDummy.updateMatrix()
+      headIM.current.setMatrixAt(idx, _crowdDummy.matrix)
+
+      _crowdDummy.position.set(f.x - 0.6, baseY + 1.4, f.z)
+      _crowdDummy.rotation.z = Math.PI / 4
+      _crowdDummy.updateMatrix()
+      lArmIM.current.setMatrixAt(idx, _crowdDummy.matrix)
+
+      _crowdDummy.position.set(f.x + 0.6, baseY + 1.4, f.z)
+      _crowdDummy.rotation.z = -Math.PI / 4
+      _crowdDummy.updateMatrix()
+      rArmIM.current.setMatrixAt(idx, _crowdDummy.matrix)
     })
+    bodyIM.current.instanceMatrix.needsUpdate  = true
+    headIM.current.instanceMatrix.needsUpdate  = true
+    lArmIM.current.instanceMatrix.needsUpdate  = true
+    rArmIM.current.instanceMatrix.needsUpdate  = true
   })
 
+  const N = figures.length
   return (
     <>
-      {figures.map((f, i) => (
-        <group
-          key={i}
-          position={[f.x, f.y, f.z]}
-          ref={(el) => { groupRefs.current[i] = el }}
-        >
-          {/* Body */}
-          <mesh position={[0, 0.75, 0]}>
-            <cylinderGeometry args={[0.5, 0.5, 1.5, 8]} />
-            <meshStandardMaterial color={f.bodyColor} roughness={0.6} />
-          </mesh>
-          {/* Head */}
-          <mesh position={[0, 1.9, 0]}>
-            <sphereGeometry args={[0.4, 8, 8]} />
-            <meshStandardMaterial color={f.skinTone} roughness={0.7} />
-          </mesh>
-          {/* Left arm raised */}
-          <mesh position={[-0.6, 1.4, 0]} rotation={[0, 0, Math.PI / 4]}>
-            <cylinderGeometry args={[0.15, 0.15, 0.8, 6]} />
-            <meshStandardMaterial color={f.bodyColor} roughness={0.6} />
-          </mesh>
-          {/* Right arm raised */}
-          <mesh position={[0.6, 1.4, 0]} rotation={[0, 0, -Math.PI / 4]}>
-            <cylinderGeometry args={[0.15, 0.15, 0.8, 6]} />
-            <meshStandardMaterial color={f.bodyColor} roughness={0.6} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, N]} frustumCulled={false}>
+        <cylinderGeometry args={[0.5, 0.5, 1.5, 8]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={headIM} args={[undefined, undefined, N]} frustumCulled={false}>
+        <sphereGeometry args={[0.4, 8, 8]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.7} />
+      </instancedMesh>
+      <instancedMesh ref={lArmIM} args={[undefined, undefined, N]} frustumCulled={false}>
+        <cylinderGeometry args={[0.15, 0.15, 0.8, 6]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={rArmIM} args={[undefined, undefined, N]} frustumCulled={false}>
+        <cylinderGeometry args={[0.15, 0.15, 0.8, 6]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.6} />
+      </instancedMesh>
     </>
   )
 }

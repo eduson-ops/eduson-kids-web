@@ -1,10 +1,24 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import * as THREE from 'three'
 import { canPostfx, detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+
+// Module-level pre-allocated objects for InstancedMesh conversions
+const _aeGroup = new THREE.Object3D()
+const _aePart  = new THREE.Object3D()
+const _aeMesh  = new THREE.Object3D()
+const _aeMat   = new THREE.Matrix4()
+const _aeMat2  = new THREE.Matrix4()
+const _aeCol   = new THREE.Color()
+const _AE_TILT = 0.45
+
+// Pre-compute static mesh offset matrix (never changes)
+_aeMesh.position.set(0, 0.35, 0)
+_aeMesh.updateMatrix()
+
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -759,10 +773,9 @@ function UnderwaterLightShafts() {
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
   const frameSkip2 = useRef(0)
-  useFrame(({ clock }) => {
+  useFrame((_, dt) => {
     if (_isLow && (frameSkip2.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
-    const dt = clock.getDelta()
     meshRefs.current.forEach((m) => {
       if (!m) return
       m.rotation.y += step * 0.05
@@ -910,59 +923,71 @@ const ANEMONE_POSITIONS: [number, number, number][] = [
 ]
 
 function SeaAnemones() {
-  // Refs for all tentacle groups — flattened: ANEMONE_COUNT * TENTACLE_COUNT entries
-  const tentacleRefs = useRef<(THREE.Group | null)[]>([])
+  const baseIM     = useRef<THREE.InstancedMesh>(null!)
+  const tentacleIM = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip  = useRef(0)
 
-  const frameSkip = useRef(0)
+  useEffect(() => {
+    ANEMONE_POSITIONS.forEach((pos, aIdx) => {
+      _aeGroup.position.set(pos[0], pos[1] + 0.3, pos[2])
+      _aeGroup.rotation.set(0, 0, 0)
+      _aeGroup.scale.setScalar(1)
+      _aeGroup.updateMatrix()
+      baseIM.current.setMatrixAt(aIdx, _aeGroup.matrix)
+      baseIM.current.setColorAt(aIdx, _aeCol.set(ANEMONE_COLORS[aIdx % ANEMONE_COLORS.length]!))
+    })
+    baseIM.current.instanceMatrix.needsUpdate = true
+    if (baseIM.current.instanceColor) baseIM.current.instanceColor.needsUpdate = true
+
+    for (let aIdx = 0; aIdx < ANEMONE_COUNT; aIdx++) {
+      tentacleIM.current.setColorAt(
+        aIdx * TENTACLE_COUNT,
+        _aeCol.set(ANEMONE_COLORS[aIdx % ANEMONE_COLORS.length]!)
+      )
+      for (let tIdx = 1; tIdx < TENTACLE_COUNT; tIdx++) {
+        tentacleIM.current.setColorAt(
+          aIdx * TENTACLE_COUNT + tIdx,
+          _aeCol.set(ANEMONE_COLORS[aIdx % ANEMONE_COLORS.length]!)
+        )
+      }
+    }
+    if (tentacleIM.current.instanceColor) tentacleIM.current.instanceColor.needsUpdate = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    tentacleRefs.current.forEach((grp, idx) => {
-      if (!grp) return
-      const aIdx = Math.floor(idx / TENTACLE_COUNT)
-      grp.rotation.x = Math.sin(t * 1.5 + aIdx * 0.4) * 0.3
-    })
+    _aeGroup.rotation.set(0, 0, 0)
+    _aeGroup.scale.setScalar(1)
+    _aePart.scale.setScalar(1)
+    for (let aIdx = 0; aIdx < ANEMONE_COUNT; aIdx++) {
+      const pos = ANEMONE_POSITIONS[aIdx]!
+      _aeGroup.position.set(pos[0], pos[1], pos[2])
+      _aeGroup.updateMatrix()
+      const animX = Math.sin(t * 1.5 + aIdx * 0.4) * 0.3
+      for (let tIdx = 0; tIdx < TENTACLE_COUNT; tIdx++) {
+        const angle = (tIdx / TENTACLE_COUNT) * Math.PI * 2
+        _aePart.position.set(Math.sin(angle) * 0.18, 0.6, Math.cos(angle) * 0.18)
+        _aePart.rotation.set(_AE_TILT + animX, angle, 0)
+        _aePart.updateMatrix()
+        _aeMat.multiplyMatrices(_aeGroup.matrix, _aePart.matrix)
+        _aeMat2.multiplyMatrices(_aeMat, _aeMesh.matrix)
+        tentacleIM.current.setMatrixAt(aIdx * TENTACLE_COUNT + tIdx, _aeMat2)
+      }
+    }
+    tentacleIM.current.instanceMatrix.needsUpdate = true
   })
 
   return (
     <>
-      {ANEMONE_POSITIONS.map((pos, aIdx) => {
-        const color = ANEMONE_COLORS[aIdx % ANEMONE_COLORS.length]!
-        return (
-          <group key={aIdx} position={pos}>
-            {/* Anemone base */}
-            <mesh position={[0, 0.3, 0]}>
-              <cylinderGeometry args={[0.15, 0.25, 0.6, 8]} />
-              <meshStandardMaterial color={color} roughness={0.7} emissive={color} emissiveIntensity={0.3} />
-            </mesh>
-            {/* 8 tentacles fanning outward */}
-            {Array.from({ length: TENTACLE_COUNT }, (_, tIdx) => {
-              const flatIdx = aIdx * TENTACLE_COUNT + tIdx
-              const angle = (tIdx / TENTACLE_COUNT) * Math.PI * 2
-              const tiltOut = 0.45  // radians outward lean
-              return (
-                <group
-                  key={tIdx}
-                  ref={(el) => { tentacleRefs.current[flatIdx] = el }}
-                  position={[
-                    Math.sin(angle) * 0.18,
-                    0.6,
-                    Math.cos(angle) * 0.18,
-                  ]}
-                  rotation={[tiltOut, 0, 0]}
-                  // spin each tentacle around its own axis to fan out
-                  onUpdate={(self) => { self.rotation.y = angle }}
-                >
-                  <mesh position={[0, 0.35, 0]}>
-                    <cylinderGeometry args={[0.04, 0.02, 0.7, 5]} />
-                    <meshStandardMaterial color={color} roughness={0.6} emissive={color} emissiveIntensity={0.4} />
-                  </mesh>
-                </group>
-              )
-            })}
-          </group>
-        )
-      })}
+      <instancedMesh ref={baseIM} args={[undefined, undefined, ANEMONE_COUNT]}>
+        <cylinderGeometry args={[0.15, 0.25, 0.6, 8]} />
+        <meshStandardMaterial vertexColors roughness={0.7} emissive="#888888" emissiveIntensity={0.3} />
+      </instancedMesh>
+      <instancedMesh ref={tentacleIM} args={[undefined, undefined, ANEMONE_COUNT * TENTACLE_COUNT]} frustumCulled={false}>
+        <cylinderGeometry args={[0.04, 0.02, 0.7, 5]} />
+        <meshStandardMaterial vertexColors roughness={0.6} emissive="#888888" emissiveIntensity={0.4} />
+      </instancedMesh>
     </>
   )
 }
@@ -1194,57 +1219,50 @@ const POLYP_CLUSTER_DATA: PolypClusterData[] = (() => {
   }))
 })()
 
-// 6 tentacles per polyp cluster arranged in a flower pattern
+// 6 tentacles per polyp cluster — pre-compute flat world-space data (120 entries)
 const TENTACLE_ANGLES = Array.from({ length: 6 }, (_, i) => (i / 6) * Math.PI * 2)
+const _TENT_DATA = POLYP_CLUSTER_DATA.flatMap((c, _ci) =>
+  TENTACLE_ANGLES.map((angle) => ({
+    wx: c.x + Math.sin(angle) * 0.18,
+    wz: c.z + Math.cos(angle) * 0.18,
+    angle,
+    phase: c.phase,
+    colorIdx: c.colorIdx,
+  }))
+)
+const _tentCol = new THREE.Color()
 
 function CoralPolyps() {
-  // Flat array: POLYP_COUNT * 6 tentacle refs
-  const tentRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy   = useMemo(() => new THREE.Object3D(), [])
+  const colorInitDone = useRef(false)
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!meshRef.current) return
     const t = clock.getElapsedTime()
-    tentRefs.current.forEach((m, idx) => {
-      if (!m) return
-      const clusterIdx = Math.floor(idx / 6)
-      const cluster    = POLYP_CLUSTER_DATA[clusterIdx]
-      if (!cluster) return
-      m.rotation.x = Math.sin(t * 0.8 + cluster.phase + idx * 0.3) * 0.2
+    if (!colorInitDone.current) {
+      _TENT_DATA.forEach((td, i) => {
+        meshRef.current.setColorAt(i, _tentCol.set(POLYP_COLORS[td.colorIdx]!))
+      })
+      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+      colorInitDone.current = true
+    }
+    _TENT_DATA.forEach((td, i) => {
+      dummy.position.set(td.wx, 0.3, td.wz)
+      dummy.rotation.set(Math.sin(t * 0.8 + td.phase + i * 0.3) * 0.2, td.angle, 0)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {POLYP_CLUSTER_DATA.map((c, ci) => {
-        const color = POLYP_COLORS[c.colorIdx]!
-        return (
-          <group key={ci} position={[c.x, 0, c.z]}>
-            {TENTACLE_ANGLES.map((angle, ti) => {
-              const flatIdx = ci * 6 + ti
-              const outX = Math.sin(angle) * 0.18
-              const outZ = Math.cos(angle) * 0.18
-              return (
-                <mesh
-                  key={ti}
-                  ref={(el) => { tentRefs.current[flatIdx] = el }}
-                  position={[outX, 0.3, outZ]}
-                  rotation={[0.3, angle, 0]}
-                >
-                  <cylinderGeometry args={[0.08, 0.04, 0.6, 5]} />
-                  <meshStandardMaterial
-                    color={color}
-                    roughness={0.6}
-                    emissive={color}
-                    emissiveIntensity={0.3}
-                  />
-                </mesh>
-              )
-            })}
-          </group>
-        )
-      })}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, _TENT_DATA.length]} frustumCulled={false}>
+      <cylinderGeometry args={[0.08, 0.04, 0.6, 5]} />
+      <meshStandardMaterial color="#ffffff" roughness={0.6} emissive="#ddaa88" emissiveIntensity={0.3} />
+    </instancedMesh>
   )
 }
 

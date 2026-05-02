@@ -1,6 +1,6 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame, extend } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import * as THREE from 'three'
 import { canPostfx, detectDeviceTier } from '../../lib/deviceTier'
 const _isLow = detectDeviceTier() === 'low'
@@ -8,6 +8,13 @@ const _GRATE_SPIKE = Array.from({ length: 6 }, () =>
   Array.from({ length: 32 }, () => Math.random() < 0.015)
 )
 let _grateIdx = 0
+
+// Module-level pre-allocated objects for InstancedMesh conversions
+const _ccDummy  = new THREE.Object3D()
+const _ccPart   = new THREE.Object3D()
+const _ccMat    = new THREE.Matrix4()
+const _ccCol    = new THREE.Color()
+
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -256,24 +263,31 @@ function HoloBillboard({ pos, rotY = 0 }: { pos: [number, number, number]; rotY?
 }
 
 // ─── Ground puddle reflections ────────────────────────────────────
+const PUDDLE_DATA: { pos: [number, number, number]; r: number }[] = [
+  { pos: [-18, 0.015, -15],  r: 2.5 },
+  { pos: [20,  0.015, -28],  r: 2.0 },
+  { pos: [-10, 0.015, -50],  r: 3.0 },
+  { pos: [14,  0.015, -60],  r: 2.2 },
+  { pos: [-22, 0.015, -72],  r: 2.8 },
+  { pos: [8,   0.015, -82],  r: 2.0 },
+]
 function GroundPuddles() {
-  const puddles: Array<{ pos: [number, number, number]; r: number }> = [
-    { pos: [-18, 0.015, -15],  r: 2.5 },
-    { pos: [20,  0.015, -28],  r: 2.0 },
-    { pos: [-10, 0.015, -50],  r: 3.0 },
-    { pos: [14,  0.015, -60],  r: 2.2 },
-    { pos: [-22, 0.015, -72],  r: 2.8 },
-    { pos: [8,   0.015, -82],  r: 2.0 },
-  ]
+  const imRef = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    PUDDLE_DATA.forEach(({ pos, r }, i) => {
+      _ccDummy.position.set(pos[0], pos[1], pos[2])
+      _ccDummy.rotation.set(-Math.PI / 2, 0, 0)
+      _ccDummy.scale.setScalar(r)
+      _ccDummy.updateMatrix()
+      imRef.current.setMatrixAt(i, _ccDummy.matrix)
+    })
+    imRef.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
-    <>
-      {puddles.map(({ pos, r }, i) => (
-        <mesh key={i} position={pos} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[r, 24]} />
-          <meshBasicMaterial color="#001122" opacity={0.6} transparent depthWrite={false} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={imRef} args={[undefined, undefined, 6]}>
+      <circleGeometry args={[1, 24]} />
+      <meshBasicMaterial color="#001122" opacity={0.6} transparent depthWrite={false} />
+    </instancedMesh>
   )
 }
 
@@ -716,35 +730,44 @@ const _WIN_FLICKER = Array.from({ length: 12 }, () =>
 )
 
 function WindowPulse() {
-  const refs = useRef<(THREE.Mesh | null)[]>([])
+  const imRef = useRef<THREE.InstancedMesh>(null!)
+  const winOn = useRef<boolean[]>(Array(WINDOW_LIGHTS.length).fill(true))
   const flickerPtr = useRef(0)
   const frameSkip = useRef(0)
+
+  useEffect(() => {
+    WINDOW_LIGHTS.forEach(({ pos, color }, i) => {
+      _ccDummy.position.set(pos[0], pos[1], pos[2])
+      _ccDummy.rotation.set(0, 0, 0)
+      _ccDummy.scale.setScalar(1)
+      _ccDummy.updateMatrix()
+      imRef.current.setMatrixAt(i, _ccDummy.matrix)
+      imRef.current.setColorAt(i, _ccCol.set(color))
+    })
+    imRef.current.instanceMatrix.needsUpdate = true
+    if (imRef.current.instanceColor) imRef.current.instanceColor.needsUpdate = true
+  }, [])
 
   useFrame(() => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const ptr = flickerPtr.current++ % 32
-    refs.current.forEach((mesh, i) => {
-      if (!mesh) return
+    let changed = false
+    WINDOW_LIGHTS.forEach(({ color }, i) => {
       if (_WIN_FLICKER[i % 12]![ptr]) {
-        const mat = mesh.material as THREE.MeshBasicMaterial
-        mat.opacity = mat.opacity > 0.5 ? 0.1 : 0.8
+        winOn.current[i] = !winOn.current[i]
+        const bright = winOn.current[i] ? 1.0 : 0.125
+        imRef.current.setColorAt(i, _ccCol.set(color).multiplyScalar(bright))
+        changed = true
       }
     })
+    if (changed && imRef.current.instanceColor) imRef.current.instanceColor.needsUpdate = true
   })
 
   return (
-    <>
-      {WINDOW_LIGHTS.map((light, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { refs.current[i] = el }}
-          position={light.pos}
-        >
-          <planeGeometry args={[1.2, 0.8]} />
-          <meshBasicMaterial color={light.color} opacity={0.8} transparent />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={imRef} args={[undefined, undefined, WINDOW_LIGHTS.length]}>
+      <planeGeometry args={[1.2, 0.8]} />
+      <meshBasicMaterial vertexColors opacity={0.8} transparent />
+    </instancedMesh>
   )
 }
 
@@ -863,13 +886,46 @@ const TRAFFIC_LIGHT_POSITIONS: [number, number, number][] = [
 ]
 
 function TrafficLights() {
-  // 4 poles × 3 signals each: [poleIndex][signalIndex (0=red,1=yellow,2=green)]
-  const signalRefs = useRef<(THREE.Mesh | null)[][]>(
-    Array.from({ length: 4 }, () => [null, null, null])
-  )
-  const iTimeRef = useRef(0)
-
+  const poleIM    = useRef<THREE.InstancedMesh>(null!)
+  const housingIM = useRef<THREE.InstancedMesh>(null!)
+  const redIM     = useRef<THREE.InstancedMesh>(null!)
+  const yellowIM  = useRef<THREE.InstancedMesh>(null!)
+  const greenIM   = useRef<THREE.InstancedMesh>(null!)
+  const iTimeRef  = useRef(0)
   const frameSkip = useRef(0)
+
+  useEffect(() => {
+    TRAFFIC_LIGHT_POSITIONS.forEach((pos, i) => {
+      // Pole: pos + (0,2,0)
+      _ccDummy.position.set(pos[0], pos[1] + 2, pos[2])
+      _ccDummy.rotation.set(0, 0, 0)
+      _ccDummy.scale.setScalar(1)
+      _ccDummy.updateMatrix()
+      poleIM.current.setMatrixAt(i, _ccDummy.matrix)
+      // Housing: pos + (0,4.7,0)
+      _ccDummy.position.set(pos[0], pos[1] + 4.7, pos[2])
+      _ccDummy.updateMatrix()
+      housingIM.current.setMatrixAt(i, _ccDummy.matrix)
+      // Red: pos + (0,5.5,0.18)
+      _ccDummy.position.set(pos[0], pos[1] + 5.5, pos[2] + 0.18)
+      _ccDummy.updateMatrix()
+      redIM.current.setMatrixAt(i, _ccDummy.matrix)
+      // Yellow: pos + (0,5.0,0.18)
+      _ccDummy.position.set(pos[0], pos[1] + 5.0, pos[2] + 0.18)
+      _ccDummy.updateMatrix()
+      yellowIM.current.setMatrixAt(i, _ccDummy.matrix)
+      // Green: pos + (0,4.5,0.18)
+      _ccDummy.position.set(pos[0], pos[1] + 4.5, pos[2] + 0.18)
+      _ccDummy.updateMatrix()
+      greenIM.current.setMatrixAt(i, _ccDummy.matrix)
+    })
+    poleIM.current.instanceMatrix.needsUpdate    = true
+    housingIM.current.instanceMatrix.needsUpdate = true
+    redIM.current.instanceMatrix.needsUpdate     = true
+    yellowIM.current.instanceMatrix.needsUpdate  = true
+    greenIM.current.instanceMatrix.needsUpdate   = true
+  }, [])
+
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const step = _isLow ? dt * 2 : dt
@@ -878,84 +934,33 @@ function TrafficLights() {
     const greenActive  = t < 2.5
     const yellowActive = t >= 2.5 && t < 3.0
     const redActive    = t >= 3.0
-
-    for (let p = 0; p < 4; p++) {
-      const sigs = signalRefs.current[p]
-      if (!sigs) continue
-
-      // index 0 = red, 1 = yellow, 2 = green
-      const mesh0 = sigs[0]
-      const mesh1 = sigs[1]
-      const mesh2 = sigs[2]
-
-      if (mesh0) {
-        const mat = mesh0.material as THREE.MeshStandardMaterial
-        mat.emissiveIntensity = redActive ? 2.0 : 0.1
-      }
-      if (mesh1) {
-        const mat = mesh1.material as THREE.MeshStandardMaterial
-        mat.emissiveIntensity = yellowActive ? 2.0 : 0.1
-      }
-      if (mesh2) {
-        const mat = mesh2.material as THREE.MeshStandardMaterial
-        mat.emissiveIntensity = greenActive ? 2.0 : 0.1
-      }
-    }
+    ;(redIM.current.material    as THREE.MeshStandardMaterial).emissiveIntensity = redActive    ? 2.0 : 0.1
+    ;(yellowIM.current.material as THREE.MeshStandardMaterial).emissiveIntensity = yellowActive ? 2.0 : 0.1
+    ;(greenIM.current.material  as THREE.MeshStandardMaterial).emissiveIntensity = greenActive  ? 2.0 : 0.1
   })
 
   return (
     <>
-      {TRAFFIC_LIGHT_POSITIONS.map((pos, pi) => (
-        <group key={pi} position={pos}>
-          {/* Pole */}
-          <mesh position={[0, 2, 0]}>
-            <cylinderGeometry args={[0.08, 0.08, 4, 6]} />
-            <meshStandardMaterial color="#333333" roughness={0.9} />
-          </mesh>
-
-          {/* Housing box */}
-          <mesh position={[0, 4.7, 0]}>
-            <boxGeometry args={[0.35, 1.4, 0.35]} />
-            <meshStandardMaterial color="#222222" roughness={0.8} />
-          </mesh>
-
-          {/* Red signal (top) */}
-          <mesh
-            position={[0, 5.5, 0.18]}
-            ref={(el) => {
-              if (!signalRefs.current[pi]) signalRefs.current[pi] = [null, null, null]
-              signalRefs.current[pi]![0] = el
-            }}
-          >
-            <sphereGeometry args={[0.12, 5, 4]} />
-            <meshStandardMaterial color="#ff2200" emissive="#ff2200" emissiveIntensity={0.1} />
-          </mesh>
-
-          {/* Yellow signal (mid) */}
-          <mesh
-            position={[0, 5.0, 0.18]}
-            ref={(el) => {
-              if (!signalRefs.current[pi]) signalRefs.current[pi] = [null, null, null]
-              signalRefs.current[pi]![1] = el
-            }}
-          >
-            <sphereGeometry args={[0.12, 5, 4]} />
-            <meshStandardMaterial color="#ffcc00" emissive="#ffcc00" emissiveIntensity={0.1} />
-          </mesh>
-
-          {/* Green signal (bottom) */}
-          <mesh
-            position={[0, 4.5, 0.18]}
-            ref={(el) => {
-              if (!signalRefs.current[pi]) signalRefs.current[pi] = [null, null, null]
-              signalRefs.current[pi]![2] = el
-            }}
-          >
-            <sphereGeometry args={[0.12, 5, 4]} />
-            <meshStandardMaterial color="#00cc44" emissive="#00cc44" emissiveIntensity={2.0} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={poleIM} args={[undefined, undefined, 4]}>
+        <cylinderGeometry args={[0.08, 0.08, 4, 6]} />
+        <meshStandardMaterial color="#333333" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={housingIM} args={[undefined, undefined, 4]}>
+        <boxGeometry args={[0.35, 1.4, 0.35]} />
+        <meshStandardMaterial color="#222222" roughness={0.8} />
+      </instancedMesh>
+      <instancedMesh ref={redIM} args={[undefined, undefined, 4]}>
+        <sphereGeometry args={[0.12, 5, 4]} />
+        <meshStandardMaterial color="#ff2200" emissive="#ff2200" emissiveIntensity={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={yellowIM} args={[undefined, undefined, 4]}>
+        <sphereGeometry args={[0.12, 5, 4]} />
+        <meshStandardMaterial color="#ffcc00" emissive="#ffcc00" emissiveIntensity={0.1} />
+      </instancedMesh>
+      <instancedMesh ref={greenIM} args={[undefined, undefined, 4]}>
+        <sphereGeometry args={[0.12, 5, 4]} />
+        <meshStandardMaterial color="#00cc44" emissive="#00cc44" emissiveIntensity={2.0} />
+      </instancedMesh>
     </>
   )
 }
@@ -1005,52 +1010,72 @@ const NEON_SIGN_DATA: {
 const STRIP_COLORS = ['#ff0044', '#00ffcc', '#ff8800', '#0088ff'] as const
 
 function NeonSigns() {
-  const strip1Refs = useRef<(THREE.Mesh | null)[]>([])
-  const strip2Refs = useRef<(THREE.Mesh | null)[]>([])
-
+  const boardIM  = useRef<THREE.InstancedMesh>(null!)
+  const strip1IM = useRef<THREE.InstancedMesh>(null!)
+  const strip2IM = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
+
+  useEffect(() => {
+    NEON_SIGN_DATA.forEach((sign, i) => {
+      _ccDummy.position.set(sign.pos[0], sign.pos[1], sign.pos[2])
+      _ccDummy.rotation.set(0, sign.rotY, 0)
+      _ccDummy.scale.setScalar(1)
+      _ccDummy.updateMatrix()
+      boardIM.current.setMatrixAt(i, _ccDummy.matrix)
+
+      // strip1: child offset (0, 0.35, 0.06)
+      _ccPart.position.set(0, 0.35, 0.06)
+      _ccPart.rotation.set(0, 0, 0)
+      _ccPart.scale.setScalar(1)
+      _ccPart.updateMatrix()
+      _ccMat.multiplyMatrices(_ccDummy.matrix, _ccPart.matrix)
+      strip1IM.current.setMatrixAt(i, _ccMat)
+
+      // strip2: child offset (0, -0.35, 0.06)
+      _ccPart.position.set(0, -0.35, 0.06)
+      _ccPart.updateMatrix()
+      _ccMat.multiplyMatrices(_ccDummy.matrix, _ccPart.matrix)
+      strip2IM.current.setMatrixAt(i, _ccMat)
+
+      // init colors at full brightness
+      const col = STRIP_COLORS[i % STRIP_COLORS.length]!
+      strip1IM.current.setColorAt(i, _ccCol.set(col))
+      strip2IM.current.setColorAt(i, _ccCol.set(sign.color))
+    })
+    boardIM.current.instanceMatrix.needsUpdate  = true
+    strip1IM.current.instanceMatrix.needsUpdate = true
+    strip2IM.current.instanceMatrix.needsUpdate = true
+    if (strip1IM.current.instanceColor) strip1IM.current.instanceColor.needsUpdate = true
+    if (strip2IM.current.instanceColor) strip2IM.current.instanceColor.needsUpdate = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     NEON_SIGN_DATA.forEach((sign, i) => {
-      const intensity = 2 + Math.sin(t * 2 + sign.phase) * 1.5
-      const m1 = strip1Refs.current[i]
-      const m2 = strip2Refs.current[i]
-      if (m1) (m1.material as THREE.MeshStandardMaterial).emissiveIntensity = intensity
-      if (m2) (m2.material as THREE.MeshStandardMaterial).emissiveIntensity = intensity
+      const bright = (2 + Math.sin(t * 2 + sign.phase) * 1.5) / 3.5
+      const col = STRIP_COLORS[i % STRIP_COLORS.length]!
+      strip1IM.current.setColorAt(i, _ccCol.set(col).multiplyScalar(bright))
+      strip2IM.current.setColorAt(i, _ccCol.set(sign.color).multiplyScalar(bright))
     })
+    if (strip1IM.current.instanceColor) strip1IM.current.instanceColor.needsUpdate = true
+    if (strip2IM.current.instanceColor) strip2IM.current.instanceColor.needsUpdate = true
   })
 
   return (
     <>
-      {NEON_SIGN_DATA.map((sign, i) => {
-        const col = STRIP_COLORS[i % STRIP_COLORS.length]!
-        return (
-          <group key={i} position={sign.pos} rotation={[0, sign.rotY, 0]}>
-            {/* Sign board */}
-            <mesh>
-              <boxGeometry args={[3, 1.2, 0.1]} />
-              <meshStandardMaterial color="#111111" roughness={0.8} />
-            </mesh>
-            {/* Top glow strip */}
-            <mesh
-              position={[0, 0.35, 0.06]}
-              ref={(el) => { strip1Refs.current[i] = el }}
-            >
-              <boxGeometry args={[2.8, 0.15, 0.12]} />
-              <meshStandardMaterial color={col} emissive={col} emissiveIntensity={3} />
-            </mesh>
-            {/* Bottom glow strip */}
-            <mesh
-              position={[0, -0.35, 0.06]}
-              ref={(el) => { strip2Refs.current[i] = el }}
-            >
-              <boxGeometry args={[2.8, 0.15, 0.12]} />
-              <meshStandardMaterial color={sign.color} emissive={sign.color} emissiveIntensity={3} />
-            </mesh>
-          </group>
-        )
-      })}
+      <instancedMesh ref={boardIM} args={[undefined, undefined, 12]}>
+        <boxGeometry args={[3, 1.2, 0.1]} />
+        <meshStandardMaterial color="#111111" roughness={0.8} />
+      </instancedMesh>
+      <instancedMesh ref={strip1IM} args={[undefined, undefined, 12]}>
+        <boxGeometry args={[2.8, 0.15, 0.12]} />
+        <meshBasicMaterial vertexColors />
+      </instancedMesh>
+      <instancedMesh ref={strip2IM} args={[undefined, undefined, 12]}>
+        <boxGeometry args={[2.8, 0.15, 0.12]} />
+        <meshBasicMaterial vertexColors />
+      </instancedMesh>
     </>
   )
 }

@@ -4,7 +4,12 @@ import { useRef, useMemo } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
-const __isLow = detectDeviceTier() === 'low'
+const _isLow = detectDeviceTier() === 'low'
+
+const _vGroup = new THREE.Object3D()
+const _vPart  = new THREE.Object3D()
+const _vMat   = new THREE.Matrix4()
+
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -306,44 +311,42 @@ function SandstormParticles() {
 const VORTEX_COUNT = 60
 
 function SandVortex() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
   const frameSkip = useRef(0)
-  // Pre-compute per-particle constants: base radius, angular offset, vertical offset, speed
   const vortexData = useMemo(() =>
     Array.from({ length: VORTEX_COUNT }, (_, i) => ({
-      baseRadius:    0.5 + (i / VORTEX_COUNT) * 5,   // 0.5 → 5.5 spiral radius
-      angleOffset:   (i / VORTEX_COUNT) * Math.PI * 4, // two full turns
-      heightOffset:  (i / VORTEX_COUNT) * 3,           // rises 0 → 3 units
-      orbitSpeed:    1.2 + (i / VORTEX_COUNT) * 0.8,  // inner faster
-      bobPhase:      Math.random() * Math.PI * 2,
+      baseRadius:  0.5 + (i / VORTEX_COUNT) * 5,
+      angleOffset: (i / VORTEX_COUNT) * Math.PI * 4,
+      heightOffset:(i / VORTEX_COUNT) * 3,
+      orbitSpeed:  1.2 + (i / VORTEX_COUNT) * 0.8,
+      bobPhase:    Math.random() * Math.PI * 2,
     })), [])
 
-  const meshRefs = useRef<THREE.Mesh[]>([])
-
   useFrame(({ clock }) => {
+    if (!meshRef.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < VORTEX_COUNT; i++) {
-      const m = meshRefs.current[i]
-      if (!m) continue
       const d = vortexData[i]!
       const angle = d.angleOffset + t * d.orbitSpeed
-      m.position.set(
+      dummy.position.set(
         Math.cos(angle) * d.baseRadius,
         d.heightOffset + Math.sin(t * 2 + d.bobPhase) * 0.25,
         Math.sin(angle) * d.baseRadius,
       )
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     }
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    // Positioned above the treasure vault entrance
     <group position={[0, 4, -10]}>
-      {vortexData.map((d, i) => (
-        <mesh key={i} ref={el => { if (el) meshRefs.current[i] = el }}>
-          <sphereGeometry args={[0.07, 4, 4]} />
-          <meshBasicMaterial color="#d4a855" transparent opacity={0.6} />
-        </mesh>
-      ))}
+      <instancedMesh ref={meshRef} args={[undefined, undefined, VORTEX_COUNT]} frustumCulled={false}>
+        <sphereGeometry args={[0.07, 4, 4]} />
+        <meshBasicMaterial color="#d4a855" transparent opacity={0.6} />
+      </instancedMesh>
     </group>
   )
 }
@@ -440,6 +443,12 @@ function SacredGeometryFloor() {
 }
 
 // ─── Heat Haze ───────────────────────────────────────────────────────────────
+const _MIRAGE_XZ: [number, number][] = [
+  [80, 0], [-80, 0], [0, 80], [0, -80],
+  [60, 60], [-60, 60], [60, -60], [-60, -60],
+]
+const _mirageDummy = new THREE.Object3D()
+
 function HeatHaze() {
   return (
     <>
@@ -448,16 +457,24 @@ function HeatHaze() {
         <planeGeometry args={[300, 300]} />
         <meshBasicMaterial color="#ff8800" transparent opacity={0.05} depthWrite={false} />
       </mesh>
-      {/* Mirage shimmer at distance */}
-      {[
-        [80,  0, 0], [-80, 0, 0], [0, 0, 80], [0, 0, -80],
-        [60, 0, 60], [-60, 0, 60], [60, 0, -60], [-60, 0, -60],
-      ].map(([x, , z], i) => (
-        <mesh key={i} position={[x!, 0.3, z!]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
-          <planeGeometry args={[20, 20]} />
-          <meshBasicMaterial color="#ffcc44" transparent opacity={0.04} depthWrite={false} />
-        </mesh>
-      ))}
+      {/* Mirage shimmer — 8 instances → single InstancedMesh */}
+      <instancedMesh
+        ref={(el) => {
+          if (!el) return
+          _mirageDummy.rotation.set(-Math.PI / 2, 0, 0)
+          _MIRAGE_XZ.forEach(([x, z], i) => {
+            _mirageDummy.position.set(x, 0.3, z)
+            _mirageDummy.updateMatrix()
+            el.setMatrixAt(i, _mirageDummy.matrix)
+          })
+          el.instanceMatrix.needsUpdate = true
+        }}
+        args={[undefined, undefined, 8]}
+        renderOrder={2}
+      >
+        <planeGeometry args={[20, 20]} />
+        <meshBasicMaterial color="#ffcc44" transparent opacity={0.04} depthWrite={false} />
+      </instancedMesh>
     </>
   )
 }
@@ -751,49 +768,48 @@ const VULTURE_CONFIGS = [
   { radius: 50, speed: 0.13, startAngle: Math.PI * 1.33, height: 45 },
 ] as const
 
+// 9 meshes → 2 IMs (bodyIM×3, wingIM×6 left+right)
 function VultureGroup() {
-  const refs = useRef<THREE.Group[]>([])
+  const bodyIM = useRef<THREE.InstancedMesh>(null!)
+  const wingIM = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
 
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
     for (let i = 0; i < VULTURE_CONFIGS.length; i++) {
-      const g = refs.current[i]
-      if (!g) continue
       const cfg = VULTURE_CONFIGS[i]!
       const angle = cfg.startAngle + t * cfg.speed
-      g.position.set(
-        Math.cos(angle) * cfg.radius,
-        cfg.height,
-        Math.sin(angle) * cfg.radius,
-      )
-      // Face direction of travel
-      g.rotation.y = -angle - Math.PI * 0.5
+      // Body with non-uniform scale baked into matrix
+      _vGroup.position.set(Math.cos(angle) * cfg.radius, cfg.height, Math.sin(angle) * cfg.radius)
+      _vGroup.rotation.set(0, -angle - Math.PI * 0.5, 0)
+      _vGroup.scale.set(2, 0.5, 1)
+      _vGroup.updateMatrix()
+      bodyIM.current.setMatrixAt(i, _vGroup.matrix)
+      // Wings: reuse position/rotation with uniform scale
+      _vGroup.scale.setScalar(1)
+      _vGroup.updateMatrix()
+      _vPart.position.set(-1.5, 0, 0); _vPart.rotation.set(0, 0, 0); _vPart.scale.setScalar(1); _vPart.updateMatrix()
+      _vMat.multiplyMatrices(_vGroup.matrix, _vPart.matrix)
+      wingIM.current.setMatrixAt(i, _vMat)
+      _vPart.position.set(1.5, 0, 0); _vPart.updateMatrix()
+      _vMat.multiplyMatrices(_vGroup.matrix, _vPart.matrix)
+      wingIM.current.setMatrixAt(VULTURE_CONFIGS.length + i, _vMat)
     }
+    bodyIM.current.instanceMatrix.needsUpdate = true
+    wingIM.current.instanceMatrix.needsUpdate = true
   })
 
   return (
     <>
-      {VULTURE_CONFIGS.map((_, i) => (
-        <group key={i} ref={el => { if (el) refs.current[i] = el }}>
-          {/* Body — ellipsoid */}
-          <mesh scale={[2, 0.5, 1]}>
-            <sphereGeometry args={[1, 8, 6]} />
-            <meshStandardMaterial color="#333333" roughness={0.9} />
-          </mesh>
-          {/* Left wing */}
-          <mesh position={[-1.5, 0, 0]}>
-            <boxGeometry args={[3, 0.1, 0.8]} />
-            <meshStandardMaterial color="#222222" roughness={0.9} />
-          </mesh>
-          {/* Right wing */}
-          <mesh position={[1.5, 0, 0]}>
-            <boxGeometry args={[3, 0.1, 0.8]} />
-            <meshStandardMaterial color="#222222" roughness={0.9} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, VULTURE_CONFIGS.length]} castShadow>
+        <sphereGeometry args={[1, 8, 6]} />
+        <meshStandardMaterial color="#333333" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={wingIM} args={[undefined, undefined, VULTURE_CONFIGS.length * 2]} castShadow>
+        <boxGeometry args={[3, 0.1, 0.8]} />
+        <meshStandardMaterial color="#222222" roughness={0.9} />
+      </instancedMesh>
     </>
   )
 }
@@ -1189,6 +1205,7 @@ function TombEntrance() {
 // Glinting treasure visible just inside the tomb entrance.
 // Positioned relative to TombEntrance group — inside tunnel at z offset.
 function TombTreasure() {
+  const coinDummy = useMemo(() => new THREE.Object3D(), [])
   // 20 gold coins scattered in pile
   const coins = useMemo(() =>
     Array.from({ length: 20 }, (_, i) => ({
@@ -1218,19 +1235,23 @@ function TombTreasure() {
     // Tomb entrance group origin is [60, -4, -60]; tunnel opens in -Z direction.
     // Offset -Z places treasure inside the tunnel.
     <group position={[60, -2, -65]}>
-      {/* Gold coin pile */}
-      {coins.map((c, i) => (
-        <mesh key={i} position={[c.x, c.y, c.z]} rotation={[Math.PI / 2, c.rotY, 0]}>
-          <cylinderGeometry args={[0.2, 0.2, 0.05, 10]} />
-          <meshStandardMaterial
-            color="#ffcc00"
-            emissive="#aa8800"
-            emissiveIntensity={2}
-            metalness={0.9}
-            roughness={0.2}
-          />
-        </mesh>
-      ))}
+      {/* Gold coin pile — single InstancedMesh */}
+      <instancedMesh
+        ref={(el) => {
+          if (!el) return
+          coins.forEach(({ x, y, z, rotY }, i) => {
+            coinDummy.position.set(x, y, z)
+            coinDummy.rotation.set(Math.PI / 2, rotY, 0)
+            coinDummy.updateMatrix()
+            el.setMatrixAt(i, coinDummy.matrix)
+          })
+          el.instanceMatrix.needsUpdate = true
+        }}
+        args={[undefined, undefined, 20]}
+      >
+        <cylinderGeometry args={[0.2, 0.2, 0.05, 10]} />
+        <meshStandardMaterial color="#ffcc00" emissive="#aa8800" emissiveIntensity={2} metalness={0.9} roughness={0.2} />
+      </instancedMesh>
 
       {/* Gold urns: cylinder body + sphere cap */}
       {urns.map((u, i) => (

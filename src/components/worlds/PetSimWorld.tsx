@@ -226,11 +226,17 @@ function SkySparkles() {
     }))
   , [])
   const t = useRef(0)
+  const colorInitDone = useRef(false)
 
   useFrame((_, dt) => {
     const step = _isLow ? dt * 2 : dt
     if (!meshRef.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!colorInitDone.current) {
+      data.forEach((d, i) => { meshRef.current.setColorAt(i, d.color) })
+      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+      colorInitDone.current = true
+    }
     t.current += step
     data.forEach((d, i) => {
       const s = Math.abs(Math.sin(t.current * d.speed + d.phase))
@@ -239,10 +245,8 @@ function SkySparkles() {
       dummy.scale.setScalar(sc)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
-      meshRef.current.setColorAt(i, d.color)
     })
     meshRef.current.instanceMatrix.needsUpdate = true
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
@@ -550,45 +554,43 @@ function CrystalSparkle() {
       y: 0.5 + Math.random() * 7,
       z: -91 - Math.random() * 28,
       speed: 0.6 + Math.random() * 0.9,
-      driftX: (Math.random() - 0.5) * 0.4,
       driftPhase: Math.random() * Math.PI * 2,
       driftFreq: 0.5 + Math.random() * 0.8,
       scalePhase: Math.random() * Math.PI * 2,
       scaleFreq: 1.0 + Math.random() * 2.0,
-      color: ['#cc44ff', '#4488ff', '#ff44cc', '#44ffcc'][Math.floor(Math.random() * 4)]!,
+      color: new THREE.Color(['#cc44ff', '#4488ff', '#ff44cc', '#44ffcc'][Math.floor(Math.random() * 4)]!),
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy   = useMemo(() => new THREE.Object3D(), [])
+  const tmpCol  = useMemo(() => new THREE.Color(), [])
   const t = useRef(0)
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!meshRef.current) return
     const step = _isLow ? dt * 2 : dt
     t.current += step
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
-      m.position.y += d.speed * step
-      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.8
+    data.forEach((d, i) => {
+      d.y += d.speed * step
+      if (d.y > 8) { d.y = 0.5; d.ox = (Math.random() - 0.5) * 32 }
+      const x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 0.8
       const s = 0.5 + Math.abs(Math.sin(t.current * d.scaleFreq + d.scalePhase)) * 0.5
-      m.scale.setScalar(s)
-      ;(m.material as THREE.MeshBasicMaterial).opacity = s * 0.85
-      if (m.position.y > 8) {
-        m.position.y = 0.5
-        d.ox = (Math.random() - 0.5) * 32
-      }
+      dummy.position.set(x, d.y, d.z)
+      dummy.scale.setScalar(s)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      meshRef.current.setColorAt(i, tmpCol.copy(d.color).multiplyScalar(s * 0.85))
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
-          <octahedronGeometry args={[0.07, 0]} />
-          <meshBasicMaterial color={d.color} transparent opacity={0.85} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
+      <octahedronGeometry args={[0.07, 0]} />
+      <meshBasicMaterial color="#ffffff" toneMapped={false} transparent depthWrite={false} />
+    </instancedMesh>
   )
 }
 
@@ -607,36 +609,41 @@ function CandySparkle() {
       scaleFreq: 1.5 + Math.random() * 2.5,
       driftPhase: Math.random() * Math.PI * 2,
       driftFreq: 0.3 + Math.random() * 0.4,
-      color: ['#ff88cc', '#ffcc44', '#88ffcc', '#ff44aa', '#44ccff', '#ffaa44'][Math.floor(Math.random() * 6)]!,
+      color: new THREE.Color(['#ff88cc', '#ffcc44', '#88ffcc', '#ff44aa', '#44ccff', '#ffaa44'][Math.floor(Math.random() * 6)]!),
     }))
   , [])
-  const refs = useRef<(THREE.Mesh | null)[]>(Array(count).fill(null))
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy   = useMemo(() => new THREE.Object3D(), [])
+  const tmpCol  = useMemo(() => new THREE.Color(), [])
   const t = useRef(0)
 
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!meshRef.current) return
     const step = _isLow ? dt * 2 : dt
     t.current += step
-    refs.current.forEach((m, i) => {
-      if (!m) return
-      const d = data[i]!
+    data.forEach((d, i) => {
       const s = 0.3 + Math.abs(Math.sin(t.current * d.scaleFreq + d.scalePhase)) * 0.7
-      m.scale.setScalar(s)
-      ;(m.material as THREE.MeshBasicMaterial).opacity = s * 0.9
-      m.position.x = camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 1.5
-      m.rotation.y = t.current * 1.2
+      dummy.position.set(
+        camera.position.x + d.ox + Math.sin(t.current * d.driftFreq + d.driftPhase) * 1.5,
+        d.y,
+        d.z,
+      )
+      dummy.rotation.y = t.current * 1.2
+      dummy.scale.setScalar(s)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      meshRef.current.setColorAt(i, tmpCol.copy(d.color).multiplyScalar(s * 0.9))
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.ox, d.y, d.z]}>
-          <octahedronGeometry args={[0.15, 0]} />
-          <meshBasicMaterial color={d.color} transparent opacity={0.9} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
+      <octahedronGeometry args={[0.15, 0]} />
+      <meshBasicMaterial color="#ffffff" toneMapped={false} transparent depthWrite={false} />
+    </instancedMesh>
   )
 }
 

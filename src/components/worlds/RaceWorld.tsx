@@ -597,54 +597,48 @@ function StartGantry() {
   )
 }
 
-// ─── Track surface ───────────────────────────────────────────────────────────
-// Straight sections + arc segments
-function TrackSurface() {
-  // Straight 1: z=50, x from -80 to 80
-  // Straight 2: z=-50, x from -80 to 80
-  // Turn 1 NE: right side x=80, z from 50 to -50
-  // Turn 2 SW: left side x=-80, z from -50 to 50
+// ─── Track arc segments: 8 NE + 8 SW, constant geometry, InstancedMesh ───────
+const _ARC_R = 50
+const _ARC_SEG_LEN = 2 * _ARC_R * Math.sin(Math.PI / 16) + 14
+const _ARC_TRANSFORMS = (() => {
+  const out: { x: number; z: number; ay: number }[] = []
+  for (let i = 0; i < 8; i++) {
+    const amid = Math.PI / 2 - (Math.PI * (2 * i + 1)) / 16
+    out.push({ x: 80 + _ARC_R * Math.cos(amid), z: _ARC_R * Math.sin(amid), ay: -amid + Math.PI / 2 })
+  }
+  for (let i = 0; i < 8; i++) {
+    const amid = -Math.PI / 2 - (Math.PI * (2 * i + 1)) / 16
+    out.push({ x: -80 + _ARC_R * Math.cos(amid), z: _ARC_R * Math.sin(amid), ay: -amid + Math.PI / 2 })
+  }
+  return out
+})()
 
+function TrackArcSegments() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!meshRef.current) return
+    _ARC_TRANSFORMS.forEach(({ x, z, ay }, i) => {
+      dummy.position.set(x, 0, z)
+      dummy.rotation.set(0, ay, 0)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 16]} receiveShadow>
+      <boxGeometry args={[14, 0.3, _ARC_SEG_LEN]} />
+      <meshStandardMaterial color="#1a1a24" roughness={0.85} metalness={0.3} />
+    </instancedMesh>
+  )
+}
+
+// ─── Track surface ───────────────────────────────────────────────────────────
+function TrackSurface() {
   const trackMat = (
     <meshStandardMaterial color="#1a1a24" roughness={0.85} metalness={0.3} />
   )
-
-  // Arc segments for turns (8 slices each)
-  const arcSegments: JSX.Element[] = []
-  const NEcx = 80, NEcz = 0, SWcx = -80, SWcz = 0
-  const R = 50
-
-  for (let i = 0; i < 8; i++) {
-    const a0 = Math.PI / 2 - (Math.PI * i) / 8
-    const a1 = Math.PI / 2 - (Math.PI * (i + 1)) / 8
-    const amid = (a0 + a1) / 2
-    const midX = NEcx + R * Math.cos(amid)
-    const midZ = NEcz + R * Math.sin(amid)
-    const segLen = 2 * R * Math.sin(Math.PI / 16) + 14
-    const angle = -amid + Math.PI / 2
-    arcSegments.push(
-      <mesh key={`ne${i}`} position={[midX, 0, midZ]} rotation={[0, angle, 0]} receiveShadow>
-        <boxGeometry args={[14, 0.3, segLen]} />
-        {trackMat}
-      </mesh>
-    )
-  }
-  for (let i = 0; i < 8; i++) {
-    const a0 = -Math.PI / 2 - (Math.PI * i) / 8
-    const a1 = -Math.PI / 2 - (Math.PI * (i + 1)) / 8
-    const amid = (a0 + a1) / 2
-    const midX = SWcx + R * Math.cos(amid)
-    const midZ = SWcz + R * Math.sin(amid)
-    const segLen = 2 * R * Math.sin(Math.PI / 16) + 14
-    const angle = -amid + Math.PI / 2
-    arcSegments.push(
-      <mesh key={`sw${i}`} position={[midX, 0, midZ]} rotation={[0, angle, 0]} receiveShadow>
-        <boxGeometry args={[14, 0.3, segLen]} />
-        {trackMat}
-      </mesh>
-    )
-  }
-
   return (
     <group>
       {/* Straight 1 — START */}
@@ -657,8 +651,7 @@ function TrackSurface() {
         <boxGeometry args={[160, 0.3, 14]} />
         {trackMat}
       </mesh>
-      {/* Arc segments */}
-      {arcSegments}
+      <TrackArcSegments />
     </group>
   )
 }
@@ -808,27 +801,29 @@ function PitLane() {
 }
 
 // ─── Center line dashes ──────────────────────────────────────────────────────
+// 20 dashes × 2 straights = 40 instances → single InstancedMesh draw call
 function CenterDashes() {
-  const dashes: JSX.Element[] = []
-  // Straight 1
-  for (let x = -76; x <= 76; x += 8) {
-    dashes.push(
-      <mesh key={`s1${x}`} position={[x, 0.2, 50]} rotation={[0, Math.PI / 2, 0]}>
-        <boxGeometry args={[0.2, 0.05, 3]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} />
-      </mesh>
-    )
-  }
-  // Straight 2
-  for (let x = -76; x <= 76; x += 8) {
-    dashes.push(
-      <mesh key={`s2${x}`} position={[x, 0.2, -50]} rotation={[0, Math.PI / 2, 0]}>
-        <boxGeometry args={[0.2, 0.05, 3]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} />
-      </mesh>
-    )
-  }
-  return <group>{dashes}</group>
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!meshRef.current) return
+    let idx = 0
+    dummy.rotation.set(0, Math.PI / 2, 0)
+    for (const z of [50, -50]) {
+      for (let x = -76; x <= 76; x += 8) {
+        dummy.position.set(x, 0.2, z)
+        dummy.updateMatrix()
+        meshRef.current.setMatrixAt(idx++, dummy.matrix)
+      }
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 40]}>
+      <boxGeometry args={[0.2, 0.05, 3]} />
+      <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.5} />
+    </instancedMesh>
+  )
 }
 
 // ─── Kerb stripes at turn entries ────────────────────────────────────────────
@@ -1401,21 +1396,36 @@ const RIPPLE_DEFS: RippleDef[] = Array.from({ length: 12 }, (_, i) => ({
   speed: 0.6 + Math.random() * 0.4,
 }))
 
+const _wtDummy = new THREE.Object3D()
+_wtDummy.rotation.x = -Math.PI / 2
+
 function WetTrack() {
-  const rippleRefs = useRef<(THREE.Mesh | null)[]>([])
-  const ringRadii = useRef<number[]>(RIPPLE_DEFS.map((r) => (r.phase / (Math.PI * 2)) * 4))
+  const rippleIM0 = useRef<THREE.InstancedMesh>(null!)
+  const rippleIM1 = useRef<THREE.InstancedMesh>(null!)
+  const rippleIM2 = useRef<THREE.InstancedMesh>(null!)
+  const ringRadii = useRef<Float32Array>(
+    Float32Array.from(RIPPLE_DEFS.map((r) => (r.phase / (Math.PI * 2)) * 4))
+  )
 
   const frameSkip = useRef(0)
   useFrame((_s, delta) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    const ims = [rippleIM0.current, rippleIM1.current, rippleIM2.current]
     for (let i = 0; i < RIPPLE_DEFS.length; i++) {
-      const mesh = rippleRefs.current[i]
-      if (!mesh) continue
+      const im = ims[i % 3]
+      if (!im) continue
       ringRadii.current[i]! += delta * RIPPLE_DEFS[i]!.speed
       if (ringRadii.current[i]! > 4) ringRadii.current[i] = 0
       const r = ringRadii.current[i]!
-      mesh.scale.set(r === 0 ? 0.001 : r, r === 0 ? 0.001 : r, 1)
+      const subIdx = Math.floor(i / 3)
+      _wtDummy.position.set(RIPPLE_DEFS[i]!.x, 0.03, RIPPLE_DEFS[i]!.z)
+      _wtDummy.scale.set(r < 0.001 ? 0.001 : r, r < 0.001 ? 0.001 : r, 1)
+      _wtDummy.updateMatrix()
+      im.setMatrixAt(subIdx, _wtDummy.matrix)
     }
+    if (rippleIM0.current) rippleIM0.current.instanceMatrix.needsUpdate = true
+    if (rippleIM1.current) rippleIM1.current.instanceMatrix.needsUpdate = true
+    if (rippleIM2.current) rippleIM2.current.instanceMatrix.needsUpdate = true
   })
 
   return (
@@ -1432,25 +1442,19 @@ function WetTrack() {
           depthWrite={false}
         />
       </mesh>
-      {/* Ripple rings */}
-      {RIPPLE_DEFS.map((rd, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { rippleRefs.current[i] = el }}
-          rotation={[-Math.PI / 2, 0, 0]}
-          position={[rd.x, 0.03, rd.z]}
-        >
-          <torusGeometry args={[1, 0.05 + (i % 3) * 0.05, 6, 32]} />
-          <meshStandardMaterial
-            color="#4466aa"
-            emissive="#4466aa"
-            emissiveIntensity={0.5}
-            transparent
-            opacity={0.3}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
+      {/* Ripple rings — 3 InstancedMeshes by tube size (i%3: 0.05/0.10/0.15), 4 instances each */}
+      <instancedMesh ref={rippleIM0} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <torusGeometry args={[1, 0.05, 6, 32]} />
+        <meshStandardMaterial color="#4466aa" emissive="#4466aa" emissiveIntensity={0.5} transparent opacity={0.3} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={rippleIM1} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <torusGeometry args={[1, 0.10, 6, 32]} />
+        <meshStandardMaterial color="#4466aa" emissive="#4466aa" emissiveIntensity={0.5} transparent opacity={0.3} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={rippleIM2} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <torusGeometry args={[1, 0.15, 6, 32]} />
+        <meshStandardMaterial color="#4466aa" emissive="#4466aa" emissiveIntensity={0.5} transparent opacity={0.3} depthWrite={false} />
+      </instancedMesh>
     </group>
   )
 }
@@ -1475,7 +1479,8 @@ const SPRAY_POSITIONS: [number, number, number][] = [
 const SPRAY_PER_CLUSTER = 20
 
 function SprayCluster({ origin }: { origin: [number, number, number] }) {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
 
   const particles = useMemo<SprayParticle[]>(() =>
     Array.from({ length: SPRAY_PER_CLUSTER }, () => ({
@@ -1490,11 +1495,10 @@ function SprayCluster({ origin }: { origin: [number, number, number] }) {
 
   const frameSkip = useRef(0)
   useFrame(() => {
+    if (!meshRef.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
     for (let i = 0; i < SPRAY_PER_CLUSTER; i++) {
       const p = particles[i]!
-      const mesh = meshRefs.current[i]
-      if (!mesh) continue
       p.x += p.vx
       p.y += p.vy
       p.z += p.vz
@@ -1507,23 +1511,18 @@ function SprayCluster({ origin }: { origin: [number, number, number] }) {
         p.vy = 0.05 + Math.random() * 0.1
         p.vz = (Math.random() - 0.5) * 0.08
       }
-      mesh.position.set(p.x, p.y, p.z)
+      dummy.position.set(p.x, p.y, p.z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
     }
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <group>
-      {particles.map((p, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={[p.x, p.y, p.z]}
-        >
-          <sphereGeometry args={[0.04, 4, 4]} />
-          <meshBasicMaterial color="#aaccff" transparent opacity={0.55} depthWrite={false} />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, SPRAY_PER_CLUSTER]} frustumCulled={false}>
+      <sphereGeometry args={[0.04, 4, 4]} />
+      <meshBasicMaterial color="#aaccff" transparent opacity={0.55} depthWrite={false} />
+    </instancedMesh>
   )
 }
 
@@ -1573,96 +1572,94 @@ const FLAG_COLORS = ['#ff2222', '#ffdd00', '#2244ff', '#22cc44', '#ff66cc', '#ff
 const CELE_POLE_X = [-8, -4, 0, 4, 8]  // relative to podium origin
 const CELE_POLE_H = 6
 
-type CelebFlagState = {
-  baseRot: number
-}
+// Precompute flag panel world positions + base rots + colors
+const _FLAG_DATA = (() => {
+  const flags: { x: number; y: number; z: number; baseRot: number; color: string }[] = []
+  let idx = 0
+  for (let pi = 0; pi < CELE_POLE_X.length - 1; pi++) {
+    const xMid = PODIUM_ORIGIN[0] + (CELE_POLE_X[pi]! + CELE_POLE_X[pi + 1]!) / 2
+    const zBase = PODIUM_ORIGIN[2] - 2
+    const topY  = CELE_POLE_H - 0.5 + PODIUM_ORIGIN[1]
+    for (let row = 0; row < 2; row++) {
+      flags.push({
+        x: xMid, y: topY + (row === 0 ? 0 : -1.1), z: zBase,
+        baseRot: idx * 0.5,
+        color: FLAG_COLORS[idx % FLAG_COLORS.length]!,
+      })
+      idx++
+    }
+  }
+  return flags
+})()
+
+const _cfDummy = new THREE.Object3D()
+const _cfCol   = new THREE.Color()
 
 function CelebrationFlags() {
-  const flagRefs = useRef<(THREE.Mesh | null)[]>([])
-  const flagStates = useMemo<CelebFlagState[]>(() =>
-    Array.from({ length: (CELE_POLE_X.length - 1) * 2 }, (_, i) => ({
-      baseRot: i * 0.5,
-    }))
-  , [])
-
+  const poleIM   = useRef<THREE.InstancedMesh>(null!)
+  const stringIM = useRef<THREE.InstancedMesh>(null!)
+  const flagIM   = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
+
+  useEffect(() => {
+    // Poles: static
+    CELE_POLE_X.forEach((px, i) => {
+      _cfDummy.position.set(PODIUM_ORIGIN[0] + px, CELE_POLE_H / 2 + PODIUM_ORIGIN[1], PODIUM_ORIGIN[2] - 2)
+      _cfDummy.rotation.set(0, 0, 0)
+      _cfDummy.scale.setScalar(1)
+      _cfDummy.updateMatrix()
+      poleIM.current.setMatrixAt(i, _cfDummy.matrix)
+    })
+    poleIM.current.instanceMatrix.needsUpdate = true
+    // Strings: static (all gaps = 4 units wide)
+    for (let i = 0; i < CELE_POLE_X.length - 1; i++) {
+      const xMid = PODIUM_ORIGIN[0] + (CELE_POLE_X[i]! + CELE_POLE_X[i + 1]!) / 2
+      _cfDummy.position.set(xMid, CELE_POLE_H + PODIUM_ORIGIN[1], PODIUM_ORIGIN[2] - 2)
+      _cfDummy.rotation.set(0, 0, 0)
+      _cfDummy.scale.setScalar(1)
+      _cfDummy.updateMatrix()
+      stringIM.current.setMatrixAt(i, _cfDummy.matrix)
+    }
+    stringIM.current.instanceMatrix.needsUpdate = true
+    // Flag colors: static
+    _FLAG_DATA.forEach(({ color }, i) => {
+      flagIM.current.setColorAt(i, _cfCol.set(color))
+    })
+    if (flagIM.current.instanceColor) flagIM.current.instanceColor.needsUpdate = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
-    for (let i = 0; i < flagStates.length; i++) {
-      const mesh = flagRefs.current[i]
-      if (!mesh) continue
-      mesh.rotation.z = Math.sin(t * 3 + flagStates[i]!.baseRot) * 0.15
-    }
+    _FLAG_DATA.forEach(({ x, y, z, baseRot }, i) => {
+      _cfDummy.position.set(x, y, z)
+      _cfDummy.rotation.set(0, 0, Math.sin(t * 3 + baseRot) * 0.15)
+      _cfDummy.scale.setScalar(1)
+      _cfDummy.updateMatrix()
+      flagIM.current.setMatrixAt(i, _cfDummy.matrix)
+    })
+    flagIM.current.instanceMatrix.needsUpdate = true
   })
-
-  // Build flag panels between consecutive poles (2 panels per gap, upper & lower)
-  const flagPanels: JSX.Element[] = []
-  let flagIdx = 0
-  for (let pi = 0; pi < CELE_POLE_X.length - 1; pi++) {
-    const x0 = PODIUM_ORIGIN[0] + (CELE_POLE_X[pi] ?? 0)
-    const x1 = PODIUM_ORIGIN[0] + (CELE_POLE_X[pi + 1] ?? 0)
-    const xMid = (x0 + x1) / 2
-    const zBase = PODIUM_ORIGIN[2] - 2  // slightly in front of poles
-    const topY = CELE_POLE_H - 0.5 + PODIUM_ORIGIN[1]
-    const color = FLAG_COLORS[pi % FLAG_COLORS.length]!
-
-    // Catenary tilt: flags between poles hang at a slight angle
-    const tiltAngle = 0.1 + (pi % 2) * 0.05
-
-    for (let row = 0; row < 2; row++) {
-      const yOff = row === 0 ? 0 : -1.1
-      flagPanels.push(
-        <mesh
-          key={`f${flagIdx}`}
-          ref={(el) => { flagRefs.current[flagIdx] = el }}
-          position={[xMid, topY + yOff, zBase]}
-          rotation={[0, 0, tiltAngle * (pi % 2 === 0 ? 1 : -1)]}
-        >
-          <boxGeometry args={[1, 0.8, 0.05]} />
-          <meshStandardMaterial
-            color={FLAG_COLORS[(flagIdx) % FLAG_COLORS.length]!}
-            emissive={FLAG_COLORS[(flagIdx) % FLAG_COLORS.length]!}
-            emissiveIntensity={0.25}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      )
-      flagIdx++
-    }
-  }
 
   return (
     <group>
-      {/* Flag poles */}
-      {CELE_POLE_X.map((px, i) => (
-        <mesh
-          key={i}
-          position={[PODIUM_ORIGIN[0] + px, CELE_POLE_H / 2 + PODIUM_ORIGIN[1], PODIUM_ORIGIN[2] - 2]}
-          castShadow
-        >
-          <cylinderGeometry args={[0.08, 0.08, CELE_POLE_H, 6]} />
-          <meshStandardMaterial color="#888888" metalness={0.6} roughness={0.4} />
-        </mesh>
-      ))}
+      {/* Flag poles — InstancedMesh */}
+      <instancedMesh ref={poleIM} args={[undefined, undefined, CELE_POLE_X.length]}>
+        <cylinderGeometry args={[0.08, 0.08, CELE_POLE_H, 6]} />
+        <meshStandardMaterial color="#888888" metalness={0.6} roughness={0.4} />
+      </instancedMesh>
 
       {/* String line between poles */}
-      {CELE_POLE_X.slice(0, -1).map((px, i) => {
-        const x0 = PODIUM_ORIGIN[0] + (CELE_POLE_X[i] ?? 0)
-        const x1 = PODIUM_ORIGIN[0] + (CELE_POLE_X[i + 1] ?? 0)
-        return (
-          <mesh
-            key={i}
-            position={[(x0 + x1) / 2, CELE_POLE_H + PODIUM_ORIGIN[1], PODIUM_ORIGIN[2] - 2]}
-          >
-            <boxGeometry args={[Math.abs(x1 - x0), 0.04, 0.04]} />
-            <meshStandardMaterial color="#bbbbbb" metalness={0.5} />
-          </mesh>
-        )
-      })}
+      <instancedMesh ref={stringIM} args={[undefined, undefined, CELE_POLE_X.length - 1]}>
+        <boxGeometry args={[4, 0.04, 0.04]} />
+        <meshStandardMaterial color="#bbbbbb" metalness={0.5} />
+      </instancedMesh>
 
-      {/* Animated flag panels */}
-      {flagPanels}
+      {/* Animated flag panels — InstancedMesh with vertexColors */}
+      <instancedMesh ref={flagIM} args={[undefined, undefined, _FLAG_DATA.length]}>
+        <boxGeometry args={[1, 0.8, 0.05]} />
+        <meshBasicMaterial vertexColors side={THREE.DoubleSide} />
+      </instancedMesh>
 
       {/* Team sponsor boards at sides of podium */}
       {([-1, 1] as const).map((side, i) => {

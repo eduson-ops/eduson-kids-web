@@ -98,6 +98,10 @@ const buildConnections = () => {
   return pairs
 }
 const ALL_CONNECTIONS = buildConnections()
+const IH_COUNT = INPUT_NODES.length * HIDDEN_NODES.length
+
+const _connDummy = new THREE.Object3D()
+const _nodeDummy = new THREE.Object3D()
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 function cylinderBetween(
@@ -150,73 +154,105 @@ function MatrixFloor() {
 }
 
 function NeuralConnections() {
-  // Render all connections as thin cylinders
-  const connections = useMemo(() => ALL_CONNECTIONS, [])
+  const ihRef = useRef<THREE.InstancedMesh>(null!)
+  const hoRef = useRef<THREE.InstancedMesh>(null!)
+
+  const ihTransforms = useMemo(() =>
+    ALL_CONNECTIONS.slice(0, IH_COUNT).map(([a, b]) => cylinderBetween(a, b))
+  , [])
+  const hoTransforms = useMemo(() =>
+    ALL_CONNECTIONS.slice(IH_COUNT).map(([a, b]) => cylinderBetween(a, b))
+  , [])
+
+  useEffect(() => {
+    if (ihRef.current) {
+      ihTransforms.forEach((c, i) => {
+        _connDummy.position.set(c.position[0], c.position[1], c.position[2])
+        _connDummy.quaternion.copy(c.quaternion)
+        _connDummy.scale.set(1, c.length, 1)
+        _connDummy.updateMatrix()
+        ihRef.current.setMatrixAt(i, _connDummy.matrix)
+      })
+      ihRef.current.instanceMatrix.needsUpdate = true
+    }
+    if (hoRef.current) {
+      hoTransforms.forEach((c, i) => {
+        _connDummy.position.set(c.position[0], c.position[1], c.position[2])
+        _connDummy.quaternion.copy(c.quaternion)
+        _connDummy.scale.set(1, c.length, 1)
+        _connDummy.updateMatrix()
+        hoRef.current.setMatrixAt(i, _connDummy.matrix)
+      })
+      hoRef.current.instanceMatrix.needsUpdate = true
+    }
+  }, [ihTransforms, hoTransforms])
+
   return (
     <>
-      {connections.map((pair, i) => {
-        const { position, quaternion, length } = cylinderBetween(pair[0], pair[1])
-        return (
-          <mesh key={i} position={position} quaternion={quaternion}>
-            <cylinderGeometry args={[0.025, 0.025, length, 4, 1]} />
-            <meshBasicMaterial
-              color={i < INPUT_NODES.length * HIDDEN_NODES.length ? '#00aaff' : '#aa00ff'}
-              transparent
-              opacity={0.25}
-            />
-          </mesh>
-        )
-      })}
+      <instancedMesh ref={ihRef} args={[undefined, undefined, ihTransforms.length]}>
+        <cylinderGeometry args={[0.025, 0.025, 1, 4, 1]} />
+        <meshBasicMaterial color="#00aaff" transparent opacity={0.25} />
+      </instancedMesh>
+      <instancedMesh ref={hoRef} args={[undefined, undefined, hoTransforms.length]}>
+        <cylinderGeometry args={[0.025, 0.025, 1, 4, 1]} />
+        <meshBasicMaterial color="#aa00ff" transparent opacity={0.25} />
+      </instancedMesh>
     </>
   )
 }
 
 function NeuralNodes() {
-  const inputRefs = useRef<(THREE.Mesh | null)[]>([])
-  const hiddenRefs = useRef<(THREE.Mesh | null)[]>([])
-  const outputRefs = useRef<(THREE.Mesh | null)[]>([])
+  const inputIM  = useRef<THREE.InstancedMesh>(null!)
+  const hiddenIM = useRef<THREE.InstancedMesh>(null!)
+  const outputIM = useRef<THREE.InstancedMesh>(null!)
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
-    inputRefs.current.forEach((m, i) => {
-      if (m) m.scale.setScalar(1 + 0.25 * Math.sin(t * 2.2 + i * 1.1))
-    })
-    hiddenRefs.current.forEach((m, i) => {
-      if (m) m.scale.setScalar(1 + 0.3 * Math.sin(t * 1.8 + i * 0.9))
-    })
-    outputRefs.current.forEach((m, i) => {
-      if (m) m.scale.setScalar(1 + 0.28 * Math.sin(t * 2.5 + i * 1.3))
-    })
+    if (inputIM.current) {
+      INPUT_NODES.forEach((pos, i) => {
+        _nodeDummy.position.set(pos[0], pos[1], pos[2])
+        _nodeDummy.scale.setScalar(1 + 0.25 * Math.sin(t * 2.2 + i * 1.1))
+        _nodeDummy.updateMatrix()
+        inputIM.current.setMatrixAt(i, _nodeDummy.matrix)
+      })
+      inputIM.current.instanceMatrix.needsUpdate = true
+    }
+    if (hiddenIM.current) {
+      HIDDEN_NODES.forEach((pos, i) => {
+        _nodeDummy.position.set(pos[0], pos[1], pos[2])
+        _nodeDummy.scale.setScalar(1 + 0.3 * Math.sin(t * 1.8 + i * 0.9))
+        _nodeDummy.updateMatrix()
+        hiddenIM.current.setMatrixAt(i, _nodeDummy.matrix)
+      })
+      hiddenIM.current.instanceMatrix.needsUpdate = true
+    }
+    if (outputIM.current) {
+      OUTPUT_NODES.forEach((pos, i) => {
+        _nodeDummy.position.set(pos[0], pos[1], pos[2])
+        _nodeDummy.scale.setScalar(1 + 0.28 * Math.sin(t * 2.5 + i * 1.3))
+        _nodeDummy.updateMatrix()
+        outputIM.current.setMatrixAt(i, _nodeDummy.matrix)
+      })
+      outputIM.current.instanceMatrix.needsUpdate = true
+    }
   })
 
   return (
     <>
-      {INPUT_NODES.map((pos, i) => (
-        <group key={`inp-${i}`} position={pos}>
-          <mesh ref={(el) => { inputRefs.current[i] = el }}>
-            <sphereGeometry args={[0.8, 16, 16]} />
-            <meshStandardMaterial color="#00ccff" emissive="#00ccff" emissiveIntensity={1.2} />
-          </mesh>
-        </group>
-      ))}
-      {HIDDEN_NODES.map((pos, i) => (
-        <group key={`hid-${i}`} position={pos}>
-          <mesh ref={(el) => { hiddenRefs.current[i] = el }}>
-            <sphereGeometry args={[0.8, 16, 16]} />
-            <meshStandardMaterial color="#cc00ff" emissive="#cc00ff" emissiveIntensity={1.2} />
-          </mesh>
-        </group>
-      ))}
-      {OUTPUT_NODES.map((pos, i) => (
-        <group key={`out-${i}`} position={pos}>
-          <mesh ref={(el) => { outputRefs.current[i] = el }}>
-            <sphereGeometry args={[0.8, 16, 16]} />
-            <meshStandardMaterial color="#ff8800" emissive="#ff8800" emissiveIntensity={1.2} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={inputIM} args={[undefined, undefined, INPUT_NODES.length]} frustumCulled={false}>
+        <sphereGeometry args={[0.8, 16, 16]} />
+        <meshStandardMaterial color="#00ccff" emissive="#00ccff" emissiveIntensity={1.2} />
+      </instancedMesh>
+      <instancedMesh ref={hiddenIM} args={[undefined, undefined, HIDDEN_NODES.length]} frustumCulled={false}>
+        <sphereGeometry args={[0.8, 16, 16]} />
+        <meshStandardMaterial color="#cc00ff" emissive="#cc00ff" emissiveIntensity={1.2} />
+      </instancedMesh>
+      <instancedMesh ref={outputIM} args={[undefined, undefined, OUTPUT_NODES.length]} frustumCulled={false}>
+        <sphereGeometry args={[0.8, 16, 16]} />
+        <meshStandardMaterial color="#ff8800" emissive="#ff8800" emissiveIntensity={1.2} />
+      </instancedMesh>
       <pointLight color="#00ccff" intensity={5} distance={40} position={[-30, 2, 0]} />
       <pointLight color="#aa00ff" intensity={5} distance={45} position={[0, 2, 0]} />
       <pointLight color="#ff6600" intensity={4} distance={35} position={[30, 2, 0]} />
@@ -281,40 +317,43 @@ function SynapticSparks() {
 }
 
 // ─── NODE PULSE RINGS ─────────────────────────────────────────────────────────
+const _ringCol = new THREE.Color()
 function NodePulseRings() {
   const ringData = useMemo(() =>
     ALL_NODES.map((pos, i) => ({
       pos,
-      scale: (i / ALL_NODES.length),  // stagger initial phases
+      scale: (i / ALL_NODES.length),
       speed: 0.6 + (i % 4) * 0.15,
     })),
   [])
-  const ringRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy   = useMemo(() => { const d = new THREE.Object3D(); d.rotation.x = Math.PI / 2; return d }, [])
 
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!meshRef.current) return
     const step = _isLow ? dt * 2 : dt
     ringData.forEach((r, i) => {
       r.scale += step * r.speed
       if (r.scale >= 2) r.scale = 0
-      const m = ringRefs.current[i]
-      if (!m) return
       const s = r.scale
-      m.scale.setScalar(s)
-      ;(m.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 1 - s / 2)
+      dummy.position.set(r.pos[0], r.pos[1], r.pos[2])
+      dummy.scale.setScalar(s)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      const bright = Math.max(0, 1 - s / 2)
+      meshRef.current.setColorAt(i, _ringCol.setRGB(bright * 0.267, bright, bright * 0.8))
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
-    <>
-      {ringData.map((r, i) => (
-        <mesh key={i} ref={(el) => { ringRefs.current[i] = el }} position={r.pos} rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.6, 0.04, 8, 32]} />
-          <meshBasicMaterial color="#44ffcc" transparent opacity={1} depthWrite={false} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, ALL_NODES.length]} frustumCulled={false}>
+      <torusGeometry args={[0.6, 0.04, 8, 32]} />
+      <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+    </instancedMesh>
   )
 }
 
@@ -356,39 +395,47 @@ function DataStreamColumns() {
 
 // Sample a subset of connections for data pulses
 const PULSE_CONNECTIONS = ALL_CONNECTIONS.filter((_, i) => i % 5 === 0)
+// Pre-allocate Vector3 pairs to avoid per-frame GC pressure
+const _pulseA = PULSE_CONNECTIONS.map(c => new THREE.Vector3(...c[0]))
+const _pulseB = PULSE_CONNECTIONS.map(c => new THREE.Vector3(...c[1]))
+const _pulseColor = new THREE.Color()
 
 function DataPulses() {
-  const progressRef = useRef<number[]>(
-    PULSE_CONNECTIONS.map((_, i) => i / PULSE_CONNECTIONS.length)
+  const progress = useRef<Float32Array>(
+    Float32Array.from(PULSE_CONNECTIONS.map((_, i) => i / PULSE_CONNECTIONS.length))
   )
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy   = useMemo(() => new THREE.Object3D(), [])
+
+  useEffect(() => {
+    if (!meshRef.current) return
+    PULSE_CONNECTIONS.forEach((_, i) => {
+      _pulseColor.set(i % 2 === 0 ? '#00ffcc' : '#ff88ff')
+      meshRef.current.setColorAt(i, _pulseColor)
+    })
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+  }, [])
 
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!meshRef.current) return
     const step = _isLow ? dt * 2 : dt
-    progressRef.current = progressRef.current.map((p, i) => {
-      const next = p + step * (0.6 + (i % 3) * 0.2)
-      return next > 1 ? next - 1 : next
-    })
-    meshRefs.current.forEach((m, i) => {
-      if (!m) return
-      const conn = PULSE_CONNECTIONS[i]!
-      const av = new THREE.Vector3(...conn[0])
-      const bv = new THREE.Vector3(...conn[1])
-      m.position.lerpVectors(av, bv, progressRef.current[i]!)
-    })
+    const prog = progress.current
+    for (let i = 0; i < PULSE_CONNECTIONS.length; i++) {
+      prog[i] = (prog[i]! + step * (0.6 + (i % 3) * 0.2)) % 1
+      dummy.position.lerpVectors(_pulseA[i]!, _pulseB[i]!, prog[i]!)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <>
-      {PULSE_CONNECTIONS.map((_, i) => (
-        <mesh key={i} ref={(el) => { meshRefs.current[i] = el }}>
-          <sphereGeometry args={[0.18, 8, 8]} />
-          <meshBasicMaterial color={i % 2 === 0 ? '#00ffcc' : '#ff88ff'} />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, PULSE_CONNECTIONS.length]}>
+      <sphereGeometry args={[0.18, 8, 8]} />
+      <meshBasicMaterial color="#ffffff" toneMapped={false} />
+    </instancedMesh>
   )
 }
 

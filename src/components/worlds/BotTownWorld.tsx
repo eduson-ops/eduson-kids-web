@@ -4,6 +4,31 @@ import { useRef, useMemo, useEffect } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 const _isLow = detectDeviceTier() === 'low'
+
+// Module-level pre-allocated objects for RobotPedestrians InstancedMesh
+const _rfGroup = new THREE.Object3D()
+const _rfPart  = new THREE.Object3D()
+const _rfMat   = new THREE.Matrix4()
+
+// Pre-baked local matrices for static robot parts
+function _mkPartMat(px: number, py: number, pz: number, rx = 0, ry = 0, rz = 0) {
+  const o = new THREE.Object3D()
+  o.position.set(px, py, pz)
+  o.rotation.set(rx, ry, rz)
+  o.updateMatrix()
+  return o.matrix.clone()
+}
+const _rfPartMat = {
+  body:         _mkPartMat(0,    0.85,  0),
+  head:         _mkPartMat(0,    1.75,  0),
+  eyeL:         _mkPartMat(-0.14, 1.78, 0.26),
+  eyeR:         _mkPartMat( 0.14, 1.78, 0.26),
+  armL:         _mkPartMat(-0.55, 0.9,  0, 0, 0,  0.45),
+  armR:         _mkPartMat( 0.55, 0.9,  0, 0, 0, -0.45),
+  antennaPole:  _mkPartMat(0,    2.25,  0),
+  antennaTip:   _mkPartMat(0,    2.48,  0),
+}
+
 const _WIN_FLIP = Array.from({ length: 12 }, () =>
   Array.from({ length: 32 }, () => Math.random() < 0.005)
 )
@@ -806,107 +831,103 @@ const ROBOT_CONFIGS: RobotConfig[] = [
   { cx: -5,   cz:  0,  radius: 40, speed: 0.13, startAngle: Math.PI,             phase: 3.5 },
 ]
 
-function SingleRobot({ cfg }: { cfg: RobotConfig }) {
-  const groupRef    = useRef<THREE.Group>(null!)
-  const legLRef     = useRef<THREE.Mesh>(null!)
-  const legRRef     = useRef<THREE.Mesh>(null!)
+function RobotPedestrians() {
+  const N = ROBOT_CONFIGS.length
+  const bodyIM        = useRef<THREE.InstancedMesh>(null!)
+  const headIM        = useRef<THREE.InstancedMesh>(null!)
+  const eyeIM         = useRef<THREE.InstancedMesh>(null!)   // 2N instances
+  const armIM         = useRef<THREE.InstancedMesh>(null!)   // 2N instances
+  const legIM         = useRef<THREE.InstancedMesh>(null!)   // 2N instances
+  const antennaPoleIM = useRef<THREE.InstancedMesh>(null!)
+  const antennaTipIM  = useRef<THREE.InstancedMesh>(null!)
+  const frameSkip     = useRef(0)
 
-  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    const angle = t * cfg.speed + cfg.startAngle
-    const x = cfg.cx + cfg.radius * Math.cos(angle)
-    const z = cfg.cz + cfg.radius * Math.sin(angle)
-    if (groupRef.current) {
-      groupRef.current.position.set(x, 0, z)
-      // face direction of travel (tangent to circle)
-      groupRef.current.rotation.y = -angle - Math.PI / 2
+    for (let i = 0; i < N; i++) {
+      const cfg = ROBOT_CONFIGS[i]!
+      const angle = t * cfg.speed + cfg.startAngle
+      _rfGroup.position.set(
+        cfg.cx + cfg.radius * Math.cos(angle),
+        0,
+        cfg.cz + cfg.radius * Math.sin(angle)
+      )
+      _rfGroup.rotation.set(0, -angle - Math.PI / 2, 0)
+      _rfGroup.scale.setScalar(1)
+      _rfGroup.updateMatrix()
+
+      // Static parts
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.body)
+      bodyIM.current.setMatrixAt(i, _rfMat)
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.head)
+      headIM.current.setMatrixAt(i, _rfMat)
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.eyeL)
+      eyeIM.current.setMatrixAt(i * 2, _rfMat)
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.eyeR)
+      eyeIM.current.setMatrixAt(i * 2 + 1, _rfMat)
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.armL)
+      armIM.current.setMatrixAt(i * 2, _rfMat)
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.armR)
+      armIM.current.setMatrixAt(i * 2 + 1, _rfMat)
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.antennaPole)
+      antennaPoleIM.current.setMatrixAt(i, _rfMat)
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPartMat.antennaTip)
+      antennaTipIM.current.setMatrixAt(i, _rfMat)
+
+      // Animated legs
+      const bob = Math.sin(t * 3 + cfg.phase)
+      _rfPart.position.set(-0.22, -0.1, 0)
+      _rfPart.rotation.set(bob * 0.4, 0, 0)
+      _rfPart.scale.setScalar(1)
+      _rfPart.updateMatrix()
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPart.matrix)
+      legIM.current.setMatrixAt(i * 2, _rfMat)
+      _rfPart.position.set(0.22, -0.1, 0)
+      _rfPart.rotation.set(-bob * 0.4, 0, 0)
+      _rfPart.updateMatrix()
+      _rfMat.multiplyMatrices(_rfGroup.matrix, _rfPart.matrix)
+      legIM.current.setMatrixAt(i * 2 + 1, _rfMat)
     }
-    // bob legs
-    const bob = Math.sin(t * 3 + cfg.phase)
-    if (legLRef.current) legLRef.current.rotation.x =  bob * 0.4
-    if (legRRef.current) legRRef.current.rotation.x = -bob * 0.4
+    bodyIM.current.instanceMatrix.needsUpdate        = true
+    headIM.current.instanceMatrix.needsUpdate        = true
+    eyeIM.current.instanceMatrix.needsUpdate         = true
+    armIM.current.instanceMatrix.needsUpdate         = true
+    legIM.current.instanceMatrix.needsUpdate         = true
+    antennaPoleIM.current.instanceMatrix.needsUpdate = true
+    antennaTipIM.current.instanceMatrix.needsUpdate  = true
   })
 
   return (
-    <group ref={groupRef}>
-      {/* Body */}
-      <mesh position={[0, 0.85, 0]} castShadow>
+    <>
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <boxGeometry args={[0.8, 1.2, 0.5]} />
         <meshStandardMaterial color="#778899" roughness={0.5} metalness={0.4} />
-      </mesh>
-
-      {/* Head */}
-      <mesh position={[0, 1.75, 0]} castShadow>
+      </instancedMesh>
+      <instancedMesh ref={headIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <boxGeometry args={[0.6, 0.6, 0.5]} />
         <meshStandardMaterial color="#99aabb" roughness={0.4} metalness={0.5} />
-      </mesh>
-
-      {/* Eye Left */}
-      <mesh position={[-0.14, 1.78, 0.26]}>
+      </instancedMesh>
+      <instancedMesh ref={eyeIM} args={[undefined, undefined, N * 2]} frustumCulled={false}>
         <sphereGeometry args={[0.1, 8, 8]} />
-        <meshStandardMaterial
-          color="#00ffff"
-          emissive="#00ffff"
-          emissiveIntensity={4}
-          roughness={0}
-        />
-      </mesh>
-      {/* Eye Right */}
-      <mesh position={[0.14, 1.78, 0.26]}>
-        <sphereGeometry args={[0.1, 8, 8]} />
-        <meshStandardMaterial
-          color="#00ffff"
-          emissive="#00ffff"
-          emissiveIntensity={4}
-          roughness={0}
-        />
-      </mesh>
-
-      {/* Arm Left */}
-      <mesh position={[-0.55, 0.9, 0]} rotation={[0, 0, 0.45]} castShadow>
+        <meshStandardMaterial color="#00ffff" emissive="#00ffff" emissiveIntensity={4} roughness={0} />
+      </instancedMesh>
+      <instancedMesh ref={armIM} args={[undefined, undefined, N * 2]} frustumCulled={false}>
         <cylinderGeometry args={[0.12, 0.12, 0.9, 7]} />
         <meshStandardMaterial color="#667788" roughness={0.5} metalness={0.4} />
-      </mesh>
-      {/* Arm Right */}
-      <mesh position={[0.55, 0.9, 0]} rotation={[0, 0, -0.45]} castShadow>
-        <cylinderGeometry args={[0.12, 0.12, 0.9, 7]} />
-        <meshStandardMaterial color="#667788" roughness={0.5} metalness={0.4} />
-      </mesh>
-
-      {/* Leg Left */}
-      <mesh ref={legLRef} position={[-0.22, -0.1, 0]} castShadow>
+      </instancedMesh>
+      <instancedMesh ref={legIM} args={[undefined, undefined, N * 2]} frustumCulled={false}>
         <cylinderGeometry args={[0.15, 0.15, 0.8, 7]} />
         <meshStandardMaterial color="#667788" roughness={0.5} metalness={0.4} />
-      </mesh>
-      {/* Leg Right */}
-      <mesh ref={legRRef} position={[0.22, -0.1, 0]} castShadow>
-        <cylinderGeometry args={[0.15, 0.15, 0.8, 7]} />
-        <meshStandardMaterial color="#667788" roughness={0.5} metalness={0.4} />
-      </mesh>
-
-      {/* Antenna pole */}
-      <mesh position={[0, 2.25, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={antennaPoleIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <cylinderGeometry args={[0.05, 0.05, 0.4, 6]} />
         <meshStandardMaterial color="#aabbcc" roughness={0.4} metalness={0.6} />
-      </mesh>
-      {/* Antenna tip */}
-      <mesh position={[0, 2.48, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={antennaTipIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <sphereGeometry args={[0.08, 8, 8]} />
         <meshStandardMaterial color="#00ffff" emissive="#00ffff" emissiveIntensity={3} />
-      </mesh>
-    </group>
-  )
-}
-
-function RobotPedestrians() {
-  const configs = useMemo(() => ROBOT_CONFIGS, [])
-  return (
-    <>
-      {configs.map((cfg, i) => (
-        <SingleRobot key={i} cfg={cfg} />
-      ))}
+      </instancedMesh>
     </>
   )
 }
@@ -1210,47 +1231,41 @@ const SPRAY_PARTICLES: SprayParticle[] = Array.from({ length: SPRAY_COUNT }, (_,
   speed: 1.2 + (i % 4) * 0.3,
   phase: (i * 0.4) % (Math.PI * 2),
 }))
+// Pre-allocated Color objects for per-frame setColorAt without GC pressure
+const _sprayBaseColors = SPRAY_PARTICLES.map(p => new THREE.Color(p.color))
+const _sprayTmpColor   = new THREE.Color()
 
 function SprayParticles({ nozzleRef }: { nozzleRef: React.RefObject<THREE.Mesh | null> }) {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy   = useMemo(() => new THREE.Object3D(), [])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!nozzleRef.current || !meshRef.current) return
     const t = clock.getElapsedTime()
     SPRAY_PARTICLES.forEach((p, i) => {
-      const mesh = meshRefs.current[i]
-      if (!mesh || !nozzleRef.current) return
-      // Spray forward (+z) from nozzle in a fan pattern
-      const age = ((t * p.speed + p.phase) % 1.2)
+      const age  = ((t * p.speed + p.phase) % 1.2)
       const dist = age * 1.8
-      mesh.position.x = Math.cos(p.baseAngle - Math.PI * 0.45) * dist * 0.4
-      mesh.position.y = Math.sin(p.baseAngle - Math.PI * 0.45) * dist * 0.4
-      mesh.position.z = dist
-      const mat = mesh.material as THREE.MeshStandardMaterial
-      mat.opacity = Math.max(0, 1 - age / 1.2)
+      dummy.position.set(
+        Math.cos(p.baseAngle - Math.PI * 0.45) * dist * 0.4,
+        Math.sin(p.baseAngle - Math.PI * 0.45) * dist * 0.4,
+        dist,
+      )
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+      const bright = Math.max(0, 1 - age / 1.2)
+      meshRef.current.setColorAt(i, _sprayTmpColor.copy(_sprayBaseColors[i]!).multiplyScalar(bright))
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
 
   return (
-    <>
-      {SPRAY_PARTICLES.map((p, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-        >
-          <sphereGeometry args={[0.07, 4, 4]} />
-          <meshStandardMaterial
-            color={p.color}
-            emissive={p.color}
-            emissiveIntensity={1.5}
-            transparent
-            opacity={1}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, SPRAY_COUNT]} frustumCulled={false}>
+      <sphereGeometry args={[0.07, 4, 4]} />
+      <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+    </instancedMesh>
   )
 }
 

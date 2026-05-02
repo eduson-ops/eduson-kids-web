@@ -6,6 +6,24 @@ import { BackSide } from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+
+const _abDummy = new THREE.Object3D()
+const _abMat   = new THREE.Matrix4()
+const _abCol   = new THREE.Color()
+
+const _AB_POSITIONS: Array<[number, number, number]> = [
+  [ 90,  5,  -40],
+  [-85,  3,  -55],
+  [ 70,  8, -110],
+  [-75,  6, -100],
+]
+const _AB_RING_TILTS: Array<[number, number, number]> = [
+  [Math.PI / 2, 0,           0          ],
+  [0,           Math.PI / 4, 0          ],
+  [Math.PI / 3, 0,           Math.PI / 4],
+  [0,           0,           Math.PI / 2],
+]
+
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -1012,8 +1030,9 @@ function StationActivity() {
   const droneRefs = useRef<(THREE.Group | null)[]>([])
 
   // ── Data stream particles ──────────────────────────────────────
-  // Flat 1-D array: pillar i, particle j  →  index i * STREAM_COUNT + j
-  const streamRefs = useRef<(THREE.Mesh | null)[]>([])
+  const streamImeshRef = useRef<THREE.InstancedMesh>(null!)
+  const streamDummy    = useMemo(() => new THREE.Object3D(), [])
+  const streamColor    = useMemo(() => new THREE.Color(), [])
   const streamOffsets = useMemo(
     () =>
       Array.from({ length: STREAM_POSITIONS.length * STREAM_COUNT }, (_, k) => {
@@ -1025,12 +1044,20 @@ function StationActivity() {
   )
 
   // ── Warning beacons ────────────────────────────────────────────
-  const beaconMeshRefs  = useRef<(THREE.Mesh | null)[]>([])
+  const beaconIM        = useRef<THREE.InstancedMesh>(null!)
   const beaconLightRefs = useRef<(THREE.PointLight | null)[]>([])
   const beaconPhases    = useMemo(
     () => ACTIVITY_BEACON_POSITIONS.map((_, i) => (i / ACTIVITY_BEACON_POSITIONS.length) * Math.PI * 2),
     [],
   )
+  useEffect(() => {
+    ACTIVITY_BEACON_POSITIONS.forEach((pos, i) => {
+      _abDummy.position.set(pos[0], pos[1], pos[2])
+      _abDummy.rotation.set(0, 0, 0); _abDummy.scale.setScalar(1); _abDummy.updateMatrix()
+      beaconIM.current.setMatrixAt(i, _abDummy.matrix)
+    })
+    beaconIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
@@ -1052,29 +1079,34 @@ function StationActivity() {
       grp.rotation.y = -angle   // face direction of travel
     })
 
-    // Data stream particles
-    STREAM_POSITIONS.forEach((base, pi) => {
-      for (let j = 0; j < STREAM_COUNT; j++) {
-        const idx  = pi * STREAM_COUNT + j
-        const mesh = streamRefs.current[idx]
-        if (!mesh) continue
-        // Advance y offset, wrap back to 0 when it exceeds STREAM_HEIGHT
-        streamOffsets[idx] = (streamOffsets[idx]! + step * 3.5) % STREAM_HEIGHT
-        mesh.position.set(base[0], base[1] + streamOffsets[idx]!, base[2])
-        // Fade opacity: bright near top, dim near bottom
-        const frac = streamOffsets[idx]! / STREAM_HEIGHT
-        ;(mesh.material as THREE.MeshBasicMaterial).opacity = 0.2 + frac * 0.8
-      }
-    })
+    // Data stream particles — single InstancedMesh, brightness encodes fade
+    if (streamImeshRef.current) {
+      STREAM_POSITIONS.forEach((base, pi) => {
+        for (let j = 0; j < STREAM_COUNT; j++) {
+          const idx = pi * STREAM_COUNT + j
+          streamOffsets[idx] = (streamOffsets[idx]! + step * 3.5) % STREAM_HEIGHT
+          streamDummy.position.set(base[0], base[1] + streamOffsets[idx]!, base[2])
+          streamDummy.updateMatrix()
+          streamImeshRef.current.setMatrixAt(idx, streamDummy.matrix)
+          const bright = 0.2 + (streamOffsets[idx]! / STREAM_HEIGHT) * 0.8
+          streamColor.setRGB(0.282 * bright, 0.878 * bright, bright)
+          streamImeshRef.current.setColorAt(idx, streamColor)
+        }
+      })
+      streamImeshRef.current.instanceMatrix.needsUpdate = true
+      if (streamImeshRef.current.instanceColor) streamImeshRef.current.instanceColor.needsUpdate = true
+    }
 
     // Warning beacons pulse
-    ACTIVITY_BEACON_POSITIONS.forEach((_, i) => {
-      const bm = beaconMeshRefs.current[i]
-      const bl = beaconLightRefs.current[i]
-      const intensity = 0.5 + (Math.sin(t * 3 + beaconPhases[i]!) * 0.5 + 0.5) * 2.5  // 0.5 → 3
-      if (bm) (bm.material as THREE.MeshStandardMaterial).emissiveIntensity = intensity
-      if (bl) bl.intensity = intensity * 0.8
-    })
+    if (beaconIM.current) {
+      ACTIVITY_BEACON_POSITIONS.forEach((_, i) => {
+        const intensity = 0.5 + (Math.sin(t * 3 + beaconPhases[i]!) * 0.5 + 0.5) * 2.5
+        beaconIM.current.setColorAt(i, _abCol.set('#ffaa00').multiplyScalar(intensity / 3.0))
+        const bl = beaconLightRefs.current[i]
+        if (bl) bl.intensity = intensity * 0.8
+      })
+      if (beaconIM.current.instanceColor) beaconIM.current.instanceColor.needsUpdate = true
+    }
   })
 
   return (
@@ -1100,47 +1132,30 @@ function StationActivity() {
         </group>
       ))}
 
-      {/* ── Data stream pillars ── */}
-      {STREAM_POSITIONS.map((base, pi) =>
-        Array.from({ length: STREAM_COUNT }, (_, j) => {
-          const idx = pi * STREAM_COUNT + j
-          const initY = (j / STREAM_COUNT) * STREAM_HEIGHT
-          return (
-            <mesh
-              key={`stream-${pi}-${j}`}
-              ref={(el) => { streamRefs.current[idx] = el }}
-              position={[base[0], base[1] + initY, base[2]]}
-            >
-              <sphereGeometry args={[0.08, 5, 5]} />
-              <meshBasicMaterial
-                color="#48e0ff"
-                toneMapped={false}
-                transparent
-                opacity={0.5}
-              />
-            </mesh>
-          )
-        }),
-      )}
+      {/* ── Data stream particles — 1 draw call ── */}
+      <instancedMesh
+        ref={streamImeshRef}
+        args={[undefined, undefined, STREAM_POSITIONS.length * STREAM_COUNT]}
+        frustumCulled={false}
+      >
+        <sphereGeometry args={[0.08, 5, 5]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+      </instancedMesh>
 
-      {/* ── Warning beacons ── */}
+      {/* ── Warning beacons — 1 IM + individual pointLights ── */}
+      <instancedMesh ref={beaconIM} args={[undefined, undefined, ACTIVITY_BEACON_POSITIONS.length]}>
+        <sphereGeometry args={[0.2, 8, 8]} />
+        <meshBasicMaterial vertexColors toneMapped={false} />
+      </instancedMesh>
       {ACTIVITY_BEACON_POSITIONS.map((pos, i) => (
-        <group key={`act-beacon-${i}`} position={pos}>
-          <mesh ref={(el) => { beaconMeshRefs.current[i] = el }}>
-            <sphereGeometry args={[0.2, 8, 8]} />
-            <meshStandardMaterial
-              color="#ffaa00"
-              emissive="#ffaa00"
-              emissiveIntensity={1.5}
-            />
-          </mesh>
-          <pointLight
-            ref={(el) => { beaconLightRefs.current[i] = el }}
-            color="#ffaa00"
-            intensity={2}
-            distance={8}
-          />
-        </group>
+        <pointLight
+          key={`act-beacon-${i}`}
+          ref={(el) => { beaconLightRefs.current[i] = el }}
+          position={pos}
+          color="#ffaa00"
+          intensity={2}
+          distance={8}
+        />
       ))}
     </>
   )
@@ -1251,55 +1266,50 @@ function StarField2() {
 // ─── SolarFlare — animated energy flare from a distant star ──────
 const FLARE_COUNT = 5
 
-function SolarFlare() {
-  const flareRefs = useRef<(THREE.Mesh | null)[]>([])
+const _FLARE_DATA = Array.from({ length: FLARE_COUNT }, (_, i) => {
+  const angle = (i / FLARE_COUNT) * Math.PI * 2
+  return {
+    rotX: Math.cos(angle) * (Math.PI / 2),
+    rotZ: Math.sin(angle) * (Math.PI / 2),
+    phase: (i / FLARE_COUNT) * Math.PI * 2,
+  }
+})
+const _flareDummy = new THREE.Object3D()
 
-  const flareData = useMemo(() => {
-    return Array.from({ length: FLARE_COUNT }, (_, i) => {
-      const angle = (i / FLARE_COUNT) * Math.PI * 2
-      return {
-        rotX: Math.cos(angle) * (Math.PI / 2),
-        rotZ: Math.sin(angle) * (Math.PI / 2),
-        phase: (i / FLARE_COUNT) * Math.PI * 2,
-      }
-    })
-  }, [])
+function SolarFlare() {
+  const flareImRef = useRef<THREE.InstancedMesh>(null!)
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!flareImRef.current) return
     const t = clock.getElapsedTime()
-    flareData.forEach((fd, i) => {
-      const mesh = flareRefs.current[i]
-      if (!mesh) return
+    _FLARE_DATA.forEach((fd, i) => {
       const pulse = 0.8 + Math.sin(t * 2.2 + fd.phase) * 0.4
-      mesh.scale.setScalar(pulse)
+      _flareDummy.rotation.set(fd.rotX, 0, fd.rotZ)
+      _flareDummy.scale.setScalar(pulse)
+      _flareDummy.updateMatrix()
+      flareImRef.current.setMatrixAt(i, _flareDummy.matrix)
     })
+    flareImRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
     <group position={[500, 100, -200]}>
       {/* Bright distant point light simulating the star */}
       <pointLight color="#ff9900" intensity={2} distance={1000} />
-
-      {flareData.map((fd, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { flareRefs.current[i] = el }}
-          rotation={[fd.rotX, 0, fd.rotZ]}
-        >
-          <coneGeometry args={[6, 80, 8, 1, true]} />
-          <meshStandardMaterial
-            color="#ff6600"
-            emissive="#ff8800"
-            emissiveIntensity={3}
-            transparent
-            opacity={0.6}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
+      <instancedMesh ref={flareImRef} args={[undefined, undefined, FLARE_COUNT]} frustumCulled={false}>
+        <coneGeometry args={[6, 80, 8, 1, true]} />
+        <meshStandardMaterial
+          color="#ff6600"
+          emissive="#ff8800"
+          emissiveIntensity={3}
+          transparent
+          opacity={0.6}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </instancedMesh>
     </group>
   )
 }
@@ -1310,73 +1320,119 @@ interface EquipmentItem {
   rx: number
   ry: number
   rz: number
+  rx_cur: number
+  ry_cur: number
+  rz_cur: number
   dx: number
   dy: number
   dz: number
   type: 'toolbox' | 'tank' | 'datapad' | 'pouch'
   color: string
+  subIdx: number
 }
+
+const _eqDummy = new THREE.Object3D()
+const _eqCol   = new THREE.Color()
 
 function FloatingEquipment() {
   const items = useMemo<EquipmentItem[]>(() => {
     const seed = (n: number) => ((Math.sin(n) * 43758.5453) % 1 + 1) % 1
     const COLORS = ['#aaaaaa', '#ffffff', '#ff6633']
     const TYPES: EquipmentItem['type'][] = ['toolbox', 'tank', 'datapad', 'pouch']
-    return Array.from({ length: 15 }, (_, i) => ({
-      pos: [
-        (seed(i * 11.1) - 0.5) * 30,
-        3 + seed(i * 11.2) * 10,
-        -10 - seed(i * 11.3) * 110,
-      ] as [number, number, number],
-      rx: (seed(i * 11.4) - 0.5) * 2 + 0.5,
-      ry: (seed(i * 11.5) - 0.5) * 2 + 0.5,
-      rz: (seed(i * 11.6) - 0.5) * 2 + 0.5,
-      dx: (seed(i * 11.7) - 0.5) * 2,
-      dy: (seed(i * 11.8) - 0.5) * 2,
-      dz: (seed(i * 11.9) - 0.5) * 2,
-      type: TYPES[i % TYPES.length]!,
-      color: COLORS[i % COLORS.length]!,
-    }))
+    const typeCounts: Record<EquipmentItem['type'], number> = { toolbox: 0, tank: 0, datapad: 0, pouch: 0 }
+    return Array.from({ length: 15 }, (_, i) => {
+      const type = TYPES[i % TYPES.length]!
+      const subIdx = typeCounts[type]++
+      return {
+        pos: [
+          (seed(i * 11.1) - 0.5) * 30,
+          3 + seed(i * 11.2) * 10,
+          -10 - seed(i * 11.3) * 110,
+        ] as [number, number, number],
+        rx: (seed(i * 11.4) - 0.5) * 2 + 0.5,
+        ry: (seed(i * 11.5) - 0.5) * 2 + 0.5,
+        rz: (seed(i * 11.6) - 0.5) * 2 + 0.5,
+        rx_cur: 0,
+        ry_cur: 0,
+        rz_cur: 0,
+        dx: (seed(i * 11.7) - 0.5) * 2,
+        dy: (seed(i * 11.8) - 0.5) * 2,
+        dz: (seed(i * 11.9) - 0.5) * 2,
+        type,
+        color: COLORS[i % COLORS.length]!,
+        subIdx,
+      }
+    })
   }, [])
 
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([])
+  const toolboxIM  = useRef<THREE.InstancedMesh>(null!)
+  const tankIM     = useRef<THREE.InstancedMesh>(null!)
+  const datapadIM  = useRef<THREE.InstancedMesh>(null!)
+  const pouchIM    = useRef<THREE.InstancedMesh>(null!)
+  const colorsDone = useRef(false)
 
   const frameSkip = useRef(0)
   useFrame(() => {
     if (_isLow && (frameSkip.current++ & 1)) return
-    items.forEach((item, i) => {
-      const m = meshRefs.current[i]
-      if (!m) return
-      m.rotation.x += 0.003 * item.rx
-      m.rotation.y += 0.004 * item.ry
-      m.rotation.z += 0.002 * item.rz
-      m.position.x += item.dx * 0.002
-      m.position.y += item.dy * 0.002
-      m.position.z += item.dz * 0.002
-      if (m.position.x > 15) item.dx = -Math.abs(item.dx)
-      if (m.position.x < -15) item.dx = Math.abs(item.dx)
-      if (m.position.y > 20) item.dy = -Math.abs(item.dy)
-      if (m.position.y < 2) item.dy = Math.abs(item.dy)
-      if (m.position.z > 0) item.dz = -Math.abs(item.dz)
-      if (m.position.z < -130) item.dz = Math.abs(item.dz)
+    const ims: Record<EquipmentItem['type'], THREE.InstancedMesh | null> = {
+      toolbox: toolboxIM.current,
+      tank:    tankIM.current,
+      datapad: datapadIM.current,
+      pouch:   pouchIM.current,
+    }
+    if (!colorsDone.current) {
+      items.forEach((item) => {
+        const im = ims[item.type]
+        if (!im) return
+        im.setColorAt(item.subIdx, _eqCol.set(item.color))
+      })
+      Object.values(ims).forEach((im) => { if (im?.instanceColor) im.instanceColor.needsUpdate = true })
+      colorsDone.current = true
+    }
+    items.forEach((item) => {
+      const im = ims[item.type]
+      if (!im) return
+      item.pos[0] += item.dx * 0.002
+      item.pos[1] += item.dy * 0.002
+      item.pos[2] += item.dz * 0.002
+      item.rx_cur += 0.003 * item.rx
+      item.ry_cur += 0.004 * item.ry
+      item.rz_cur += 0.002 * item.rz
+      if (item.pos[0] > 15)   item.dx = -Math.abs(item.dx)
+      if (item.pos[0] < -15)  item.dx =  Math.abs(item.dx)
+      if (item.pos[1] > 20)   item.dy = -Math.abs(item.dy)
+      if (item.pos[1] < 2)    item.dy =  Math.abs(item.dy)
+      if (item.pos[2] > 0)    item.dz = -Math.abs(item.dz)
+      if (item.pos[2] < -130) item.dz =  Math.abs(item.dz)
+      _eqDummy.position.set(item.pos[0], item.pos[1], item.pos[2])
+      _eqDummy.rotation.set(item.rx_cur, item.ry_cur, item.rz_cur)
+      _eqDummy.updateMatrix()
+      im.setMatrixAt(item.subIdx, _eqDummy.matrix)
     })
+    if (toolboxIM.current)  toolboxIM.current.instanceMatrix.needsUpdate  = true
+    if (tankIM.current)     tankIM.current.instanceMatrix.needsUpdate     = true
+    if (datapadIM.current)  datapadIM.current.instanceMatrix.needsUpdate  = true
+    if (pouchIM.current)    pouchIM.current.instanceMatrix.needsUpdate    = true
   })
 
   return (
     <>
-      {items.map((item, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { meshRefs.current[i] = el }}
-          position={item.pos}
-        >
-          {item.type === 'toolbox' && <boxGeometry args={[0.8, 0.5, 0.4]} />}
-          {item.type === 'tank' && <cylinderGeometry args={[0.25, 0.25, 0.8, 10]} />}
-          {item.type === 'datapad' && <boxGeometry args={[0.5, 0.7, 0.05]} />}
-          {item.type === 'pouch' && <boxGeometry args={[0.3, 0.4, 0.2]} />}
-          <meshStandardMaterial color={item.color} roughness={0.4} metalness={0.5} />
-        </mesh>
-      ))}
+      <instancedMesh ref={toolboxIM} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <boxGeometry args={[0.8, 0.5, 0.4]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.4} metalness={0.5} />
+      </instancedMesh>
+      <instancedMesh ref={tankIM} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <cylinderGeometry args={[0.25, 0.25, 0.8, 10]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.4} metalness={0.5} />
+      </instancedMesh>
+      <instancedMesh ref={datapadIM} args={[undefined, undefined, 4]} frustumCulled={false}>
+        <boxGeometry args={[0.5, 0.7, 0.05]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.4} metalness={0.5} />
+      </instancedMesh>
+      <instancedMesh ref={pouchIM} args={[undefined, undefined, 3]} frustumCulled={false}>
+        <boxGeometry args={[0.3, 0.4, 0.2]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.4} metalness={0.5} />
+      </instancedMesh>
     </>
   )
 }
@@ -1858,8 +1914,31 @@ function AlienScoutShip() {
     [],
   )
 
-  const glyphRefs  = useRef<(THREE.Mesh | null)[]>([])
+  const finIM      = useRef<THREE.InstancedMesh>(null!)
+  const glyphIM    = useRef<THREE.InstancedMesh>(null!)
   const engineRefs = useRef<(THREE.Mesh | null)[]>([])
+
+  // Set static fin + glyph matrices once (local to ship group)
+  useEffect(() => {
+    const dummy = new THREE.Object3D()
+    FIN_ANGLES.forEach((angle, i) => {
+      dummy.position.set(Math.sin(angle) * 2.0, 0, Math.cos(angle) * 2.0)
+      dummy.rotation.set(0, -angle, 0)
+      dummy.scale.setScalar(1)
+      dummy.updateMatrix()
+      finIM.current.setMatrixAt(i, dummy.matrix)
+    })
+    finIM.current.instanceMatrix.needsUpdate = true
+
+    GLYPH_POSITIONS.forEach((pos, i) => {
+      dummy.position.set(pos[0], pos[1], pos[2])
+      dummy.rotation.set(0, (i / 8) * Math.PI * 2, 0)
+      dummy.scale.setScalar(1)
+      dummy.updateMatrix()
+      glyphIM.current.setMatrixAt(i, dummy.matrix)
+    })
+    glyphIM.current.instanceMatrix.needsUpdate = true
+  }, [FIN_ANGLES, GLYPH_POSITIONS])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }, dt) => {
@@ -1901,11 +1980,9 @@ function AlienScoutShip() {
       grp.rotation.y = s.orbitAngle + Math.PI / 2
     }
 
-    // Pulse alien glyphs
+    // Pulse alien glyphs (all same intensity — update IM material)
     const glyphIntensity = 2 + Math.sin(t * 3) * 1
-    glyphRefs.current.forEach((m) => {
-      if (m) (m.material as THREE.MeshStandardMaterial).emissiveIntensity = glyphIntensity
-    })
+    if (glyphIM.current) (glyphIM.current.material as THREE.MeshStandardMaterial).emissiveIntensity = glyphIntensity
 
     // Pulse engines
     const engIntensity = 4 + Math.sin(t * 8) * 1.5
@@ -1923,16 +2000,10 @@ function AlienScoutShip() {
       </mesh>
 
       {/* ── 6 flat fins radiating outward ── */}
-      {FIN_ANGLES.map((angle, i) => (
-        <mesh
-          key={`fin-${i}`}
-          position={[Math.sin(angle) * 2.0, 0, Math.cos(angle) * 2.0]}
-          rotation={[0, -angle, 0]}
-        >
-          <boxGeometry args={[0.3, 0.1, 2.5]} />
-          <meshStandardMaterial color="#1a0d2a" roughness={0.4} metalness={0.8} />
-        </mesh>
-      ))}
+      <instancedMesh ref={finIM} args={[undefined, undefined, 6]}>
+        <boxGeometry args={[0.3, 0.1, 2.5]} />
+        <meshStandardMaterial color="#1a0d2a" roughness={0.4} metalness={0.8} />
+      </instancedMesh>
 
       {/* ── Cockpit dome ── */}
       <mesh position={[0, 0.7, 0]}>
@@ -1949,22 +2020,10 @@ function AlienScoutShip() {
       </mesh>
 
       {/* ── Alien writing — 8 glyph boxes on hull surface ── */}
-      {GLYPH_POSITIONS.map((pos, i) => (
-        <mesh
-          key={`glyph-${i}`}
-          ref={(el) => { glyphRefs.current[i] = el }}
-          position={pos}
-          rotation={[0, (i / 8) * Math.PI * 2, 0]}
-        >
-          <boxGeometry args={[0.5, 0.04, 0.15]} />
-          <meshStandardMaterial
-            color="#00ffaa"
-            emissive="#00ffaa"
-            emissiveIntensity={3}
-            roughness={0.1}
-          />
-        </mesh>
-      ))}
+      <instancedMesh ref={glyphIM} args={[undefined, undefined, 8]}>
+        <boxGeometry args={[0.5, 0.04, 0.15]} />
+        <meshStandardMaterial color="#00ffaa" emissive="#00ffaa" emissiveIntensity={3} roughness={0.1} />
+      </instancedMesh>
 
       {/* ── Engine nodes (3 in triangle) + glow cones ── */}
       {ENGINE_POSITIONS.map((pos, i) => (
@@ -2016,95 +2075,68 @@ function AlienScoutShip() {
 }
 
 // ─── AlienSignalBeacons ───────────────────────────────────────────
-// 4 alien signal buoys marking territory in a loose formation.
+// 4 alien signal buoys: 16 meshes → 4 IMs (spheres, ring1, ring2, beams)
 function AlienSignalBeacons() {
-  const BEACON_POSITIONS: Array<[number, number, number]> = [
-    [ 90,  5, -40],
-    [-85,  3, -55],
-    [ 70,  8, -110],
-    [-75,  6, -100],
-  ]
-  const RING_TILTS: Array<[number, number, number]> = [
-    [Math.PI / 2, 0,              0             ],
-    [0,           Math.PI / 4,    0             ],
-    [Math.PI / 3, 0,              Math.PI / 4   ],
-    [0,           0,              Math.PI / 2   ],
-  ]
+  const sphereIM = useRef<THREE.InstancedMesh>(null!)
+  const ring1IM  = useRef<THREE.InstancedMesh>(null!)
+  const ring2IM  = useRef<THREE.InstancedMesh>(null!)
+  const beamIM   = useRef<THREE.InstancedMesh>(null!)
 
-  const sphereRefs = useRef<(THREE.Mesh | null)[]>([])
-  const beamRefs   = useRef<(THREE.Mesh | null)[]>([])
+  useEffect(() => {
+    _AB_POSITIONS.forEach((pos, i) => {
+      const tilt = _AB_RING_TILTS[i]!
+      _abDummy.position.set(pos[0], pos[1], pos[2])
+      _abDummy.rotation.set(0, 0, 0); _abDummy.scale.setScalar(1); _abDummy.updateMatrix()
+      sphereIM.current.setMatrixAt(i, _abDummy.matrix)
+      _abDummy.rotation.set(tilt[0], tilt[1], tilt[2]); _abDummy.updateMatrix()
+      ring1IM.current.setMatrixAt(i, _abDummy.matrix)
+      _abDummy.rotation.set(tilt[0] + Math.PI / 3, tilt[1], Math.PI / 2); _abDummy.updateMatrix()
+      ring2IM.current.setMatrixAt(i, _abDummy.matrix)
+      _abDummy.position.set(pos[0], pos[1] + 10, pos[2])
+      _abDummy.rotation.set(0, 0, 0); _abDummy.updateMatrix()
+      beamIM.current.setMatrixAt(i, _abDummy.matrix)
+    })
+    sphereIM.current.instanceMatrix.needsUpdate = true
+    ring1IM.current.instanceMatrix.needsUpdate  = true
+    ring2IM.current.instanceMatrix.needsUpdate  = true
+    beamIM.current.instanceMatrix.needsUpdate   = true
+  }, [])
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    BEACON_POSITIONS.forEach((_, i) => {
+    _AB_POSITIONS.forEach((_, i) => {
       const intensity = 1.5 + Math.sin(t * 2 + i * 1.3) * 1.0
-      const sphere = sphereRefs.current[i]
-      const beam   = beamRefs.current[i]
-      if (sphere) (sphere.material as THREE.MeshStandardMaterial).emissiveIntensity = intensity
-      if (beam)   (beam.material   as THREE.MeshStandardMaterial).emissiveIntensity = intensity * 0.8
+      const bright = intensity / 2.5
+      sphereIM.current.setColorAt(i, _abCol.set('#00ffaa').multiplyScalar(bright))
+      beamIM.current.setColorAt(i,   _abCol.set('#00ff88').multiplyScalar(bright))
     })
+    if (sphereIM.current.instanceColor) sphereIM.current.instanceColor.needsUpdate = true
+    if (beamIM.current.instanceColor)   beamIM.current.instanceColor.needsUpdate   = true
   })
 
   return (
     <>
-      {BEACON_POSITIONS.map((pos, i) => (
-        <group key={`alien-beacon-${i}`} position={pos}>
-          {/* Main buoy sphere */}
-          <mesh ref={(el) => { sphereRefs.current[i] = el }}>
-            <sphereGeometry args={[0.8, 12, 10]} />
-            <meshStandardMaterial
-              color="#1a0a2a"
-              emissive="#00ffaa"
-              emissiveIntensity={1.5}
-              roughness={0.4}
-              metalness={0.6}
-            />
-          </mesh>
-
-          {/* Ring around buoy */}
-          <mesh rotation={RING_TILTS[i]}>
-            <torusGeometry args={[1.2, 0.1, 8, 32]} />
-            <meshStandardMaterial
-              color="#00ffaa"
-              emissive="#00ffaa"
-              emissiveIntensity={2}
-              roughness={0.2}
-            />
-          </mesh>
-
-          {/* Second ring at different angle */}
-          <mesh rotation={[RING_TILTS[i]![0] + Math.PI / 3, RING_TILTS[i]![1], Math.PI / 2]}>
-            <torusGeometry args={[1.4, 0.06, 6, 32]} />
-            <meshStandardMaterial
-              color="#00aa77"
-              emissive="#00aa77"
-              emissiveIntensity={1.5}
-              roughness={0.3}
-            />
-          </mesh>
-
-          {/* Vertical signal beam */}
-          <mesh
-            ref={(el) => { beamRefs.current[i] = el }}
-            position={[0, 10, 0]}
-          >
-            <cylinderGeometry args={[0.05, 0.05, 20, 6]} />
-            <meshStandardMaterial
-              color="#00ff88"
-              emissive="#00ff88"
-              emissiveIntensity={1.5}
-              transparent
-              opacity={0.6}
-              depthWrite={false}
-            />
-          </mesh>
-
-          {/* Buoy glow light */}
-          <pointLight color="#00ffaa" intensity={3} distance={15} />
-        </group>
+      {_AB_POSITIONS.map((pos, i) => (
+        <pointLight key={`ab-light-${i}`} position={pos} color="#00ffaa" intensity={3} distance={15} />
       ))}
+      <instancedMesh ref={sphereIM} args={[undefined, undefined, 4]}>
+        <sphereGeometry args={[0.8, 12, 10]} />
+        <meshBasicMaterial vertexColors toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh ref={ring1IM} args={[undefined, undefined, 4]}>
+        <torusGeometry args={[1.2, 0.1, 8, 32]} />
+        <meshBasicMaterial color="#00ffaa" toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh ref={ring2IM} args={[undefined, undefined, 4]}>
+        <torusGeometry args={[1.4, 0.06, 6, 32]} />
+        <meshBasicMaterial color="#00aa77" toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh ref={beamIM} args={[undefined, undefined, 4]}>
+        <cylinderGeometry args={[0.05, 0.05, 20, 6]} />
+        <meshBasicMaterial vertexColors transparent opacity={0.6} depthWrite={false} />
+      </instancedMesh>
     </>
   )
 }

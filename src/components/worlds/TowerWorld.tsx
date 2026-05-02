@@ -1,6 +1,6 @@
 import { RigidBody, RapierRigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
@@ -346,27 +346,29 @@ function EnergyOrbs() {
 }
 
 // ─── Tower Columns ────────────────────────────────────────────────
+const _COL_HEIGHT = 82
+const _COL_POSITIONS: [number, number, number][] = [
+  [-19, _COL_HEIGHT / 2, -19], [19, _COL_HEIGHT / 2, -19],
+  [-19, _COL_HEIGHT / 2, 19],  [19, _COL_HEIGHT / 2, 19],
+]
+
 function TowerColumns() {
-  const HEIGHT = 82
-  const positions: [number, number, number][] = [
-    [-19, HEIGHT / 2, -19], [19, HEIGHT / 2, -19],
-    [-19, HEIGHT / 2, 19],  [19, HEIGHT / 2, 19],
-  ]
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!meshRef.current) return
+    _COL_POSITIONS.forEach(([x, y, z], i) => {
+      dummy.position.set(x, y, z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
   return (
-    <>
-      {positions.map(([x, y, z], i) => (
-        <mesh key={i} position={[x, y, z]}>
-          <boxGeometry args={[1.6, HEIGHT, 1.6]} />
-          <meshStandardMaterial
-            color="#0d0020"
-            emissive="#220033"
-            emissiveIntensity={0.4}
-            roughness={0.3}
-            metalness={0.6}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, 4]}>
+      <boxGeometry args={[1.6, _COL_HEIGHT, 1.6]} />
+      <meshStandardMaterial color="#0d0020" emissive="#220033" emissiveIntensity={0.4} roughness={0.3} metalness={0.6} />
+    </instancedMesh>
   )
 }
 

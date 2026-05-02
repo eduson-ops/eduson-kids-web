@@ -558,46 +558,60 @@ const BOLT_DATA = Array.from({ length: BOLT_COUNT }, (_, i) => {
 const _BOLT_FLICKER = Array.from({ length: BOLT_COUNT }, () =>
   Array.from({ length: 32 }, () => Math.random() < 0.03)
 )
+const _boltDummy = new THREE.Object3D()
 
 function ArenaLightning() {
-  const boltRefs = useRef<THREE.Mesh[]>([])
-  const lightRefs = useRef<THREE.PointLight[]>([])
-  const flickerPtr = useRef(0)
-  const frameSkip = useRef(0)
+  const boltImRef   = useRef<THREE.InstancedMesh>(null!)
+  const lightRefs   = useRef<THREE.PointLight[]>([])
+  const boltVisible = useRef<boolean[]>(Array(BOLT_COUNT).fill(false))
+  const flickerPtr  = useRef(0)
+  const frameSkip   = useRef(0)
+
+  useEffect(() => {
+    if (!boltImRef.current) return
+    BOLT_DATA.forEach((d, i) => {
+      _boltDummy.position.set(d.x, 20, d.z)
+      _boltDummy.scale.setScalar(0.00001)
+      _boltDummy.updateMatrix()
+      boltImRef.current.setMatrixAt(i, _boltDummy.matrix)
+    })
+    boltImRef.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   useFrame(() => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!boltImRef.current) return
     const ptr = flickerPtr.current++ % 32
-    boltRefs.current.forEach((mesh, i) => {
-      if (!mesh) return
-      if (_BOLT_FLICKER[i]![ptr]) {
-        const nowVisible = !mesh.visible
-        mesh.visible = nowVisible
-        const light = lightRefs.current[i]
-        if (light) light.intensity = nowVisible ? 12 : 0
-      }
+    BOLT_DATA.forEach((d, i) => {
+      if (!_BOLT_FLICKER[i]![ptr]) return
+      boltVisible.current[i] = !boltVisible.current[i]
+      const vis = boltVisible.current[i]!
+      _boltDummy.position.set(d.x, 20, d.z)
+      _boltDummy.scale.setScalar(vis ? 1 : 0.00001)
+      _boltDummy.updateMatrix()
+      boltImRef.current.setMatrixAt(i, _boltDummy.matrix)
+      const light = lightRefs.current[i]
+      if (light) light.intensity = vis ? 12 : 0
     })
+    boltImRef.current.instanceMatrix.needsUpdate = true
   })
 
   return (
     <>
+      <instancedMesh ref={boltImRef} args={[undefined, undefined, BOLT_COUNT]} frustumCulled={false}>
+        <cylinderGeometry args={[0.02, 0.02, 40, 4]} />
+        <meshBasicMaterial color="#cc44ff" />
+      </instancedMesh>
       {BOLT_DATA.map((d, i) => (
-        <group key={`bolt-${i}`} position={[d.x, 20, d.z]}>
-          <mesh
-            ref={(el) => { if (el) boltRefs.current[i] = el }}
-            visible={false}
-          >
-            <cylinderGeometry args={[0.02, 0.02, 40, 4]} />
-            <meshBasicMaterial color="#cc44ff" />
-          </mesh>
-          <pointLight
-            ref={(el) => { if (el) lightRefs.current[i] = el }}
-            color="#cc44ff"
-            intensity={0}
-            distance={30}
-            decay={2}
-          />
-        </group>
+        <pointLight
+          key={`blt-${i}`}
+          ref={(el) => { if (el) lightRefs.current[i] = el }}
+          position={[d.x, 20, d.z]}
+          color="#cc44ff"
+          intensity={0}
+          distance={30}
+          decay={2}
+        />
       ))}
     </>
   )
@@ -763,65 +777,107 @@ const TRAINING_DUMMY_DATA: Array<{
   }
 })
 
-function TrainingTargetDummies() {
-  const groupRefs = useRef<(THREE.Group | null)[]>([])
-  const frameSkip = useRef(0)
+const _tdGroup = new THREE.Object3D()
+const _tdPart  = new THREE.Object3D()
+const _tdMat   = new THREE.Matrix4()
 
+function TrainingTargetDummies() {
+  const bodyIM  = useRef<THREE.InstancedMesh>(null!)
+  const headIM  = useRef<THREE.InstancedMesh>(null!)
+  const lArmIM  = useRef<THREE.InstancedMesh>(null!)
+  const rArmIM  = useRef<THREE.InstancedMesh>(null!)
+  const ring1IM = useRef<THREE.InstancedMesh>(null!)
+  const ring2IM = useRef<THREE.InstancedMesh>(null!)
+  const ring3IM = useRef<THREE.InstancedMesh>(null!)
+
+  const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!bodyIM.current) return
     const t = clock.elapsedTime
-    TRAINING_DUMMY_DATA.forEach((d, i) => {
-      const g = groupRefs.current[i]
-      if (!g) return
-      g.rotation.z = Math.sin(t * 0.8 + d.phase) * 0.1
+
+    TRAINING_DUMMY_DATA.forEach((d, idx) => {
+      const rz = Math.sin(t * 0.8 + d.phase) * 0.1
+      _tdGroup.position.set(d.pos[0], d.pos[1], d.pos[2])
+      _tdGroup.rotation.set(0, 0, rz)
+      _tdGroup.scale.setScalar(1)
+      _tdGroup.updateMatrix()
+
+      // Body at [0, 1, 0]
+      _tdPart.position.set(0, 1, 0)
+      _tdPart.rotation.set(0, 0, 0)
+      _tdPart.scale.setScalar(1)
+      _tdPart.updateMatrix()
+      bodyIM.current.setMatrixAt(idx, _tdMat.multiplyMatrices(_tdGroup.matrix, _tdPart.matrix))
+
+      // Head at [0, 2.5, 0]
+      _tdPart.position.set(0, 2.5, 0)
+      _tdPart.updateMatrix()
+      headIM.current.setMatrixAt(idx, _tdMat.multiplyMatrices(_tdGroup.matrix, _tdPart.matrix))
+
+      // Left arm at [-0.75, 1.4, 0], rot.z = π/3
+      _tdPart.position.set(-0.75, 1.4, 0)
+      _tdPart.rotation.set(0, 0, Math.PI / 3)
+      _tdPart.updateMatrix()
+      lArmIM.current.setMatrixAt(idx, _tdMat.multiplyMatrices(_tdGroup.matrix, _tdPart.matrix))
+
+      // Right arm at [0.75, 1.4, 0], rot.z = -π/3
+      _tdPart.position.set(0.75, 1.4, 0)
+      _tdPart.rotation.set(0, 0, -Math.PI / 3)
+      _tdPart.updateMatrix()
+      rArmIM.current.setMatrixAt(idx, _tdMat.multiplyMatrices(_tdGroup.matrix, _tdPart.matrix))
+
+      // Ring 1 at [0, 1.0, 0], rot.x = π/2
+      _tdPart.position.set(0, 1.0, 0)
+      _tdPart.rotation.set(Math.PI / 2, 0, 0)
+      _tdPart.updateMatrix()
+      ring1IM.current.setMatrixAt(idx, _tdMat.multiplyMatrices(_tdGroup.matrix, _tdPart.matrix))
+
+      // Ring 2 at [0, 1.5, 0]
+      _tdPart.position.set(0, 1.5, 0)
+      _tdPart.updateMatrix()
+      ring2IM.current.setMatrixAt(idx, _tdMat.multiplyMatrices(_tdGroup.matrix, _tdPart.matrix))
+
+      // Ring 3 at [0, 2.0, 0]
+      _tdPart.position.set(0, 2.0, 0)
+      _tdPart.updateMatrix()
+      ring3IM.current.setMatrixAt(idx, _tdMat.multiplyMatrices(_tdGroup.matrix, _tdPart.matrix))
     })
+    const ims = [bodyIM.current, headIM.current, lArmIM.current, rArmIM.current, ring1IM.current, ring2IM.current, ring3IM.current]
+    ims.forEach(im => { if (im) im.instanceMatrix.needsUpdate = true })
   })
 
+  const N = TRAINING_DUMMY_DATA.length
   return (
     <>
-      {TRAINING_DUMMY_DATA.map((d, i) => (
-        <group
-          key={`tdummy-${i}`}
-          ref={(el) => { groupRefs.current[i] = el }}
-          position={d.pos}
-        >
-          {/* Body */}
-          <mesh position={[0, 1, 0]} castShadow>
-            <cylinderGeometry args={[0.5, 0.5, 2, 16]} />
-            <meshStandardMaterial color="#8B4513" roughness={0.9} />
-          </mesh>
-          {/* Head */}
-          <mesh position={[0, 2.5, 0]} castShadow>
-            <sphereGeometry args={[0.4, 14, 14]} />
-            <meshStandardMaterial color="#8B4513" roughness={0.9} />
-          </mesh>
-          {/* Left arm */}
-          <mesh position={[-0.75, 1.4, 0]} rotation={[0, 0, Math.PI / 3]} castShadow>
-            <cylinderGeometry args={[0.15, 0.15, 1.2, 10]} />
-            <meshStandardMaterial color="#8B4513" roughness={0.9} />
-          </mesh>
-          {/* Right arm */}
-          <mesh position={[0.75, 1.4, 0]} rotation={[0, 0, -Math.PI / 3]} castShadow>
-            <cylinderGeometry args={[0.15, 0.15, 1.2, 10]} />
-            <meshStandardMaterial color="#8B4513" roughness={0.9} />
-          </mesh>
-          {/* Target ring 1 — red */}
-          <mesh position={[0, 1.0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.55, 0.05, 8, 28]} />
-            <meshStandardMaterial color="#ff2222" emissive="#ff0000" emissiveIntensity={1} />
-          </mesh>
-          {/* Target ring 2 — white */}
-          <mesh position={[0, 1.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.55, 0.05, 8, 28]} />
-            <meshStandardMaterial color="#ffffff" emissive="#aaaaaa" emissiveIntensity={0.5} />
-          </mesh>
-          {/* Target ring 3 — red */}
-          <mesh position={[0, 2.0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.55, 0.05, 8, 28]} />
-            <meshStandardMaterial color="#ff2222" emissive="#ff0000" emissiveIntensity={1} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, N]}>
+        <cylinderGeometry args={[0.5, 0.5, 2, 16]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={headIM} args={[undefined, undefined, N]}>
+        <sphereGeometry args={[0.4, 14, 14]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={lArmIM} args={[undefined, undefined, N]}>
+        <cylinderGeometry args={[0.15, 0.15, 1.2, 10]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={rArmIM} args={[undefined, undefined, N]}>
+        <cylinderGeometry args={[0.15, 0.15, 1.2, 10]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={ring1IM} args={[undefined, undefined, N]}>
+        <torusGeometry args={[0.55, 0.05, 8, 28]} />
+        <meshStandardMaterial color="#ff2222" emissive="#ff0000" emissiveIntensity={1} />
+      </instancedMesh>
+      <instancedMesh ref={ring2IM} args={[undefined, undefined, N]}>
+        <torusGeometry args={[0.55, 0.05, 8, 28]} />
+        <meshStandardMaterial color="#ffffff" emissive="#aaaaaa" emissiveIntensity={0.5} />
+      </instancedMesh>
+      <instancedMesh ref={ring3IM} args={[undefined, undefined, N]}>
+        <torusGeometry args={[0.55, 0.05, 8, 28]} />
+        <meshStandardMaterial color="#ff2222" emissive="#ff0000" emissiveIntensity={1} />
+      </instancedMesh>
     </>
   )
 }

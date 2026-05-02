@@ -1683,13 +1683,15 @@ function SphinxStatue() {
 const MUMMY_OVAL_RX = 8   // x semi-axis of patrol oval
 const MUMMY_OVAL_RZ = 5   // z semi-axis
 const MUMMY_BASE: [number, number, number] = [-35, 0, -30]  // curse chamber centre
+const _dustDummy = new THREE.Object3D()
+const _dustCol   = new THREE.Color()
 
 function MummyCreature() {
   const groupRef   = useRef<THREE.Group>(null!)
   const bodyRef    = useRef<THREE.Mesh>(null!)
   const armLRef    = useRef<THREE.Mesh>(null!)
   const armRRef    = useRef<THREE.Mesh>(null!)
-  const dustRefs   = useRef<(THREE.Mesh | null)[]>([])
+  const dustImRef  = useRef<THREE.InstancedMesh>(null!)
   const phase      = useRef(0)
 
   // Pre-compute dust offsets
@@ -1728,15 +1730,19 @@ function MummyCreature() {
     if (armRRef.current) armRRef.current.position.y = armY
 
     // Dust trail (behind mummy)
-    dustRefs.current.forEach((mesh, i) => {
-      if (!mesh) return
-      const d = dustOffsets[i]
-      const trailX = px - Math.cos(ang) * 1.0 + d.ox
-      const trailZ = pz - Math.sin(ang) * 1.0 + d.oz
-      const fade = 0.15 + Math.sin(t * 1.2 + d.bobPhase) * 0.1
-      mesh.position.set(trailX, 0.15 + Math.sin(t + d.bobPhase) * 0.1, trailZ)
-      ;(mesh.material as THREE.MeshBasicMaterial).opacity = fade
-    })
+    if (dustImRef.current) {
+      dustOffsets.forEach((d, i) => {
+        const trailX = px - Math.cos(ang) * 1.0 + d.ox
+        const trailZ = pz - Math.sin(ang) * 1.0 + d.oz
+        const fade   = 0.15 + Math.sin(t * 1.2 + d.bobPhase) * 0.1
+        _dustDummy.position.set(trailX, 0.15 + Math.sin(t + d.bobPhase) * 0.1, trailZ)
+        _dustDummy.updateMatrix()
+        dustImRef.current.setMatrixAt(i, _dustDummy.matrix)
+        dustImRef.current.setColorAt(i, _dustCol.setRGB(0.8 * fade, 0.667 * fade, 0.467 * fade))
+      })
+      dustImRef.current.instanceMatrix.needsUpdate = true
+      if (dustImRef.current.instanceColor) dustImRef.current.instanceColor.needsUpdate = true
+    }
   })
 
   return (
@@ -1803,16 +1809,10 @@ function MummyCreature() {
       </mesh>
 
       {/* Dust trail particles */}
-      {dustOffsets.map((d, i) => (
-        <mesh
-          key={i}
-          ref={(el) => { dustRefs.current[i] = el }}
-          position={[d.ox, 0.15, d.oz]}
-        >
-          <sphereGeometry args={[0.12, 5, 5]} />
-          <meshBasicMaterial color="#ccaa77" transparent opacity={0.2} depthWrite={false} />
-        </mesh>
-      ))}
+      <instancedMesh ref={dustImRef} args={[undefined, undefined, 8]} frustumCulled={false}>
+        <sphereGeometry args={[0.12, 5, 5]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+      </instancedMesh>
     </group>
   )
 }

@@ -282,11 +282,14 @@ function GhostFootprints() {
   )
 }
 
+const _orbDummy = new THREE.Object3D()
+const _orbCol   = new THREE.Color()
+
 // ─── GhostApparition — semi-transparent ethereal figure drifting through mansion ───
 function GhostApparition() {
   const groupRef = useRef<THREE.Group>(null!)
   const bodyMatRef = useRef<THREE.MeshBasicMaterial>(null!)
-  const orbRefs = useRef<(THREE.Mesh | null)[]>([])
+  const orbImRef = useRef<THREE.InstancedMesh>(null!)
   // Circular buffer of last 8 positions
   const posBuffer = useRef<THREE.Vector3[]>(
     Array.from({ length: 8 }, () => new THREE.Vector3(0, 1.5, -5))
@@ -325,15 +328,19 @@ function GhostApparition() {
     posBuffer.current[idx]!.set(x, y, z)
     bufHead.current++
 
-    // Update trail orb positions and opacities
-    for (let i = 0; i < 8; i++) {
-      const mesh = orbRefs.current[i]
-      if (!mesh) continue
-      const bufIdx = ((bufHead.current - 1 - i) % 8 + 8) % 8
-      const p = posBuffer.current[bufIdx]!
-      mesh.position.set(p.x, p.y, p.z)
-      const mat = mesh.material as THREE.MeshBasicMaterial
-      mat.opacity = (1 - i / 8) * 0.25
+    // Update trail orb positions and fade via brightness
+    if (orbImRef.current) {
+      for (let i = 0; i < 8; i++) {
+        const bufIdx = ((bufHead.current - 1 - i) % 8 + 8) % 8
+        const p = posBuffer.current[bufIdx]!
+        _orbDummy.position.set(p.x, p.y, p.z)
+        _orbDummy.updateMatrix()
+        orbImRef.current.setMatrixAt(i, _orbDummy.matrix)
+        const bright = (1 - i / 8) * 0.25
+        orbImRef.current.setColorAt(i, _orbCol.setRGB(bright * 0.667, bright * 0.733, bright))
+      }
+      orbImRef.current.instanceMatrix.needsUpdate = true
+      if (orbImRef.current.instanceColor) orbImRef.current.instanceColor.needsUpdate = true
     }
   })
 
@@ -376,12 +383,10 @@ function GhostApparition() {
       </group>
 
       {/* Trail orbs — 8 fading spheres at buffered positions */}
-      {Array.from({ length: 8 }, (_, i) => (
-        <mesh key={`ghostorb${i}`} ref={(el) => { orbRefs.current[i] = el }}>
-          <sphereGeometry args={[0.12, 5, 4]} />
-          <meshBasicMaterial color="#aabbff" transparent opacity={0.25} depthWrite={false} />
-        </mesh>
-      ))}
+      <instancedMesh ref={orbImRef} args={[undefined, undefined, 8]} frustumCulled={false}>
+        <sphereGeometry args={[0.12, 5, 4]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+      </instancedMesh>
     </>
   )
 }
@@ -1111,9 +1116,11 @@ const POTION_COLORS: { body: string; glow: string }[] = [
 ]
 
 const CANDLE_PHASES = [0.0, 1.3, 2.6, 0.7, 1.9]
+const _bubbleColor = new THREE.Color()
+const _bubbleDummy = new THREE.Object3D()
 
 function WizardWorkshop() {
-  const bubbleRefs = useRef<(THREE.Mesh | null)[]>([])
+  const bubbleMeshRef = useRef<THREE.InstancedMesh>(null!)
   const flameRefs = useRef<(THREE.Mesh | null)[]>([])
 
   const bubbleData = useMemo(() =>
@@ -1128,15 +1135,18 @@ function WizardWorkshop() {
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
-    // bubbling particles from cauldron
-    bubbleData.forEach((b, i) => {
-      const mesh = bubbleRefs.current[i]
-      if (!mesh) return
-      const cycleT = (t * b.speed + b.phase) % 3.0
-      mesh.position.set(b.x, 0.7 + cycleT * 0.9, b.z)
-      const mat = mesh.material as THREE.MeshBasicMaterial
-      mat.opacity = (1.0 - cycleT / 3.0) * 0.7
-    })
+    if (bubbleMeshRef.current) {
+      bubbleData.forEach((b, i) => {
+        const cycleT = (t * b.speed + b.phase) % 3.0
+        _bubbleDummy.position.set(b.x, 0.7 + cycleT * 0.9, b.z)
+        _bubbleDummy.updateMatrix()
+        bubbleMeshRef.current.setMatrixAt(i, _bubbleDummy.matrix)
+        const bright = (1.0 - cycleT / 3.0) * 0.7
+        bubbleMeshRef.current.setColorAt(i, _bubbleColor.setRGB(0.267 * bright, bright, 0.533 * bright))
+      })
+      bubbleMeshRef.current.instanceMatrix.needsUpdate = true
+      if (bubbleMeshRef.current.instanceColor) bubbleMeshRef.current.instanceColor.needsUpdate = true
+    }
     // candle flame scale flicker
     CANDLE_PHASES.forEach((phase, i) => {
       const flame = flameRefs.current[i]
@@ -1258,16 +1268,10 @@ function WizardWorkshop() {
       <pointLight color="#00ff44" intensity={3} distance={8} decay={2} position={[0, 2.5, 0.3]} />
 
       {/* ── Bubbling particles rising from cauldron ── */}
-      {bubbleData.map((_, i) => (
-        <mesh
-          key={`bubble${i}`}
-          ref={(el) => { bubbleRefs.current[i] = el }}
-          position={[0, 1.93, 0.3]}
-        >
-          <sphereGeometry args={[0.07, 5, 5]} />
-          <meshBasicMaterial color="#44ff88" transparent opacity={0.7} depthWrite={false} />
-        </mesh>
-      ))}
+      <instancedMesh ref={bubbleMeshRef} args={[undefined, undefined, 10]} frustumCulled={false}>
+        <sphereGeometry args={[0.07, 5, 5]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+      </instancedMesh>
 
       {/* ── Lectern (angled box) ── */}
       <mesh position={[-1.8, 1.6, -0.6]} rotation={[0.5, 0, 0]} castShadow>
@@ -1991,8 +1995,7 @@ function DragonSkeleton() {
 
 // ─── DragonAura — mystical orbiting rune circles + curse energy motes ───
 function DragonAura() {
-  // 6 orbiting torus rune circles
-  const runeRingRefs = useRef<(THREE.Mesh | null)[]>([])
+  const runeRingMeshRef = useRef<THREE.InstancedMesh>(null!)
   const moteRef = useRef<THREE.InstancedMesh>(null!)
 
   const ringData = useMemo(() =>
@@ -2002,6 +2005,7 @@ function DragonAura() {
       phase: (i / 6) * Math.PI * 2,
       tiltX: (i % 2 === 0 ? 0.3 : -0.3),
       tiltZ: (i % 3 === 0 ? 0.2 : (i % 3 === 1 ? -0.15 : 0.1)),
+      rotY: 0,
     })), [])
 
   const moteData = useMemo(() =>
@@ -2023,18 +2027,17 @@ function DragonAura() {
     const t = clock.elapsedTime
 
     // Orbit ring circles around skull at [50,0,20] local origin at [0,0,0]
-    ringData.forEach((rd, i) => {
-      const mesh = runeRingRefs.current[i]
-      if (mesh) {
+    if (runeRingMeshRef.current) {
+      ringData.forEach((rd, i) => {
         const angle = t * rd.speed + rd.phase
-        mesh.position.x = Math.cos(angle) * 8
-        mesh.position.z = Math.sin(angle) * 8
-        mesh.position.y = rd.yOffset + Math.sin(t * 0.4 + rd.phase) * 0.5
-        mesh.rotation.x = rd.tiltX + Math.sin(t * 0.2 + rd.phase) * 0.1
-        mesh.rotation.z = rd.tiltZ
-        mesh.rotation.y += 0.02
-      }
-    })
+        dummy.position.set(Math.cos(angle) * 8, rd.yOffset + Math.sin(t * 0.4 + rd.phase) * 0.5, Math.sin(angle) * 8)
+        dummy.rotation.set(rd.tiltX + Math.sin(t * 0.2 + rd.phase) * 0.1, rd.rotY, rd.tiltZ)
+        rd.rotY += 0.02
+        dummy.updateMatrix()
+        runeRingMeshRef.current.setMatrixAt(i, dummy.matrix)
+      })
+      runeRingMeshRef.current.instanceMatrix.needsUpdate = true
+    }
 
     // Animate curse motes
     moteData.forEach((m, i) => {
@@ -2054,22 +2057,16 @@ function DragonAura() {
   return (
     <group position={[50, 0, 20]}>
       {/* 6 orbiting torus rune circles */}
-      {ringData.map((rd, i) => (
-        <mesh
-          key={`drr${i}`}
-          ref={(el) => { runeRingRefs.current[i] = el }}
-          position={[Math.cos(rd.phase) * 8, rd.yOffset, Math.sin(rd.phase) * 8]}
-        >
-          <torusGeometry args={[1.5, 0.08, 8, 40]} />
-          <meshStandardMaterial
-            color="#220044"
-            emissive="#8800ff"
-            emissiveIntensity={3}
-            transparent
-            opacity={0.9}
-          />
-        </mesh>
-      ))}
+      <instancedMesh ref={runeRingMeshRef} args={[undefined, undefined, 6]} frustumCulled={false}>
+        <torusGeometry args={[1.5, 0.08, 8, 40]} />
+        <meshStandardMaterial
+          color="#220044"
+          emissive="#8800ff"
+          emissiveIntensity={3}
+          transparent
+          opacity={0.9}
+        />
+      </instancedMesh>
 
       {/* 30 purple energy motes drifting around the body */}
       <instancedMesh ref={moteRef} args={[undefined, undefined, DRAGON_CURSE_MOTE_COUNT]} frustumCulled={false}>

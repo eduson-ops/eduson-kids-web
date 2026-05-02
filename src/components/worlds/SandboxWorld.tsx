@@ -1,6 +1,6 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { getShadowMapSize, detectDeviceTier } from '../../lib/deviceTier'
 
@@ -501,52 +501,54 @@ function FactoryGrit() {
 }
 
 // ─── Factory Smoke Stacks (SW quadrant) ───────────────────────────
-function FactorySmoke() {
-  // 3 stacks × 15 particles each
-  const STACKS: Array<{ x: number; z: number }> = [
-    { x: -30, z: 25 },
-    { x: -60, z: 35 },
-    { x: -80, z: 60 },
-  ]
-  const COUNT = 15
-  const refs = useRef<(THREE.Mesh | null)[]>([])
-  const data = useMemo(() => STACKS.flatMap(({ x, z }) =>
-    Array.from({ length: COUNT }).map((_, i) => ({
-      baseX: x + (Math.random() - 0.5) * 1.5,
-      baseZ: z + (Math.random() - 0.5) * 1.5,
-      startY: 8 + (i / COUNT) * 10,
-      speed: 0.8 + Math.random() * 0.6,
-      wobble: (Math.random() - 0.5) * 0.4,
-      radius: 0.2 + Math.random() * 0.2,
-      phase: (i / COUNT) * Math.PI * 2,
+const _FS_STACKS = [{ x: -30, z: 25 }, { x: -60, z: 35 }, { x: -80, z: 60 }]
+const _FS_COUNT  = 15
+const _FS_DATA: { baseX: number; baseZ: number; speed: number; wobble: number; radius: number; phase: number }[] = (() => {
+  const seed = (n: number) => ((Math.sin(n * 73.1 + 211.3) * 43758.5453) % 1 + 1) % 1
+  let k = 0
+  return _FS_STACKS.flatMap(({ x, z }) =>
+    Array.from({ length: _FS_COUNT }, (_, i) => ({
+      baseX:  x + (seed(k++) - 0.5) * 1.5,
+      baseZ:  z + (seed(k++) - 0.5) * 1.5,
+      speed:  0.8 + seed(k++) * 0.6,
+      wobble: (seed(k++) - 0.5) * 0.4,
+      radius: 0.2 + seed(k++) * 0.2,
+      phase:  (i / _FS_COUNT) * Math.PI * 2,
     }))
-  ), [])  // eslint-disable-line react-hooks/exhaustive-deps
+  )
+})()
+const _fsCol   = new THREE.Color()
+const _fsDummy = new THREE.Object3D()
+
+function FactorySmoke() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!meshRef.current) return
     const t = clock.getElapsedTime()
-    data.forEach((d, i) => {
-      const m = refs.current[i]
-      if (!m) return
+    _FS_DATA.forEach((d, i) => {
       const elapsed = (t * d.speed + d.phase) % (Math.PI * 2)
-      const frac = elapsed / (Math.PI * 2)
-      m.position.y = 8 + frac * 10
-      m.position.x = d.baseX + Math.sin(t * 0.5 + d.phase) * d.wobble
-      m.position.z = d.baseZ + Math.cos(t * 0.4 + d.phase) * d.wobble
-      // Fade opacity: denser at bottom, transparent at top
-      const mat = m.material as THREE.MeshStandardMaterial
-      mat.opacity = 0.2 * (1 - frac)
+      const frac    = elapsed / (Math.PI * 2)
+      _fsDummy.position.set(
+        d.baseX + Math.sin(t * 0.5 + d.phase) * d.wobble,
+        8 + frac * 10,
+        d.baseZ + Math.cos(t * 0.4 + d.phase) * d.wobble,
+      )
+      _fsDummy.scale.setScalar(d.radius)
+      _fsDummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, _fsDummy.matrix)
+      const bright = 1 - frac
+      meshRef.current.setColorAt(i, _fsCol.setRGB(bright * 0.333, bright * 0.333, bright * 0.333))
     })
+    meshRef.current.instanceMatrix.needsUpdate = true
+    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
   return (
-    <>
-      {data.map((d, i) => (
-        <mesh key={i} ref={el => { refs.current[i] = el }} position={[d.baseX, d.startY, d.baseZ]}>
-          <sphereGeometry args={[d.radius, 7, 7]} />
-          <meshStandardMaterial color="#555555" opacity={0.2} transparent />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, _FS_DATA.length]} frustumCulled={false}>
+      <sphereGeometry args={[1, 7, 7]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.2} depthWrite={false} toneMapped={false} />
+    </instancedMesh>
   )
 }
 
@@ -637,6 +639,48 @@ function FactoryGround() {
 }
 
 // ─── Roads ───────────────────────────────────────────────────────
+const ROAD_DASH_COUNT = 20
+
+function RoadDashesH() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!meshRef.current) return
+    for (let i = 0; i < ROAD_DASH_COUNT; i++) {
+      dummy.position.set(-95 + i * 10, 0.04, 0)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, ROAD_DASH_COUNT]}>
+      <boxGeometry args={[4, 0.02, 0.25]} />
+      <meshStandardMaterial color="#ffffff" roughness={0.8} />
+    </instancedMesh>
+  )
+}
+
+function RoadDashesV() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!meshRef.current) return
+    for (let i = 0; i < ROAD_DASH_COUNT; i++) {
+      dummy.position.set(0, 0.04, -95 + i * 10)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, ROAD_DASH_COUNT]}>
+      <boxGeometry args={[0.25, 0.02, 4]} />
+      <meshStandardMaterial color="#ffffff" roughness={0.8} />
+    </instancedMesh>
+  )
+}
+
 function Roads() {
   return (
     <group>
@@ -650,20 +694,8 @@ function Roads() {
         <boxGeometry args={[8, 0.05, 200]} />
         <meshStandardMaterial color="#2a2a3a" roughness={0.95} />
       </mesh>
-      {/* Road dashes horizontal */}
-      {Array.from({ length: 20 }).map((_, i) => (
-        <mesh key={`rh${i}`} position={[-95 + i * 10, 0.04, 0]}>
-          <boxGeometry args={[4, 0.02, 0.25]} />
-          <meshStandardMaterial color="#ffffff" roughness={0.8} />
-        </mesh>
-      ))}
-      {/* Road dashes vertical */}
-      {Array.from({ length: 20 }).map((_, i) => (
-        <mesh key={`rv${i}`} position={[0, 0.04, -95 + i * 10]}>
-          <boxGeometry args={[0.25, 0.02, 4]} />
-          <meshStandardMaterial color="#ffffff" roughness={0.8} />
-        </mesh>
-      ))}
+      <RoadDashesH />
+      <RoadDashesV />
     </group>
   )
 }
@@ -971,6 +1003,7 @@ function BeachBonfire() {
 
   const dummyMatrix = useMemo(() => new THREE.Matrix4(), [])
   const dummyColor  = useMemo(() => new THREE.Color('#ffaa44'), [])
+  const colorInitDone = useRef(false)
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
@@ -986,6 +1019,11 @@ function BeachBonfire() {
     }
     const mesh = sparkRefs.current
     if (mesh) {
+      if (!colorInitDone.current) {
+        for (let ci = 0; ci < sparkData.length; ci++) mesh.setColorAt(ci, dummyColor)
+        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+        colorInitDone.current = true
+      }
       sparkData.forEach((d, i) => {
         const life = ((t * d.speed + d.phase) % 2) / 2
         const x = Math.cos(d.angle) * d.radius
@@ -995,11 +1033,8 @@ function BeachBonfire() {
         dummyMatrix.makeScale(s, s, s)
         dummyMatrix.setPosition(x, y, z)
         mesh.setMatrixAt(i, dummyMatrix)
-        dummyColor.setHex(0xffaa44)
-        mesh.setColorAt(i, dummyColor)
       })
       mesh.instanceMatrix.needsUpdate = true
-      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     }
   })
 
@@ -1462,10 +1497,14 @@ function WaterSlide() {
   )
 }
 
+const _wpDummy = new THREE.Object3D()
+_wpDummy.rotation.set(-Math.PI / 2, 0, 0)
+const _wpCol   = new THREE.Color()
+
 // ─── WavePool ─────────────────────────────────────────────────────
 function WavePool() {
-  const waveRefs = useRef<(THREE.Mesh | null)[]>([])
-  const rippleRefs = useRef<(THREE.Mesh | null)[]>([])
+  const waveIM   = useRef<THREE.InstancedMesh>(null!)
+  const rippleIM = useRef<THREE.InstancedMesh>(null!)
 
   // Wave crest start positions (spread in z)
   const waveStartZ = useMemo(() => Array.from({ length: 5 }, (_, i) => i * 5 - 10), [])
@@ -1482,24 +1521,33 @@ function WavePool() {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
 
-    // Move wave crests from z=-9 to z=+9, wrapping
-    waveRefs.current.forEach((m, i) => {
-      if (!m) return
-      const startZ = waveStartZ[i] ?? 0
-      m.position.z = ((t * 4 + startZ + 9 + i * 5) % 18) - 9
-    })
+    // Move wave crests from z=-9 to z=+9, wrapping (no rotation, scale=1)
+    if (waveIM.current) {
+      _wpDummy.rotation.set(0, 0, 0)
+      _wpDummy.scale.setScalar(1)
+      waveStartZ.forEach((startZ, i) => {
+        _wpDummy.position.set(0, 2.1, ((t * 4 + startZ + 9 + i * 5) % 18) - 9)
+        _wpDummy.updateMatrix()
+        waveIM.current.setMatrixAt(i, _wpDummy.matrix)
+      })
+      waveIM.current.instanceMatrix.needsUpdate = true
+    }
 
-    // Expand and fade ripples
-    rippleRefs.current.forEach((m, i) => {
-      if (!m) return
-      const d = rippleData[i]!
-      const phase = (t * d.speed + d.phase) % (Math.PI * 2)
-      const frac = phase / (Math.PI * 2)
-      const scale = 0.5 + frac * 3
-      m.scale.setScalar(scale)
-      const mat = m.material as THREE.MeshBasicMaterial
-      mat.opacity = 0.35 * (1 - frac)
-    })
+    // Expand and fade ripples via brightness trick
+    if (rippleIM.current) {
+      _wpDummy.rotation.set(-Math.PI / 2, 0, 0)
+      rippleData.forEach((d, i) => {
+        const frac = ((t * d.speed + d.phase) % (Math.PI * 2)) / (Math.PI * 2)
+        _wpDummy.position.set(d.x, 2.15, d.z)
+        _wpDummy.scale.setScalar(0.5 + frac * 3)
+        _wpDummy.updateMatrix()
+        rippleIM.current.setMatrixAt(i, _wpDummy.matrix)
+        const bright = 0.35 * (1 - frac)
+        rippleIM.current.setColorAt(i, _wpCol.setRGB(bright * 0.667, bright * 0.867, bright))
+      })
+      rippleIM.current.instanceMatrix.needsUpdate = true
+      if (rippleIM.current.instanceColor) rippleIM.current.instanceColor.needsUpdate = true
+    }
   })
 
   return (
@@ -1558,35 +1606,17 @@ function WavePool() {
         </mesh>
       ))}
 
-      {/* Animated wave crests */}
-      {waveStartZ.map((_, i) => (
-        <mesh
-          key={`wave-${i}`}
-          ref={el => { waveRefs.current[i] = el }}
-          position={[0, 2.1, 0]}
-        >
-          <boxGeometry args={[28, 0.4, 0.8]} />
-          <meshStandardMaterial
-            color="#88ccff"
-            transparent
-            opacity={0.45}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
+      {/* Animated wave crests — 5 InstancedMesh */}
+      <instancedMesh ref={waveIM} args={[undefined, undefined, 5]} frustumCulled={false}>
+        <boxGeometry args={[28, 0.4, 0.8]} />
+        <meshStandardMaterial color="#88ccff" transparent opacity={0.45} depthWrite={false} />
+      </instancedMesh>
 
-      {/* Water ripple torus rings on surface */}
-      {rippleData.map((d, i) => (
-        <mesh
-          key={`ripple-${i}`}
-          ref={el => { rippleRefs.current[i] = el }}
-          position={[d.x, 2.15, d.z]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <torusGeometry args={[1, 0.08, 6, 24]} />
-          <meshBasicMaterial color="#aaddff" transparent opacity={0.35} depthWrite={false} />
-        </mesh>
-      ))}
+      {/* Water ripple torus rings — 6 InstancedMesh with brightness fade */}
+      <instancedMesh ref={rippleIM} args={[undefined, undefined, 6]} frustumCulled={false}>
+        <torusGeometry args={[1, 0.08, 6, 24]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+      </instancedMesh>
 
       {/* Pool ambient light */}
       <pointLight position={[0, 4, 0]} color="#3388ff" intensity={2} distance={25} />
@@ -1786,6 +1816,31 @@ function ConstructionCrane() {
 }
 
 // ─── Scaffolding (construction zone) ─────────────────────────────
+const _POLE_POSITIONS: Array<[number, number, number]> = [
+  [-7, 11, -6], [7, 11, -6], [-7, 11, 6], [7, 11, 6],
+  [0, 11, -6],  [0, 11, 6], [-7, 11, 0], [7, 11, 0],
+]
+
+function ScaffoldPoles() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!meshRef.current) return
+    _POLE_POSITIONS.forEach(([x, y, z], i) => {
+      dummy.position.set(x, y, z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, _POLE_POSITIONS.length]} castShadow>
+      <cylinderGeometry args={[0.1, 0.1, 22, 7]} />
+      <meshStandardMaterial color="#aaaaaa" roughness={0.6} metalness={0.6} />
+    </instancedMesh>
+  )
+}
+
 function Scaffolding() {
   const warningRef = useRef<THREE.Mesh>(null!)
 
@@ -1798,11 +1853,6 @@ function Scaffolding() {
       mat.emissiveIntensity = 1.5 + Math.sin(t * 4) * 1.5
     }
   })
-
-  const polePositions: Array<[number, number, number]> = [
-    [-7, 11, -6], [7, 11, -6], [-7, 11, 6], [7, 11, 6],
-    [0, 11, -6],  [0, 11, 6], [-7, 11, 0], [7, 11, 0],
-  ]
 
   const debrisBoxes: Array<{ pos: [number, number, number]; size: [number, number, number]; color: string; rotY: number }> = [
     { pos: [-9, 0.3, -4], size: [1.5, 0.6, 0.8], color: '#cc3300', rotY: 0.3 },
@@ -1856,13 +1906,8 @@ function Scaffolding() {
         </group>
       ))}
 
-      {/* Vertical scaffold poles (8 poles, full height 22) */}
-      {polePositions.map((pos, i) => (
-        <mesh key={`pole-${i}`} position={pos} castShadow>
-          <cylinderGeometry args={[0.1, 0.1, 22, 7]} />
-          <meshStandardMaterial color="#aaaaaa" roughness={0.6} metalness={0.6} />
-        </mesh>
-      ))}
+      {/* Vertical scaffold poles (8 poles → single InstancedMesh) */}
+      <ScaffoldPoles />
 
       {/* Hard hat warning light on top */}
       <mesh ref={warningRef} position={[0, 22.5, 0]}>
@@ -1978,10 +2023,13 @@ function CementMixer() {
   )
 }
 
+const _sgGroup = new THREE.Object3D()
+const _sgPart  = new THREE.Object3D()
+const _sgMat   = new THREE.Matrix4()
+
 // ─── Seagull Flock (beach atmosphere) ────────────────────────────
 function SeagullFlock() {
   const COUNT = 12
-  const refs = useRef<(THREE.Group | null)[]>([])
   const data = useMemo(() => Array.from({ length: COUNT }, (_, i) => ({
     cx: 30 + (Math.random() - 0.5) * 40,
     cy: 18 + Math.random() * 12,
@@ -1993,51 +2041,67 @@ function SeagullFlock() {
     wingSpeed: 2.5 + Math.random() * 2,
   })), [])
 
+  const lWingIM = useRef<THREE.InstancedMesh>(null!)
+  const rWingIM = useRef<THREE.InstancedMesh>(null!)
+  const bodyIM  = useRef<THREE.InstancedMesh>(null!)
+
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
+    if (!lWingIM.current) return
     const t = clock.elapsedTime
-    refs.current.forEach((grp, i) => {
-      if (!grp) return
-      const d = data[i]!
+
+    data.forEach((d, idx) => {
       const angle = t * d.speed + d.phase
-      grp.position.set(
+      const wingAngle = Math.sin(t * d.wingSpeed + d.wingPhase) * 0.5
+
+      _sgGroup.position.set(
         d.cx + Math.cos(angle) * d.radius,
         d.cy + Math.sin(t * 0.4 + d.phase) * 1.5,
         d.cz + Math.sin(angle) * d.radius,
       )
-      // Face direction of travel
-      grp.rotation.y = -angle + Math.PI / 2
-      // Wing flap: rotate left/right wing meshes
-      const wingAngle = Math.sin(t * d.wingSpeed + d.wingPhase) * 0.5
-      const leftWing = grp.children[0] as THREE.Mesh | undefined
-      const rightWing = grp.children[1] as THREE.Mesh | undefined
-      if (leftWing) leftWing.rotation.z = wingAngle
-      if (rightWing) rightWing.rotation.z = -wingAngle
+      _sgGroup.rotation.set(0, -angle + Math.PI / 2, 0)
+      _sgGroup.scale.setScalar(1)
+      _sgGroup.updateMatrix()
+
+      // Left wing at [-0.35, 0, 0], rotation.z = wingAngle
+      _sgPart.position.set(-0.35, 0, 0)
+      _sgPart.rotation.set(0, 0, wingAngle)
+      _sgPart.scale.setScalar(1)
+      _sgPart.updateMatrix()
+      lWingIM.current.setMatrixAt(idx, _sgMat.multiplyMatrices(_sgGroup.matrix, _sgPart.matrix))
+
+      // Right wing at [0.35, 0, 0], rotation.z = -wingAngle
+      _sgPart.position.set(0.35, 0, 0)
+      _sgPart.rotation.set(0, 0, -wingAngle)
+      _sgPart.updateMatrix()
+      rWingIM.current.setMatrixAt(idx, _sgMat.multiplyMatrices(_sgGroup.matrix, _sgPart.matrix))
+
+      // Body at [0, 0, 0], no local rotation
+      _sgPart.position.set(0, 0, 0)
+      _sgPart.rotation.set(0, 0, 0)
+      _sgPart.updateMatrix()
+      bodyIM.current.setMatrixAt(idx, _sgMat.multiplyMatrices(_sgGroup.matrix, _sgPart.matrix))
     })
+    lWingIM.current.instanceMatrix.needsUpdate = true
+    rWingIM.current.instanceMatrix.needsUpdate = true
+    bodyIM.current.instanceMatrix.needsUpdate  = true
   })
 
   return (
     <>
-      {data.map((_, i) => (
-        <group key={i} ref={el => { refs.current[i] = el }}>
-          {/* Left wing */}
-          <mesh position={[-0.35, 0, 0]} rotation={[0, 0, 0]}>
-            <boxGeometry args={[0.7, 0.05, 0.25]} />
-            <meshStandardMaterial color="#e8e8e8" roughness={0.9} />
-          </mesh>
-          {/* Right wing */}
-          <mesh position={[0.35, 0, 0]} rotation={[0, 0, 0]}>
-            <boxGeometry args={[0.7, 0.05, 0.25]} />
-            <meshStandardMaterial color="#e8e8e8" roughness={0.9} />
-          </mesh>
-          {/* Body */}
-          <mesh>
-            <boxGeometry args={[0.15, 0.1, 0.45]} />
-            <meshStandardMaterial color="#dddddd" roughness={0.9} />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={lWingIM} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+        <boxGeometry args={[0.7, 0.05, 0.25]} />
+        <meshStandardMaterial color="#e8e8e8" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={rWingIM} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+        <boxGeometry args={[0.7, 0.05, 0.25]} />
+        <meshStandardMaterial color="#e8e8e8" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, COUNT]} frustumCulled={false}>
+        <boxGeometry args={[0.15, 0.1, 0.45]} />
+        <meshStandardMaterial color="#dddddd" roughness={0.9} />
+      </instancedMesh>
     </>
   )
 }

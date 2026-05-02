@@ -1,10 +1,17 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
 const _isLow = detectDeviceTier() === 'low'
+
+// Module-level pre-allocated objects for Butterfly/Bee InstancedMesh
+const _gfGroup = new THREE.Object3D()
+const _gfPart  = new THREE.Object3D()
+const _gfMat   = new THREE.Matrix4()
+const _gfCol   = new THREE.Color()
+
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
@@ -399,66 +406,92 @@ const BUTTERFLY_CONFIG = BUTTERFLY_HOMES.map((home, i) => ({
   color: BUTTERFLY_WING_COLORS[i % BUTTERFLY_WING_COLORS.length] as string,
 }))
 
-function ButterflyMesh({ cfg }: { cfg: typeof BUTTERFLY_CONFIG[0] }) {
-  const groupRef = useRef<THREE.Group>(null!)
-  const leftWingRef = useRef<THREE.Mesh>(null!)
-  const rightWingRef = useRef<THREE.Mesh>(null!)
+// Precomputed static antenna local matrices
+const _btAntennaMatL = (() => {
+  const o = new THREE.Object3D()
+  o.position.set(-0.08, 0.22, 0); o.rotation.set(0, 0, 0.4); o.updateMatrix(); return o.matrix.clone()
+})()
+const _btAntennaMatR = (() => {
+  const o = new THREE.Object3D()
+  o.position.set(0.08, 0.22, 0); o.rotation.set(0, 0, -0.4); o.updateMatrix(); return o.matrix.clone()
+})()
 
+function Butterflies() {
+  const N = BUTTERFLY_CONFIG.length
+  const lWingIM   = useRef<THREE.InstancedMesh>(null!)
+  const rWingIM   = useRef<THREE.InstancedMesh>(null!)
+  const bodyIM    = useRef<THREE.InstancedMesh>(null!)
+  const antennaIM = useRef<THREE.InstancedMesh>(null!)  // 2N instances
   const frameSkip = useRef(0)
+
+  useEffect(() => {
+    BUTTERFLY_CONFIG.forEach(({ color }, i) => {
+      lWingIM.current.setColorAt(i, _gfCol.set(color))
+      rWingIM.current.setColorAt(i, _gfCol.set(color))
+    })
+    if (lWingIM.current.instanceColor) lWingIM.current.instanceColor.needsUpdate = true
+    if (rWingIM.current.instanceColor) rWingIM.current.instanceColor.needsUpdate = true
+  }, [])
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    // Lissajous path around home
-    const x = cfg.home[0] + Math.cos(t * cfg.orbitSpeedA + cfg.phase) * cfg.orbitA
-    const y = cfg.home[1] + Math.sin(t * cfg.orbitSpeedB * 0.7 + cfg.phase) * 0.4
-    const z = cfg.home[2] + Math.sin(t * cfg.orbitSpeedB + cfg.phase + 0.5) * cfg.orbitB
-    groupRef.current.position.set(x, y, z)
-    // Face direction of travel (approximate)
-    groupRef.current.rotation.y = t * cfg.orbitSpeedA + cfg.phase + Math.PI / 2
-    // Wing flap
-    const flap = Math.sin(t * 8 + cfg.flapPhase) * 0.6
-    leftWingRef.current.rotation.z  =  flap
-    rightWingRef.current.rotation.z = -flap
+    for (let i = 0; i < N; i++) {
+      const cfg = BUTTERFLY_CONFIG[i]!
+      const x = cfg.home[0] + Math.cos(t * cfg.orbitSpeedA + cfg.phase) * cfg.orbitA
+      const y = cfg.home[1] + Math.sin(t * cfg.orbitSpeedB * 0.7 + cfg.phase) * 0.4
+      const z = cfg.home[2] + Math.sin(t * cfg.orbitSpeedB + cfg.phase + 0.5) * cfg.orbitB
+      _gfGroup.position.set(x, y, z)
+      _gfGroup.rotation.set(0, t * cfg.orbitSpeedA + cfg.phase + Math.PI / 2, 0)
+      _gfGroup.scale.setScalar(1)
+      _gfGroup.updateMatrix()
+
+      const flap = Math.sin(t * 8 + cfg.flapPhase) * 0.6
+      // Left wing
+      _gfPart.position.set(-0.3, 0, 0)
+      _gfPart.rotation.set(0, 0, 0.25 + flap)
+      _gfPart.scale.setScalar(1)
+      _gfPart.updateMatrix()
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _gfPart.matrix)
+      lWingIM.current.setMatrixAt(i, _gfMat)
+      // Right wing
+      _gfPart.position.set(0.3, 0, 0)
+      _gfPart.rotation.set(0, 0, -0.25 - flap)
+      _gfPart.updateMatrix()
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _gfPart.matrix)
+      rWingIM.current.setMatrixAt(i, _gfMat)
+      // Body (no rotation, position at group origin)
+      bodyIM.current.setMatrixAt(i, _gfGroup.matrix)
+      // Antennas
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _btAntennaMatL)
+      antennaIM.current.setMatrixAt(i * 2, _gfMat)
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _btAntennaMatR)
+      antennaIM.current.setMatrixAt(i * 2 + 1, _gfMat)
+    }
+    lWingIM.current.instanceMatrix.needsUpdate   = true
+    rWingIM.current.instanceMatrix.needsUpdate   = true
+    bodyIM.current.instanceMatrix.needsUpdate    = true
+    antennaIM.current.instanceMatrix.needsUpdate = true
   })
 
   return (
-    <group ref={groupRef}>
-      {/* Left wing */}
-      <mesh ref={leftWingRef} position={[-0.3, 0, 0]} rotation={[0, 0, 0.25]}>
+    <>
+      <instancedMesh ref={lWingIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <boxGeometry args={[0.6, 0.5, 0.02]} />
-        <meshBasicMaterial color={cfg.color} transparent opacity={0.88} side={THREE.DoubleSide} depthWrite={false} />
-      </mesh>
-      {/* Right wing */}
-      <mesh ref={rightWingRef} position={[0.3, 0, 0]} rotation={[0, 0, -0.25]}>
+        <meshBasicMaterial vertexColors transparent opacity={0.88} side={THREE.DoubleSide} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={rWingIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <boxGeometry args={[0.6, 0.5, 0.02]} />
-        <meshBasicMaterial color={cfg.color} transparent opacity={0.88} side={THREE.DoubleSide} depthWrite={false} />
-      </mesh>
-      {/* Body */}
-      <mesh position={[0, 0, 0]}>
+        <meshBasicMaterial vertexColors transparent opacity={0.88} side={THREE.DoubleSide} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <cylinderGeometry args={[0.06, 0.06, 0.35, 6]} />
         <meshBasicMaterial color="#333300" />
-      </mesh>
-      {/* Left antenna */}
-      <mesh position={[-0.08, 0.22, 0]} rotation={[0, 0, 0.4]}>
+      </instancedMesh>
+      <instancedMesh ref={antennaIM} args={[undefined, undefined, N * 2]} frustumCulled={false}>
         <cylinderGeometry args={[0.02, 0.02, 0.3, 4]} />
         <meshBasicMaterial color="#333300" />
-      </mesh>
-      {/* Right antenna */}
-      <mesh position={[0.08, 0.22, 0]} rotation={[0, 0, -0.4]}>
-        <cylinderGeometry args={[0.02, 0.02, 0.3, 4]} />
-        <meshBasicMaterial color="#333300" />
-      </mesh>
-    </group>
-  )
-}
-
-function Butterflies() {
-  const configs = useMemo(() => BUTTERFLY_CONFIG, [])
-  return (
-    <>
-      {configs.map((cfg, i) => (
-        <ButterflyMesh key={i} cfg={cfg} />
-      ))}
+      </instancedMesh>
     </>
   )
 }
@@ -552,66 +585,85 @@ const BEE_CONFIG = BEE_HOMES.map((home, i) => ({
   fig8B: 0.9 + Math.random() * 0.6,
 }))
 
-function BeeMesh({ cfg }: { cfg: typeof BEE_CONFIG[0] }) {
-  const groupRef    = useRef<THREE.Group>(null!)
-  const leftWingRef  = useRef<THREE.Mesh>(null!)
-  const rightWingRef = useRef<THREE.Mesh>(null!)
+// Precomputed static bee part local matrices
+const _beeStripeMatTop = (() => {
+  const o = new THREE.Object3D(); o.position.set(0, 0.06, 0); o.updateMatrix(); return o.matrix.clone()
+})()
+const _beeStripeMatBot = (() => {
+  const o = new THREE.Object3D(); o.position.set(0, -0.06, 0); o.updateMatrix(); return o.matrix.clone()
+})()
 
+function Bees() {
+  const N = BEE_CONFIG.length
+  const bodyIM   = useRef<THREE.InstancedMesh>(null!)  // elliptical sphere
+  const stripeIM = useRef<THREE.InstancedMesh>(null!)  // 2N stripes
+  const lWingIM  = useRef<THREE.InstancedMesh>(null!)
+  const rWingIM  = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
+
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.getElapsedTime()
-    // Figure-8: parametric (cos, sin*cos) scaled
-    const u = t * cfg.fig8Speed + cfg.phase
-    const x = cfg.home[0] + Math.cos(u) * cfg.fig8A
-    const y = cfg.home[1] + Math.sin(t * 1.2 + cfg.phase) * 0.2
-    const z = cfg.home[2] + Math.sin(u) * Math.cos(u) * cfg.fig8B * 2
-    groupRef.current.position.set(x, y, z)
-    groupRef.current.rotation.y = u + Math.PI / 2
-    // Wing buzz
-    const buzz = Math.sin(t * 20 + cfg.buzzPhase) * 0.3
-    leftWingRef.current.rotation.z  =  buzz
-    rightWingRef.current.rotation.z = -buzz
+    for (let i = 0; i < N; i++) {
+      const cfg = BEE_CONFIG[i]!
+      const u = t * cfg.fig8Speed + cfg.phase
+      _gfGroup.position.set(
+        cfg.home[0] + Math.cos(u) * cfg.fig8A,
+        cfg.home[1] + Math.sin(t * 1.2 + cfg.phase) * 0.2,
+        cfg.home[2] + Math.sin(u) * Math.cos(u) * cfg.fig8B * 2
+      )
+      _gfGroup.rotation.set(0, u + Math.PI / 2, 0)
+      // Elliptical body: bake scale into matrix
+      _gfGroup.scale.set(1, 0.8, 1.4)
+      _gfGroup.updateMatrix()
+      bodyIM.current.setMatrixAt(i, _gfGroup.matrix)
+
+      // Reset scale for all other parts
+      _gfGroup.scale.setScalar(1)
+      _gfGroup.updateMatrix()
+
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _beeStripeMatTop)
+      stripeIM.current.setMatrixAt(i * 2, _gfMat)
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _beeStripeMatBot)
+      stripeIM.current.setMatrixAt(i * 2 + 1, _gfMat)
+
+      const buzz = Math.sin(t * 20 + cfg.buzzPhase) * 0.3
+      _gfPart.position.set(-0.2, 0.1, 0)
+      _gfPart.rotation.set(0, 0, buzz)
+      _gfPart.scale.setScalar(1)
+      _gfPart.updateMatrix()
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _gfPart.matrix)
+      lWingIM.current.setMatrixAt(i, _gfMat)
+      _gfPart.position.set(0.2, 0.1, 0)
+      _gfPart.rotation.set(0, 0, -buzz)
+      _gfPart.updateMatrix()
+      _gfMat.multiplyMatrices(_gfGroup.matrix, _gfPart.matrix)
+      rWingIM.current.setMatrixAt(i, _gfMat)
+    }
+    bodyIM.current.instanceMatrix.needsUpdate   = true
+    stripeIM.current.instanceMatrix.needsUpdate = true
+    lWingIM.current.instanceMatrix.needsUpdate  = true
+    rWingIM.current.instanceMatrix.needsUpdate  = true
   })
 
   return (
-    <group ref={groupRef}>
-      {/* Body — elliptical sphere via scale */}
-      <mesh scale={[1, 0.8, 1.4]}>
+    <>
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <sphereGeometry args={[0.2, 10, 8]} />
         <meshBasicMaterial color="#ffcc00" />
-      </mesh>
-      {/* Stripe 1 */}
-      <mesh position={[0, 0.06, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={stripeIM} args={[undefined, undefined, N * 2]} frustumCulled={false}>
         <boxGeometry args={[0.4, 0.08, 0.42]} />
         <meshBasicMaterial color="#333300" />
-      </mesh>
-      {/* Stripe 2 */}
-      <mesh position={[0, -0.06, 0]}>
-        <boxGeometry args={[0.4, 0.08, 0.42]} />
-        <meshBasicMaterial color="#333300" />
-      </mesh>
-      {/* Left wing */}
-      <mesh ref={leftWingRef} position={[-0.2, 0.1, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={lWingIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <boxGeometry args={[0.3, 0.2, 0.01]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.7} side={THREE.DoubleSide} depthWrite={false} />
-      </mesh>
-      {/* Right wing */}
-      <mesh ref={rightWingRef} position={[0.2, 0.1, 0]}>
+      </instancedMesh>
+      <instancedMesh ref={rWingIM} args={[undefined, undefined, N]} frustumCulled={false}>
         <boxGeometry args={[0.3, 0.2, 0.01]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.7} side={THREE.DoubleSide} depthWrite={false} />
-      </mesh>
-    </group>
-  )
-}
-
-function Bees() {
-  const configs = useMemo(() => BEE_CONFIG, [])
-  return (
-    <>
-      {configs.map((cfg, i) => (
-        <BeeMesh key={i} cfg={cfg} />
-      ))}
+      </instancedMesh>
     </>
   )
 }
@@ -774,26 +826,33 @@ const FLOWER_Z_POSITIONS: number[] = [-10, -20, -30, -40, -50, -60, -70, -78]
 // Bush positions: x=±26, 4 positions per side
 const BUSH_Z_POSITIONS: number[] = [-15, -35, -55, -75]
 
-function GardenBoundary() {
-  const postColor = '#e8d5b0'
+const ALL_FENCE_POSTS = [...LEFT_POSTS, ...RIGHT_POSTS]
 
+function GardenFencePosts() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  const dummy = useMemo(() => new THREE.Object3D(), [])
+  useEffect(() => {
+    if (!meshRef.current) return
+    ALL_FENCE_POSTS.forEach(([x, y, z], i) => {
+      dummy.position.set(x, y, z)
+      dummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, dummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [dummy])
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, ALL_FENCE_POSTS.length]} castShadow receiveShadow>
+      <boxGeometry args={[0.15, 1.2, 0.15]} />
+      <meshStandardMaterial color="#e8d5b0" roughness={0.8} />
+    </instancedMesh>
+  )
+}
+
+function GardenBoundary() {
   return (
     <group>
-      {/* ---- Left fence posts ---- */}
-      {LEFT_POSTS.map((pos, i) => (
-        <mesh key={`lp-${i}`} position={pos} castShadow receiveShadow>
-          <boxGeometry args={[0.15, 1.2, 0.15]} />
-          <meshStandardMaterial color={postColor} roughness={0.8} />
-        </mesh>
-      ))}
-
-      {/* ---- Right fence posts ---- */}
-      {RIGHT_POSTS.map((pos, i) => (
-        <mesh key={`rp-${i}`} position={pos} castShadow receiveShadow>
-          <boxGeometry args={[0.15, 1.2, 0.15]} />
-          <meshStandardMaterial color={postColor} roughness={0.8} />
-        </mesh>
-      ))}
+      {/* ---- Fence posts (left + right) as single InstancedMesh ---- */}
+      <GardenFencePosts />
 
       {/* ---- Left flower border ---- */}
       {FLOWER_Z_POSITIONS.map((z, i) => (

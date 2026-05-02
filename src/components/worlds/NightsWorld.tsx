@@ -213,6 +213,12 @@ function BioluminescentPatches({ phase }: { phase: 'day' | 'night' }) {
     return result
   }, [dummy])
 
+  useEffect(() => {
+    if (!meshRef.current) return
+    matrices.forEach((m, i) => meshRef.current.setMatrixAt(i, m))
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [matrices])
+
   const frameSkip = useRef(0)
   useFrame((_, dt) => {
     if (_isLow && (frameSkip.current++ & 1)) return
@@ -221,9 +227,6 @@ function BioluminescentPatches({ phase }: { phase: 'day' | 'night' }) {
     if (phase !== 'night') return
     timeRef.current += step
     if (matRef.current) matRef.current.uniforms.uTime!.value = timeRef.current
-    // Apply static matrices (only needed once, but safe to set here)
-    matrices.forEach((m, i) => meshRef.current.setMatrixAt(i, m))
-    meshRef.current.instanceMatrix.needsUpdate = true
   })
 
   if (phase !== 'night') return null
@@ -1869,6 +1872,12 @@ function ForestSilhouettes() {
 const HOWL_RING_COUNT = 4
 const HOWL_BREATH_COUNT = 8
 
+const _howlRingDummy   = new THREE.Object3D()
+_howlRingDummy.rotation.x = Math.PI / 2
+const _howlBreathDummy = new THREE.Object3D()
+const _howlRingCol     = new THREE.Color()
+const _howlBreathCol   = new THREE.Color()
+
 // Mouth world position (werewolf is at [30, 6, -20], muzzle ~at [30, 9.1, -19.3])
 const HOWL_ORIGIN: [number, number, number] = [30, 9.1, -19.3]
 
@@ -1899,8 +1908,8 @@ const breathParticles: BreathParticle[] = Array.from({ length: HOWL_BREATH_COUNT
 })
 
 function HowlParticles({ phase }: { phase: 'day' | 'night' }) {
-  const ringsRef = useRef<(THREE.Mesh | null)[]>(Array(HOWL_RING_COUNT).fill(null))
-  const breathRef = useRef<THREE.Group>(null!)
+  const ringImRef   = useRef<THREE.InstancedMesh>(null!)
+  const breathImRef = useRef<THREE.InstancedMesh>(null!)
 
   const frameSkip = useRef(0)
   useFrame(({ clock }) => {
@@ -1908,32 +1917,33 @@ function HowlParticles({ phase }: { phase: 'day' | 'night' }) {
     if (phase !== 'night') return
     const t = clock.getElapsedTime()
 
-    // Expanding rings
-    ringsRef.current.forEach((mesh, i) => {
-      if (!mesh) return
-      const raw = (t * 0.55 + howlRingPhases[i].phase / (Math.PI * 2)) % 1
-      const s = raw * 5
-      mesh.scale.set(s + 0.01, s + 0.01, s + 0.01)
-      ;(mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.55 * (1 - raw))
-    })
-
-    // Breath clouds drifting from muzzle
-    if (breathRef.current) {
-      breathParticles.forEach((bp, i) => {
-        const child = breathRef.current.children[i]
-        if (!child) return
-        const progress = ((t * bp.speed + bp.phase) % (Math.PI * 2)) / (Math.PI * 2)
-        child.position.set(
-          bp.xOff + progress * 0.6,
-          progress * 1.2,
-          bp.zOff - progress * 0.8,
-        )
-        child.scale.setScalar(0.12 + progress * 0.25)
-        ;(child as THREE.Mesh).material &&
-          ((child as THREE.Mesh).material as THREE.MeshBasicMaterial).setValues({
-            opacity: 0.4 * (1 - progress),
-          })
+    // Expanding rings — brightness encodes opacity fade
+    if (ringImRef.current) {
+      howlRingPhases.forEach((rp, i) => {
+        const raw = (t * 0.55 + rp.phase / (Math.PI * 2)) % 1
+        _howlRingDummy.scale.setScalar(raw * 5 + 0.01)
+        _howlRingDummy.updateMatrix()
+        ringImRef.current.setMatrixAt(i, _howlRingDummy.matrix)
+        const bright = Math.max(0, 0.55 * (1 - raw))
+        ringImRef.current.setColorAt(i, _howlRingCol.setRGB(bright * 0.667, bright * 0.733, bright * 0.8))
       })
+      ringImRef.current.instanceMatrix.needsUpdate = true
+      if (ringImRef.current.instanceColor) ringImRef.current.instanceColor.needsUpdate = true
+    }
+
+    // Breath clouds drifting from muzzle — brightness encodes opacity
+    if (breathImRef.current) {
+      breathParticles.forEach((bp, i) => {
+        const progress = ((t * bp.speed + bp.phase) % (Math.PI * 2)) / (Math.PI * 2)
+        _howlBreathDummy.position.set(bp.xOff + progress * 0.6, progress * 1.2, bp.zOff - progress * 0.8)
+        _howlBreathDummy.scale.setScalar(0.12 + progress * 0.25)
+        _howlBreathDummy.updateMatrix()
+        breathImRef.current.setMatrixAt(i, _howlBreathDummy.matrix)
+        const bright = 0.4 * (1 - progress)
+        breathImRef.current.setColorAt(i, _howlBreathCol.setRGB(0.8 * bright, 0.878 * bright, 0.933 * bright))
+      })
+      breathImRef.current.instanceMatrix.needsUpdate = true
+      if (breathImRef.current.instanceColor) breathImRef.current.instanceColor.needsUpdate = true
     }
   })
 
@@ -1941,37 +1951,14 @@ function HowlParticles({ phase }: { phase: 'day' | 'night' }) {
 
   return (
     <group position={HOWL_ORIGIN}>
-      {/* Expanding torus rings */}
-      {howlRingPhases.map((_, i) => (
-        <mesh
-          key={i}
-          ref={(m) => { ringsRef.current[i] = m }}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <torusGeometry args={[0.9, 0.06, 8, 32]} />
-          <meshBasicMaterial
-            color="#aabbcc"
-            transparent
-            opacity={0.5}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-
-      {/* Misty breath clouds */}
-      <group ref={breathRef}>
-        {breathParticles.map((_, i) => (
-          <mesh key={i} position={[0, 0, 0]}>
-            <sphereGeometry args={[1, 5, 5]} />
-            <meshBasicMaterial
-              color="#cce0ee"
-              transparent
-              opacity={0.3}
-              depthWrite={false}
-            />
-          </mesh>
-        ))}
-      </group>
+      <instancedMesh ref={ringImRef} args={[undefined, undefined, HOWL_RING_COUNT]} frustumCulled={false}>
+        <torusGeometry args={[0.9, 0.06, 8, 32]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={breathImRef} args={[undefined, undefined, HOWL_BREATH_COUNT]} frustumCulled={false}>
+        <sphereGeometry args={[1, 5, 5]} />
+        <meshBasicMaterial color="#ffffff" toneMapped={false} depthWrite={false} />
+      </instancedMesh>
     </group>
   )
 }

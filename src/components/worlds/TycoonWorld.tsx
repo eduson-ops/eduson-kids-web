@@ -134,9 +134,19 @@ function MoneyRain() {
     () => COIN_COLORS.map(c => new THREE.Color(c)),
     []
   )
+  // Set per-instance colors once at mount (static — colorIdx never changes)
+  const colorInitDone = useRef(false)
+
   useFrame((_, dt) => {
     if (!meshRef.current) return
     if (_isLow && (frameSkip.current++ & 1)) return
+
+    if (!colorInitDone.current) {
+      states.forEach((s, i) => { meshRef.current.setColorAt(i, colorObjs[s.colorIdx]) })
+      if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
+      colorInitDone.current = true
+    }
+
     const step = _isLow ? dt * 2 : dt
     const camX = camera.position.x
     const camZ = camera.position.z
@@ -150,13 +160,10 @@ function MoneyRain() {
       }
       dummy.position.set(camX + s.x, s.y, camZ + s.z)
       dummy.rotation.set(Math.PI / 2, 0, s.rotZ)
-      dummy.scale.set(1, 1, 1)
       dummy.updateMatrix()
       meshRef.current.setMatrixAt(i, dummy.matrix)
-      meshRef.current.setColorAt(i, colorObjs[s.colorIdx])
     })
     meshRef.current.instanceMatrix.needsUpdate = true
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true
   })
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, COIN_COUNT]} frustumCulled={false}>
