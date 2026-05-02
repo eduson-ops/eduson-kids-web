@@ -12,6 +12,16 @@ const _gfPart  = new THREE.Object3D()
 const _gfMat   = new THREE.Matrix4()
 const _gfCol   = new THREE.Color()
 
+const _gdDummy = new THREE.Object3D()
+const _gdMat   = new THREE.Matrix4()
+const _GW_BASKET_BODY = (() => { const o = new THREE.Object3D(); o.position.set(0, 0.3, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _GW_BASKET_LID  = (() => { const o = new THREE.Object3D(); o.position.set(0, 0.65, 0); o.updateMatrix(); return o.matrix.clone() })()
+const _GW_WHEEL_POS: [number,number,number][] = [[-1.6,0.5,1.4],[1.6,0.5,1.4],[-1.6,0.5,-1.4],[1.6,0.5,-1.4]]
+const _GW_SPOKE_ROTS = [0, Math.PI/4, Math.PI/2, 3*Math.PI/4]
+const _GW_CARROTS: [number,number,number][] = [[-1.2,1.2,0.4],[-0.4,1.3,-0.5],[0.5,1.2,0.3],[1.0,1.3,-0.3],[-0.8,1.4,0.0],[0.2,1.4,0.6]]
+const _GW_ZUCCHINI: [number,number,number,number,number,number][] = [[-1.0,1.2,-0.2,0.4,0,0],[0.0,1.3,-0.7,-0.4,0.3,0],[0.8,1.2,0.5,0.4,0.6,0],[-0.3,1.4,0.8,-0.4,0.9,0]]
+const _GW_TOMATOES: [number,number,number][] = [[-0.6,1.2,0.2],[0.4,1.2,-0.4],[1.2,1.3,0.1],[-1.3,1.3,-0.5],[0.0,1.5,0.4]]
+
 import Coin from '../Coin'
 import NPC from '../NPC'
 import GoalTrigger from '../GoalTrigger'
@@ -958,50 +968,45 @@ const ORCHARD_POINT_LIGHTS: Array<[number, number, number]> = [
   [0, 5, -74],
 ]
 
-function AppleTree({
-  pos,
-  rotY,
-  apples,
-}: {
-  pos: [number, number, number]
-  rotY: number
-  apples: Array<[number, number, number]>
-}) {
-  return (
-    <group position={pos} rotation={[0, rotY, 0]}>
-      {/* Trunk */}
-      <mesh position={[0, 1.5, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.4, 0.4, 3, 8]} />
-        <meshStandardMaterial color="#6b3d1a" roughness={0.95} />
-      </mesh>
-      {/* Canopy */}
-      <mesh position={[0, 4.5, 0]} castShadow receiveShadow>
-        <sphereGeometry args={[3.5, 14, 12]} />
-        <meshStandardMaterial color="#2d8b3a" roughness={0.8} />
-      </mesh>
-      {/* Apples */}
-      {apples.map((ap, i) => (
-        <mesh key={i} position={[ap[0], 4.5 + ap[1], ap[2]]} castShadow>
-          <sphereGeometry args={[0.25, 7, 6]} />
-          <meshStandardMaterial
-            color="#dd2222"
-            emissive="#cc0000"
-            emissiveIntensity={0.4}
-            roughness={0.5}
-          />
-        </mesh>
-      ))}
-    </group>
-  )
-}
+const _APPLE_COUNT = ORCHARD_TREE_DATA.reduce((s, t) => s + t.apples.length, 0)
 
 function AppleOrchard() {
+  const trunkIM  = useRef<THREE.InstancedMesh>(null!)
+  const canopyIM = useRef<THREE.InstancedMesh>(null!)
+  const appleIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    let ai = 0
+    ORCHARD_TREE_DATA.forEach(({ pos: [px, py, pz], rotY, apples }, ti) => {
+      const c = Math.cos(rotY), s = Math.sin(rotY)
+      _gdDummy.position.set(px, py + 1.5, pz); _gdDummy.rotation.set(0,0,0); _gdDummy.scale.setScalar(1); _gdDummy.updateMatrix()
+      trunkIM.current.setMatrixAt(ti, _gdDummy.matrix)
+      _gdDummy.position.set(px, py + 4.5, pz); _gdDummy.updateMatrix()
+      canopyIM.current.setMatrixAt(ti, _gdDummy.matrix)
+      apples.forEach(([ax, ay, az]) => {
+        _gdDummy.position.set(px + c * ax + s * az, py + 4.5 + ay, pz - s * ax + c * az)
+        _gdDummy.updateMatrix()
+        appleIM.current.setMatrixAt(ai++, _gdDummy.matrix)
+      })
+    })
+    trunkIM.current.instanceMatrix.needsUpdate  = true
+    canopyIM.current.instanceMatrix.needsUpdate = true
+    appleIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
   return (
-    <group>
-      {ORCHARD_TREE_DATA.map((tree, i) => (
-        <AppleTree key={i} pos={tree.pos} rotY={tree.rotY} apples={tree.apples} />
-      ))}
-    </group>
+    <>
+      <instancedMesh ref={trunkIM} args={[undefined, undefined, ORCHARD_TREE_DATA.length]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.4, 0.4, 3, 8]} />
+        <meshStandardMaterial color="#6b3d1a" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={canopyIM} args={[undefined, undefined, ORCHARD_TREE_DATA.length]} castShadow receiveShadow>
+        <sphereGeometry args={[3.5, 14, 12]} />
+        <meshStandardMaterial color="#2d8b3a" roughness={0.8} />
+      </instancedMesh>
+      <instancedMesh ref={appleIM} args={[undefined, undefined, _APPLE_COUNT]} castShadow>
+        <sphereGeometry args={[0.25, 7, 6]} />
+        <meshStandardMaterial color="#dd2222" emissive="#cc0000" emissiveIntensity={0.4} roughness={0.5} />
+      </instancedMesh>
+    </>
   )
 }
 
@@ -1046,29 +1051,29 @@ const BASKET_POSITIONS: Array<[number, number, number]> = [
   [ -8, 0, -82],
 ]
 
-function PickedBasket({ pos }: { pos: [number, number, number] }) {
-  return (
-    <group position={pos}>
-      {/* Basket body */}
-      <mesh position={[0, 0.3, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.8, 0.6, 0.8]} />
-        <meshStandardMaterial color="#8b5e2a" roughness={0.9} />
-      </mesh>
-      {/* Lid — slightly darker, offset upward */}
-      <mesh position={[0, 0.65, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.85, 0.12, 0.85]} />
-        <meshStandardMaterial color="#6b4318" roughness={0.85} />
-      </mesh>
-    </group>
-  )
-}
-
 function PickedBaskets() {
+  const bodyIM = useRef<THREE.InstancedMesh>(null!)
+  const lidIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    BASKET_POSITIONS.forEach(([bx, by, bz], i) => {
+      _gdDummy.position.set(bx, by, bz); _gdDummy.rotation.set(0,0,0); _gdDummy.scale.setScalar(1); _gdDummy.updateMatrix()
+      const pm = _gdDummy.matrix
+      _gdMat.multiplyMatrices(pm, _GW_BASKET_BODY); bodyIM.current.setMatrixAt(i, _gdMat)
+      _gdMat.multiplyMatrices(pm, _GW_BASKET_LID);  lidIM.current.setMatrixAt(i, _gdMat)
+    })
+    bodyIM.current.instanceMatrix.needsUpdate = true
+    lidIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
   return (
     <>
-      {BASKET_POSITIONS.map((p, i) => (
-        <PickedBasket key={i} pos={p} />
-      ))}
+      <instancedMesh ref={bodyIM} args={[undefined, undefined, BASKET_POSITIONS.length]} castShadow receiveShadow>
+        <boxGeometry args={[0.8, 0.6, 0.8]} />
+        <meshStandardMaterial color="#8b5e2a" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={lidIM} args={[undefined, undefined, BASKET_POSITIONS.length]} castShadow receiveShadow>
+        <boxGeometry args={[0.85, 0.12, 0.85]} />
+        <meshStandardMaterial color="#6b4318" roughness={0.85} />
+      </instancedMesh>
     </>
   )
 }
@@ -1156,100 +1161,81 @@ function Windmill() {
 // HarvestWagon — wooden wagon filled with vegetables near the apple orchard
 // ---------------------------------------------------------------------------
 
-function WheelWithSpokes({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position} rotation={[Math.PI / 2, 0, 0]}>
-      {/* Wheel rim */}
-      <mesh>
-        <cylinderGeometry args={[0.8, 0.8, 0.3, 14]} />
-        <meshStandardMaterial color="#5a2a0a" roughness={0.9} />
-      </mesh>
-      {/* 4 spokes crossing the diameter */}
-      {[0, Math.PI / 4, Math.PI / 2, (3 * Math.PI) / 4].map((rot, i) => (
-        <mesh key={i} rotation={[0, 0, rot]}>
-          <boxGeometry args={[1.4, 0.08, 0.07]} />
-          <meshStandardMaterial color="#3d1a05" roughness={0.95} />
-        </mesh>
-      ))}
-    </group>
-  )
-}
-
 function HarvestWagon() {
-  // Vegetable positions (relative to wagon group centre)
-  const carrots: Array<[number, number, number]> = [
-    [-1.2, 1.2, 0.4], [-0.4, 1.3, -0.5], [0.5, 1.2, 0.3],
-    [1.0, 1.3, -0.3], [-0.8, 1.4, 0.0], [0.2, 1.4, 0.6],
-  ]
-  const zucchini: Array<[number, number, number]> = [
-    [-1.0, 1.2, -0.2], [0.0, 1.3, -0.7], [0.8, 1.2, 0.5], [-0.3, 1.4, 0.8],
-  ]
-  const tomatoes: Array<[number, number, number]> = [
-    [-0.6, 1.2, 0.2], [0.4, 1.2, -0.4], [1.2, 1.3, 0.1],
-    [-1.3, 1.3, -0.5], [0.0, 1.5, 0.4],
-  ]
-
+  const rimIM      = useRef<THREE.InstancedMesh>(null!)
+  const spokeIM    = useRef<THREE.InstancedMesh>(null!)
+  const carrotIM   = useRef<THREE.InstancedMesh>(null!)
+  const zucchiniIM = useRef<THREE.InstancedMesh>(null!)
+  const tomatoIM   = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _GW_WHEEL_POS.forEach(([wx, wy, wz], wi) => {
+      _gdDummy.position.set(wx, wy, wz); _gdDummy.rotation.set(Math.PI/2, 0, 0); _gdDummy.scale.setScalar(1); _gdDummy.updateMatrix()
+      rimIM.current.setMatrixAt(wi, _gdDummy.matrix)
+      _GW_SPOKE_ROTS.forEach((rot, si) => {
+        _gdDummy.rotation.set(Math.PI/2, 0, rot); _gdDummy.updateMatrix()
+        spokeIM.current.setMatrixAt(wi * 4 + si, _gdDummy.matrix)
+      })
+    })
+    rimIM.current.instanceMatrix.needsUpdate   = true
+    spokeIM.current.instanceMatrix.needsUpdate = true
+    _GW_CARROTS.forEach(([cx, cy, cz], i) => {
+      _gdDummy.position.set(cx, cy, cz); _gdDummy.rotation.set(0,0,0); _gdDummy.scale.setScalar(1); _gdDummy.updateMatrix()
+      carrotIM.current.setMatrixAt(i, _gdDummy.matrix)
+    })
+    carrotIM.current.instanceMatrix.needsUpdate = true
+    _GW_ZUCCHINI.forEach(([zx, zy, zz, rx, ry, rz], i) => {
+      _gdDummy.position.set(zx, zy, zz); _gdDummy.rotation.set(rx, ry, rz); _gdDummy.scale.setScalar(1); _gdDummy.updateMatrix()
+      zucchiniIM.current.setMatrixAt(i, _gdDummy.matrix)
+    })
+    zucchiniIM.current.instanceMatrix.needsUpdate = true
+    _GW_TOMATOES.forEach(([tx, ty, tz], i) => {
+      _gdDummy.position.set(tx, ty, tz); _gdDummy.rotation.set(0,0,0); _gdDummy.scale.setScalar(1); _gdDummy.updateMatrix()
+      tomatoIM.current.setMatrixAt(i, _gdDummy.matrix)
+    })
+    tomatoIM.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
     <group position={[8, 0, -65]}>
-      {/* Wagon body */}
       <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
         <boxGeometry args={[4, 1.5, 2.5]} />
         <meshStandardMaterial color="#8B4513" roughness={0.9} />
       </mesh>
-
-      {/* Wagon side planks */}
-      {/* Front wall */}
       <mesh position={[0, 1.3, 1.35]} castShadow>
         <boxGeometry args={[4, 0.8, 0.1]} />
         <meshStandardMaterial color="#7a3a0f" roughness={0.9} />
       </mesh>
-      {/* Back wall */}
       <mesh position={[0, 1.3, -1.35]} castShadow>
         <boxGeometry args={[4, 0.8, 0.1]} />
         <meshStandardMaterial color="#7a3a0f" roughness={0.9} />
       </mesh>
-      {/* Left wall */}
       <mesh position={[-2.05, 1.3, 0]} castShadow>
         <boxGeometry args={[0.1, 0.8, 2.5]} />
         <meshStandardMaterial color="#7a3a0f" roughness={0.9} />
       </mesh>
-      {/* Right wall */}
       <mesh position={[2.05, 1.3, 0]} castShadow>
         <boxGeometry args={[0.1, 0.8, 2.5]} />
         <meshStandardMaterial color="#7a3a0f" roughness={0.9} />
       </mesh>
-
-      {/* 4 wooden wheels at corners */}
-      <WheelWithSpokes position={[-1.6, 0.5, 1.4]} />
-      <WheelWithSpokes position={[ 1.6, 0.5, 1.4]} />
-      <WheelWithSpokes position={[-1.6, 0.5, -1.4]} />
-      <WheelWithSpokes position={[ 1.6, 0.5, -1.4]} />
-
-      {/* Cargo: orange spheres (carrots/pumpkins) */}
-      {carrots.map((p, i) => (
-        <mesh key={`c-${i}`} position={p} castShadow>
-          <sphereGeometry args={[0.35, 8, 7]} />
-          <meshStandardMaterial color="#ff8c00" roughness={0.6} />
-        </mesh>
-      ))}
-
-      {/* Cargo: green cylinders (zucchini) */}
-      {zucchini.map((p, i) => (
-        <mesh key={`z-${i}`} position={p} rotation={[0.4 * (i % 2 === 0 ? 1 : -1), 0.3 * i, 0]} castShadow>
-          <cylinderGeometry args={[0.2, 0.2, 0.6, 7]} />
-          <meshStandardMaterial color="#4caf50" roughness={0.7} />
-        </mesh>
-      ))}
-
-      {/* Cargo: red spheres (tomatoes) */}
-      {tomatoes.map((p, i) => (
-        <mesh key={`t-${i}`} position={p} castShadow>
-          <sphereGeometry args={[0.3, 8, 7]} />
-          <meshStandardMaterial color="#e53935" roughness={0.5} />
-        </mesh>
-      ))}
-
-      {/* Overhead orange-brown point light */}
+      <instancedMesh ref={rimIM} args={[undefined, undefined, 4]} castShadow>
+        <cylinderGeometry args={[0.8, 0.8, 0.3, 14]} />
+        <meshStandardMaterial color="#5a2a0a" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={spokeIM} args={[undefined, undefined, 16]} castShadow>
+        <boxGeometry args={[1.4, 0.08, 0.07]} />
+        <meshStandardMaterial color="#3d1a05" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={carrotIM} args={[undefined, undefined, _GW_CARROTS.length]} castShadow>
+        <sphereGeometry args={[0.35, 8, 7]} />
+        <meshStandardMaterial color="#ff8c00" roughness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={zucchiniIM} args={[undefined, undefined, _GW_ZUCCHINI.length]} castShadow>
+        <cylinderGeometry args={[0.2, 0.2, 0.6, 7]} />
+        <meshStandardMaterial color="#4caf50" roughness={0.7} />
+      </instancedMesh>
+      <instancedMesh ref={tomatoIM} args={[undefined, undefined, _GW_TOMATOES.length]} castShadow>
+        <sphereGeometry args={[0.3, 8, 7]} />
+        <meshStandardMaterial color="#e53935" roughness={0.5} />
+      </instancedMesh>
       <pointLight color="#cc7733" intensity={1.5} distance={8} position={[0, 4, 0]} />
     </group>
   )
