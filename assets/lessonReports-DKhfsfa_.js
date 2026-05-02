@@ -1,0 +1,1 @@
+import{n as e}from"./client-DqbYUy5N.js";function s(){return e.get("/lesson-reports/my")}function n(t){return e.get(`/lesson-reports/student/${t}`)}function o(t){return e.post("/lesson-reports",t)}export{s as n,n as r,o as t};
