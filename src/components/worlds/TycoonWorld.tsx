@@ -6,6 +6,25 @@ import { detectDeviceTier } from '../../lib/deviceTier'
 const _isLow = detectDeviceTier() === 'low'
 
 const _fwGroup = new THREE.Object3D()
+const _cwDummy = new THREE.Object3D()
+const _cwMat   = new THREE.Matrix4()
+const _twCol   = new THREE.Color()
+// Pre-baked chair part local matrices
+const _CHAIR_SEAT_LOC  = (() => { const o = new THREE.Object3D(); o.position.set(0, 0.7, 0);        o.updateMatrix(); return o.matrix.clone() })()
+const _CHAIR_BACK_LOC  = (() => { const o = new THREE.Object3D(); o.position.set(0, 1.15, -0.38);   o.updateMatrix(); return o.matrix.clone() })()
+const _CHAIR_ARM_L_LOC = (() => { const o = new THREE.Object3D(); o.position.set(-0.38, 0.9, -0.1); o.updateMatrix(); return o.matrix.clone() })()
+const _CHAIR_ARM_R_LOC = (() => { const o = new THREE.Object3D(); o.position.set( 0.38, 0.9, -0.1); o.updateMatrix(); return o.matrix.clone() })()
+const _CHAIR_PED_LOC   = (() => { const o = new THREE.Object3D(); o.position.set(0, 0.35, 0);       o.updateMatrix(); return o.matrix.clone() })()
+// Pre-baked money bag local offsets
+const _MB_TIE_LOC   = (() => { const o = new THREE.Object3D(); o.position.set(0,  0.55,  0);    o.updateMatrix(); return o.matrix.clone() })()
+const _MB_DVBAR_LOC = (() => { const o = new THREE.Object3D(); o.position.set(0,  0.05,  0.62); o.updateMatrix(); return o.matrix.clone() })()
+const _MB_DHU_LOC   = (() => { const o = new THREE.Object3D(); o.position.set(0,  0.22,  0.62); o.updateMatrix(); return o.matrix.clone() })()
+const _MB_DHL_LOC   = (() => { const o = new THREE.Object3D(); o.position.set(0, -0.12,  0.62); o.updateMatrix(); return o.matrix.clone() })()
+const _GB_ROTS      = [0, 1, 2, 3].map(i => (i * Math.PI) / 3)
+const _CHANDELIER_RING: [number, number, number][] = Array.from({ length: 8 }, (_, ci) => {
+  const a = (ci / 8) * Math.PI * 2; return [Math.cos(a) * 1.5, 4.5, Math.sin(a) * 1.5]
+})
+const _TABLE_LEG_POS: [number, number, number][] = [[-3.5, 0, -1.2], [-3.5, 0, 1.2], [3.5, 0, -1.2], [3.5, 0, 1.2]]
 import Coin from '../Coin'
 import Enemy from '../Enemy'
 import GoalTrigger from '../GoalTrigger'
@@ -1170,9 +1189,70 @@ function TradingFloor() {
 // ─── Boardroom ────────────────────────────────────────────────────────────────
 // Executive boardroom placed at [-85, 0, 5] — a ground-level wing between factory buildings
 function Boardroom() {
-  const screenRef = useRef<THREE.MeshStandardMaterial>(null!)
-  const chandelierRef = useRef<(THREE.MeshStandardMaterial | null)[]>([])
+  const screenRef          = useRef<THREE.MeshStandardMaterial>(null!)
+  const centralChanRef     = useRef<THREE.MeshStandardMaterial>(null!)
+  const seatIM    = useRef<THREE.InstancedMesh>(null!)
+  const backIM    = useRef<THREE.InstancedMesh>(null!)
+  const armIM     = useRef<THREE.InstancedMesh>(null!)
+  const pedIM     = useRef<THREE.InstancedMesh>(null!)
+  const tableLegIM = useRef<THREE.InstancedMesh>(null!)
+  const bulbIM    = useRef<THREE.InstancedMesh>(null!)
+  const chainIM   = useRef<THREE.InstancedMesh>(null!)
+  const barChartIM = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
+
+  const CHAIR_POSITIONS_LEFT: [number, number, number][] = [
+    [-3, 0, -2.2], [-1, 0, -2.2], [1, 0, -2.2], [3, 0, -2.2]
+  ]
+  const CHAIR_POSITIONS_RIGHT: [number, number, number][] = [
+    [-3, 0, 2.2], [-1, 0, 2.2], [1, 0, 2.2], [3, 0, 2.2]
+  ]
+  const BAR_HEIGHTS  = [1.0, 1.6, 1.2, 1.9, 0.8]
+  const BAR_X_OFFSETS = [-1.8, -0.9, 0, 0.9, 1.8]
+
+  useEffect(() => {
+    // Chairs — 8 × 5 parts → 4 IMs (static, in boardroom local space)
+    const setChair = (cp: [number,number,number], rotY: number, idx: number) => {
+      _cwDummy.position.set(cp[0], cp[1], cp[2])
+      _cwDummy.rotation.set(0, rotY, 0)
+      _cwDummy.scale.setScalar(1); _cwDummy.updateMatrix()
+      const pm = _cwDummy.matrix
+      _cwMat.multiplyMatrices(pm, _CHAIR_SEAT_LOC);  seatIM.current.setMatrixAt(idx, _cwMat)
+      _cwMat.multiplyMatrices(pm, _CHAIR_BACK_LOC);  backIM.current.setMatrixAt(idx, _cwMat)
+      _cwMat.multiplyMatrices(pm, _CHAIR_ARM_L_LOC); armIM.current.setMatrixAt(idx * 2,     _cwMat)
+      _cwMat.multiplyMatrices(pm, _CHAIR_ARM_R_LOC); armIM.current.setMatrixAt(idx * 2 + 1, _cwMat)
+      _cwMat.multiplyMatrices(pm, _CHAIR_PED_LOC);   pedIM.current.setMatrixAt(idx, _cwMat)
+    }
+    CHAIR_POSITIONS_LEFT.forEach((cp, i)  => setChair(cp,  Math.PI / 2, i))
+    CHAIR_POSITIONS_RIGHT.forEach((cp, i) => setChair(cp, -Math.PI / 2, 4 + i))
+    seatIM.current.instanceMatrix.needsUpdate = true
+    backIM.current.instanceMatrix.needsUpdate = true
+    armIM.current.instanceMatrix.needsUpdate  = true
+    pedIM.current.instanceMatrix.needsUpdate  = true
+    // Table legs
+    _TABLE_LEG_POS.forEach((lp, i) => {
+      _cwDummy.position.set(lp[0], lp[1], lp[2]); _cwDummy.rotation.set(0,0,0); _cwDummy.scale.setScalar(1); _cwDummy.updateMatrix()
+      tableLegIM.current.setMatrixAt(i, _cwDummy.matrix)
+    })
+    tableLegIM.current.instanceMatrix.needsUpdate = true
+    // Chandelier ring — bulbs + chains
+    _CHANDELIER_RING.forEach(([cx, cy, cz], i) => {
+      _cwDummy.position.set(cx, cy + 0.35, cz); _cwDummy.rotation.set(0,0,0); _cwDummy.scale.setScalar(1); _cwDummy.updateMatrix()
+      chainIM.current.setMatrixAt(i, _cwDummy.matrix)
+      _cwDummy.position.set(cx, cy, cz); _cwDummy.updateMatrix()
+      bulbIM.current.setMatrixAt(i, _cwDummy.matrix)
+    })
+    chainIM.current.instanceMatrix.needsUpdate = true
+    bulbIM.current.instanceMatrix.needsUpdate  = true
+    for (let i = 0; i < 8; i++) bulbIM.current.setColorAt(i, _twCol.set('#ffeecc'))
+    bulbIM.current.instanceColor!.needsUpdate  = true
+    // Bar chart (unit-height box scaled per bar)
+    BAR_HEIGHTS.forEach((bh, i) => {
+      _cwDummy.position.set(-7.1, 0.8 + bh / 2, BAR_X_OFFSETS[i]!); _cwDummy.rotation.set(0,0,0); _cwDummy.scale.set(1, bh, 1); _cwDummy.updateMatrix()
+      barChartIM.current.setMatrixAt(i, _cwDummy.matrix)
+    })
+    barChartIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
@@ -1180,29 +1260,18 @@ function Boardroom() {
     if (screenRef.current) {
       screenRef.current.emissiveIntensity = 1.2 + Math.sin(t * 1.5) * 0.3
     }
-    chandelierRef.current.forEach((mat, i) => {
-      if (mat) mat.emissiveIntensity = 2.5 + Math.sin(t * 2 + i * 0.5) * 0.5
-    })
+    if (centralChanRef.current) {
+      centralChanRef.current.emissiveIntensity = 2.5 + Math.sin(t * 2) * 0.5
+    }
+    if (bulbIM.current) {
+      for (let i = 0; i < 8; i++) {
+        const intensity = 2.5 + Math.sin(t * 2 + (i + 1) * 0.5) * 0.5
+        _twCol.set('#ffeecc').multiplyScalar(intensity / 3.5)
+        bulbIM.current.setColorAt(i, _twCol)
+      }
+      bulbIM.current.instanceColor!.needsUpdate = true
+    }
   })
-
-  // 8 executive chairs — 4 per long side of the 8×3 table
-  // Table at y=0.8, chair seats at y=0.7 (chair seat top), placed at z±2.2 along table
-  const CHAIR_POSITIONS_LEFT: [number, number, number][] = [
-    [-3, 0, -2.2], [-1, 0, -2.2], [1, 0, -2.2], [3, 0, -2.2]
-  ]
-  const CHAIR_POSITIONS_RIGHT: [number, number, number][] = [
-    [-3, 0, 2.2], [-1, 0, 2.2], [1, 0, 2.2], [3, 0, 2.2]
-  ]
-
-  // 8 chandelier hanging spheres on a ring r=1.5
-  const chandelierRing: [number, number, number][] = Array.from({ length: 8 }, (_, i) => {
-    const angle = (i / 8) * Math.PI * 2
-    return [Math.cos(angle) * 1.5, -0.6, Math.sin(angle) * 1.5]
-  })
-
-  // Bar chart on presentation screen — 5 bars of varying height
-  const BAR_HEIGHTS = [1.0, 1.6, 1.2, 1.9, 0.8]
-  const BAR_X_OFFSETS = [-1.8, -0.9, 0, 0.9, 1.8]
 
   return (
     <group position={[-85, 0, 5]}>
@@ -1244,68 +1313,29 @@ function Boardroom() {
         <boxGeometry args={[8, 0.8, 3]} />
         <meshStandardMaterial color="#2a1505" roughness={0.5} metalness={0.1} />
       </mesh>
-      {/* Table legs */}
-      {([[-3.5, 0, -1.2], [-3.5, 0, 1.2], [3.5, 0, -1.2], [3.5, 0, 1.2]] as [number, number, number][]).map((lp, i) => (
-        <mesh key={`leg-${i}`} castShadow position={[lp[0], lp[1], lp[2]]}>
-          <boxGeometry args={[0.15, 0.8, 0.15]} />
-          <meshStandardMaterial color="#1a0d03" roughness={0.7} />
-        </mesh>
-      ))}
+      {/* 4 table legs → 1 IM */}
+      <instancedMesh ref={tableLegIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[0.15, 0.8, 0.15]} />
+        <meshStandardMaterial color="#1a0d03" roughness={0.7} />
+      </instancedMesh>
 
-      {/* ── 8 executive chairs ── */}
-      {CHAIR_POSITIONS_LEFT.map((cp, i) => (
-        <group key={`chair-l-${i}`} position={cp} rotation={[0, Math.PI / 2, 0]}>
-          {/* seat */}
-          <mesh castShadow position={[0, 0.7, 0]}>
-            <cylinderGeometry args={[0.4, 0.38, 0.12, 10]} />
-            <meshStandardMaterial color="#111111" roughness={0.7} />
-          </mesh>
-          {/* chair back */}
-          <mesh castShadow position={[0, 1.15, -0.38]}>
-            <boxGeometry args={[0.7, 0.8, 0.1]} />
-            <meshStandardMaterial color="#111111" roughness={0.7} />
-          </mesh>
-          {/* left armrest */}
-          <mesh castShadow position={[-0.38, 0.9, -0.1]}>
-            <boxGeometry args={[0.06, 0.08, 0.5]} />
-            <meshStandardMaterial color="#222222" roughness={0.6} />
-          </mesh>
-          {/* right armrest */}
-          <mesh castShadow position={[0.38, 0.9, -0.1]}>
-            <boxGeometry args={[0.06, 0.08, 0.5]} />
-            <meshStandardMaterial color="#222222" roughness={0.6} />
-          </mesh>
-          {/* pedestal */}
-          <mesh castShadow position={[0, 0.35, 0]}>
-            <cylinderGeometry args={[0.08, 0.08, 0.7, 6]} />
-            <meshStandardMaterial color="#333333" metalness={0.6} roughness={0.4} />
-          </mesh>
-        </group>
-      ))}
-      {CHAIR_POSITIONS_RIGHT.map((cp, i) => (
-        <group key={`chair-r-${i}`} position={cp} rotation={[0, -Math.PI / 2, 0]}>
-          <mesh castShadow position={[0, 0.7, 0]}>
-            <cylinderGeometry args={[0.4, 0.38, 0.12, 10]} />
-            <meshStandardMaterial color="#111111" roughness={0.7} />
-          </mesh>
-          <mesh castShadow position={[0, 1.15, -0.38]}>
-            <boxGeometry args={[0.7, 0.8, 0.1]} />
-            <meshStandardMaterial color="#111111" roughness={0.7} />
-          </mesh>
-          <mesh castShadow position={[-0.38, 0.9, -0.1]}>
-            <boxGeometry args={[0.06, 0.08, 0.5]} />
-            <meshStandardMaterial color="#222222" roughness={0.6} />
-          </mesh>
-          <mesh castShadow position={[0.38, 0.9, -0.1]}>
-            <boxGeometry args={[0.06, 0.08, 0.5]} />
-            <meshStandardMaterial color="#222222" roughness={0.6} />
-          </mesh>
-          <mesh castShadow position={[0, 0.35, 0]}>
-            <cylinderGeometry args={[0.08, 0.08, 0.7, 6]} />
-            <meshStandardMaterial color="#333333" metalness={0.6} roughness={0.4} />
-          </mesh>
-        </group>
-      ))}
+      {/* 8 chairs × 5 parts = 40 → 4 IMs */}
+      <instancedMesh ref={seatIM} args={[undefined, undefined, 8]} castShadow>
+        <cylinderGeometry args={[0.4, 0.38, 0.12, 10]} />
+        <meshStandardMaterial color="#111111" roughness={0.7} />
+      </instancedMesh>
+      <instancedMesh ref={backIM} args={[undefined, undefined, 8]} castShadow>
+        <boxGeometry args={[0.7, 0.8, 0.1]} />
+        <meshStandardMaterial color="#111111" roughness={0.7} />
+      </instancedMesh>
+      <instancedMesh ref={armIM} args={[undefined, undefined, 16]} castShadow>
+        <boxGeometry args={[0.06, 0.08, 0.5]} />
+        <meshStandardMaterial color="#222222" roughness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={pedIM} args={[undefined, undefined, 8]} castShadow>
+        <cylinderGeometry args={[0.08, 0.08, 0.7, 6]} />
+        <meshStandardMaterial color="#333333" metalness={0.6} roughness={0.4} />
+      </instancedMesh>
 
       {/* ── Wall presentation screen at head of table ── */}
       <mesh castShadow position={[-7.2, 2.5, 0]}>
@@ -1318,20 +1348,18 @@ function Boardroom() {
           toneMapped={false}
         />
       </mesh>
-      {/* Bar chart on screen — 5 bars */}
-      {BAR_HEIGHTS.map((bh, i) => (
-        <mesh key={`chart-bar-${i}`} position={[-7.1, 0.8 + bh / 2, BAR_X_OFFSETS[i]]}>
-          <boxGeometry args={[0.08, bh, 0.5]} />
-          <meshStandardMaterial color="#4499ff" emissive="#2266ff" emissiveIntensity={2} toneMapped={false} />
-        </mesh>
-      ))}
+      {/* 5 bar chart bars → 1 IM (unit-height geo, scale.y per bar) */}
+      <instancedMesh ref={barChartIM} args={[undefined, undefined, 5]}>
+        <boxGeometry args={[0.08, 1, 0.5]} />
+        <meshStandardMaterial color="#4499ff" emissive="#2266ff" emissiveIntensity={2} toneMapped={false} />
+      </instancedMesh>
 
       {/* ── Chandelier ── */}
       {/* Central sphere */}
       <mesh castShadow position={[0, 4.5, 0]}>
         <sphereGeometry args={[0.6, 12, 12]} />
         <meshStandardMaterial
-          ref={el => { chandelierRef.current[0] = el }}
+          ref={centralChanRef}
           color="#ffe8cc"
           emissive="#ffeecc"
           emissiveIntensity={3}
@@ -1343,28 +1371,15 @@ function Boardroom() {
         <cylinderGeometry args={[0.04, 0.04, 0.5, 6]} />
         <meshStandardMaterial color="#888888" metalness={0.8} roughness={0.3} />
       </mesh>
-      {/* 8 hanging spheres on chains */}
-      {chandelierRing.map((hp, i) => (
-        <group key={`chandelier-${i}`} position={[hp[0], 4.5, hp[2]]}>
-          {/* chain link */}
-          <mesh position={[0, 0.35, 0]}>
-            <cylinderGeometry args={[0.025, 0.025, 0.4, 4]} />
-            <meshStandardMaterial color="#888888" metalness={0.8} roughness={0.3} />
-          </mesh>
-          {/* hanging bulb */}
-          <mesh castShadow position={[0, 0, 0]}>
-            <sphereGeometry args={[0.2, 8, 8]} />
-            <meshStandardMaterial
-              ref={el => { chandelierRef.current[i + 1] = el }}
-              color="#ffeecc"
-              emissive="#ffeecc"
-              emissiveIntensity={3}
-              toneMapped={false}
-            />
-          </mesh>
-        </group>
-      ))}
-
+      {/* 8 ring chain links + bulbs → 2 IMs */}
+      <instancedMesh ref={chainIM} args={[undefined, undefined, 8]}>
+        <cylinderGeometry args={[0.025, 0.025, 0.4, 4]} />
+        <meshStandardMaterial color="#888888" metalness={0.8} roughness={0.3} />
+      </instancedMesh>
+      <instancedMesh ref={bulbIM} args={[undefined, undefined, 8]} castShadow>
+        <sphereGeometry args={[0.2, 8, 8]} />
+        <meshBasicMaterial vertexColors />
+      </instancedMesh>
       {/* Chandelier light */}
       <pointLight position={[0, 4, 0]} color="#ffeecc" intensity={4} distance={18} />
     </group>
@@ -1373,75 +1388,68 @@ function Boardroom() {
 
 // ─── MoneyBags ────────────────────────────────────────────────────────────────
 // Decorative money bags + gold bars scattered around CEO office and trading area
+// 34 → 6 IMs (save 28 draw calls)
 function MoneyBags() {
-  // 6 money bags: positions spread near CEO office ([-70, ~10, -35]) and trading area ([90, 0, -20])
   const BAG_POSITIONS: [number, number, number][] = [
-    // near CEO office (world y = FLOOR_Y + offset)
-    [-72, ROOFTOP_Y + 0.2,  -33],
-    [-68, ROOFTOP_Y + 0.2,  -37],
-    [-74, ROOFTOP_Y + 0.2,  -36],
-    // near trading floor
-    [86, 0.2, -22],
-    [94, 0.2, -18],
-    [88, 0.2, -17],
+    [-72, ROOFTOP_Y + 0.2, -33], [-68, ROOFTOP_Y + 0.2, -37], [-74, ROOFTOP_Y + 0.2, -36],
+    [86, 0.2, -22], [94, 0.2, -18], [88, 0.2, -17],
   ]
-
-  // 4 gold bars
   const GOLD_BAR_POSITIONS: [number, number, number][] = [
-    [-71, ROOFTOP_Y + 0.16, -34],
-    [-69, ROOFTOP_Y + 0.16, -36],
-    [87, 0.16, -23],
-    [93, 0.16, -19],
+    [-71, ROOFTOP_Y + 0.16, -34], [-69, ROOFTOP_Y + 0.16, -36],
+    [87, 0.16, -23], [93, 0.16, -19],
   ]
+  const bagBodyIM  = useRef<THREE.InstancedMesh>(null!)
+  const bagTieIM   = useRef<THREE.InstancedMesh>(null!)
+  const dollarVIM  = useRef<THREE.InstancedMesh>(null!)
+  const dollarHIM  = useRef<THREE.InstancedMesh>(null!)
+  const goldBarIM  = useRef<THREE.InstancedMesh>(null!)
+
+  useEffect(() => {
+    BAG_POSITIONS.forEach((bp, i) => {
+      // body: scale y=0.9 for flattened sphere
+      _cwDummy.position.set(bp[0], bp[1], bp[2]); _cwDummy.rotation.set(0,0,0); _cwDummy.scale.set(1, 0.9, 1); _cwDummy.updateMatrix()
+      bagBodyIM.current.setMatrixAt(i, _cwDummy.matrix)
+      // remaining parts at scale=1
+      _cwDummy.scale.setScalar(1); _cwDummy.updateMatrix()
+      const pm = _cwDummy.matrix
+      _cwMat.multiplyMatrices(pm, _MB_TIE_LOC);   bagTieIM.current.setMatrixAt(i, _cwMat)
+      _cwMat.multiplyMatrices(pm, _MB_DVBAR_LOC);  dollarVIM.current.setMatrixAt(i, _cwMat)
+      _cwMat.multiplyMatrices(pm, _MB_DHU_LOC);    dollarHIM.current.setMatrixAt(i * 2,     _cwMat)
+      _cwMat.multiplyMatrices(pm, _MB_DHL_LOC);    dollarHIM.current.setMatrixAt(i * 2 + 1, _cwMat)
+    })
+    GOLD_BAR_POSITIONS.forEach((gp, i) => {
+      _cwDummy.position.set(gp[0], gp[1], gp[2]); _cwDummy.rotation.set(0, _GB_ROTS[i]!, 0); _cwDummy.scale.setScalar(1); _cwDummy.updateMatrix()
+      goldBarIM.current.setMatrixAt(i, _cwDummy.matrix)
+    })
+    bagBodyIM.current.instanceMatrix.needsUpdate = true
+    bagTieIM.current.instanceMatrix.needsUpdate  = true
+    dollarVIM.current.instanceMatrix.needsUpdate  = true
+    dollarHIM.current.instanceMatrix.needsUpdate  = true
+    goldBarIM.current.instanceMatrix.needsUpdate  = true
+  }, [])
 
   return (
     <group>
-      {/* ── Money bags ── */}
-      {BAG_POSITIONS.map((bp, i) => (
-        <group key={`bag-${i}`} position={bp}>
-          {/* bag body — slightly flattened sphere */}
-          <mesh castShadow scale={[1, 0.9, 1]}>
-            <sphereGeometry args={[0.6, 12, 12]} />
-            <meshStandardMaterial color="#f0e890" roughness={0.7} />
-          </mesh>
-          {/* tie at top */}
-          <mesh castShadow position={[0, 0.55, 0]}>
-            <cylinderGeometry args={[0.1, 0.14, 0.3, 8]} />
-            <meshStandardMaterial color="#8B4513" roughness={0.8} />
-          </mesh>
-          {/* dollar sign — two thin flat boxes forming "$" approximation */}
-          {/* vertical bar */}
-          <mesh position={[0, 0.05, 0.62]}>
-            <boxGeometry args={[0.05, 0.5, 0.04]} />
-            <meshStandardMaterial color="#c8a800" emissive="#aa8800" emissiveIntensity={1.5} toneMapped={false} />
-          </mesh>
-          {/* upper horizontal */}
-          <mesh position={[0, 0.22, 0.62]}>
-            <boxGeometry args={[0.3, 0.05, 0.04]} />
-            <meshStandardMaterial color="#c8a800" emissive="#aa8800" emissiveIntensity={1.5} toneMapped={false} />
-          </mesh>
-          {/* lower horizontal */}
-          <mesh position={[0, -0.12, 0.62]}>
-            <boxGeometry args={[0.3, 0.05, 0.04]} />
-            <meshStandardMaterial color="#c8a800" emissive="#aa8800" emissiveIntensity={1.5} toneMapped={false} />
-          </mesh>
-        </group>
-      ))}
-
-      {/* ── Gold bars ── */}
-      {GOLD_BAR_POSITIONS.map((gp, i) => (
-        <mesh key={`gold-${i}`} castShadow position={gp} rotation={[0, (i * Math.PI) / 3, 0]}>
-          <boxGeometry args={[0.8, 0.3, 1.5]} />
-          <meshStandardMaterial
-            color="#ffcc00"
-            emissive="#aa8800"
-            emissiveIntensity={1.5}
-            metalness={0.95}
-            roughness={0.1}
-            toneMapped={false}
-          />
-        </mesh>
-      ))}
+      <instancedMesh ref={bagBodyIM} args={[undefined, undefined, 6]} castShadow>
+        <sphereGeometry args={[0.6, 12, 12]} />
+        <meshStandardMaterial color="#f0e890" roughness={0.7} />
+      </instancedMesh>
+      <instancedMesh ref={bagTieIM} args={[undefined, undefined, 6]} castShadow>
+        <cylinderGeometry args={[0.1, 0.14, 0.3, 8]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.8} />
+      </instancedMesh>
+      <instancedMesh ref={dollarVIM} args={[undefined, undefined, 6]}>
+        <boxGeometry args={[0.05, 0.5, 0.04]} />
+        <meshStandardMaterial color="#c8a800" emissive="#aa8800" emissiveIntensity={1.5} toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh ref={dollarHIM} args={[undefined, undefined, 12]}>
+        <boxGeometry args={[0.3, 0.05, 0.04]} />
+        <meshStandardMaterial color="#c8a800" emissive="#aa8800" emissiveIntensity={1.5} toneMapped={false} />
+      </instancedMesh>
+      <instancedMesh ref={goldBarIM} args={[undefined, undefined, 4]} castShadow>
+        <boxGeometry args={[0.8, 0.3, 1.5]} />
+        <meshStandardMaterial color="#ffcc00" emissive="#aa8800" emissiveIntensity={1.5} metalness={0.95} roughness={0.1} toneMapped={false} />
+      </instancedMesh>
     </group>
   )
 }

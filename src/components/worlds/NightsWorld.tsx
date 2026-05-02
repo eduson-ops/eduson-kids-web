@@ -1050,12 +1050,21 @@ function cPseudo(n: number): number {
   return (((Math.sin(n) * 43758.5453) % 1) + 1) % 1
 }
 
-// 12 tombstones×2 + 14 fence meshes → 4 IMs (save 34 draw calls)
+// 12 tombstones×2 + 14 fence + 16 tree parts → 6 IMs (save 48 draw calls)
 function Cemetery() {
-  const slabIM = useRef<THREE.InstancedMesh>(null!)
-  const capIM  = useRef<THREE.InstancedMesh>(null!)
-  const poleIM = useRef<THREE.InstancedMesh>(null!)
-  const barIM  = useRef<THREE.InstancedMesh>(null!)
+  const slabIM   = useRef<THREE.InstancedMesh>(null!)
+  const capIM    = useRef<THREE.InstancedMesh>(null!)
+  const poleIM   = useRef<THREE.InstancedMesh>(null!)
+  const barIM    = useRef<THREE.InstancedMesh>(null!)
+  const trunkIM  = useRef<THREE.InstancedMesh>(null!)
+  const branchIM = useRef<THREE.InstancedMesh>(null!)
+
+  const deadTrees: [number, number, number][] = [
+    [-14, 0, -52], [ 14, 0, -58], [-12, 0, -67], [ 13, 0, -63],
+  ]
+  const branchAngles = [
+    [0.6, -0.4, 1.2], [0.5, -0.6, 1.1], [0.7, -0.3, 1.3], [0.4, -0.7, 1.0],
+  ]
 
   useEffect(() => {
     // Tombstones (parent-child matrix composition)
@@ -1084,15 +1093,20 @@ function Cemetery() {
       barIM.current.setMatrixAt(i, _nwDummy.matrix)
     })
     barIM.current.instanceMatrix.needsUpdate = true
+    // Dead tree trunks (4) + branches (12)
+    deadTrees.forEach(([tx, , tz], ti) => {
+      _nwDummy.position.set(tx, 2.5, tz); _nwDummy.rotation.set(0,0,0); _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+      trunkIM.current.setMatrixAt(ti, _nwDummy.matrix)
+      branchAngles[ti]!.forEach((angle, bi) => {
+        const sign = bi % 2 === 0 ? 1 : -1
+        _nwDummy.position.set(tx + sign * 0.6, 4.0 - bi * 0.5, tz)
+        _nwDummy.rotation.set(0, 0, angle * sign); _nwDummy.scale.setScalar(1); _nwDummy.updateMatrix()
+        branchIM.current.setMatrixAt(ti * 3 + bi, _nwDummy.matrix)
+      })
+    })
+    trunkIM.current.instanceMatrix.needsUpdate  = true
+    branchIM.current.instanceMatrix.needsUpdate = true
   }, [])
-
-  // 4 dead tree positions (kept as individual meshes — different geometry per trunk branch)
-  const deadTrees: [number, number, number][] = [
-    [-14, 0, -52], [ 14, 0, -58], [-12, 0, -67], [ 13, 0, -63],
-  ]
-  const branchAngles = [
-    [0.6, -0.4, 1.2], [0.5, -0.6, 1.1], [0.7, -0.3, 1.3], [0.4, -0.7, 1.0],
-  ]
 
   return (
     <group>
@@ -1106,24 +1120,15 @@ function Cemetery() {
         <meshStandardMaterial color="#555566" roughness={0.95} />
       </instancedMesh>
 
-      {/* 4 dead trees (kept individual — varied structure) */}
-      {deadTrees.map(([tx, ty, tz], ti) => (
-        <group key={ti} position={[tx, ty, tz]}>
-          <mesh position={[0, 2.5, 0]} castShadow>
-            <cylinderGeometry args={[0.3, 0.35, 5, 7]} />
-            <meshStandardMaterial color="#3a2a1a" roughness={0.95} />
-          </mesh>
-          {branchAngles[ti]!.map((angle, bi) => {
-            const sign = bi % 2 === 0 ? 1 : -1
-            return (
-              <mesh key={bi} position={[sign * 0.6, 4.0 - bi * 0.5, 0]} rotation={[0, 0, angle * sign]} castShadow>
-                <cylinderGeometry args={[0.08, 0.1, 2, 5]} />
-                <meshStandardMaterial color="#2a1a0a" roughness={0.95} />
-              </mesh>
-            )
-          })}
-        </group>
-      ))}
+      {/* Dead trees — 16 → 2 IMs (save 14) */}
+      <instancedMesh ref={trunkIM} args={[undefined, undefined, 4]} castShadow>
+        <cylinderGeometry args={[0.3, 0.35, 5, 7]} />
+        <meshStandardMaterial color="#3a2a1a" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={branchIM} args={[undefined, undefined, 12]} castShadow>
+        <cylinderGeometry args={[0.08, 0.1, 2, 5]} />
+        <meshStandardMaterial color="#2a1a0a" roughness={0.95} />
+      </instancedMesh>
 
       {/* Fence poles — 10→1 IM */}
       <instancedMesh ref={poleIM} args={[undefined, undefined, 10]} castShadow>
