@@ -422,52 +422,48 @@ function BeachWaves() {
   )
 }
 
+const _SB_METAL_PANELS: [number,number,number][] = [
+  [-30,0.01,30],[-55,0.01,25],[-42,0.01,55],[-72,0.01,48],[-85,0.01,72],[-22,0.01,78],
+]
+const _SB_BARRIERS: Array<{ pos: [number,number,number]; rotY: number }> = [
+  { pos: [-20,0.25,18],  rotY: 0 },
+  { pos: [-60,0.25,18],  rotY: 0 },
+  { pos: [-90,0.25,50],  rotY: Math.PI / 2 },
+  { pos: [-15,0.25,65],  rotY: Math.PI / 2 },
+]
+
 // ─── Factory Grit overlay (SW quadrant) ──────────────────────────
 function FactoryGrit() {
-  // Factory zone: x ~ [-100, 0], z ~ [0, 100], center ~ [-50, y, 50]
-  const metalPanels: Array<[number, number, number]> = [
-    [-30,  0.01,  30],
-    [-55,  0.01,  25],
-    [-42,  0.01,  55],
-    [-72,  0.01,  48],
-    [-85,  0.01,  72],
-    [-22,  0.01,  78],
-  ]
-
-  const warningBarriers: Array<{ pos: [number, number, number]; rotY: number }> = [
-    { pos: [-20,  0.25,  18], rotY: 0 },
-    { pos: [-60,  0.25,  18], rotY: 0 },
-    { pos: [-90,  0.25,  50], rotY: Math.PI / 2 },
-    { pos: [-15,  0.25,  65], rotY: Math.PI / 2 },
-  ]
-
   const industrialLights: Array<[number, number, number]> = [
     [-25,  6,  30],
     [-55,  6,  55],
     [-72,  6,  78],
   ]
+  const panelIM   = useRef<THREE.InstancedMesh>(null!)
+  const barrierIM = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _SB_METAL_PANELS.forEach(([px, py, pz], i) => {
+      _sbDummy.position.set(px, py, pz); _sbDummy.rotation.set(0,0,0); _sbDummy.scale.setScalar(1); _sbDummy.updateMatrix()
+      panelIM.current.setMatrixAt(i, _sbDummy.matrix)
+    })
+    panelIM.current.instanceMatrix.needsUpdate = true
+    _SB_BARRIERS.forEach(({ pos: [bx, by, bz], rotY }, i) => {
+      _sbDummy.position.set(bx, by, bz); _sbDummy.rotation.set(0, rotY, 0); _sbDummy.scale.setScalar(1); _sbDummy.updateMatrix()
+      barrierIM.current.setMatrixAt(i, _sbDummy.matrix)
+    })
+    barrierIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   return (
     <group>
-      {/* Dark metal floor panels */}
-      {metalPanels.map((pos, i) => (
-        <mesh key={`panel-${i}`} position={pos}>
-          <boxGeometry args={[4, 0.1, 4]} />
-          <meshStandardMaterial color="#2a2a2a" metalness={0.8} roughness={0.6} />
-        </mesh>
-      ))}
-
-      {/* Warning stripe barriers */}
-      {warningBarriers.map(({ pos, rotY }, i) => (
-        <mesh key={`barrier-${i}`} position={pos} rotation={[0, rotY, 0]}>
-          <boxGeometry args={[8, 0.5, 0.5]} />
-          <meshStandardMaterial
-            color="#1a1a1a"
-            emissive="#ff8800"
-            emissiveIntensity={1.5}
-          />
-        </mesh>
-      ))}
+      <instancedMesh ref={panelIM} args={[undefined, undefined, _SB_METAL_PANELS.length]}>
+        <boxGeometry args={[4, 0.1, 4]} />
+        <meshStandardMaterial color="#2a2a2a" metalness={0.8} roughness={0.6} />
+      </instancedMesh>
+      <instancedMesh ref={barrierIM} args={[undefined, undefined, _SB_BARRIERS.length]}>
+        <boxGeometry args={[8, 0.5, 0.5]} />
+        <meshStandardMaterial color="#1a1a1a" emissive="#ff8800" emissiveIntensity={1.5} />
+      </instancedMesh>
 
       {/* Industrial orange point lights */}
       {industrialLights.map((pos, i) => (
@@ -519,6 +515,29 @@ const _FS_DATA: { baseX: number; baseZ: number; speed: number; wobble: number; r
 })()
 const _fsCol   = new THREE.Color()
 const _fsDummy = new THREE.Object3D()
+const _sbDummy = new THREE.Object3D()
+const _sbMat   = new THREE.Matrix4()
+const _sbCol   = new THREE.Color()
+
+const _SB_CASTLES: Array<{ x: number; z: number; rotY: number }> = [
+  { x: -20, z:  58, rotY: 0.3 },
+  { x:   5, z:  72, rotY: 1.1 },
+  { x:  22, z:  95, rotY: 0.7 },
+  { x: -10, z: 105, rotY: 2.0 },
+  { x:  15, z:  62, rotY: 1.5 },
+]
+const _TURRET_OFFSETS: [number,number][] = [[-1.5,-1.5],[1.5,-1.5],[-1.5,1.5],[1.5,1.5]]
+const _SB_CANOPY_COLORS = ['#ff6644', '#44aaff', '#ffcc22', '#44cc88']
+const _SB_UMBRELLAS: Array<{ x: number; z: number; rotY: number }> = [
+  { x: -22, z:  62, rotY: 0.2 },
+  { x:  -8, z:  70, rotY: 0.9 },
+  { x:   8, z:  78, rotY: 1.4 },
+  { x:  20, z:  68, rotY: 0.1 },
+  { x: -15, z:  88, rotY: 1.8 },
+  { x:   3, z:  96, rotY: 0.6 },
+  { x:  18, z:  84, rotY: 2.2 },
+  { x: -25, z: 100, rotY: 0.4 },
+]
 
 function FactorySmoke() {
   const meshRef = useRef<THREE.InstancedMesh>(null!)
@@ -1234,101 +1253,106 @@ function SunsetSky() {
 
 // ─── SandCastles ─────────────────────────────────────────────────
 function SandCastles() {
-  const castles: Array<{ x: number; z: number; rotY: number }> = [
-    { x: -20, z:  58, rotY: 0.3 },
-    { x:   5, z:  72, rotY: 1.1 },
-    { x:  22, z:  95, rotY: 0.7 },
-    { x: -10, z: 105, rotY: 2.0 },
-    { x:  15, z:  62, rotY: 1.5 },
-  ]
-
+  const baseIM     = useRef<THREE.InstancedMesh>(null!)
+  const towerIM    = useRef<THREE.InstancedMesh>(null!)
+  const turretIM   = useRef<THREE.InstancedMesh>(null!)
+  const battIM     = useRef<THREE.InstancedMesh>(null!)
+  const tipIM      = useRef<THREE.InstancedMesh>(null!)
+  const poleIM     = useRef<THREE.InstancedMesh>(null!)
+  const flagIM     = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _SB_CASTLES.forEach(({ x, z, rotY }, ci) => {
+      const c = Math.cos(rotY), s = Math.sin(rotY)
+      _sbDummy.position.set(x, 0.75, z); _sbDummy.rotation.set(0,0,0); _sbDummy.scale.setScalar(1); _sbDummy.updateMatrix()
+      baseIM.current.setMatrixAt(ci, _sbDummy.matrix)
+      _sbDummy.position.set(x, 2.5, z); _sbDummy.updateMatrix()
+      towerIM.current.setMatrixAt(ci, _sbDummy.matrix)
+      _TURRET_OFFSETS.forEach(([tx, tz], ti) => {
+        _sbDummy.position.set(x + c * tx + s * tz, 2.5, z - s * tx + c * tz); _sbDummy.updateMatrix()
+        turretIM.current.setMatrixAt(ci * 4 + ti, _sbDummy.matrix)
+      })
+      _sbDummy.position.set(x, 4.8, z); _sbDummy.updateMatrix()
+      battIM.current.setMatrixAt(ci, _sbDummy.matrix)
+      _sbDummy.position.set(x, 5.8, z); _sbDummy.updateMatrix()
+      tipIM.current.setMatrixAt(ci, _sbDummy.matrix)
+      _sbDummy.position.set(x, 7.05, z); _sbDummy.updateMatrix()
+      poleIM.current.setMatrixAt(ci, _sbDummy.matrix)
+      _sbDummy.position.set(x + c * 0.25, 7.65, z - s * 0.25); _sbDummy.rotation.set(0, rotY, 0); _sbDummy.updateMatrix()
+      flagIM.current.setMatrixAt(ci, _sbDummy.matrix)
+    })
+    ;[baseIM, towerIM, turretIM, battIM, tipIM, poleIM, flagIM].forEach(r => { r.current.instanceMatrix.needsUpdate = true })
+  }, [])
   return (
-    <group>
-      {castles.map(({ x, z, rotY }, ci) => (
-        <group key={ci} position={[x, 0, z]} rotation={[0, rotY, 0]}>
-          {/* Base */}
-          <mesh position={[0, 0.75, 0]} castShadow receiveShadow>
-            <cylinderGeometry args={[2.5, 2.7, 1.5, 16]} />
-            <meshStandardMaterial color="#d4a853" roughness={1} />
-          </mesh>
-          {/* Main tower */}
-          <mesh position={[0, 2.5, 0]} castShadow>
-            <cylinderGeometry args={[1.2, 1.3, 3, 12]} />
-            <meshStandardMaterial color="#c8973d" roughness={1} />
-          </mesh>
-          {/* 4 corner turrets */}
-          {([[-1.5, -1.5], [1.5, -1.5], [-1.5, 1.5], [1.5, 1.5]] as [number, number][]).map(([tx, tz], ti) => (
-            <mesh key={ti} position={[tx, 2.5, tz]} castShadow>
-              <cylinderGeometry args={[0.4, 0.45, 1.5, 8]} />
-              <meshStandardMaterial color="#c8973d" roughness={1} />
-            </mesh>
-          ))}
-          {/* Battlements cone */}
-          <mesh position={[0, 4.8, 0]} castShadow>
-            <coneGeometry args={[1.4, 1.2, 12]} />
-            <meshStandardMaterial color="#c08030" roughness={1} />
-          </mesh>
-          {/* Flag-like cone tip */}
-          <mesh position={[0, 5.8, 0]} castShadow>
-            <coneGeometry args={[0.6, 1.0, 8]} />
-            <meshStandardMaterial color="#cc4422" roughness={0.8} />
-          </mesh>
-          {/* Flag pole */}
-          <mesh position={[0, 7.05, 0]}>
-            <cylinderGeometry args={[0.05, 0.05, 1.5, 5]} />
-            <meshStandardMaterial color="#886633" roughness={0.9} />
-          </mesh>
-          {/* Flag cloth */}
-          <mesh position={[0.25, 7.65, 0]}>
-            <boxGeometry args={[0.5, 0.3, 0.05]} />
-            <meshStandardMaterial color="#ff4444" roughness={0.7} side={THREE.DoubleSide} />
-          </mesh>
-        </group>
-      ))}
-    </group>
+    <>
+      <instancedMesh ref={baseIM} args={[undefined, undefined, _SB_CASTLES.length]} castShadow receiveShadow>
+        <cylinderGeometry args={[2.5, 2.7, 1.5, 16]} />
+        <meshStandardMaterial color="#d4a853" roughness={1} />
+      </instancedMesh>
+      <instancedMesh ref={towerIM} args={[undefined, undefined, _SB_CASTLES.length]} castShadow>
+        <cylinderGeometry args={[1.2, 1.3, 3, 12]} />
+        <meshStandardMaterial color="#c8973d" roughness={1} />
+      </instancedMesh>
+      <instancedMesh ref={turretIM} args={[undefined, undefined, _SB_CASTLES.length * 4]} castShadow>
+        <cylinderGeometry args={[0.4, 0.45, 1.5, 8]} />
+        <meshStandardMaterial color="#c8973d" roughness={1} />
+      </instancedMesh>
+      <instancedMesh ref={battIM} args={[undefined, undefined, _SB_CASTLES.length]} castShadow>
+        <coneGeometry args={[1.4, 1.2, 12]} />
+        <meshStandardMaterial color="#c08030" roughness={1} />
+      </instancedMesh>
+      <instancedMesh ref={tipIM} args={[undefined, undefined, _SB_CASTLES.length]} castShadow>
+        <coneGeometry args={[0.6, 1.0, 8]} />
+        <meshStandardMaterial color="#cc4422" roughness={0.8} />
+      </instancedMesh>
+      <instancedMesh ref={poleIM} args={[undefined, undefined, _SB_CASTLES.length]}>
+        <cylinderGeometry args={[0.05, 0.05, 1.5, 5]} />
+        <meshStandardMaterial color="#886633" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={flagIM} args={[undefined, undefined, _SB_CASTLES.length]}>
+        <boxGeometry args={[0.5, 0.3, 0.05]} />
+        <meshStandardMaterial color="#ff4444" roughness={0.7} side={THREE.DoubleSide} />
+      </instancedMesh>
+    </>
   )
 }
 
 // ─── BeachUmbrellas ───────────────────────────────────────────────
 function BeachUmbrellas() {
-  const CANOPY_COLORS = ['#ff6644', '#44aaff', '#ffcc22', '#44cc88']
-  const umbrellas: Array<{ x: number; z: number; rotY: number }> = [
-    { x: -22, z:  62, rotY: 0.2 },
-    { x:  -8, z:  70, rotY: 0.9 },
-    { x:   8, z:  78, rotY: 1.4 },
-    { x:  20, z:  68, rotY: 0.1 },
-    { x: -15, z:  88, rotY: 1.8 },
-    { x:   3, z:  96, rotY: 0.6 },
-    { x:  18, z:  84, rotY: 2.2 },
-    { x: -25, z: 100, rotY: 0.4 },
-  ]
-
+  const poleIM   = useRef<THREE.InstancedMesh>(null!)
+  const canopyIM = useRef<THREE.InstancedMesh>(null!)
+  const capIM    = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _SB_UMBRELLAS.forEach(({ x, z, rotY }, ui) => {
+      _sbDummy.position.set(x, 1.75, z); _sbDummy.rotation.set(0,0,0); _sbDummy.scale.setScalar(1); _sbDummy.updateMatrix()
+      poleIM.current.setMatrixAt(ui, _sbDummy.matrix)
+      _sbDummy.position.set(x, 3.5, z); _sbDummy.rotation.set(0, rotY, 0); _sbDummy.updateMatrix()
+      canopyIM.current.setMatrixAt(ui, _sbDummy.matrix)
+      canopyIM.current.setColorAt(ui, _sbCol.set(_SB_CANOPY_COLORS[ui % _SB_CANOPY_COLORS.length]!))
+      _sbDummy.position.set(x, 3.9, z); _sbDummy.rotation.set(0,0,0); _sbDummy.updateMatrix()
+      capIM.current.setMatrixAt(ui, _sbDummy.matrix)
+      capIM.current.setColorAt(ui, _sbCol.set(_SB_CANOPY_COLORS[ui % _SB_CANOPY_COLORS.length]!))
+    })
+    poleIM.current.instanceMatrix.needsUpdate   = true
+    canopyIM.current.instanceMatrix.needsUpdate = true
+    canopyIM.current.instanceColor!.needsUpdate = true
+    capIM.current.instanceMatrix.needsUpdate    = true
+    capIM.current.instanceColor!.needsUpdate    = true
+  }, [])
   return (
-    <group>
-      {umbrellas.map(({ x, z, rotY }, ui) => (
-        <group key={ui} position={[x, 0, z]} rotation={[0, rotY, 0]}>
-          {/* Pole */}
-          <mesh position={[0, 1.75, 0]} castShadow>
-            <cylinderGeometry args={[0.08, 0.08, 3.5, 6]} />
-            <meshStandardMaterial color="#8B4513" roughness={0.9} />
-          </mesh>
-          {/* Canopy */}
-          <mesh position={[0, 3.5, 0]} castShadow>
-            <coneGeometry args={[2.5, 0.8, 16, 1, true]} />
-            <meshStandardMaterial
-              color={CANOPY_COLORS[ui % CANOPY_COLORS.length]}
-              roughness={0.8}
-              side={THREE.DoubleSide}
-            />
-          </mesh>
-          {/* Canopy top cap (closed) */}
-          <mesh position={[0, 3.9, 0]}>
-            <cylinderGeometry args={[0.12, 0.12, 0.1, 8]} />
-            <meshStandardMaterial color={CANOPY_COLORS[ui % CANOPY_COLORS.length]} roughness={0.8} />
-          </mesh>
-        </group>
-      ))}
-    </group>
+    <>
+      <instancedMesh ref={poleIM} args={[undefined, undefined, _SB_UMBRELLAS.length]} castShadow>
+        <cylinderGeometry args={[0.08, 0.08, 3.5, 6]} />
+        <meshStandardMaterial color="#8B4513" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={canopyIM} args={[undefined, undefined, _SB_UMBRELLAS.length]} castShadow>
+        <coneGeometry args={[2.5, 0.8, 16, 1, true]} />
+        <meshStandardMaterial vertexColors roughness={0.8} side={THREE.DoubleSide} />
+      </instancedMesh>
+      <instancedMesh ref={capIM} args={[undefined, undefined, _SB_UMBRELLAS.length]}>
+        <cylinderGeometry args={[0.12, 0.12, 0.1, 8]} />
+        <meshStandardMaterial vertexColors roughness={0.8} />
+      </instancedMesh>
+    </>
   )
 }
 
