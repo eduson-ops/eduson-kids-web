@@ -1,7 +1,7 @@
 import { RigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { detectDeviceTier } from '../../lib/deviceTier'
 
@@ -79,8 +79,16 @@ const CANDLE_POSITIONS: [number, number, number][] = [
 
 function CandleLights() {
   const lightRefs = useRef<(THREE.PointLight | null)[]>([])
+  const flameRef  = useRef<THREE.InstancedMesh>(null!)
   const frameSkip = useRef(0)
   const jitterPtr = useRef(0)
+  useEffect(() => {
+    CANDLE_POSITIONS.forEach(([cx, cy, cz], i) => {
+      _mwDummy.position.set(cx, cy, cz); _mwDummy.rotation.set(0,0,0); _mwDummy.scale.setScalar(1); _mwDummy.updateMatrix()
+      flameRef.current.setMatrixAt(i, _mwDummy.matrix)
+    })
+    flameRef.current.instanceMatrix.needsUpdate = true
+  }, [])
   useFrame(({ clock }) => {
     if (_isLow && (frameSkip.current++ & 1)) return
     const t = clock.elapsedTime
@@ -97,21 +105,20 @@ function CandleLights() {
   return (
     <>
       {CANDLE_POSITIONS.map((pos, i) => (
-        <group key={`candle${i}`} position={pos}>
-          <pointLight
-            ref={(el) => { lightRefs.current[i] = el }}
-            color="#ff8833"
-            intensity={1.2}
-            distance={8}
-            decay={2}
-          />
-          {/* Small emissive flame sphere */}
-          <mesh>
-            <sphereGeometry args={[0.06, 6, 6]} />
-            <meshBasicMaterial color="#ffaa44" />
-          </mesh>
-        </group>
+        <pointLight
+          key={`cl${i}`}
+          ref={(el) => { lightRefs.current[i] = el }}
+          color="#ff8833"
+          intensity={1.2}
+          distance={8}
+          decay={2}
+          position={pos}
+        />
       ))}
+      <instancedMesh ref={flameRef} args={[undefined, undefined, CANDLE_POSITIONS.length]} frustumCulled={false}>
+        <sphereGeometry args={[0.06, 6, 6]} />
+        <meshBasicMaterial color="#ffaa44" />
+      </instancedMesh>
     </>
   )
 }
@@ -179,20 +186,19 @@ const FOOTSTEP_POSITIONS: [number, number, number][] = [
 ]
 
 function FootstepDust() {
+  const meshRef = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    FOOTSTEP_POSITIONS.forEach(([fx, fy, fz], i) => {
+      _mwDummy.position.set(fx, fy, fz); _mwDummy.rotation.set(0,0,0); _mwDummy.scale.setScalar(1); _mwDummy.updateMatrix()
+      meshRef.current.setMatrixAt(i, _mwDummy.matrix)
+    })
+    meshRef.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
-    <>
-      {FOOTSTEP_POSITIONS.map((pos, i) => (
-        <mesh key={`dust${i}`} position={pos}>
-          <sphereGeometry args={[0.12 + (i % 3) * 0.04, 6, 6]} />
-          <meshBasicMaterial
-            color="#999988"
-            transparent
-            opacity={0.15}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-    </>
+    <instancedMesh ref={meshRef} args={[undefined, undefined, FOOTSTEP_POSITIONS.length]} frustumCulled={false}>
+      <sphereGeometry args={[0.15, 6, 6]} />
+      <meshBasicMaterial color="#999988" transparent opacity={0.15} depthWrite={false} />
+    </instancedMesh>
   )
 }
 // ─── Ghost Footprints — 12 ghostly shoe prints appearing and fading on the floor ───
@@ -284,6 +290,16 @@ function GhostFootprints() {
 
 const _orbDummy = new THREE.Object3D()
 const _orbCol   = new THREE.Color()
+const _mwDummy  = new THREE.Object3D()
+
+const _STONE_UPRIGHTS = Array.from({ length: 12 }, (_, i) => {
+  const angle = (i / 12) * Math.PI * 2
+  return { x: Math.cos(angle) * 20, z: Math.sin(angle) * 20, rotY: -angle }
+})
+const _STONE_LINTELS = Array.from({ length: 6 }, (_, i) => {
+  const angle = ((i * 2 + 0.5) / 12) * Math.PI * 2
+  return { x: Math.cos(angle) * 20, z: Math.sin(angle) * 20, rotY: -angle + Math.PI / 2 }
+})
 
 // ─── GhostApparition — semi-transparent ethereal figure drifting through mansion ───
 function GhostApparition() {
@@ -852,43 +868,31 @@ function StoneCircle() {
     }
   })
 
-  const uprightPositions = useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => {
-      const angle = (i / 12) * Math.PI * 2
-      return {
-        x: Math.cos(angle) * 20,
-        z: Math.sin(angle) * 20,
-        rotY: -angle,
-      }
-    }), [])
-
-  const lintelPositions = useMemo(() =>
-    Array.from({ length: 6 }, (_, i) => {
-      const angle = ((i * 2 + 0.5) / 12) * Math.PI * 2
-      return {
-        x: Math.cos(angle) * 20,
-        z: Math.sin(angle) * 20,
-        rotY: -angle + Math.PI / 2,
-      }
-    }), [])
+  const uprightIM = useRef<THREE.InstancedMesh>(null!)
+  const lintelIM  = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _STONE_UPRIGHTS.forEach(({ x, z, rotY }, i) => {
+      _mwDummy.position.set(x, 3, z); _mwDummy.rotation.set(0, rotY, 0); _mwDummy.scale.setScalar(1); _mwDummy.updateMatrix()
+      uprightIM.current.setMatrixAt(i, _mwDummy.matrix)
+    })
+    uprightIM.current.instanceMatrix.needsUpdate = true
+    _STONE_LINTELS.forEach(({ x, z, rotY }, i) => {
+      _mwDummy.position.set(x, 6.75, z); _mwDummy.rotation.set(0, rotY, 0); _mwDummy.scale.setScalar(1); _mwDummy.updateMatrix()
+      lintelIM.current.setMatrixAt(i, _mwDummy.matrix)
+    })
+    lintelIM.current.instanceMatrix.needsUpdate = true
+  }, [])
 
   return (
     <group position={[30, 0, -30]}>
-      {/* 12 massive stone uprights */}
-      {uprightPositions.map((s, i) => (
-        <mesh key={`upright${i}`} position={[s.x, 3, s.z]} rotation={[0, s.rotY, 0]} castShadow>
-          <boxGeometry args={[2, 6, 1.5]} />
-          <meshStandardMaterial color="#888899" roughness={0.95} />
-        </mesh>
-      ))}
-
-      {/* 6 lintel stones bridging pairs */}
-      {lintelPositions.map((l, i) => (
-        <mesh key={`lintel${i}`} position={[l.x, 6.75, l.z]} rotation={[0, l.rotY, 0]} castShadow>
-          <boxGeometry args={[4.5, 1.5, 1.5]} />
-          <meshStandardMaterial color="#777788" roughness={0.95} />
-        </mesh>
-      ))}
+      <instancedMesh ref={uprightIM} args={[undefined, undefined, _STONE_UPRIGHTS.length]} castShadow>
+        <boxGeometry args={[2, 6, 1.5]} />
+        <meshStandardMaterial color="#888899" roughness={0.95} />
+      </instancedMesh>
+      <instancedMesh ref={lintelIM} args={[undefined, undefined, _STONE_LINTELS.length]} castShadow>
+        <boxGeometry args={[4.5, 1.5, 1.5]} />
+        <meshStandardMaterial color="#777788" roughness={0.95} />
+      </instancedMesh>
 
       {/* Center altar flat cylinder */}
       <mesh position={[0, 0.2, 0]}>
