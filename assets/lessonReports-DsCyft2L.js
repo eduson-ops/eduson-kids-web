@@ -1,0 +1,1 @@
+import{o as e}from"./PlatformShell-Czyl6iCh.js";function o(){return e.get("/lesson-reports/my")}function s(t){return e.get(`/lesson-reports/student/${t}`)}function n(t){return e.post("/lesson-reports",t)}export{o as n,s as r,n as t};
