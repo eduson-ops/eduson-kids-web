@@ -21,6 +21,18 @@ const _MB_DVBAR_LOC = (() => { const o = new THREE.Object3D(); o.position.set(0,
 const _MB_DHU_LOC   = (() => { const o = new THREE.Object3D(); o.position.set(0,  0.22,  0.62); o.updateMatrix(); return o.matrix.clone() })()
 const _MB_DHL_LOC   = (() => { const o = new THREE.Object3D(); o.position.set(0, -0.12,  0.62); o.updateMatrix(); return o.matrix.clone() })()
 const _GB_ROTS      = [0, 1, 2, 3].map(i => (i * Math.PI) / 3)
+const _TW_STACKS: { base: [number,number,number]; count: number; colorAlt: boolean }[] = [
+  { base: [-65,0,15],  count: 4, colorAlt: false },
+  { base: [-67,0,18],  count: 3, colorAlt: true  },
+  { base: [-80,0,-10], count: 5, colorAlt: false },
+  { base: [-90,0,22],  count: 4, colorAlt: true  },
+  { base: [-110,0,3],  count: 3, colorAlt: false },
+]
+const _BOX_COUNT = _TW_STACKS.reduce((sum, s) => sum + s.count, 0)
+const _VENT_POSITIONS: [number,number,number][] = [
+  [-60,0.02,0],[-75,0.02,-15],[-90,0.02,10],[-105,0.02,-20],
+  [-65,0.02,25],[-80,0.02,-40],[-95,0.02,30],[-115,0.02,-10],
+]
 const _CHANDELIER_RING: [number, number, number][] = Array.from({ length: 8 }, (_, ci) => {
   const a = (ci / 8) * Math.PI * 2; return [Math.cos(a) * 1.5, 4.5, Math.sin(a) * 1.5]
 })
@@ -347,35 +359,25 @@ function SmokeStacks() {
 
 // ─── ProductBoxes — stacks of cardboard shipping boxes near conveyors ─────────
 function ProductBoxes() {
-  // Stacks placed near conveyor belt positions (BELT_POSITIONS: [-70,0.5,15], [-85,0.5,-10], [-100,0.5,20], [-115,0.5,0])
-  const STACKS: { base: [number, number, number]; count: number; colorAlt: boolean }[] = [
-    { base: [-65, 0, 15],  count: 4, colorAlt: false },
-    { base: [-67, 0, 18],  count: 3, colorAlt: true  },
-    { base: [-80, 0, -10], count: 5, colorAlt: false },
-    { base: [-90, 0, 22],  count: 4, colorAlt: true  },
-    { base: [-110, 0, 3],  count: 3, colorAlt: false },
-  ]
+  const boxIM = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    let bi = 0
+    _TW_STACKS.forEach(({ base, count, colorAlt }) => {
+      for (let k = 0; k < count; k++) {
+        _cwDummy.position.set(base[0], base[1] + 0.6 + k * 1.22, base[2]); _cwDummy.rotation.set(0,0,0); _cwDummy.scale.setScalar(1); _cwDummy.updateMatrix()
+        boxIM.current.setMatrixAt(bi, _cwDummy.matrix)
+        boxIM.current.setColorAt(bi, _twCol.set(colorAlt && k % 2 === 0 ? '#d4b870' : '#e8d090'))
+        bi++
+      }
+    })
+    boxIM.current.instanceMatrix.needsUpdate = true
+    boxIM.current.instanceColor!.needsUpdate = true
+  }, [])
   return (
-    <group>
-      {STACKS.map((stack, si) => (
-        <group key={`stack-${si}`}>
-          {Array.from({ length: stack.count }, (_, bi) => {
-            const color = stack.colorAlt && bi % 2 === 0 ? '#d4b870' : '#e8d090'
-            return (
-              <mesh
-                key={`box-${si}-${bi}`}
-                position={[stack.base[0], stack.base[1] + 0.6 + bi * 1.22, stack.base[2]]}
-                castShadow
-                receiveShadow
-              >
-                <boxGeometry args={[1.2, 1.2, 1.2]} />
-                <meshStandardMaterial color={color} roughness={0.9} />
-              </mesh>
-            )
-          })}
-        </group>
-      ))}
-    </group>
+    <instancedMesh ref={boxIM} args={[undefined, undefined, _BOX_COUNT]} castShadow receiveShadow>
+      <boxGeometry args={[1.2, 1.2, 1.2]} />
+      <meshStandardMaterial vertexColors roughness={0.9} />
+    </instancedMesh>
   )
 }
 
@@ -468,32 +470,19 @@ function IndustrialPipework() {
 
 // ─── Heat glow vents ──────────────────────────────────────────────────────────
 function HeatGlow() {
-  const VENT_POSITIONS: [number, number, number][] = [
-    [-60,  0.02,   0],
-    [-75,  0.02, -15],
-    [-90,  0.02,  10],
-    [-105, 0.02, -20],
-    [-65,  0.02,  25],
-    [-80,  0.02, -40],
-    [-95,  0.02,  30],
-    [-115, 0.02, -10],
-  ]
+  const ventIM = useRef<THREE.InstancedMesh>(null!)
+  useEffect(() => {
+    _VENT_POSITIONS.forEach(([vx, vy, vz], i) => {
+      _cwDummy.position.set(vx, vy, vz); _cwDummy.rotation.set(-Math.PI/2, 0, 0); _cwDummy.scale.setScalar(1); _cwDummy.updateMatrix()
+      ventIM.current.setMatrixAt(i, _cwDummy.matrix)
+    })
+    ventIM.current.instanceMatrix.needsUpdate = true
+  }, [])
   return (
-    <group>
-      {VENT_POSITIONS.map((pos, i) => (
-        <group key={`vent-${i}`} position={pos}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[0.8, 16]} />
-            <meshStandardMaterial
-              color="#ff3300"
-              emissive="#ff1100"
-              emissiveIntensity={3}
-              roughness={0.4}
-            />
-          </mesh>
-        </group>
-      ))}
-    </group>
+    <instancedMesh ref={ventIM} args={[undefined, undefined, _VENT_POSITIONS.length]}>
+      <circleGeometry args={[0.8, 16]} />
+      <meshStandardMaterial color="#ff3300" emissive="#ff1100" emissiveIntensity={3} roughness={0.4} />
+    </instancedMesh>
   )
 }
 
